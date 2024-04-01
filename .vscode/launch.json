@@ -1,0 +1,46 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "backend",
+      "request": "launch",
+      "type": "node",
+      "program": "${workspaceFolder}/back/main.ts",
+      "cwd": "${workspaceFolder}/back",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "--inspect-wait",
+        "--allow-all",
+        "--unstable"
+      ],
+      "attachSimplePort": 9229
+    },
+    {
+			"name": "sveltekit",
+			"request": "launch",
+			"runtimeArgs": ["run-script", "dev"],
+			"runtimeExecutable": "npm",
+			"skipFiles": ["<node_internals>/**"],
+			"type": "node",
+			"console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/front"
+		},
+    {
+			"type": "chrome",
+			"request": "launch",
+			"name": "browser",
+			"url": "http://localhost:5173",
+			"webRoot": "${workspaceFolder}/front/"
+		},
+  ],
+  "compounds": [
+		{
+			"name": "👉 Launch Backend+Frontend+Browser",
+			"configurations": ["backend", "sveltekit", "browser"]
+		}
+	]
+}

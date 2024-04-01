@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/png" href="%sveltekit.assets%/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="%sveltekit.assets%/apple-touch-icon.png">
+
+  <script>
+    function updateColorScheme() {
+      let colorScheme = 'dark';
+
+      // Get the user's theme preference form local storage
+      const savedColorScheme = localStorage.getItem("colorScheme");
+
+      if (savedColorScheme) {
+        colorScheme = savedColorScheme;
+      }
+      else {
+        const darkModeIsOnInOS = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        colorScheme = darkModeIsOnInOS ? 'dark' : 'light';
+      }
+
+      if (colorScheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
+    updateColorScheme();
+  </script>
+
+  <link rel="preload" href="%sveltekit.assets%/fonts/inter/InterVariable.woff2" as="font" type="font/ttf" />
+  <link rel="stylesheet" href="%sveltekit.assets%/fonts/inter/inter.css">
+  <style>
+    :root {
+      font-family: "Inter", sans-serif;
+    }
+
+    @supports (font-variation-settings: normal) {
+      :root {
+        font-family: "InterVariable", sans-serif;
+        font-optical-sizing: auto;
+      }
+    }
+  </style>
+  
+  <meta name="viewport" content="width=device-width" />
+  %sveltekit.head%
+</head>
+
+<body data-sveltekit-preload-data="hover" data-theme="supamindTheme">
+  <div style="display: contents" class="h-full overflow-hidden">%sveltekit.body%</div>
+</body>
+
+</html>
