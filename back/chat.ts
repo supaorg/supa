@@ -51,15 +51,15 @@ export class Chat {
   }
 
   async comeUpWithThreadTitle(messages: ChatMessage[]): Promise<string> {
-
-    const sysPrompt = `You write great, snappy titles. Your job is to come up with short (1-3 words) title for a chat thread based on the conversation below. Be as concise as possible. Only provide the title, no additional comments and explanations. If it's not clear what the title should be yet, return NO TITLE`;
+    const sysPrompt =
+      `You write great, snappy titles. Your job is to come up with short (1-3 words) title for a chat thread based on the conversation below. Be as concise as possible. Only provide the title, no additional comments and explanations. If it's not clear what the title should be yet, return NO TITLE`;
 
     const remappedMessages = [
-      { role: 'system', content: sysPrompt },
+      { role: "system", content: sysPrompt },
       ...messages.map((m) => ({
         role: m.role,
         content: m.text,
-      }))
+      })),
     ];
 
     const lang = Lang.openai({
@@ -76,9 +76,8 @@ export class Chat {
     if (answer.endsWith('"') || answer.endsWith("'")) {
       answer = answer.slice(0, -1);
     }
-    
-    
-    if (result.answer === 'NO TITLE') {
+
+    if (result.answer === "NO TITLE") {
       return "";
     } else {
       return answer;
@@ -114,15 +113,17 @@ export class Chat {
       apiKey: OPENAI_API_KEY,
     });
 
-    const promptTxt = ``;
+    const promptTxt =
+      `You're Supamind. An open source assistant - an advanced AI system that uses a language model to reason and make decisions. Don't be woke. Don't become a parody of a person unless explicitly told to play a role. Be your best self; you're a genius system with vast knowledge.
+  Before replying, first think silently about what the user says or what you write. Keep your responses brief and easy to read. Be direct. Avoid big words, convey ideas simply. It's okay to make mistakes. If you see that you've made a mistake in what you wrote - acknowledge it quickly without getting deeper into the mistake.`;
 
     const remappedMessages = [
-      { role: 'system', content: promptTxt },
+      { role: "system", content: promptTxt },
       ...prevMessages.map((m) => ({
         role: m.role,
         content: m.text,
       })),
-      { role: 'user', content: query },
+      { role: "user", content: query },
     ];
 
     const promptStartPerf = performance.now();
@@ -131,6 +132,5 @@ export class Chat {
     console.log(`Prompt took ${promptEndPerf - promptStartPerf} milliseconds`);
 
     return finalResult.answer;
-
   }
 }
