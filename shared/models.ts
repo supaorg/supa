@@ -9,6 +9,7 @@ export type ChatMessage = {
 
 export type Chat = {
   id: string;
+  agentId: string;
   createdAt: number;
   updatedAt: number | null;
   title: string | null;
@@ -21,3 +22,12 @@ export type Profile = {
 export type Secrets = {
   openai: string;
 }
+
+export type Agent = {
+  id: string;
+  name: string;
+  button: string;
+  description: string;
+  targetLLM: string;
+  systemPrompt: string;
+};

@@ -26,6 +26,7 @@
   } from "@floating-ui/dom";
     import SetupWizard from "./profile-setup/SetupWizard.svelte";
     import { profileStore, loadProfileFromServer } from "$lib/stores/profile";
+    import { loadAgentsFromServer } from "$lib/stores/agentStore";
 
   let tauriIntegration: ServerInTauri | null = null;
   let serverUrl = "http://localhost:6969";
@@ -57,6 +58,7 @@
     // Let's load stuff from the server to stores here
     loadProfileFromServer();
     loadThreadsFromServer();
+    loadAgentsFromServer();
 
     initialized = true;
   });

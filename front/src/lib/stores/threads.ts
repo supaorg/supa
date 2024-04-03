@@ -6,8 +6,8 @@ import { client } from '$lib/tools/client';
 
 export const threadsStore: Writable<ChatThread[]> = localStorageStore('threads', []);
 
-export async function createThread() {
-  const thread = await client.post("chats").then((res) => {
+export async function createThread(agentId: string) {
+  const thread = await client.post("chats", agentId).then((res) => {
     return res.data as ChatThread;
   });
 

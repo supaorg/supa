@@ -8,6 +8,7 @@ import { ProcessPortMsg } from '@shared/serverProcessMessages.ts';
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
 import { ChatMessage } from "@shared/models.ts";
 import { Profile } from "../shared/models.ts";
+import { defaultAgent } from "./agents/defaultAgent.ts";
 
 const app = new Application();
 const httpRouter = new Router();
@@ -68,13 +69,20 @@ neoRouter
   .onValidateBroadcast("profile", (conn, params) => {
     return true;
   })
+  .onGet("agents", (ctx) => {
+    const agents = db.getAgents();
+    ctx.response = agents;
+  })
   .onGet("chats", (ctx) => {
     const chats = db.getChats();
     ctx.response = chats;
   })
   .onPost("chats", (ctx) => {
+    const agentId = ctx.data as string;
+
     const chat = db.createChat({
       id: uuidv4(),
+      agentId,
       createdAt: Date.now(),
       updatedAt: null,
       title: '',
@@ -110,6 +118,7 @@ neoRouter
   })
   .onPost("chats/:chatId", async (ctx) => {
     const chatId = ctx.params.chatId;
+    const chat = db.getChat(chatId);
     const chatMessage = ctx.data as ChatMessage;
 
     if (db.checkChatMessage(chatId, chatMessage.id)) {
@@ -132,8 +141,10 @@ neoRouter
     });
 
     neoRouter.broadcast(ctx.route, dbChatReply);
+    
+    const agent = db.getAgent(chat.agentId) || defaultAgent;
 
-    await aiChat.ask(chatMessage.text, messages, (res) => {
+    await aiChat.ask(chatMessage.text, messages, agent.systemPrompt, (res) => {
       dbChatReply.text = res.answer;
       neoRouter.broadcast(ctx.route, dbChatReply);
       // And save the message to the database
@@ -148,12 +159,6 @@ neoRouter
 
     messages.push(chatMessage);
     messages.push(dbChatReply);
-
-    const chat = db.getChat(chatId);
-
-    if (!chat) {
-      return;
-    }
 
     if (!chat.title && messages.length >= 2) {
       const title = await aiChat.comeUpWithThreadTitle(messages);

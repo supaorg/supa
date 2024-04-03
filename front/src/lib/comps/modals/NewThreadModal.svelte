@@ -9,6 +9,10 @@
 
   const modalStore = getModalStore();
 
+  const agentId = $modalStore[0].meta.agentId;
+
+  console.log(agentId);
+
   let isSending = false;
 
   function onSend(msg: string) {
@@ -22,7 +26,7 @@
   async function newThread(message: string = "") {
     isSending = true;
 
-    const newThread = await createThread();
+    const newThread = await createThread(agentId);
 
     const msg = {
       id: uuidv4(),

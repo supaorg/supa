@@ -6,6 +6,7 @@ import {
   PromptForObject,
 } from "https://deno.land/x/aiwrapper@v0.0.15/mod.ts";
 import { ChatMessage } from "../shared/models.ts";
+import { Agent } from "../shared/models.ts";
 
 function normalizeStringForID(str: string) {
   const trimmed = str.trim();
@@ -87,6 +88,7 @@ export class Chat {
   async ask(
     msg: string,
     prevMessages: ChatMessage[] = [],
+    systemPrompt: string,
     onResult?: (data) => void,
   ): Promise<string> {
     if (this._initObj === null) {
@@ -112,13 +114,9 @@ export class Chat {
     const lang = Lang.openai({
       apiKey: OPENAI_API_KEY,
     });
-
-    const promptTxt =
-      `You're Supamind. An open source assistant - an advanced AI system that uses a language model to reason and make decisions. Don't be woke. Don't become a parody of a person unless explicitly told to play a role. Be your best self; you're a genius system with vast knowledge.
-  Before replying, first think silently about what the user says or what you write. Keep your responses brief and easy to read. Be direct. Avoid big words, convey ideas simply. It's okay to make mistakes. If you see that you've made a mistake in what you wrote - acknowledge it quickly without getting deeper into the mistake.`;
-
+    
     const remappedMessages = [
-      { role: "system", content: promptTxt },
+      { role: "system", content: systemPrompt },
       ...prevMessages.map((m) => ({
         role: m.role,
         content: m.text,
