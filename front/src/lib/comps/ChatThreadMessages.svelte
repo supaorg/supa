@@ -163,7 +163,7 @@
       {#each messages as message}
         {#if message.role === "user"}
           <div class="grid gap-2">
-            <div class="card p-4 variant-soft space-y-2">
+            <div class="card p-4 space-y-2">
               <header class="flex justify-between items-center">
                 <p class="font-bold">Me</p>
                 <small class="opacity-50"
@@ -175,12 +175,9 @@
           </div>
         {:else}
           <div class="grid gap-2">
-            <div class="card p-4 space-y-2">
+            <div class="p-4 space-y-2">
               <header class="flex justify-between items-center">
                 <p class="font-bold">AI</p>
-                <small class="opacity-50"
-                  >{formatChatDate(message.createdAt)}</small
-                >
               </header>
               {@html marked(message.text ? message.text : "Loading...")}
             </div>

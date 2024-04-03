@@ -1,6 +1,5 @@
 export type ChatMessage = {
   id: string;
-  chatThreadId: string;
   role: string | null;
   text: string | null;
   inProgress: number | null;
@@ -8,7 +7,7 @@ export type ChatMessage = {
   updatedAt: number | null;
 }
 
-export type ChatThread = {
+export type Chat = {
   id: string;
   createdAt: number;
   updatedAt: number | null;

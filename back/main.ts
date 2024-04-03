@@ -35,8 +35,8 @@ if (Deno.args.length > 0) {
 await ensureDir(dataPath);
 
 const db = new AppDb(dataPath);
-const chat = new Chat();
-await chat.init();
+const aiChat = new Chat();
+await aiChat.init();
 
 console.log(`HTTP server is running. Access it at: ${SERVER_HOST}/`);
 
@@ -69,62 +69,61 @@ neoRouter
     return true;
   })
   .onGet("chats", (ctx) => {
-    const threads = db.getChatThreads();
-    ctx.response = threads;
+    const chats = db.getChats();
+    ctx.response = chats;
   })
   .onPost("chats", (ctx) => {
-    const thread = db.createChatThread({
+    const chat = db.createChat({
       id: uuidv4(),
       createdAt: Date.now(),
       updatedAt: null,
       title: '',
     });
 
-    ctx.response = thread;
+    ctx.response = chat;
 
-    neoRouter.broadcast(ctx.route, thread);
+    neoRouter.broadcast(ctx.route, chat);
   })
-  .onDelete("chats/:threadId", (ctx) => {
-    const threadId = ctx.params.threadId;
-    db.deleteChatThread(threadId);
-    neoRouter.broadcastDeletion('chats', threadId);
+  .onDelete("chats/:chatId", (ctx) => {
+    const chatId = ctx.params.chatId;
+    db.deleteChat(chatId);
+    neoRouter.broadcastDeletion('chats', chatId);
   })
-  .onGet("chats/:threadId", (ctx) => {
-    const threadId = ctx.params.threadId;
-    const thread = db.getChatThreadById(threadId);
+  .onGet("chats/:chatId", (ctx) => {
+    const chatId = ctx.params.chatId;
+    const chat = db.getChat(chatId);
 
-    if (thread === null) {
+    if (chat === null) {
       ctx.error = "Couldn't get thread";
       return;
     }
 
-    const messages = db.getChatMessagesByThreadId(threadId);
+    const messages = db.getChatMessages(chatId);
 
     ctx.response = messages;
   })
   .onValidateBroadcast("chats", (conn, params) => {
     return true;
   })
-  .onValidateBroadcast("chats/:threadId", (conn, params) => {
+  .onValidateBroadcast("chats/:chatId", (conn, params) => {
     return true;
   })
-  .onPost("chats/:threadId", async (ctx) => {
-    const threadId = ctx.params.threadId;
+  .onPost("chats/:chatId", async (ctx) => {
+    const chatId = ctx.params.chatId;
     const chatMessage = ctx.data as ChatMessage;
 
-    if (db.checkChatMessage(threadId, chatMessage.id)) {
+    if (db.checkChatMessage(chatId, chatMessage.id)) {
       ctx.error = "Message already exists";
       return;
     }
 
-    const messages = db.getChatMessagesByThreadId(threadId);
+    const messages = db.getChatMessages(chatId);
 
-    db.createChatMessage(chatMessage);
+    db.createChatMessage(chatId, chatMessage);
     neoRouter.broadcast(ctx.route, chatMessage);
 
-    const dbChatReply = db.createChatMessage({
+    const dbChatReply = db.createChatMessage(chatId, {
       id: uuidv4(),
-      chatThreadId: threadId,
       role: "assistant",
       text: 'Thinking...',
       inProgress: 1,
@@ -134,33 +133,33 @@ neoRouter
 
     neoRouter.broadcast(ctx.route, dbChatReply);
 
-    await chat.ask(chatMessage.text, messages, (res) => {
+    await aiChat.ask(chatMessage.text, messages, (res) => {
       dbChatReply.text = res.answer;
       neoRouter.broadcast(ctx.route, dbChatReply);
       // And save the message to the database
-      db.updateChatMessage(dbChatReply);
+      db.updateChatMessage(chatId, dbChatReply);
     });
 
     dbChatReply.inProgress = 0;
     dbChatReply.updatedAt = Date.now();
     dbChatReply.inProgress = 0;
-    db.updateChatMessage(dbChatReply);
+    db.updateChatMessage(chatId, dbChatReply);
     neoRouter.broadcast(ctx.route, dbChatReply);
 
     messages.push(chatMessage);
     messages.push(dbChatReply);
 
-    const thread = db.getChatThreadById(threadId);
+    const chat = db.getChat(chatId);
 
-    if (!thread) {
+    if (!chat) {
       return;
     }
 
-    if (!thread.title && messages.length >= 2) {
-      const title = await chat.comeUpWithThreadTitle(messages);
-      thread.title = title;
-      db.updateChatThread(thread);
-      neoRouter.broadcastUpdate('chats', thread);
+    if (!chat.title && messages.length >= 2) {
+      const title = await aiChat.comeUpWithThreadTitle(messages);
+      chat.title = title;
+      db.updateChat(chat);
+      neoRouter.broadcastUpdate('chats', chat);
     }
 
   })
