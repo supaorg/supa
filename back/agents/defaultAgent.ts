@@ -2,7 +2,7 @@ import { Agent } from "@shared/models.ts";
 
 export const defaultAgent: Agent = {
   id: "default",
-  name: "Default",
+  name: "Chat with Supamind",
   button: "New question",
   description: "A basic chat assistant",
   targetLLM: "openai/gpt-4-turbo",

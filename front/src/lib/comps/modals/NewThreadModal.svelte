@@ -1,17 +1,37 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import type { ChatMessage, ChatThread } from "@shared/models";
+  import type { Agent, ChatMessage, ChatThread } from "@shared/models";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { createThread } from "$lib/stores/threads";
+  import { agentStore } from "$lib/stores/agentStore";
 
   const modalStore = getModalStore();
 
-  const agentId = $modalStore[0].meta.agentId;
+  const agentId = $modalStore[0].meta.agentId as string;
+  let agent: Agent | undefined;
+  let placeholder = "Write a message...";
 
-  console.log(agentId);
+  $: {
+    let targetAgent: Agent | undefined;
+
+    for (const agent of $agentStore) {
+      if (agent.id === agentId) {
+        targetAgent = agent;
+        break;
+      }
+    }
+
+    if (targetAgent) {
+      placeholder = targetAgent.button;
+    }
+
+    agent = targetAgent;
+
+    console.log(agent);
+  }
 
   let isSending = false;
 
@@ -56,6 +76,9 @@
   {#if isSending}
     <div>Loading...</div>
   {:else}
-    <SendMessageForm {onSend} />
+    {#if agent}
+      <h3 class="h3">{agent.name}</h3>
+    {/if}
+    <SendMessageForm {onSend} {placeholder} />
   {/if}
 </div>

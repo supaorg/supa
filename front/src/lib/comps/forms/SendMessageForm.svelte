@@ -5,6 +5,7 @@
   export let onSend: (msg: string) => void;
   export let onHeightChange: (height: number) => void = () => {};
   export let isFocused = true;
+  export let placeholder = "Write a message...";
 
   let query = "";
 
@@ -51,14 +52,14 @@
       class="bg-transparent resize-none border-0 ring-0"
       name="prompt"
       id="prompt"
-      placeholder="Write a message..."
+      {placeholder}
       rows="1"
       on:keydown={handleKeydownInChatInput}
       on:keyup={handleKeyupInChatInput}
     />
     <button
       class={query ? "variant-filled-primary" : "input-group-shim"}
-      data-focusindex="1" 
+      data-focusindex="1"
       on:click={sendMsg}
     >
       <Icon src={PaperAirplane} mini class="w-4 h-4" />
