@@ -4,10 +4,10 @@ import { Application, Router as Router } from "https://deno.land/x/oak/mod.ts";
 import { Router as NeoRouter } from "../shared/restOnSockets/Router.ts";
 import { AppDb } from "./db/appDb.ts";
 import { load } from "https://deno.land/std@0.202.0/dotenv/mod.ts";
-import { ProcessPortMsg } from '@shared/serverProcessMessages.ts';
+import { ProcessPortMsg } from "@shared/serverProcessMessages.ts";
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
 import { ChatMessage } from "@shared/models.ts";
-import { Profile } from "../shared/models.ts";
+import { Profile, Agent } from "../shared/models.ts";
 import { defaultAgent } from "./agents/defaultAgent.ts";
 
 const app = new Application();
@@ -17,14 +17,14 @@ const neoRouter = new NeoRouter();
 // Let's load the .env varialbes explicitly at the very beginning.
 await load({ export: true });
 
-export const SERVER_HOST: string = Deno.env.get('SERVER_HOST');
-export const SERVER_PORT: number = parseInt(Deno.env.get('SERVER_PORT'));
+export const SERVER_HOST: string = Deno.env.get("SERVER_HOST");
+export const SERVER_PORT: number = parseInt(Deno.env.get("SERVER_PORT"));
 
 if (!SERVER_HOST) {
-  throw new Error('SERVER_HOST is not set in the .env file');
+  throw new Error("SERVER_HOST is not set in the .env file");
 }
 if (!SERVER_PORT) {
-  throw new Error('SERVER_PORT is not set in the .env file');
+  throw new Error("SERVER_PORT is not set in the .env file");
 }
 
 let dataPath = "data-dev/";
@@ -73,6 +73,21 @@ neoRouter
     const agents = db.getAgents();
     ctx.response = agents;
   })
+  .onPost("agents", (ctx) => {
+    const agentForm = JSON.parse(ctx.data);
+
+    const newAgent: Agent = {
+      id: uuidv4(),
+      name: agentForm.name,
+      button: agentForm.buttonText,
+      description: agentForm.description,
+      targetLLM: 'openai/gpt-4-turbo',
+      systemPrompt: agentForm.instructions,
+    };
+
+    db.insertAgent(newAgent);
+    neoRouter.broadcast(ctx.route, newAgent);
+  })
   .onGet("chats", (ctx) => {
     const chats = db.getChats();
     ctx.response = chats;
@@ -85,7 +100,7 @@ neoRouter
       agentId,
       createdAt: Date.now(),
       updatedAt: null,
-      title: '',
+      title: "",
     });
 
     ctx.response = chat;
@@ -95,7 +110,7 @@ neoRouter
   .onDelete("chats/:chatId", (ctx) => {
     const chatId = ctx.params.chatId;
     db.deleteChat(chatId);
-    neoRouter.broadcastDeletion('chats', chatId);
+    neoRouter.broadcastDeletion("chats", chatId);
   })
   .onGet("chats/:chatId", (ctx) => {
     const chatId = ctx.params.chatId;
@@ -134,14 +149,14 @@ neoRouter
     const dbChatReply = db.createChatMessage(chatId, {
       id: uuidv4(),
       role: "assistant",
-      text: 'Thinking...',
+      text: "Thinking...",
       inProgress: 1,
       createdAt: Date.now(),
       updatedAt: null,
     });
 
     neoRouter.broadcast(ctx.route, dbChatReply);
-    
+
     const agent = db.getAgent(chat.agentId) || defaultAgent;
 
     await aiChat.ask(chatMessage.text, messages, agent.systemPrompt, (res) => {
@@ -164,10 +179,9 @@ neoRouter
       const title = await aiChat.comeUpWithThreadTitle(messages);
       chat.title = title;
       db.updateChat(chat);
-      neoRouter.broadcastUpdate('chats', chat);
+      neoRouter.broadcastUpdate("chats", chat);
     }
-
-  })
+  });
 
 app.use((ctx, next) => {
   ctx.response.headers.set("Access-Control-Allow-Origin", "*");
@@ -185,7 +199,11 @@ app.use((ctx, next) => {
 app.use(httpRouter.routes());
 app.use(httpRouter.allowedMethods());
 
-async function startServer(app: Application, startingPort: number, callback: (port: number) => void) {
+async function startServer(
+  app: Application,
+  startingPort: number,
+  callback: (port: number) => void,
+) {
   let port = startingPort;
   while (true) {
     try {
@@ -195,7 +213,9 @@ async function startServer(app: Application, startingPort: number, callback: (po
       break;
     } catch (error) {
       if (error instanceof Deno.errors.AddrInUse) {
-        console.log(`Port ${port} is already in use. Trying port ${port + 1}...`);
+        console.log(
+          `Port ${port} is already in use. Trying port ${port + 1}...`,
+        );
         port++; // Try the next port
       } else {
         console.log(`Failed to start server: ${error}`);

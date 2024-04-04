@@ -73,6 +73,17 @@ export class AppDb {
     }
   }
 
+  insertAgent(agent: Agent): Agent {
+    ensureDir(this.resolvePath("agents", agent.id));
+
+    Deno.writeTextFileSync(
+      this.resolvePath("agents", agent.id, "_agent.json"),
+      JSON.stringify(agent),
+    );
+
+    return agent;
+  }
+
   createChat(chat: Chat): Chat {
     ensureDir(this.resolvePath(`chats/${chat.id}`));
 
