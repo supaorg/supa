@@ -210,7 +210,7 @@
     </section>
   </div>
   <div
-    class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 dark:bg-surface-700"
+    class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 dark:bg-surface-500"
   >
     <section class="p-4 pt-0">
       <SendMessageForm
