@@ -178,7 +178,9 @@
                   >{formatChatDate(message.createdAt)}</small
                 >
               </header>
-              {@html marked(message.text ? message.text : "Loading...")}
+              <div class="leading-relaxed">
+                {@html marked(message.text ? message.text : "Loading...")}
+              </div>
               <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
                 <div class="h-7"></div>
               </div>
@@ -195,7 +197,9 @@
               <header class="flex justify-between items-center">
                 <p class="font-bold">AI</p>
               </header>
-              {@html marked(message.text ? message.text : "Loading...")}
+              <div class="leading-relaxed">
+                {@html marked(message.text ? message.text : "Loading...")}
+              </div>
               <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
                 <div class="h-7"></div>
               </div>

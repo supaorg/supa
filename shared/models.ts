@@ -29,5 +29,5 @@ export type Agent = {
   button: string;
   description: string;
   targetLLM: string;
-  systemPrompt: string;
+  instructions: string;
 };

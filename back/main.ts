@@ -82,7 +82,7 @@ neoRouter
       button: agentForm.buttonText,
       description: agentForm.description,
       targetLLM: 'openai/gpt-4-turbo',
-      systemPrompt: agentForm.instructions,
+      instructions: agentForm.instructions,
     };
 
     await db.insertAgent(newAgent);
@@ -159,7 +159,9 @@ neoRouter
 
     const agent = await db.getAgent(chat.agentId) || defaultAgent;
 
-    await aiChat.ask(chatMessage.text, messages, agent.systemPrompt, (res) => {
+    const systemPrompt = agent.instructions + "\n\n" + 'Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks.';
+
+    await aiChat.ask(chatMessage.text, messages, systemPrompt, (res) => {
       dbChatReply.text = res.answer;
       neoRouter.broadcast(ctx.route, dbChatReply);
       // And save the message to the database
