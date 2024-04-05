@@ -21,10 +21,10 @@
   }
 </script>
 
-<div class="p-4">
+<div class="p-2">
   {#each $agentStore as agent (agent.id)}
     <button
-      class="btn w-full flex items-center justify-center"
+      class="sidebarBtn w-full flex"
       data-agent-id={agent.id}
       on:click={openNewThreadModal}
     >
@@ -38,7 +38,7 @@
   {/each}
   <a
   href="/agents"
-  class="btn w-full flex items-center justify-center"
+  class="sidebarBtn w-full flex"
 >
   <span class="w-8 h-8 flex-shrink-0">
     <span class="relative flex h-full items-center justify-center">

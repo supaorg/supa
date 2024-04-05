@@ -86,7 +86,7 @@
     <svelte:fragment slot="header">
     </svelte:fragment>
     <svelte:fragment slot="sidebarLeft">
-      <div class="hidden md:block h-full bg-surface-50-900-token border-r border-surface-500/30" style="width: 260px;">
+      <div class="hidden md:block h-full light:bg-surface-100 dark:bg-surface-900-token border-r dark:border-surface-500/30" style="width: 260px;">
           <Sidebar />
       </div>
     </svelte:fragment>
