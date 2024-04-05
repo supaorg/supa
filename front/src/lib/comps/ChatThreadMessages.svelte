@@ -206,7 +206,7 @@
     </section>
   </div>
   <div
-    class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 bg-surface-50-900-token"
+    class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 bg-surface-100-800-token"
   >
     <section class="p-4 pt-0">
       <SendMessageForm
