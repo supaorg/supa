@@ -9,9 +9,9 @@
   });
 </script>
 
-<ul>
+<ul class="mt-4">
   {#each $threadsStore as thread (thread.id)}
-    <li class="relative mb-1">
+    <li class="relative">
       <ThreadButtonInSidebar
         {thread}
         active={thread.id === currentThreadId}

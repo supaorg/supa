@@ -53,27 +53,27 @@ httpRouter.get("/", (context) => {
 });
 
 neoRouter
-  .onPost("setup", (ctx) => {
-    db.insertProfile({ name: ctx.data.name });
-    db.insertSecrets({ openai: ctx.data.openai });
+  .onPost("setup", async (ctx) => {
+    await db.insertProfile({ name: ctx.data.name });
+    await db.insertSecrets({ openai: ctx.data.openai });
   })
-  .onGet("profile", (ctx) => {
-    const profile = db.getProfile();
+  .onGet("profile", async (ctx) => {
+    const profile = await db.getProfile();
     ctx.response = profile;
   })
-  .onPost("profile", (ctx) => {
+  .onPost("profile", async (ctx) => {
     const profile = ctx.data as Profile;
-    db.insertProfile(profile);
+    await db.insertProfile(profile);
     neoRouter.broadcast(ctx.route, profile);
   })
   .onValidateBroadcast("profile", (conn, params) => {
     return true;
   })
-  .onGet("agents", (ctx) => {
-    const agents = db.getAgents();
+  .onGet("agents", async (ctx) => {
+    const agents = await db.getAgents();
     ctx.response = agents;
   })
-  .onPost("agents", (ctx) => {
+  .onPost("agents", async (ctx) => {
     const agentForm = JSON.parse(ctx.data);
 
     const newAgent: Agent = {
@@ -85,17 +85,17 @@ neoRouter
       systemPrompt: agentForm.instructions,
     };
 
-    db.insertAgent(newAgent);
+    await db.insertAgent(newAgent);
     neoRouter.broadcast(ctx.route, newAgent);
   })
-  .onGet("chats", (ctx) => {
-    const chats = db.getChats();
+  .onGet("chats", async (ctx) => {
+    const chats = await db.getChats();
     ctx.response = chats;
   })
-  .onPost("chats", (ctx) => {
+  .onPost("chats", async (ctx) => {
     const agentId = ctx.data as string;
 
-    const chat = db.createChat({
+    const chat = await db.createChat({
       id: uuidv4(),
       agentId,
       createdAt: Date.now(),
@@ -107,21 +107,21 @@ neoRouter
 
     neoRouter.broadcast(ctx.route, chat);
   })
-  .onDelete("chats/:chatId", (ctx) => {
+  .onDelete("chats/:chatId", async (ctx) => {
     const chatId = ctx.params.chatId;
-    db.deleteChat(chatId);
+    await db.deleteChat(chatId);
     neoRouter.broadcastDeletion("chats", chatId);
   })
-  .onGet("chats/:chatId", (ctx) => {
+  .onGet("chats/:chatId", async (ctx) => {
     const chatId = ctx.params.chatId;
-    const chat = db.getChat(chatId);
+    const chat = await db.getChat(chatId);
 
     if (chat === null) {
       ctx.error = "Couldn't get thread";
       return;
     }
 
-    const messages = db.getChatMessages(chatId);
+    const messages = await db.getChatMessages(chatId);
 
     ctx.response = messages;
   })
@@ -133,20 +133,20 @@ neoRouter
   })
   .onPost("chats/:chatId", async (ctx) => {
     const chatId = ctx.params.chatId;
-    const chat = db.getChat(chatId);
+    const chat = await db.getChat(chatId);
     const chatMessage = ctx.data as ChatMessage;
 
-    if (db.checkChatMessage(chatId, chatMessage.id)) {
+    if (await db.checkChatMessage(chatId, chatMessage.id)) {
       ctx.error = "Message already exists";
       return;
     }
 
-    const messages = db.getChatMessages(chatId);
+    const messages = await db.getChatMessages(chatId);
 
-    db.createChatMessage(chatId, chatMessage);
+    await db.createChatMessage(chatId, chatMessage);
     neoRouter.broadcast(ctx.route, chatMessage);
 
-    const dbChatReply = db.createChatMessage(chatId, {
+    const dbChatReply = await db.createChatMessage(chatId, {
       id: uuidv4(),
       role: "assistant",
       text: "Thinking...",
@@ -157,7 +157,7 @@ neoRouter
 
     neoRouter.broadcast(ctx.route, dbChatReply);
 
-    const agent = db.getAgent(chat.agentId) || defaultAgent;
+    const agent = await db.getAgent(chat.agentId) || defaultAgent;
 
     await aiChat.ask(chatMessage.text, messages, agent.systemPrompt, (res) => {
       dbChatReply.text = res.answer;
@@ -169,7 +169,7 @@ neoRouter
     dbChatReply.inProgress = 0;
     dbChatReply.updatedAt = Date.now();
     dbChatReply.inProgress = 0;
-    db.updateChatMessage(chatId, dbChatReply);
+    await db.updateChatMessage(chatId, dbChatReply);
     neoRouter.broadcast(ctx.route, dbChatReply);
 
     messages.push(chatMessage);
@@ -178,7 +178,7 @@ neoRouter
     if (!chat.title && messages.length >= 2) {
       const title = await aiChat.comeUpWithThreadTitle(messages);
       chat.title = title;
-      db.updateChat(chat);
+      await db.updateChat(chat);
       neoRouter.broadcastUpdate("chats", chat);
     }
   });

@@ -11,9 +11,9 @@ export class AppDb {
     return join(this.dataPath, ...paths);
   }
 
-  getProfile(): Profile | null {
+  async getProfile(): Promise<Profile | null> {
     try {
-      const profileStr = Deno.readTextFileSync(
+      const profileStr = await Deno.readTextFile(
         this.resolvePath("profile.json"),
       );
 
@@ -27,8 +27,8 @@ export class AppDb {
     }
   }
 
-  insertProfile(profile: Profile): Profile {
-    Deno.writeTextFileSync(
+  async insertProfile(profile: Profile): Promise<Profile> {
+    await Deno.writeTextFile(
       this.resolvePath("profile.json"),
       JSON.stringify(profile),
     );
@@ -36,8 +36,8 @@ export class AppDb {
     return profile;
   }
 
-  insertSecrets(secrets: Secrets): Secrets {
-    Deno.writeTextFileSync(
+  async insertSecrets(secrets: Secrets): Promise<Secrets> {
+    await Deno.writeTextFile(
       this.resolvePath("secrets.json"),
       JSON.stringify(secrets),
     );
@@ -45,8 +45,8 @@ export class AppDb {
     return secrets;
   }
 
-  getAgents(): Agent[] {
-    ensureDir(this.resolvePath("agents"));
+  async getAgents(): Promise<Agent[]> {
+    await ensureDir(this.resolvePath("agents"));
     const agents = this.getFiles(this.resolvePath("agents"), "_agent.json");
 
     return [defaultAgent, ...agents.map((agentFile) => {
@@ -55,8 +55,8 @@ export class AppDb {
     })];
   }
 
-  getAgent(agentId: string): Agent | null {
-    ensureDir(this.resolvePath("agents"));
+  async getAgent(agentId: string): Promise<Agent | null> {
+    await ensureDir(this.resolvePath("agents"));
 
     try {
       const agentStr = Deno.readTextFileSync(
@@ -73,8 +73,8 @@ export class AppDb {
     }
   }
 
-  insertAgent(agent: Agent): Agent {
-    ensureDir(this.resolvePath("agents", agent.id));
+  async insertAgent(agent: Agent): Promise<Agent> {
+    await ensureDir(this.resolvePath("agents", agent.id));
 
     Deno.writeTextFileSync(
       this.resolvePath("agents", agent.id, "_agent.json"),
@@ -84,22 +84,23 @@ export class AppDb {
     return agent;
   }
 
-  createChat(chat: Chat): Chat {
-    ensureDir(this.resolvePath(`chats/${chat.id}`));
+  async createChat(chat: Chat): Promise<Chat> {
+    // @TODO: make them async!
+    await ensureDir(this.resolvePath(`chats/${chat.id}`));
 
     // Create a file with id of the chat and a folder with the same id for messages
     Deno.writeTextFileSync(
       this.resolvePath(`chats/${chat.id}/_chat.json`),
       JSON.stringify(chat),
     );
-    ensureDir(this.resolvePath("chats", chat.id));
+    await ensureDir(this.resolvePath("chats", chat.id));
 
     return chat;
   }
 
-  deleteChat(chatId: string): void {
+  async deleteChat(chatId: string): Promise<void> {
     try {
-      Deno.removeSync(this.resolvePath("chats", chatId), {
+      await Deno.remove(this.resolvePath("chats", chatId), {
         recursive: true,
       });
     } catch (error) {
@@ -107,8 +108,8 @@ export class AppDb {
     }
   }
 
-  getChat(chatId: string): Chat | null {
-    ensureDir(this.resolvePath(`chats/${chatId}`));
+  async getChat(chatId: string): Promise<Chat | null> {
+    await ensureDir(this.resolvePath(`chats/${chatId}`));
 
     try {
       const chatStr = Deno.readTextFileSync(
@@ -125,23 +126,23 @@ export class AppDb {
     }
   }
 
-  updateChat(chat: Chat): void {
-    ensureDir(this.resolvePath(`chats/${chat.id}`));
+  async updateChat(chat: Chat): Promise<void> {
+    await ensureDir(this.resolvePath(`chats/${chat.id}`));
 
-    Deno.writeTextFileSync(
+    await Deno.writeTextFile(
       this.resolvePath(`chats/${chat.id}/_chat.json`),
       JSON.stringify(chat),
     );
   }
 
-  getChats(): Chat[] {
-    ensureDir(this.resolvePath("chats"));
+  async getChats(): Promise<Chat[]> {
+    await ensureDir(this.resolvePath("chats"));
 
     const chatFiles = this.getFiles(this.resolvePath("chats"), "_chat.json");
     const chats: Chat[] = [];
 
     for (const chatFile of chatFiles) {
-      const chatStr = Deno.readTextFileSync(chatFile);
+      const chatStr = await Deno.readTextFile(chatFile);
       chats.push(JSON.parse(chatStr));
     }
 
@@ -166,8 +167,8 @@ export class AppDb {
     return chatFiles;
   }
 
-  createChatMessage(chatId: string, message: ChatMessage): ChatMessage {
-    ensureDir(this.resolvePath("chats", chatId));
+  async createChatMessage(chatId: string, message: ChatMessage): Promise<ChatMessage> {
+    await ensureDir(this.resolvePath("chats", chatId));
 
     // Create a file with the id of the message
     Deno.writeTextFileSync(
@@ -178,9 +179,9 @@ export class AppDb {
     return message;
   }
 
-  checkChatMessage(chatId: string, messageId: string): boolean {
+  async checkChatMessage(chatId: string, messageId: string): Promise<boolean> {
     try {
-      Deno.readTextFileSync(
+      await Deno.readTextFile(
         this.resolvePath("chats", chatId, `${messageId}.json`),
       );
       return true;
@@ -189,16 +190,14 @@ export class AppDb {
     }
   }
 
-  updateChatMessage(chatId: string, message: ChatMessage): void {
-    Deno.writeTextFileSync(
+  async updateChatMessage(chatId: string, message: ChatMessage): Promise<void> {
+    await Deno.writeTextFile(
       this.resolvePath("chats", chatId, `${message.id}.json`),
       JSON.stringify(message),
     );
   }
 
-  getChatMessages(
-    chatId: string,
-  ): ChatMessage[] {
+  async getChatMessages(chatId: string): Promise<ChatMessage[]> {
     // Get all messages in the folder with the chat id
     const messageFiles = Deno.readDirSync(
       this.resolvePath("chats", chatId),
@@ -212,7 +211,7 @@ export class AppDb {
           continue;
         }
 
-        const messageStr = Deno.readTextFileSync(
+        const messageStr = await Deno.readTextFile(
           this.resolvePath("chats", chatId, messageFile.name),
         );
         messages.push(JSON.parse(messageStr));
