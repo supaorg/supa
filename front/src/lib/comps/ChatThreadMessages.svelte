@@ -7,6 +7,7 @@
   import { client } from "$lib/tools/client";
   import { goto } from "$app/navigation";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
+    import { Icon, Sparkles, UserCircle } from "svelte-hero-icons";
 
   export let threadId: string;
 
@@ -153,33 +154,51 @@
     });
   }
 
-  function handleTextareaHeightChange(newHeight: number) {
-  }
+  function handleTextareaHeightChange(newHeight: number) {}
 </script>
 
 <div class="flex h-full flex-col max-w-3xl mx-auto justify-center items-center">
   <div class="flex-1 w-full overflow-hidden">
-    <section class="overflow-y-auto space-y-4 pb-4 p-4" bind:this={chatWrapperElement}>
+    <section
+      class="overflow-y-auto space-y-4 pb-4 p-4"
+      bind:this={chatWrapperElement}
+    >
       {#each messages as message}
         {#if message.role === "user"}
-          <div class="grid gap-2">
-            <div class="card p-4 space-y-2">
+          <div class="flex flex-1 text-base mx-auto gap-3">
+            <div class="flex-shrink-0 flex flex-col relative items-end">
+              <div class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden">
+                <Icon src={UserCircle} mini class="h-6 w-6" />
+              </div>
+            </div>
+            <div class="relative flex w-full flex-col">
               <header class="flex justify-between items-center">
-                <p class="font-bold">Me</p>
+                <p class="font-bold">You</p>
                 <small class="opacity-50"
                   >{formatChatDate(message.createdAt)}</small
                 >
               </header>
               {@html marked(message.text ? message.text : "Loading...")}
+              <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
+                <div class="h-7"></div>
+              </div>
             </div>
           </div>
         {:else}
-          <div class="grid gap-2">
-            <div class="p-4 space-y-2">
+          <div class="flex flex-1 text-base mx-auto gap-3">
+            <div class="flex-shrink-0 flex flex-col relative items-end">
+              <div class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden">
+                <Icon src={Sparkles} mini class="h-6 w-6" />
+              </div>
+            </div>
+            <div class="relative flex w-full flex-col">
               <header class="flex justify-between items-center">
                 <p class="font-bold">AI</p>
               </header>
               {@html marked(message.text ? message.text : "Loading...")}
+              <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
+                <div class="h-7"></div>
+              </div>
             </div>
           </div>
         {/if}
@@ -190,7 +209,10 @@
     class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 bg-surface-50-900-token"
   >
     <section class="p-4 pt-0">
-      <SendMessageForm onSend={sendMsg} onHeightChange={handleTextareaHeightChange} />
+      <SendMessageForm
+        onSend={sendMsg}
+        onHeightChange={handleTextareaHeightChange}
+      />
     </section>
   </div>
 </div>
