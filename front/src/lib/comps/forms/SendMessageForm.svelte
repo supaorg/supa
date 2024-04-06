@@ -43,12 +43,12 @@
 
 <form use:focusTrap={isFocused}>
   <div
-    class="input-group flex input-group-divider grid-cols-2 rounded-container-token"
+    class="input-group flex input-group-divider grid-cols-2 rounded-container-token p-2"
   >
     <textarea
       bind:value={query}
       data-focusindex="0"
-      class="bg-transparent resize-none border-0 ring-0 flex-grow"
+      class="chat-textarea bg-transparent resize-none border-0 ring-0 flex-grow"
       name="prompt"
       id="prompt"
       {placeholder}
@@ -57,7 +57,7 @@
       on:keyup={handleKeyupInChatInput}
     />
     <button
-      class={query ? "variant-filled-primary" : "input-group-shim"} 
+      class={`btn btn-sm h-10 ${query ? "variant-filled-primary" : "input-group-shim"}`}
       data-focusindex="1"
       on:click={sendMsg}
     >
