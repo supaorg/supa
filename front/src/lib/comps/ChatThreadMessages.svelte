@@ -210,9 +210,9 @@
     </section>
   </div>
   <div
-    class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 dark:bg-surface-500"
+    class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 page-bg"
   >
-    <section class="p-4 pt-0">
+    <section class="p-2 pt-2">
       <SendMessageForm
         onSend={sendMsg}
         onHeightChange={handleTextareaHeightChange}

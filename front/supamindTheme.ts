@@ -7,7 +7,7 @@ export const supamindTheme: CustomThemeConfig = {
 		"--theme-font-family-base": `system-ui`,
 		"--theme-font-family-heading": `system-ui`,
 		"--theme-font-color-base": "0 0 0",
-		"--theme-font-color-dark": "255 255 255",
+		"--theme-font-color-dark": "var(--color-surface-200)",
 		"--theme-rounded-base": "4px",
 		"--theme-rounded-container": "4px",
 		"--theme-border-base": "1px",
