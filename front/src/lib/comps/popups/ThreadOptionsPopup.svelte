@@ -20,7 +20,7 @@
   }
 
   function deleteThread() {
-    client.delete('chats/' + threadId).then(() => {
+    client.delete('threads/' + threadId).then(() => {
       console.log('Thread deleted');
     });
     goto('/');

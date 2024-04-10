@@ -3,7 +3,7 @@
   import { v4 as uuidv4 } from "uuid";
   import { marked } from "marked";
   import { tick } from "svelte";
-  import type { ChatMessage, ChatThread } from "@shared/models";
+  import type { ChatMessage } from "@shared/models";
   import { client } from "$lib/tools/client";
   import { goto } from "$app/navigation";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
@@ -18,7 +18,7 @@
     if (prevThreadId !== threadId) {
       fetchThreadMessages();
 
-      client.unlisten(`chats/${prevThreadId}`);
+      client.unlisten(`threads/${prevThreadId}`);
     }
 
     prevThreadId = threadId;
@@ -81,7 +81,7 @@
       updatedAt: null,
     } as ChatMessage;
 
-    client.post(`chats/${threadId}`, msg);
+    client.post(`threads/${threadId}`, msg);
 
     messages.push(msg);
     messages = [...messages];
@@ -114,7 +114,7 @@
   }
 
   async function fetchThreadMessages() {
-    messages = await client.get(`chats/${threadId}`).then((res) => {
+    messages = await client.get(`threads/${threadId}`).then((res) => {
       if (res.error) {
         console.error(res.error);
         goto("/");
@@ -127,7 +127,7 @@
 
     scrollToBottom();
 
-    client.listen(`chats/${threadId}`, (broadcast) => {
+    client.listen(`threads/${threadId}`, (broadcast) => {
       const chatMsg = broadcast.data as ChatMessage;
       onChatMsg(chatMsg);
 
@@ -141,7 +141,7 @@
 
   onDestroy(async () => {
     if (threadId) {
-      client.unlisten(`chats/${threadId}`);
+      client.unlisten(`threads/${threadId}`);
     }
   });
 

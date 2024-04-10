@@ -115,10 +115,12 @@ export class Router {
     const verbAndHandler = targetRoute.verbs.find((vh) => vh.verb === verb);
     if (!verbAndHandler) {
       targetRoute.verbs.push({
+        // @TODO: perhaps push here the variables of the route, so we can use whatever user defined, e.g: :name, :id, etc
         verb,
         handler
       });
     } else {
+      // @TODO: how about having multiple handlers for the same verb?
       verbAndHandler.handler = handler;
     }
 

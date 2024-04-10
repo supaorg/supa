@@ -24,7 +24,7 @@
 <div class="p-2">
   {#each $agentStore as agent (agent.id)}
     <button
-      class="sidebarBtn w-full flex"
+      class="sidebar-btn w-full flex"
       data-agent-id={agent.id}
       on:click={openNewThreadModal}
     >
@@ -36,9 +36,10 @@
       <span class="flex-grow text-left">{agent.button}</span>
     </button>
   {/each}
+  <!--
   <a
   href="/agents"
-  class="sidebarBtn w-full flex"
+  class="sidebar-btn w-full flex"
 >
   <span class="w-8 h-8 flex-shrink-0">
     <span class="relative flex h-full items-center justify-center">
@@ -47,5 +48,6 @@
   </span>
   <span class="flex-grow text-left">Agents</span>
 </a>
+-->
   <ThreadsInSidebar />
 </div>

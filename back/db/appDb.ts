@@ -89,7 +89,7 @@ export class AppDb {
     await ensureDir(this.resolvePath(`chats/${chat.id}`));
 
     // Create a file with id of the chat and a folder with the same id for messages
-    Deno.writeTextFileSync(
+    await Deno.writeTextFile(
       this.resolvePath(`chats/${chat.id}/_chat.json`),
       JSON.stringify(chat),
     );

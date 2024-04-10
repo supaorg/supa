@@ -7,7 +7,7 @@ import { client } from '$lib/tools/client';
 export const threadsStore: Writable<ChatThread[]> = localStorageStore('threads', []);
 
 export async function createThread(agentId: string) {
-  const thread = await client.post("chats", agentId).then((res) => {
+  const thread = await client.post("threads", agentId).then((res) => {
     return res.data as ChatThread;
   });
 
@@ -21,7 +21,7 @@ export async function createThread(agentId: string) {
 export async function loadThreadsFromServer() {
     // @TODO: subsctibe to reconnect so we can re-fetch the threads
     
-  const threads = await client.get("chats").then((res) => {
+  const threads = await client.get("threads").then((res) => {
     const threads = res.data as ChatThread[];
     // sort by createdAt
     threads.sort((a, b) => {
@@ -32,7 +32,7 @@ export async function loadThreadsFromServer() {
 
   threadsStore.set(threads);
 
-  client.listen("chats", (broadcast) => {
+  client.listen("threads", (broadcast) => {
     if (broadcast.action === 'POST') {
       const thread = broadcast.data as ChatThread;
       threadsStore.update((threads) => { 

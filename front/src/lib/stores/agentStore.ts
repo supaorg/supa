@@ -39,7 +39,7 @@ export async function loadAgentsFromServer() {
 
   agentStore.set(agents);
 
-  client.listen("chats", (broadcast) => {
+  client.listen("agents", (broadcast) => {
     // TODO: implement
   });
 }

@@ -88,11 +88,11 @@ neoRouter
     await db.insertAgent(newAgent);
     neoRouter.broadcast(ctx.route, newAgent);
   })
-  .onGet("chats", async (ctx) => {
+  .onGet("threads", async (ctx) => {
     const chats = await db.getChats();
     ctx.response = chats;
   })
-  .onPost("chats", async (ctx) => {
+  .onPost("threads", async (ctx) => {
     const agentId = ctx.data as string;
 
     const chat = await db.createChat({
@@ -107,32 +107,32 @@ neoRouter
 
     neoRouter.broadcast(ctx.route, chat);
   })
-  .onDelete("chats/:chatId", async (ctx) => {
-    const chatId = ctx.params.chatId;
-    await db.deleteChat(chatId);
-    neoRouter.broadcastDeletion("chats", chatId);
+  .onDelete("threads/:threadId", async (ctx) => {
+    const threadId = ctx.params.threadId;
+    await db.deleteChat(threadId);
+    neoRouter.broadcastDeletion("threads", threadId);
   })
-  .onGet("chats/:chatId", async (ctx) => {
-    const chatId = ctx.params.chatId;
-    const chat = await db.getChat(chatId);
+  .onGet("threads/:threadId", async (ctx) => {
+    const threadId = ctx.params.threadId;
+    const chat = await db.getChat(threadId);
 
     if (chat === null) {
       ctx.error = "Couldn't get thread";
       return;
     }
 
-    const messages = await db.getChatMessages(chatId);
+    const messages = await db.getChatMessages(threadId);
 
     ctx.response = messages;
   })
-  .onValidateBroadcast("chats", (conn, params) => {
+  .onValidateBroadcast("threads", (conn, params) => {
     return true;
   })
-  .onValidateBroadcast("chats/:chatId", (conn, params) => {
+  .onValidateBroadcast("threads/:threadId", (conn, params) => {
     return true;
   })
-  .onPost("chats/:chatId", async (ctx) => {
-    const chatId = ctx.params.chatId;
+  .onPost("threads/:threadId", async (ctx) => {
+    const chatId = ctx.params.threadId;
     const chat = await db.getChat(chatId);
     const chatMessage = ctx.data as ChatMessage;
 
@@ -181,7 +181,7 @@ neoRouter
       const title = await aiChat.comeUpWithThreadTitle(messages);
       chat.title = title;
       await db.updateChat(chat);
-      neoRouter.broadcastUpdate("chats", chat);
+      neoRouter.broadcastUpdate("threads", chat);
     }
   });
 

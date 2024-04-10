@@ -60,7 +60,7 @@
 
     // Post and don't wait for the response, just go to the new thread
     // to see it live
-    client.post(`chats/${newThread.id}`, msg);
+    client.post(`threads/${newThread.id}`, msg);
 
     goto(`/${newThread.id}`);
 
