@@ -13,4 +13,6 @@
   }
 </script>
 
-<CodeBlock {language} {code}></CodeBlock>
+<div class="my-4">
+  <CodeBlock {language} {code} />
+</div>

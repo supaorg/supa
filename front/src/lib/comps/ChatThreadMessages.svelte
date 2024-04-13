@@ -8,10 +8,11 @@
   import { goto } from "$app/navigation";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
   import { Icon, Sparkles, UserCircle } from "svelte-hero-icons";
-  import { CodeBlock } from '@skeletonlabs/skeleton';
-  import Markdown from '@magidoc/plugin-svelte-marked'
-    import MarkdownCode from "./markdown/MarkdownCode.svelte";
-    import MarkdownLink from "./markdown/MarkdownLink.svelte";
+  import { CodeBlock } from "@skeletonlabs/skeleton";
+  import Markdown from "@magidoc/plugin-svelte-marked";
+  import MarkdownCode from "./markdown/MarkdownCode.svelte";
+  import MarkdownLink from "./markdown/MarkdownLink.svelte";
+    import ThreadMessage from "./ThreadMessage.svelte";
 
   export let threadId: string;
 
@@ -38,7 +39,7 @@
   renderer.code = (code, language) => {
     //return `<CodeBlock language="${language}">${code}</CodeBlock>`;
 
-    CodeBlock
+    CodeBlock;
   };
 
   marked.setOptions({
@@ -175,55 +176,7 @@
       bind:this={chatWrapperElement}
     >
       {#each messages as message}
-        {#if message.role === "user"}
-          <div class="flex flex-1 text-base mx-auto gap-3">
-            <div class="flex-shrink-0 flex flex-col relative items-end">
-              <div
-                class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden"
-              >
-                <Icon src={UserCircle} mini class="h-6 w-6" />
-              </div>
-            </div>
-            <div class="relative flex w-full flex-col">
-              <header class="flex justify-between items-center">
-                <p class="font-bold">You</p>
-                <small class="opacity-50"
-                  >{formatChatDate(message.createdAt)}</small
-                >
-              </header>
-              <div class="leading-relaxed">
-                {@html marked(message.text ? message.text : "Loading...")}
-              </div>
-              <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
-                <div class="h-7"></div>
-              </div>
-            </div>
-          </div>
-        {:else}
-          <div class="flex flex-1 text-base mx-auto gap-3">
-            <div class="flex-shrink-0 flex flex-col relative items-end">
-              <div
-                class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden"
-              >
-                <Icon src={Sparkles} mini class="h-6 w-6" />
-              </div>
-            </div>
-            <div class="relative flex w-full flex-col">
-              <header class="flex justify-between items-center">
-                <p class="font-bold">AI</p>
-              </header>
-              <div class="leading-relaxed">
-                <Markdown source={message.text ? message.text : "Loading..."} renderers={{
-                  code: MarkdownCode,
-                  link: MarkdownLink
-                }} />
-              </div>
-              <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
-                <div class="h-7"></div>
-              </div>
-            </div>
-          </div>
-        {/if}
+        <ThreadMessage {message} />
       {/each}
     </section>
   </div>
