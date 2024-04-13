@@ -7,7 +7,11 @@
   import { client } from "$lib/tools/client";
   import { goto } from "$app/navigation";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
-    import { Icon, Sparkles, UserCircle } from "svelte-hero-icons";
+  import { Icon, Sparkles, UserCircle } from "svelte-hero-icons";
+  import { CodeBlock } from '@skeletonlabs/skeleton';
+  import Markdown from '@magidoc/plugin-svelte-marked'
+    import MarkdownCode from "./markdown/MarkdownCode.svelte";
+    import MarkdownLink from "./markdown/MarkdownLink.svelte";
 
   export let threadId: string;
 
@@ -30,6 +34,13 @@
   renderer.link = function (href, title, text) {
     return `<a target="_blank" href=${href} title=${title}>${text}</a>`;
   };
+
+  renderer.code = (code, language) => {
+    //return `<CodeBlock language="${language}">${code}</CodeBlock>`;
+
+    CodeBlock
+  };
+
   marked.setOptions({
     renderer: renderer,
   });
@@ -167,7 +178,9 @@
         {#if message.role === "user"}
           <div class="flex flex-1 text-base mx-auto gap-3">
             <div class="flex-shrink-0 flex flex-col relative items-end">
-              <div class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden">
+              <div
+                class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden"
+              >
                 <Icon src={UserCircle} mini class="h-6 w-6" />
               </div>
             </div>
@@ -189,7 +202,9 @@
         {:else}
           <div class="flex flex-1 text-base mx-auto gap-3">
             <div class="flex-shrink-0 flex flex-col relative items-end">
-              <div class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden">
+              <div
+                class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden"
+              >
                 <Icon src={Sparkles} mini class="h-6 w-6" />
               </div>
             </div>
@@ -198,7 +213,10 @@
                 <p class="font-bold">AI</p>
               </header>
               <div class="leading-relaxed">
-                {@html marked(message.text ? message.text : "Loading...")}
+                <Markdown source={message.text ? message.text : "Loading..."} renderers={{
+                  code: MarkdownCode,
+                  link: MarkdownLink
+                }} />
               </div>
               <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
                 <div class="h-7"></div>
@@ -209,9 +227,7 @@
       {/each}
     </section>
   </div>
-  <div
-    class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 page-bg"
-  >
+  <div class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 page-bg">
     <section class="p-2 pt-2">
       <SendMessageForm
         onSend={sendMsg}

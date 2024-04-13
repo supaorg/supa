@@ -24,9 +24,15 @@
     offset,
     arrow,
   } from "@floating-ui/dom";
-    import SetupWizard from "./profile-setup/SetupWizard.svelte";
-    import { profileStore, loadProfileFromServer } from "$lib/stores/profile";
-    import { loadAgentsFromServer } from "$lib/stores/agentStore";
+  import SetupWizard from "./profile-setup/SetupWizard.svelte";
+  import { profileStore, loadProfileFromServer } from "$lib/stores/profile";
+  import { loadAgentsFromServer } from "$lib/stores/agentStore";
+
+  // For code highlighting in conversations
+  import hljs from "highlight.js";
+  import { storeHighlightJs } from "@skeletonlabs/skeleton";
+  import 'highlight.js/styles/github-dark.css';
+  storeHighlightJs.set(hljs);
 
   let tauriIntegration: ServerInTauri | null = null;
   let serverUrl = "http://localhost:6969";
@@ -82,16 +88,18 @@
 
 {#if initialized}
   {#if !needsSetup}
-  <AppShell>
-    <svelte:fragment slot="header">
-    </svelte:fragment>
-    <svelte:fragment slot="sidebarLeft">
-      <div class="hidden md:block h-full light:bg-surface-100 dark:bg-surface-900-token border-r dark:border-surface-500/30" style="width: 260px;">
+    <AppShell>
+      <svelte:fragment slot="header"></svelte:fragment>
+      <svelte:fragment slot="sidebarLeft">
+        <div
+          class="hidden md:block h-full light:bg-surface-100 dark:bg-surface-900-token border-r dark:border-surface-500/30"
+          style="width: 260px;"
+        >
           <Sidebar />
-      </div>
-    </svelte:fragment>
-    <slot />
-  </AppShell>
+        </div>
+      </svelte:fragment>
+      <slot />
+    </AppShell>
   {:else}
     <SetupWizard />
   {/if}
