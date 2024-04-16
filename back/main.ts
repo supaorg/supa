@@ -7,7 +7,7 @@ import { load } from "https://deno.land/std@0.202.0/dotenv/mod.ts";
 import { ProcessPortMsg } from "@shared/serverProcessMessages.ts";
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
 import { ThreadMessage } from "@shared/models.ts";
-import { Profile, Agent } from "../shared/models.ts";
+import { Agent, Profile } from "../shared/models.ts";
 import { defaultAgent } from "./agents/defaultAgent.ts";
 
 const app = new Application();
@@ -37,9 +37,20 @@ await ensureDir(dataPath);
 
 const db = new AppDb(dataPath);
 const aiChat = new Chat();
-await aiChat.init();
 
 console.log(`HTTP server is running. Access it at: ${SERVER_HOST}/`);
+
+function getOpenaiKey(): string {
+  const secrets = JSON.parse(Deno.readTextFileSync(dataPath + "secrets.json"));
+
+  return secrets.openai;
+}
+
+function getUserName() {
+  const profile = JSON.parse(Deno.readTextFileSync(dataPath + "profile.json"));
+
+  return profile.name;
+}
 
 httpRouter.get("/", (context) => {
   if (!context.isUpgradable) {
@@ -83,7 +94,7 @@ neoRouter
       name: agentForm.name,
       button: agentForm.buttonText,
       description: agentForm.description,
-      targetLLM: 'openai/gpt-4-turbo',
+      targetLLM: "openai/gpt-4-turbo",
       instructions: agentForm.instructions,
     };
 
@@ -161,9 +172,12 @@ neoRouter
 
     const agent = await db.getAgent(thread.agentId) || defaultAgent;
 
-    const systemPrompt = agent.instructions + "\n\n" + 'Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks.';
+    const systemPrompt = agent.instructions + "\n\n" +
+      "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks."
+      + "\n\n" +
+      "User name is " + getUserName();
 
-    await aiChat.ask(message.text, messages, systemPrompt, (res) => {
+    await aiChat.ask(message.text, messages, systemPrompt, getOpenaiKey(), (res) => {
       dbThreadReply.text = res.answer;
       neoRouter.broadcast(ctx.route, dbThreadReply);
       // And save the message to the database
@@ -180,7 +194,7 @@ neoRouter
     messages.push(dbThreadReply);
 
     if (!thread.title && messages.length >= 2) {
-      const title = await aiChat.comeUpWithThreadTitle(messages);
+      const title = await aiChat.comeUpWithThreadTitle(messages, getOpenaiKey());
       thread.title = title;
       await db.updateThread(thread);
       neoRouter.broadcastUpdate("threads", thread);

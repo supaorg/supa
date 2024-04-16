@@ -42,16 +42,17 @@ function similaritySearch(
   return filtered;
 }
 
+function getKey() {
+
+}
+
 export class Chat {
   relatedData: string[] = [];
   embeddings = new Map<string, number[]>();
   _initObj: {} | null = null;
   tools: any[] = [];
 
-  async init() {
-  }
-
-  async comeUpWithThreadTitle(messages: ThreadMessage[]): Promise<string> {
+  async comeUpWithThreadTitle(messages: ThreadMessage[], apiKey: string): Promise<string> {
     const sysPrompt =
       `You write great, snappy titles. Your job is to come up with short (1-3 words) title for a chat thread based on the conversation below. Be as concise as possible. Only provide the title, no additional comments and explanations. If it's not clear what the title should be yet, return NO TITLE`;
 
@@ -64,7 +65,7 @@ export class Chat {
     ];
 
     const lang = Lang.openai({
-      apiKey: Deno.env.get("OPENAI_API_KEY") as string,
+      apiKey,
       systemPrompt: sysPrompt,
     });
 
@@ -89,30 +90,15 @@ export class Chat {
     msg: string,
     prevMessages: ThreadMessage[] = [],
     systemPrompt: string,
+    apiKey: string,
     onResult?: (data) => void,
   ): Promise<string> {
-    if (this._initObj === null) {
-      this._initObj = {
-        initialized: false,
-      };
-      await this.init();
-      this._initObj = {
-        initialized: true,
-      };
-    }
-    while (this._initObj.initialized === false) {
-      console.log("Initializing...");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
     console.log(`Processing...`);
 
     const query = msg.trim();
 
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") as string;
-
     const lang = Lang.openai({
-      apiKey: OPENAI_API_KEY,
+      apiKey,
     });
     
     const remappedMessages = [
