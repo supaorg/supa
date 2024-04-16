@@ -378,44 +378,44 @@ export interface RegexpToFunctionOptions {
 /**
  * A match result contains data about the path match.
  */
-export interface MatchResult<P extends object = object> {
+export interface MatchResult {
   path: string;
   index: number;
-  params: P;
+  params: Record<string, string>;
 }
 
 /**
  * A match is either `false` (no match) or a match result.
  */
-export type Match<P extends object = object> = false | MatchResult<P>;
+export type Match = false | MatchResult;
 
 /**
  * The match function takes a string and returns whether it matched the path.
  */
-export type MatchFunction<P extends object = object> = (
+export type MatchFunction = (
   path: string
-) => Match<P>;
+) => Match;
 
 /**
  * Create path match function from `path-to-regexp` spec.
  */
-export function match<P extends object = object>(
+export function match(
   str: Path,
   options?: ParseOptions & TokensToRegexpOptions & RegexpToFunctionOptions
 ) {
   const keys: Key[] = [];
   const re = pathToRegexp(str, keys, options);
-  return regexpToFunction<P>(re, keys, options);
+  return regexpToFunction(re, keys, options);
 }
 
 /**
  * Create a path match function from `path-to-regexp` output.
  */
-export function regexpToFunction<P extends object = object>(
+export function regexpToFunction(
   re: RegExp,
   keys: Key[],
   options: RegexpToFunctionOptions = {}
-): MatchFunction<P> {
+): MatchFunction {
   const { decode = (x: string) => x } = options;
 
   return function (pathname: string) {

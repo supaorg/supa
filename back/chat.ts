@@ -7,6 +7,7 @@ import {
 } from "https://deno.land/x/aiwrapper@v0.0.15/mod.ts";
 import { ThreadMessage } from "../shared/models.ts";
 import { Agent } from "../shared/models.ts";
+import { LangResultWithMessages } from "https://deno.land/x/aiwrapper@v0.0.15/src/lang/language-model.ts";
 
 function normalizeStringForID(str: string) {
   const trimmed = str.trim();
@@ -59,8 +60,8 @@ export class Chat {
     const remappedMessages = [
       { role: "system", content: sysPrompt },
       ...messages.map((m) => ({
-        role: m.role,
-        content: m.text,
+        role: m.role || "user",
+        content: m.text || "",
       })),
     ];
 
@@ -91,7 +92,7 @@ export class Chat {
     prevMessages: ThreadMessage[] = [],
     systemPrompt: string,
     apiKey: string,
-    onResult?: (data) => void,
+    onResult?: (result: LangResultWithMessages) => void
   ): Promise<string> {
     console.log(`Processing...`);
 
@@ -104,8 +105,8 @@ export class Chat {
     const remappedMessages = [
       { role: "system", content: systemPrompt },
       ...prevMessages.map((m) => ({
-        role: m.role,
-        content: m.text,
+        role: m.role || "user",
+        content: m.text || "",
       })),
       { role: "user", content: query },
     ];

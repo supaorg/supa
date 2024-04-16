@@ -1,6 +1,24 @@
 import { Connection } from "./Connection.ts";
-import { Payload, MsgResponse, ConnectionSecret, RouteVerb, new_MsgResponse, RouteResponse, new_MsgNotFound, MsgID, MsgRoute, new_MsgResponseWithCode, new_RouteResponse, new_RouteResponseError } from "./types.ts";
-import { Key, pathToRegexp, match, MatchFunction } from "./helpers/pathsToRegexp.ts"
+import {
+  ConnectionSecret,
+  MsgID,
+  MsgResponse,
+  MsgRoute,
+  new_MsgNotFound,
+  new_MsgResponse,
+  new_MsgResponseWithCode,
+  new_RouteResponse,
+  new_RouteResponseError,
+  Payload,
+  RouteResponse,
+  RouteVerb,
+} from "./types.ts";
+import {
+  Key,
+  match,
+  MatchFunction,
+  pathToRegexp,
+} from "./helpers/pathsToRegexp.ts";
 
 export class Router {
   /**
@@ -20,7 +38,7 @@ export class Router {
    */
   private outRoutes: OutRouteLayer[] = [];
 
-  constructor() { }
+  constructor() {}
 
   addSocket(socket: WebSocket, reconnectSecret: ConnectionSecret | null) {
     if (reconnectSecret && this.connections[reconnectSecret]) {
@@ -31,7 +49,7 @@ export class Router {
       }
 
       const conn = Connection.newServer(socket, (data) => {
-        if (data[0] === 'secret') {
+        if (data[0] === "secret") {
           const secret = data[1] as ConnectionSecret;
           this.connections[secret] = conn;
         }
@@ -39,27 +57,31 @@ export class Router {
 
       conn.onRouteMessage = async (msgId: MsgID, msg: MsgRoute) => {
         return await this.handleRouteMessage(conn.getSecret(), msgId, msg);
-      }
+      };
 
       conn.onSubscribeToRoute = (route) => {
         this.subscribeConnectionToRoute(route, conn.getSecret());
-      }
+      };
 
       conn.onUnsubscribeFromRoute = (route) => {
         this.unsubsctibeConnectionFromRoute(route, conn.getSecret());
-      }
+      };
 
       conn.onClose = () => {
         this.removeConnection(conn.getSecret());
-      }
+      };
     }
   }
 
-  private async handleRouteMessage(connSecret: ConnectionSecret, msgId: MsgID, msg: MsgRoute): Promise<RouteResponse | void> {
+  private async handleRouteMessage(
+    connSecret: ConnectionSecret,
+    msgId: MsgID,
+    msg: MsgRoute,
+  ): Promise<RouteResponse | void> {
     for (const route of this.inRoutes) {
       const match = route.match(msg.route);
       if (match) {
-        let params: Record<string, string> = {}
+        let params: Record<string, string> = {};
         for (let i = 0; i < route.keys.length; i++) {
           params[route.keys[i]] = match.params[i];
         }
@@ -73,7 +95,9 @@ export class Router {
 
         const verbAndHandler = route.verbs.find((vh) => vh.verb === msg.verb);
         if (!verbAndHandler) {
-          return new_RouteResponseError(`Route "${msg.route}" does not support verb "${msg.verb}"`);
+          return new_RouteResponseError(
+            `Route "${msg.route}" does not support verb "${msg.verb}"`,
+          );
         }
 
         await verbAndHandler.handler(ctx);
@@ -87,7 +111,11 @@ export class Router {
     }
   }
 
-  private setInRoute(route: string, verb: RouteVerb, handler: (ctx: ResponseContext) => void | Promise<void>): RouteSubID {
+  private setInRoute(
+    route: string,
+    verb: RouteVerb,
+    handler: (ctx: ResponseContext) => void | Promise<void>,
+  ): RouteSubID {
     const keys: Key[] = [];
     const regexp = pathToRegexp(route, keys);
 
@@ -106,7 +134,7 @@ export class Router {
         regexp,
         match: match(regexp, { decode: decodeURIComponent }),
         keys: keys.map((k) => String(k.name)),
-        verbs: []
+        verbs: [],
       };
 
       this.inRoutes.push(targetRoute);
@@ -117,7 +145,7 @@ export class Router {
       targetRoute.verbs.push({
         // @TODO: perhaps push here the variables of the route, so we can use whatever user defined, e.g: :name, :id, etc
         verb,
-        handler
+        handler,
       });
     } else {
       // @TODO: how about having multiple handlers for the same verb?
@@ -127,7 +155,13 @@ export class Router {
     return targetRoute.id;
   }
 
-  setOutRoute(route: string, validate: (conn: Connection, params: Record<string, string>) => boolean | Promise<boolean>): RouteSubID {
+  setOutRoute(
+    route: string,
+    validate: (
+      conn: Connection,
+      params: Record<string, string>,
+    ) => boolean | Promise<boolean>,
+  ): RouteSubID {
     const keys: Key[] = [];
     const regexp = pathToRegexp(route, keys);
 
@@ -147,7 +181,7 @@ export class Router {
         match: match(regexp, { decode: decodeURIComponent }),
         keys: keys.map((k) => String(k.name)),
         listeners: [],
-        validate
+        validate,
       };
 
       this.outRoutes.push(targetRoute);
@@ -156,25 +190,40 @@ export class Router {
     return targetRoute.id;
   }
 
-  onPost(route: string, handler: (ctx: ResponseContext) => void | Promise<void>): this {
+  onPost(
+    route: string,
+    handler: (ctx: ResponseContext) => void | Promise<void>,
+  ): this {
     this.setInRoute(route, "POST", handler);
 
     return this;
   }
 
-  onGet(route: string, handler: (ctx: ResponseContext) => void | Promise<void>): this {
+  onGet(
+    route: string,
+    handler: (ctx: ResponseContext) => void | Promise<void>,
+  ): this {
     this.setInRoute(route, "GET", handler);
 
     return this;
   }
 
-  onDelete(route: string, handler: (ctx: ResponseContext) => void | Promise<void>): this {
+  onDelete(
+    route: string,
+    handler: (ctx: ResponseContext) => void | Promise<void>,
+  ): this {
     this.setInRoute(route, "DELETE", handler);
 
     return this;
   }
 
-  onValidateBroadcast(route: string, validate: (conn: Connection, params: Record<string, string>) => boolean | Promise<boolean>): this {
+  onValidateBroadcast(
+    route: string,
+    validate: (
+      conn: Connection,
+      params: Record<string, string>,
+    ) => boolean | Promise<boolean>,
+  ): this {
     this.setOutRoute(route, validate);
 
     return this;
@@ -185,15 +234,15 @@ export class Router {
   }
 
   broadcast(route: string, payload: Payload, exceptConn?: Connection) {
-    this.internalBroadcast(route, 'POST', payload, exceptConn);
+    this.internalBroadcast(route, "POST", payload, exceptConn);
   }
 
   broadcastDeletion(route: string, payload: Payload, exceptConn?: Connection) {
-    this.internalBroadcast(route, 'DELETE', payload, exceptConn);
+    this.internalBroadcast(route, "DELETE", payload, exceptConn);
   }
 
   broadcastUpdate(route: string, payload: Payload, exceptConn?: Connection) {
-    this.internalBroadcast(route, 'UPDATE', payload, exceptConn);
+    this.internalBroadcast(route, "UPDATE", payload, exceptConn);
   }
 
   subscribeConnectionToRoute(path: string, connSecret: ConnectionSecret) {
@@ -221,12 +270,16 @@ export class Router {
       const match = route.match(path);
       if (match) {
         route.listeners = route.listeners.filter((l) => l.conn !== connSecret);
-
       }
     }
   }
 
-  private internalBroadcast(route: string, action: 'POST' | 'DELETE' | 'UPDATE', payload: Payload, exceptConn?: Connection) {
+  private internalBroadcast(
+    route: string,
+    action: "POST" | "DELETE" | "UPDATE",
+    payload: Payload,
+    exceptConn?: Connection,
+  ) {
     // @TODO: consider to create a route if it does not exist
 
     const verb = action as RouteVerb;
@@ -238,7 +291,7 @@ export class Router {
         for (const listener of r.listeners) {
           const conn = this.connections[listener.conn];
           if (conn !== exceptConn) {
-            // Make sure the params match. 
+            // Make sure the params match.
             // That means that the listener is subscribed to the exact same route
             let paramsMatch = true;
             for (let i = 0; i < listener.params.length; i++) {
@@ -249,7 +302,10 @@ export class Router {
             }
 
             if (paramsMatch) {
-              const isValidForListener = r.validate(conn, match.params as Record<string, string>);
+              const isValidForListener = r.validate(
+                conn,
+                match.params as Record<string, string>,
+              );
               if (isValidForListener instanceof Promise) {
                 isValidForListener.then((isValid) => {
                   if (isValid) {
@@ -282,31 +338,34 @@ type RouteSubID = number;
 type RouteListener = {
   conn: ConnectionSecret;
   params: string[];
-}
+};
 
 type VerbAndHandler = {
   verb: RouteVerb;
   handler: RouteHandler;
-}
+};
 
 type InRouteLayer = {
   id: RouteSubID;
   route: string;
   regexp: RegExp;
-  match: MatchFunction<object>;
+  match: MatchFunction;
   keys: string[];
   verbs: VerbAndHandler[];
-}
+};
 
 type OutRouteLayer = {
   id: RouteSubID;
   route: string;
   regexp: RegExp;
-  match: MatchFunction<object>;
+  match: MatchFunction;
   keys: string[];
   listeners: RouteListener[];
-  validate: (conn: Connection, params: Record<string, string>) => boolean | Promise<boolean>;
-}
+  validate: (
+    conn: Connection,
+    params: Record<string, string>,
+  ) => boolean | Promise<boolean>;
+};
 
 type ResponseContext = {
   params: Record<string, string>;
@@ -315,5 +374,4 @@ type ResponseContext = {
   error?: string;
   response: Payload;
   route: string;
-}
-
+};

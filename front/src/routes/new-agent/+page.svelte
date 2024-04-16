@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { client } from "$lib/tools/client";
-
+  import { client } from "$lib/tools/client";
 
   let formElement;
 
@@ -17,7 +16,7 @@
 
   function handleSubmit() {
     const json = getJsonFromForm(formElement);
-    
+
     client.post("agents", json).then((response) => {
       console.log(response);
     });
@@ -26,7 +25,11 @@
 
 <div class="flex h-full flex-col max-w-3xl mx-auto justify-center items-center">
   <div class="flex-1 w-full overflow-hidden">
-    <form class="space-y-4" bind:this={formElement} on:submit|preventDefault={handleSubmit}>
+    <form
+      class="space-y-4"
+      bind:this={formElement}
+      on:submit|preventDefault={handleSubmit}
+    >
       <h1 class="h1">New Agent</h1>
       <label class="label">
         <span>Name</span>

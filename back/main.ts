@@ -17,8 +17,8 @@ const neoRouter = new NeoRouter();
 // Let's load the .env varialbes explicitly at the very beginning.
 await load({ export: true });
 
-export const SERVER_HOST: string = Deno.env.get("SERVER_HOST");
-export const SERVER_PORT: number = parseInt(Deno.env.get("SERVER_PORT"));
+export const SERVER_HOST: string = Deno.env.get("SERVER_HOST") as string;
+export const SERVER_PORT: number = parseInt(Deno.env.get("SERVER_PORT") as string);
 
 if (!SERVER_HOST) {
   throw new Error("SERVER_HOST is not set in the .env file");
@@ -65,8 +65,21 @@ httpRouter.get("/", (context) => {
 
 neoRouter
   .onPost("setup", async (ctx) => {
-    const profile = await db.insertProfile({ name: ctx.data.name });
-    await db.insertSecrets({ openai: ctx.data.openai });
+    // check that data and name, openai are present
+
+    if (!ctx.data) {
+      ctx.error = "Data is required";
+      return;
+    }
+
+    const data = ctx.data as { name: string; openai: string };
+    if (data.name || data.openai) {
+      ctx.error = "Name and OpenAI key are required";
+      return;
+    }
+
+    const profile = await db.insertProfile({ name: data.name });
+    await db.insertSecrets({ openai: data.openai });
     neoRouter.broadcast("profile", profile);
     ctx.response = profile;
   })
@@ -87,7 +100,12 @@ neoRouter
     ctx.response = agents;
   })
   .onPost("agents", async (ctx) => {
-    const agentForm = JSON.parse(ctx.data);
+    if (!ctx.data) {
+      ctx.error = "Data is required";
+      return;
+    }
+
+    const agentForm = JSON.parse(ctx.data as string);
 
     const newAgent: Agent = {
       id: uuidv4(),
@@ -147,6 +165,12 @@ neoRouter
   .onPost("threads/:threadId", async (ctx) => {
     const threadId = ctx.params.threadId;
     const thread = await db.getThread(threadId);
+
+    if (thread === null) {
+      ctx.error = "Thread doesn't exist";
+      return;
+    }
+
     const message = ctx.data as ThreadMessage;
 
     if (await db.checkThreadMessage(threadId, message.id)) {
@@ -173,16 +197,22 @@ neoRouter
     const agent = await db.getAgent(thread.agentId) || defaultAgent;
 
     const systemPrompt = agent.instructions + "\n\n" +
-      "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks."
-      + "\n\n" +
+      "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks." +
+      "\n\n" +
       "User name is " + getUserName();
 
-    await aiChat.ask(message.text, messages, systemPrompt, getOpenaiKey(), (res) => {
-      dbThreadReply.text = res.answer;
-      neoRouter.broadcast(ctx.route, dbThreadReply);
-      // And save the message to the database
-      db.updateThreadMessage(threadId, dbThreadReply);
-    });
+    await aiChat.ask(
+      message.text as string,
+      messages,
+      systemPrompt,
+      getOpenaiKey(),
+      (res) => {
+        dbThreadReply.text = res.answer;
+        neoRouter.broadcast(ctx.route, dbThreadReply);
+        // And save the message to the database
+        db.updateThreadMessage(threadId, dbThreadReply);
+      },
+    );
 
     dbThreadReply.inProgress = 0;
     dbThreadReply.updatedAt = Date.now();
@@ -194,7 +224,10 @@ neoRouter
     messages.push(dbThreadReply);
 
     if (!thread.title && messages.length >= 2) {
-      const title = await aiChat.comeUpWithThreadTitle(messages, getOpenaiKey());
+      const title = await aiChat.comeUpWithThreadTitle(
+        messages,
+        getOpenaiKey(),
+      );
       thread.title = title;
       await db.updateThread(thread);
       neoRouter.broadcastUpdate("threads", thread);
