@@ -1,10 +1,13 @@
-import type { Writable } from 'svelte/store';
-import { get } from 'svelte/store';
-import { localStorageStore } from '@skeletonlabs/skeleton';
-import { client } from '$lib/tools/client';
-import type { Profile } from '@shared/models';
+import type { Writable } from "svelte/store";
+import { get } from "svelte/store";
+import { localStorageStore } from "@skeletonlabs/skeleton";
+import { client } from "$lib/tools/client";
+import type { Profile } from "@shared/models";
 
-export const profileStore: Writable<Profile | null> = localStorageStore('profile', null);
+export const profileStore: Writable<Profile | null> = localStorageStore(
+  "profile",
+  null,
+);
 
 export async function updateProfile(profile: Partial<Profile>) {
   // Merge the new profile with the existing one
@@ -28,9 +31,7 @@ export async function loadProfileFromServer() {
   profileStore.set(profile);
 
   client.listen("profile", (broadcast) => {
-    if (broadcast.action === 'UPDATE') {
-      const profile = broadcast.data as Profile;
-      profileStore.set(profile);
-    }
+    const profile = broadcast.data as Profile;
+    profileStore.set(profile);
   });
 }

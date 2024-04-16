@@ -54,8 +54,10 @@ httpRouter.get("/", (context) => {
 
 neoRouter
   .onPost("setup", async (ctx) => {
-    await db.insertProfile({ name: ctx.data.name });
+    const profile = await db.insertProfile({ name: ctx.data.name });
     await db.insertSecrets({ openai: ctx.data.openai });
+    neoRouter.broadcast("profile", profile);
+    ctx.response = profile;
   })
   .onGet("profile", async (ctx) => {
     const profile = await db.getProfile();
