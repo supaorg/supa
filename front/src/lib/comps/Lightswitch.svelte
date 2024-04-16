@@ -8,7 +8,7 @@
   } from "$lib/utils/updateColorScheme";
   import { Icon, Moon, Sun } from "svelte-hero-icons";
 
-  let currentColorScheme = 'light';
+  let currentColorScheme = "light";
 
   function handleSwitch() {
     const setColorScheme = getCurrentColorScheme();
@@ -31,10 +31,16 @@
   }
 </script>
 
-<button class="cursor-pointer" on:click={handleSwitch} title={currentColorScheme === "dark" ? "Switch to Light mode" : "Switch to Dark mode"}>
+<button
+  class="cursor-pointer"
+  on:click={handleSwitch}
+  title={currentColorScheme === "dark"
+    ? "Switch to Light mode"
+    : "Switch to Dark mode"}
+>
   {#if currentColorScheme === "dark"}
     <Icon src={Sun} class="w-4 h-4" micro />
   {:else}
     <Icon src={Moon} class="w-4 h-4" micro />
   {/if}
-  </button>
+</button>

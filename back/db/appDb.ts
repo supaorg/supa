@@ -1,4 +1,4 @@
-import { Chat, ChatMessage, Profile, Secrets } from "@shared/models.ts";
+import { Thread, ThreadMessage, Profile, Secrets } from "@shared/models.ts";
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
 import { join } from "https://deno.land/std/path/mod.ts";
 import { Agent } from "../../shared/models.ts";
@@ -84,40 +84,40 @@ export class AppDb {
     return agent;
   }
 
-  async createChat(chat: Chat): Promise<Chat> {
+  async createThread(thread: Thread): Promise<Thread> {
     // @TODO: make them async!
-    await ensureDir(this.resolvePath(`chats/${chat.id}`));
+    await ensureDir(this.resolvePath(`threads/${thread.id}`));
 
-    // Create a file with id of the chat and a folder with the same id for messages
+    // Create a file with id of the thread and a folder with the same id for messages
     await Deno.writeTextFile(
-      this.resolvePath(`chats/${chat.id}/_chat.json`),
-      JSON.stringify(chat),
+      this.resolvePath(`threads/${thread.id}/_thread.json`),
+      JSON.stringify(thread),
     );
-    await ensureDir(this.resolvePath("chats", chat.id));
+    await ensureDir(this.resolvePath("threads", thread.id));
 
-    return chat;
+    return thread;
   }
 
-  async deleteChat(chatId: string): Promise<void> {
+  async deleteThread(threadId: string): Promise<void> {
     try {
-      await Deno.remove(this.resolvePath("chats", chatId), {
+      await Deno.remove(this.resolvePath("threads", threadId), {
         recursive: true,
       });
     } catch (error) {
-      console.error("Couldn't remove the chat", error);
+      console.error("Couldn't remove the thread", error);
     }
   }
 
-  async getChat(chatId: string): Promise<Chat | null> {
-    await ensureDir(this.resolvePath(`chats/${chatId}`));
+  async getThread(threadId: string): Promise<Thread | null> {
+    await ensureDir(this.resolvePath(`threads/${threadId}`));
 
     try {
-      const chatStr = Deno.readTextFileSync(
-        this.resolvePath(`chats/${chatId}/_chat.json`),
+      const threadStr = Deno.readTextFileSync(
+        this.resolvePath(`threads/${threadId}/_thread.json`),
       );
 
-      if (chatStr) {
-        return JSON.parse(chatStr);
+      if (threadStr) {
+        return JSON.parse(threadStr);
       }
 
       return null;
@@ -126,63 +126,63 @@ export class AppDb {
     }
   }
 
-  async updateChat(chat: Chat): Promise<void> {
-    await ensureDir(this.resolvePath(`chats/${chat.id}`));
+  async updateThread(thread: Thread): Promise<void> {
+    await ensureDir(this.resolvePath(`threads/${thread.id}`));
 
     await Deno.writeTextFile(
-      this.resolvePath(`chats/${chat.id}/_chat.json`),
-      JSON.stringify(chat),
+      this.resolvePath(`threads/${thread.id}/_thread.json`),
+      JSON.stringify(thread),
     );
   }
 
-  async getChats(): Promise<Chat[]> {
-    await ensureDir(this.resolvePath("chats"));
+  async getThreads(): Promise<Thread[]> {
+    await ensureDir(this.resolvePath("threads"));
 
-    const chatFiles = this.getFiles(this.resolvePath("chats"), "_chat.json");
-    const chats: Chat[] = [];
+    const threadFiles = this.getFiles(this.resolvePath("threads"), "_thread.json");
+    const threads: Thread[] = [];
 
-    for (const chatFile of chatFiles) {
-      const chatStr = await Deno.readTextFile(chatFile);
-      chats.push(JSON.parse(chatStr));
+    for (const threadFile of threadFiles) {
+      const threadStr = await Deno.readTextFile(threadFile);
+      threads.push(JSON.parse(threadStr));
     }
 
-    return chats;
+    return threads;
   }
 
   private getFiles(folderPath: string, targetFilename: string): string[] {
-    const chatFiles: string[] = [];
+    const threadFiles: string[] = [];
     const entries = Deno.readDirSync(folderPath);
 
     for (const entry of entries) {
       const entryPath = folderPath + '/' + entry.name;
 
       if (entry.isFile && entry.name === targetFilename) {
-        chatFiles.push(entryPath);
+        threadFiles.push(entryPath);
       } else if (entry.isDirectory) {
-        const subChatFiles = this.getFiles(entryPath, targetFilename);
-        chatFiles.push(...subChatFiles);
+        const subThreadFiles = this.getFiles(entryPath, targetFilename);
+        threadFiles.push(...subThreadFiles);
       }
     }
 
-    return chatFiles;
+    return threadFiles;
   }
 
-  async createChatMessage(chatId: string, message: ChatMessage): Promise<ChatMessage> {
-    await ensureDir(this.resolvePath("chats", chatId));
+  async createThreadMessage(threadId: string, message: ThreadMessage): Promise<ThreadMessage> {
+    await ensureDir(this.resolvePath("threads", threadId));
 
     // Create a file with the id of the message
     Deno.writeTextFileSync(
-      this.resolvePath("chats", chatId, `${message.id}.json`),
+      this.resolvePath("threads", threadId, `${message.id}.json`),
       JSON.stringify(message),
     );
 
     return message;
   }
 
-  async checkChatMessage(chatId: string, messageId: string): Promise<boolean> {
+  async checkThreadMessage(threadId: string, messageId: string): Promise<boolean> {
     try {
       await Deno.readTextFile(
-        this.resolvePath("chats", chatId, `${messageId}.json`),
+        this.resolvePath("threads", threadId, `${messageId}.json`),
       );
       return true;
     } catch (_) {
@@ -190,29 +190,29 @@ export class AppDb {
     }
   }
 
-  async updateChatMessage(chatId: string, message: ChatMessage): Promise<void> {
+  async updateThreadMessage(threadId: string, message: ThreadMessage): Promise<void> {
     await Deno.writeTextFile(
-      this.resolvePath("chats", chatId, `${message.id}.json`),
+      this.resolvePath("threads", threadId, `${message.id}.json`),
       JSON.stringify(message),
     );
   }
 
-  async getChatMessages(chatId: string): Promise<ChatMessage[]> {
-    // Get all messages in the folder with the chat id
+  async getThreadMessages(threadId: string): Promise<ThreadMessage[]> {
+    // Get all messages in the folder with the thread id
     const messageFiles = Deno.readDirSync(
-      this.resolvePath("chats", chatId),
+      this.resolvePath("threads", threadId),
     );
 
-    const messages: ChatMessage[] = [];
+    const messages: ThreadMessage[] = [];
 
     for (const messageFile of messageFiles) {
       if (messageFile.isFile && messageFile.name.endsWith(".json")) {
-        if (messageFile.name === "_chat.json") {
+        if (messageFile.name === "_thread.json") {
           continue;
         }
 
         const messageStr = await Deno.readTextFile(
-          this.resolvePath("chats", chatId, messageFile.name),
+          this.resolvePath("threads", threadId, messageFile.name),
         );
         messages.push(JSON.parse(messageStr));
       }

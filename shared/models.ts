@@ -1,4 +1,4 @@
-export type ChatMessage = {
+export type ThreadMessage = {
   id: string;
   role: string | null;
   text: string | null;
@@ -7,7 +7,7 @@ export type ChatMessage = {
   updatedAt: number | null;
 }
 
-export type Chat = {
+export type Thread = {
   id: string;
   agentId: string;
   createdAt: number;

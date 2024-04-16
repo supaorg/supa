@@ -5,7 +5,7 @@ import {
   LangVecs,
   PromptForObject,
 } from "https://deno.land/x/aiwrapper@v0.0.15/mod.ts";
-import { ChatMessage } from "../shared/models.ts";
+import { ThreadMessage } from "../shared/models.ts";
 import { Agent } from "../shared/models.ts";
 
 function normalizeStringForID(str: string) {
@@ -51,7 +51,7 @@ export class Chat {
   async init() {
   }
 
-  async comeUpWithThreadTitle(messages: ChatMessage[]): Promise<string> {
+  async comeUpWithThreadTitle(messages: ThreadMessage[]): Promise<string> {
     const sysPrompt =
       `You write great, snappy titles. Your job is to come up with short (1-3 words) title for a chat thread based on the conversation below. Be as concise as possible. Only provide the title, no additional comments and explanations. If it's not clear what the title should be yet, return NO TITLE`;
 
@@ -87,7 +87,7 @@ export class Chat {
 
   async ask(
     msg: string,
-    prevMessages: ChatMessage[] = [],
+    prevMessages: ThreadMessage[] = [],
     systemPrompt: string,
     onResult?: (data) => void,
   ): Promise<string> {

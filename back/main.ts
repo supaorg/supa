@@ -6,7 +6,7 @@ import { AppDb } from "./db/appDb.ts";
 import { load } from "https://deno.land/std@0.202.0/dotenv/mod.ts";
 import { ProcessPortMsg } from "@shared/serverProcessMessages.ts";
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
-import { ChatMessage } from "@shared/models.ts";
+import { ThreadMessage } from "@shared/models.ts";
 import { Profile, Agent } from "../shared/models.ts";
 import { defaultAgent } from "./agents/defaultAgent.ts";
 
@@ -89,13 +89,13 @@ neoRouter
     neoRouter.broadcast(ctx.route, newAgent);
   })
   .onGet("threads", async (ctx) => {
-    const chats = await db.getChats();
-    ctx.response = chats;
+    const threads = await db.getThreads();
+    ctx.response = threads;
   })
   .onPost("threads", async (ctx) => {
     const agentId = ctx.data as string;
 
-    const chat = await db.createChat({
+    const thread = await db.createThread({
       id: uuidv4(),
       agentId,
       createdAt: Date.now(),
@@ -103,25 +103,25 @@ neoRouter
       title: "",
     });
 
-    ctx.response = chat;
+    ctx.response = thread;
 
-    neoRouter.broadcast(ctx.route, chat);
+    neoRouter.broadcast(ctx.route, thread);
   })
   .onDelete("threads/:threadId", async (ctx) => {
     const threadId = ctx.params.threadId;
-    await db.deleteChat(threadId);
+    await db.deleteThread(threadId);
     neoRouter.broadcastDeletion("threads", threadId);
   })
   .onGet("threads/:threadId", async (ctx) => {
     const threadId = ctx.params.threadId;
-    const chat = await db.getChat(threadId);
+    const thread = await db.getThread(threadId);
 
-    if (chat === null) {
+    if (thread === null) {
       ctx.error = "Couldn't get thread";
       return;
     }
 
-    const messages = await db.getChatMessages(threadId);
+    const messages = await db.getThreadMessages(threadId);
 
     ctx.response = messages;
   })
@@ -132,21 +132,21 @@ neoRouter
     return true;
   })
   .onPost("threads/:threadId", async (ctx) => {
-    const chatId = ctx.params.threadId;
-    const chat = await db.getChat(chatId);
-    const chatMessage = ctx.data as ChatMessage;
+    const threadId = ctx.params.threadId;
+    const thread = await db.getThread(threadId);
+    const message = ctx.data as ThreadMessage;
 
-    if (await db.checkChatMessage(chatId, chatMessage.id)) {
+    if (await db.checkThreadMessage(threadId, message.id)) {
       ctx.error = "Message already exists";
       return;
     }
 
-    const messages = await db.getChatMessages(chatId);
+    const messages = await db.getThreadMessages(threadId);
 
-    await db.createChatMessage(chatId, chatMessage);
-    neoRouter.broadcast(ctx.route, chatMessage);
+    await db.createThreadMessage(threadId, message);
+    neoRouter.broadcast(ctx.route, message);
 
-    const dbChatReply = await db.createChatMessage(chatId, {
+    const dbThreadReply = await db.createThreadMessage(threadId, {
       id: uuidv4(),
       role: "assistant",
       text: "Thinking...",
@@ -155,33 +155,33 @@ neoRouter
       updatedAt: null,
     });
 
-    neoRouter.broadcast(ctx.route, dbChatReply);
+    neoRouter.broadcast(ctx.route, dbThreadReply);
 
-    const agent = await db.getAgent(chat.agentId) || defaultAgent;
+    const agent = await db.getAgent(thread.agentId) || defaultAgent;
 
     const systemPrompt = agent.instructions + "\n\n" + 'Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks.';
 
-    await aiChat.ask(chatMessage.text, messages, systemPrompt, (res) => {
-      dbChatReply.text = res.answer;
-      neoRouter.broadcast(ctx.route, dbChatReply);
+    await aiChat.ask(message.text, messages, systemPrompt, (res) => {
+      dbThreadReply.text = res.answer;
+      neoRouter.broadcast(ctx.route, dbThreadReply);
       // And save the message to the database
-      db.updateChatMessage(chatId, dbChatReply);
+      db.updateThreadMessage(threadId, dbThreadReply);
     });
 
-    dbChatReply.inProgress = 0;
-    dbChatReply.updatedAt = Date.now();
-    dbChatReply.inProgress = 0;
-    await db.updateChatMessage(chatId, dbChatReply);
-    neoRouter.broadcast(ctx.route, dbChatReply);
+    dbThreadReply.inProgress = 0;
+    dbThreadReply.updatedAt = Date.now();
+    dbThreadReply.inProgress = 0;
+    await db.updateThreadMessage(threadId, dbThreadReply);
+    neoRouter.broadcast(ctx.route, dbThreadReply);
 
-    messages.push(chatMessage);
-    messages.push(dbChatReply);
+    messages.push(message);
+    messages.push(dbThreadReply);
 
-    if (!chat.title && messages.length >= 2) {
+    if (!thread.title && messages.length >= 2) {
       const title = await aiChat.comeUpWithThreadTitle(messages);
-      chat.title = title;
-      await db.updateChat(chat);
-      neoRouter.broadcastUpdate("threads", chat);
+      thread.title = title;
+      await db.updateThread(thread);
+      neoRouter.broadcastUpdate("threads", thread);
     }
   });
 
