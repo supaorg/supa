@@ -52,9 +52,9 @@
     if (isTauri()) {
       tauriIntegration = new ServerInTauri();
       await tauriIntegration.init();
-      //serverUrl = tauriIntegration.getUrl();
 
-      webSocketEndpoint = `ws://localhost:${tauriIntegration.port}/ws`;
+      serverUrl = tauriIntegration.getHttpUrl();
+      serverWsUrl = tauriIntegration.getWebSocketUrl();
     }
 
     if (client.getURL() !== serverUrl) {
@@ -62,9 +62,11 @@
     }
 
     // Let's load stuff from the server to stores here
-    loadProfileFromServer();
-    loadThreadsFromServer();
-    loadAgentsFromServer();
+    await Promise.all([
+      loadProfileFromServer(),
+      loadThreadsFromServer(),
+      loadAgentsFromServer()
+    ]);
 
     initialized = true;
   });

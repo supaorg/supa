@@ -17,16 +17,6 @@ const neoRouter = new NeoRouter();
 // Let's load the .env varialbes explicitly at the very beginning.
 await load({ export: true });
 
-export const SERVER_HOST: string = Deno.env.get("SERVER_HOST") as string;
-export const SERVER_PORT: number = parseInt(Deno.env.get("SERVER_PORT") as string);
-
-if (!SERVER_HOST) {
-  throw new Error("SERVER_HOST is not set in the .env file");
-}
-if (!SERVER_PORT) {
-  throw new Error("SERVER_PORT is not set in the .env file");
-}
-
 let dataPath = "data-dev/";
 
 if (Deno.args.length > 0) {
@@ -37,8 +27,6 @@ await ensureDir(dataPath);
 
 const db = new AppDb(dataPath);
 const aiChat = new Chat();
-
-console.log(`HTTP server is running. Access it at: ${SERVER_HOST}/`);
 
 function getOpenaiKey(): string {
   const secrets = JSON.parse(Deno.readTextFileSync(dataPath + "secrets.json"));
@@ -276,6 +264,7 @@ async function startServer(
   }
 }
 
-startServer(app, SERVER_PORT, (port) => {
+startServer(app, 6969, (port) => {
+  // We send the port as a JSON message so the parent process can identify it.
   console.log(JSON.stringify({ type: "port", value: port } as ProcessPortMsg));
 });

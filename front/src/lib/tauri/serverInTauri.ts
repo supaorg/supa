@@ -24,12 +24,20 @@ export class ServerInTauri {
     await this.#killServer();
   }
 
-  getUrl() {
+  getHttpUrl() {
     if (this.port == -1) {
       throw new Error("Server is not running.");
     }
 
     return `http://localhost:${this.port}`;
+  }
+
+  getWebSocketUrl() {
+    if (this.port == -1) {
+      throw new Error("Server is not running.");
+    }
+
+    return `ws://localhost:${this.port}`;
   }
 
   getDataDirPath() {   
@@ -47,10 +55,25 @@ export class ServerInTauri {
     ]);
 
     command.stdout.on("data", (data) => {
+      console.log('Server log: ' + data);
+
       this.#handleProcessData(data);
+    });
+    
+    command.on('close', (code) => {
+      console.log(`Process exited with code: ${code}`);
+    });
+
+    command.on('error', (error) => {
+      console.error(`Process crashed with error: ${error.message}`);
     });
 
     this.process = await command.spawn();
+
+    // Wait for the server to start
+    while (this.port == -1) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
   }
 
   async #handleProcessData(data: string) {
