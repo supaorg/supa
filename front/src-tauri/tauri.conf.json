@@ -7,7 +7,7 @@
     "distDir": "../build"
   },
   "package": {
-    "productName": "supamind",
+    "productName": "Supamind",
     "version": "0.1.0"
   },
   "tauri": {
@@ -91,7 +91,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "supamind",
+        "title": "Supamind",
         "width": 800
       }
     ]
