@@ -1,28 +1,21 @@
 import type { Writable } from 'svelte/store';
-import { get } from 'svelte/store';
 import { localStorageStore } from '@skeletonlabs/skeleton';
-import type { ChatThread } from '@shared/models';
+import type { Thread } from '@shared/models';
 import { client } from '$lib/tools/client';
 
-export const threadsStore: Writable<ChatThread[]> = localStorageStore('threads', []);
+export const threadsStore: Writable<Thread[]> = localStorageStore('threads', []);
 
 export async function createThread(agentId: string) {
   const thread = await client.post("threads", agentId).then((res) => {
-    return res.data as ChatThread;
+    return res.data as Thread;
   });
 
   return thread;
 }
 
-/**
- * Load threads from the server.
- * **Important**: Call this after getting the user authorized and read to fetch theri content
- */
-export async function loadThreadsFromServer() {
-    // @TODO: subsctibe to reconnect so we can re-fetch the threads
-    
+export async function loadThreadsFromServer() {    
   const threads = await client.get("threads").then((res) => {
-    const threads = res.data as ChatThread[];
+    const threads = res.data as Thread[];
     // sort by createdAt
     threads.sort((a, b) => {
       return b.createdAt - a.createdAt;
@@ -34,7 +27,7 @@ export async function loadThreadsFromServer() {
 
   client.listen("threads", (broadcast) => {
     if (broadcast.action === 'POST') {
-      const thread = broadcast.data as ChatThread;
+      const thread = broadcast.data as Thread;
       threadsStore.update((threads) => { 
         return [thread, ...threads];
       });
@@ -45,7 +38,7 @@ export async function loadThreadsFromServer() {
         return newThreads;
       });
     } else if (broadcast.action === 'UPDATE') {
-      const thread = broadcast.data as ChatThread;
+      const thread = broadcast.data as Thread;
       threadsStore.update((threads) => {
         const newThreads = threads.map((t) => {
           if (t.id === thread.id) {

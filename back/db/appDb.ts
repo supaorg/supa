@@ -5,10 +5,16 @@ import { Agent } from "../../shared/models.ts";
 import { defaultAgent } from "../agents/defaultAgent.ts";
 
 export class AppDb {
-  constructor(private dataPath: string) {}
+  constructor(private workspaceDir: string) {}
 
   private resolvePath(...paths: string[]): string {
-    return join(this.dataPath, ...paths);
+    return join(this.workspaceDir, ...paths);
+  }
+
+  getOpenaiKey(): string {
+    const secrets = JSON.parse(Deno.readTextFileSync(this.resolvePath("secrets.json")));
+  
+    return secrets.openai;
   }
 
   async getProfile(): Promise<Profile | null> {

@@ -15,10 +15,6 @@ export async function createAgent() {
   return agent;
 }
 
-/**
- * Load threads from the server.
- * **Important**: Call this after getting the user authorized and read to fetch theri content
- */
 export async function loadAgentsFromServer() {
     // @TODO: subsctibe to reconnect so we can re-fetch the threads
     

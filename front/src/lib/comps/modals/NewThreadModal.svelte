@@ -62,7 +62,7 @@
     // to see it live
     client.post(`threads/${newThread.id}`, msg);
 
-    goto(`/${newThread.id}`);
+    goto(`/?t=${newThread.id}`);
 
     isSending = false;
 

@@ -55,8 +55,6 @@ export class ServerInTauri {
     ]);
 
     command.stdout.on("data", (data) => {
-      console.log('Server log: ' + data);
-
       this.#handleProcessData(data);
     });
     
@@ -79,6 +77,8 @@ export class ServerInTauri {
   async #handleProcessData(data: string) {
     try {
       const parsedData = JSON.parse(data);
+
+      console.log('Server log: ' + data);
 
       if (parsedData.type == "port") {
         this.port = parsedData.value;

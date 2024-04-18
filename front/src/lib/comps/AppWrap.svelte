@@ -27,17 +27,16 @@
   import SetupWizard from "./profile-setup/SetupWizard.svelte";
   import { profileStore, loadProfileFromServer } from "$lib/stores/profile";
   import { loadAgentsFromServer } from "$lib/stores/agentStore";
-
+  import { storeHighlightJs } from "@skeletonlabs/skeleton";
   // For code highlighting in conversations
   import hljs from "highlight.js";
-  import { storeHighlightJs } from "@skeletonlabs/skeleton";
   import 'highlight.js/styles/github-dark.css';
+
   storeHighlightJs.set(hljs);
 
   let tauriIntegration: ServerInTauri | null = null;
   let serverUrl = "http://localhost:6969";
   let serverWsUrl = "ws://localhost:6969";
-  let webSocketEndpoint = import.meta.env.VITE_WEBSOCKET_ENDPOINT;
   let initialized = false;
   let needsSetup = false;
 
@@ -61,7 +60,6 @@
       client.setUrl(serverWsUrl);
     }
 
-    // Let's load stuff from the server to stores here
     await Promise.all([
       loadProfileFromServer(),
       loadThreadsFromServer(),

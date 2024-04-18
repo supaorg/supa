@@ -14,7 +14,7 @@
     } else {
       if ($threadsStore.length > 0) {
         threadId = $threadsStore[0].id;
-        goto(`?t=${threadId}`);
+        goto(`/?t=${threadId}`);
       }
     }
   });
