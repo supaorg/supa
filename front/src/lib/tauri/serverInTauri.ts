@@ -61,11 +61,11 @@ export class ServerInTauri {
     });
     
     command.on('close', (code) => {
-      console.log(`Process exited with code: ${code}`);
+      console.log(`Process exited with code: ${JSON.stringify(code)}`);
     });
 
     command.on('error', (error) => {
-      console.error(`Process crashed with error: ${error.message}`);
+      console.error(`Process crashed with error: ${JSON.stringify(error)}`);
     });
 
     this.process = await command.spawn();

@@ -61,7 +61,7 @@ neoRouter
     }
 
     const data = ctx.data as { name: string; openai: string };
-    if (data.name || data.openai) {
+    if (!data.name || !data.openai) {
       ctx.error = "Name and OpenAI key are required";
       return;
     }
