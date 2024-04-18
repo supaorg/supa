@@ -60,6 +60,8 @@
       client.setUrl(serverWsUrl);
     }
 
+    await client.post('workspace', 'data-dev');
+
     await Promise.all([
       loadProfileFromServer(),
       loadThreadsFromServer(),

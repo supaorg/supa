@@ -9,18 +9,20 @@ import { defaultAgent } from "./agents/defaultAgent.ts";
 export function controllers(router: Router) {
   const aiChat = new Chat();
 
-  let dataPath = "data-dev/";
+  let db: AppDb | null = null;
 
-  /*
-  const currentDir = Deno.cwd();
-  const absolutePath = await Deno.realPath(currentDir + "/" + dataPath);
-  console.log("Data path: " + absolutePath);
-  */
-
-  const db = new AppDb(dataPath);
+  const DB_ERROR = "Database is not initialized";
 
   router
+    .onPost("workspace", async (ctx) => {
+      db = new AppDb(ctx.data as string);
+    })
     .onPost("setup", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       if (!ctx.data) {
         ctx.error = "Data is required";
         return;
@@ -38,10 +40,20 @@ export function controllers(router: Router) {
       ctx.response = profile;
     })
     .onGet("profile", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       const profile = await db.getProfile();
       ctx.response = profile;
     })
     .onPost("profile", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       const profile = ctx.data as Profile;
       await db.insertProfile(profile);
       router.broadcast(ctx.route, profile);
@@ -50,10 +62,20 @@ export function controllers(router: Router) {
       return true;
     })
     .onGet("agents", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       const agents = await db.getAgents();
       ctx.response = agents;
     })
     .onPost("agents", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       if (!ctx.data) {
         ctx.error = "Data is required";
         return;
@@ -74,10 +96,20 @@ export function controllers(router: Router) {
       router.broadcast(ctx.route, newAgent);
     })
     .onGet("threads", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       const threads = await db.getThreads();
       ctx.response = threads;
     })
     .onPost("threads", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       const agentId = ctx.data as string;
 
       const thread = await db.createThread({
@@ -93,11 +125,21 @@ export function controllers(router: Router) {
       router.broadcast(ctx.route, thread);
     })
     .onDelete("threads/:threadId", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       const threadId = ctx.params.threadId;
       await db.deleteThread(threadId);
       router.broadcastDeletion("threads", threadId);
     })
     .onGet("threads/:threadId", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       const threadId = ctx.params.threadId;
       const thread = await db.getThread(threadId);
 
@@ -117,6 +159,11 @@ export function controllers(router: Router) {
       return true;
     })
     .onPost("threads/:threadId", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
       const threadId = ctx.params.threadId;
       const thread = await db.getThread(threadId);
 
@@ -167,7 +214,9 @@ export function controllers(router: Router) {
           dbThreadReply.text = res.answer;
           router.broadcast(ctx.route, dbThreadReply);
           // And save the message to the database
-          db.updateThreadMessage(threadId, dbThreadReply);
+          if (db !== null) {
+            db.updateThreadMessage(threadId, dbThreadReply);
+          }
         },
       );
 
