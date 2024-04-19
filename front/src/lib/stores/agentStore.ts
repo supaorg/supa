@@ -19,7 +19,7 @@ export async function loadAgentsFromServer() {
     // @TODO: subsctibe to reconnect so we can re-fetch the threads
     
   const agents = await client.get("agents").then((res) => {
-    const agents = res.data as Agent[];
+    const agents = Array.isArray(res.data) ? res.data as Agent[] : [];
     // sort by name
     agents.sort((a, b) => {
       if (a.name < b.name) {

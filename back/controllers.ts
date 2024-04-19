@@ -5,6 +5,7 @@ import { AppDb } from "./db/appDb.ts";
 import { ThreadMessage } from "@shared/models.ts";
 import { Agent, Profile } from "../shared/models.ts";
 import { defaultAgent } from "./agents/defaultAgent.ts";
+import { createWorkspaceInDocuments } from "./workspace.ts";
 
 export function controllers(router: Router) {
   const aiChat = new Chat();
@@ -14,6 +15,14 @@ export function controllers(router: Router) {
   const DB_ERROR = "Database is not initialized";
 
   router
+    .onPost("new-workspace", async (ctx) => { 
+      try {
+        const path = await createWorkspaceInDocuments();
+        ctx.response = path;
+      } catch (e) {
+        ctx.error = e.message;
+      }
+    })
     .onPost("workspace", async (ctx) => {
       db = new AppDb(ctx.data as string);
     })

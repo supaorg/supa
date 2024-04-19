@@ -31,8 +31,12 @@
   // For code highlighting in conversations
   import hljs from "highlight.js";
   import "highlight.js/styles/github-dark.css";
-  import { getCurrentWorkspace } from "$lib/stores/workspaceStore";
-    import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
+  import {
+    getCurrentWorkspace,
+    setCurrentWorkspace,
+    type WorkspaceInfo,
+  } from "$lib/stores/workspaceStore";
+  import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
@@ -53,6 +57,14 @@
     }
   }
 
+  async function loadStoresFromServer() {
+    return Promise.all([
+      loadProfileFromServer(),
+      loadThreadsFromServer(),
+      loadAgentsFromServer(),
+    ]);
+  }
+
   onMount(async () => {
     if (isTauri()) {
       tauriIntegration = new ServerInTauri();
@@ -68,14 +80,19 @@
 
     const workspace = getCurrentWorkspace();
 
-    if (workspace) {
-      await client.post("workspace", workspace.uri);
+    // @TODO: check if the workspace exists.
+    const workspaceExists = workspace
+      ? await client
+          .post("workspace-exists", workspace.uri)
+          .then((res) => res.data as boolean)
+      : false;
 
-      await Promise.all([
-        loadProfileFromServer(),
-        loadThreadsFromServer(),
-        loadAgentsFromServer(),
-      ]);
+    if (workspaceExists) {
+      await client.post("workspace", workspace?.uri);
+
+      console.log("Workspace:", workspace);
+
+      await loadStoresFromServer();
 
       if ($profileStore === null) {
         state = "needsSetup";
@@ -83,7 +100,32 @@
         state = "ready";
       }
     } else {
-      state = "needsWorkspace";
+      // @TODO: check for a workspace in iCloud or Documents (search for Supamind directory). Create a workspace automatically if none is found in iCloud or Documents.
+      // @TODO: Use 'Supamind/workspace'
+
+      const newWorkspaceRes = await client.post("new-workspace");
+
+      if (newWorkspaceRes.error) {
+        console.error(newWorkspaceRes.error);
+
+        // @TODO: Handle error or permission denied. Show a message to a user that we need it to create a workspace.
+
+        return;
+      }
+
+      const workspaceDir = newWorkspaceRes.data as string;
+
+      const newWorkspace = {
+        uri: workspaceDir,
+      } as WorkspaceInfo;
+
+      setCurrentWorkspace(newWorkspace);
+
+      await loadStoresFromServer();
+
+      console.log("New workspace created:", newWorkspace);
+
+      state = "ready";
     }
 
     //await client.post('workspace', '/Users/dk/Library/Mobile Documents/com~apple~CloudDocs/test-supamind');

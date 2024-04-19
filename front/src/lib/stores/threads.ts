@@ -15,7 +15,7 @@ export async function createThread(agentId: string) {
 
 export async function loadThreadsFromServer() {    
   const threads = await client.get("threads").then((res) => {
-    const threads = res.data as Thread[];
+    const threads = Array.isArray(res.data) ? res.data : [];
     // sort by createdAt
     threads.sort((a, b) => {
       return b.createdAt - a.createdAt;

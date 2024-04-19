@@ -9,16 +9,6 @@ const app = new Application();
 const httpRouter = new Router();
 const neoRouter = new NeoRouter();
 
-class Workspace {
-  readonly path: string;
-  readonly db: AppDb;
-
-  constructor(path: string) {
-    this.path = path;
-    this.db = new AppDb(path);
-  }
-}
-
 controllers(neoRouter);
 
 httpRouter.get("/", (context) => {
