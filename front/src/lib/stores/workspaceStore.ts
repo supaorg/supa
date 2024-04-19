@@ -2,30 +2,30 @@ import type { Writable } from "svelte/store";
 import { get } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 
-export type Workspace = {
+export type WorkspaceInfo = {
   uri: string;
 }
 
-const currentWorkspaceStore: Writable<Workspace | null> = localStorageStore(
+const currentWorkspaceStore: Writable<WorkspaceInfo | null> = localStorageStore(
   "currentWorkspace",
   null,
 );
 
-const workspacesStore: Writable<Workspace[]> = localStorageStore(
+const workspacesStore: Writable<WorkspaceInfo[]> = localStorageStore(
   "workspaces",
   [],
 );
 
-export function getCurrentWorkspace(): Workspace | null {
+export function getCurrentWorkspace(): WorkspaceInfo | null {
   return get(currentWorkspaceStore);
 }
 
-export function getWorkspaces(): Workspace[] {
+export function getWorkspaces(): WorkspaceInfo[] {
   return get(workspacesStore);
 }
 
-export function createWorkspace(uri: string): Workspace {
-  const workspace: Workspace = {
+export function createWorkspace(uri: string): WorkspaceInfo {
+  const workspace: WorkspaceInfo = {
     uri,
   };
 
@@ -36,7 +36,7 @@ export function createWorkspace(uri: string): Workspace {
   return workspace;
 }
 
-export function setCurrentWorkspace(workspace: Workspace) {
+export function setCurrentWorkspace(workspace: WorkspaceInfo) {
   currentWorkspaceStore.set(workspace);
 
   // Check if the workspace is already in the list

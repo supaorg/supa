@@ -30,21 +30,27 @@
   import { storeHighlightJs } from "@skeletonlabs/skeleton";
   // For code highlighting in conversations
   import hljs from "highlight.js";
-  import 'highlight.js/styles/github-dark.css';
+  import "highlight.js/styles/github-dark.css";
+  import { getCurrentWorkspace } from "$lib/stores/workspaceStore";
+    import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
+
+  type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
   storeHighlightJs.set(hljs);
+
+  let state: AppState = "initializing";
 
   let tauriIntegration: ServerInTauri | null = null;
   let serverUrl = "http://localhost:6969";
   let serverWsUrl = "ws://localhost:6969";
-  let initialized = false;
-  let needsSetup = false;
 
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
   initializeStores();
 
   $: {
-    needsSetup = $profileStore === null;
+    if ($profileStore === null && getCurrentWorkspace() !== null) {
+      state = "needsSetup";
+    }
   }
 
   onMount(async () => {
@@ -60,15 +66,28 @@
       client.setUrl(serverWsUrl);
     }
 
-    await client.post('workspace', 'data-dev');
+    const workspace = getCurrentWorkspace();
 
-    await Promise.all([
-      loadProfileFromServer(),
-      loadThreadsFromServer(),
-      loadAgentsFromServer()
-    ]);
+    if (workspace) {
+      await client.post("workspace", workspace.uri);
 
-    initialized = true;
+      await Promise.all([
+        loadProfileFromServer(),
+        loadThreadsFromServer(),
+        loadAgentsFromServer(),
+      ]);
+
+      if ($profileStore === null) {
+        state = "needsSetup";
+      } else {
+        state = "ready";
+      }
+    } else {
+      state = "needsWorkspace";
+    }
+
+    //await client.post('workspace', '/Users/dk/Library/Mobile Documents/com~apple~CloudDocs/test-supamind');
+    //await client.post('workspace', 'data-dev');
   });
 
   onDestroy(async () => {
@@ -88,23 +107,23 @@
 
 <Modal components={modalRegistry} />
 
-{#if initialized}
-  {#if !needsSetup}
-    <AppShell>
-      <svelte:fragment slot="header"></svelte:fragment>
-      <svelte:fragment slot="sidebarLeft">
-        <div
-          class="hidden md:block h-full light:bg-surface-100 dark:bg-surface-900-token border-r dark:border-surface-500/30"
-          style="width: 260px;"
-        >
-          <Sidebar />
-        </div>
-      </svelte:fragment>
-      <slot />
-    </AppShell>
-  {:else}
-    <SetupWizard />
-  {/if}
-{:else}
+{#if state === "initializing"}
   <Loading />
+{:else if state === "needsWorkspace"}
+  <WorkspaceSetup />
+{:else if state === "needsSetup"}
+  <SetupWizard />
+{:else if state === "ready"}
+  <AppShell>
+    <svelte:fragment slot="header"></svelte:fragment>
+    <svelte:fragment slot="sidebarLeft">
+      <div
+        class="hidden md:block h-full light:bg-surface-100 dark:bg-surface-900-token border-r dark:border-surface-500/30"
+        style="width: 260px;"
+      >
+        <Sidebar />
+      </div>
+    </svelte:fragment>
+    <slot />
+  </AppShell>
 {/if}
