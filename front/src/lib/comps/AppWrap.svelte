@@ -78,6 +78,8 @@
       client.setUrl(serverWsUrl);
     }
 
+    console.log("Server URL:", serverUrl);
+
     const workspace = getCurrentWorkspace();
 
     // @TODO: check if the workspace exists.
@@ -89,6 +91,8 @@
 
     if (workspaceExists) {
       await client.post("workspace", workspace?.uri);
+
+      console.log("Workspace:", workspace?.uri);
 
       await loadStoresFromServer();
 
@@ -108,6 +112,8 @@
       }
 
       const workspaceDir = newWorkspaceRes.data as string;
+
+      console.log("Workspace:", workspaceDir);
 
       const newWorkspace = {
         uri: workspaceDir,

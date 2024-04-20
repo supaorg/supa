@@ -2,7 +2,7 @@ import { Child, Command } from "@tauri-apps/api/shell";
 import { appDataDir } from "@tauri-apps/api/path";
 
 export function isTauri() {
-  return typeof window !== 'undefined' && '__TAURI__' in window;
+  return typeof window !== "undefined" && "__TAURI__" in window;
 }
 
 export class ServerInTauri {
@@ -16,6 +16,10 @@ export class ServerInTauri {
     }
 
     this.appDataDirPath = await appDataDir();
+
+    // @TODO: first check if the server is already running at a couple of ports.
+    // An endpoint will have to return the workspace it's running on. And it has to match with the app's workspace.
+    // There also could be a version and other info to make a decision whether to go with the running server or start a new one.
 
     await this.#startServer();
   }
@@ -40,7 +44,7 @@ export class ServerInTauri {
     return `ws://localhost:${this.port}`;
   }
 
-  getDataDirPath() {   
+  getDataDirPath() {
     return this.appDataDirPath;
   }
 
@@ -51,18 +55,18 @@ export class ServerInTauri {
     }
 
     const command = Command.sidecar("binaries/server", [
-      this.appDataDirPath
+      this.appDataDirPath,
     ]);
 
     command.stdout.on("data", (data) => {
       this.#handleProcessData(data);
     });
-    
-    command.on('close', (code) => {
+
+    command.on("close", (code) => {
       console.log(`Process exited with code: ${JSON.stringify(code)}`);
     });
 
-    command.on('error', (error) => {
+    command.on("error", (error) => {
       console.error(`Process crashed with error: ${JSON.stringify(error)}`);
     });
 
@@ -78,13 +82,13 @@ export class ServerInTauri {
     try {
       const parsedData = JSON.parse(data);
 
-      console.log('Server log: ' + data);
+      console.log("Server log: " + data);
 
       if (parsedData.type == "port") {
         this.port = parsedData.value;
       }
     } catch (error) {
-      console.log('Server log: ' + data);
+      console.log("Server log: " + data);
     }
   }
 

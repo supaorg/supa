@@ -1,18 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { v4 as uuidv4 } from "uuid";
-  import { marked } from "marked";
   import { tick } from "svelte";
-  import type { ChatMessage } from "@shared/models";
+  import type { ThreadMessage as Message } from "@shared/models";
   import { client } from "$lib/tools/client";
   import { goto } from "$app/navigation";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
-  import { Icon, Sparkles, UserCircle } from "svelte-hero-icons";
-  import { CodeBlock } from "@skeletonlabs/skeleton";
-  import Markdown from "@magidoc/plugin-svelte-marked";
-  import MarkdownCode from "./markdown/MarkdownCode.svelte";
-  import MarkdownLink from "./markdown/MarkdownLink.svelte";
-    import ThreadMessage from "./ThreadMessage.svelte";
+  import ThreadMessage from "./ThreadMessage.svelte";
 
   export let threadId: string;
 
@@ -29,22 +23,7 @@
     prevThreadId = threadId;
   }
 
-  let messages: ChatMessage[] = [];
-  let renderer = new marked.Renderer();
-
-  renderer.link = function (href, title, text) {
-    return `<a target="_blank" href=${href} title=${title}>${text}</a>`;
-  };
-
-  renderer.code = (code, language) => {
-    //return `<CodeBlock language="${language}">${code}</CodeBlock>`;
-
-    CodeBlock;
-  };
-
-  marked.setOptions({
-    renderer: renderer,
-  });
+  let messages: Message[] = [];
 
   function allowToSendMessage(): boolean {
     if (messages.length === 0) {
@@ -91,7 +70,7 @@
       inProgress: null,
       createdAt: Date.now(),
       updatedAt: null,
-    } as ChatMessage;
+    } as Message;
 
     client.post(`threads/${threadId}`, msg);
 
@@ -102,7 +81,7 @@
     scrollToBottom();
   }
 
-  function onChatMsg(message: ChatMessage) {
+  function onChatMsg(message: Message) {
     // search for the message in the list with the same id
     const index = messages.findIndex((m) => m.id === message.id);
 
@@ -133,14 +112,14 @@
         return [];
       }
 
-      const messages = res.data as ChatMessage[];
+      const messages = res.data as Message[];
       return messages;
     });
 
     scrollToBottom();
 
     client.listen(`threads/${threadId}`, (broadcast) => {
-      const chatMsg = broadcast.data as ChatMessage;
+      const chatMsg = broadcast.data as Message;
       onChatMsg(chatMsg);
 
       scrollToBottom();

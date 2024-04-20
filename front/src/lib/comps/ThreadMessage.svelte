@@ -1,19 +1,11 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import { v4 as uuidv4 } from "uuid";
-  import { marked } from "marked";
-  import { tick } from "svelte";
-  import type { ChatMessage } from "@shared/models";
-  import { client } from "$lib/tools/client";
-  import { goto } from "$app/navigation";
-  import SendMessageForm from "./forms/SendMessageForm.svelte";
+  import type { ThreadMessage } from "@shared/models";
   import { Icon, Sparkles, UserCircle } from "svelte-hero-icons";
-  import { CodeBlock } from "@skeletonlabs/skeleton";
   import Markdown from "@magidoc/plugin-svelte-marked";
   import MarkdownCode from "./markdown/MarkdownCode.svelte";
   import MarkdownLink from "./markdown/MarkdownLink.svelte";
 
-  export let message: ChatMessage;
+  export let message: ThreadMessage;
 
   function formatChatDate(dateInMs: number) {
     const date = new Date(dateInMs);
