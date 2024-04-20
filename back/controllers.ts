@@ -18,6 +18,7 @@ export function controllers(router: Router) {
     .onPost("new-workspace", async (ctx) => { 
       try {
         const path = await createWorkspaceInDocuments();
+        db = new AppDb(path);
         ctx.response = path;
       } catch (e) {
         ctx.error = e.message;

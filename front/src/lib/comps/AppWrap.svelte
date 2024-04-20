@@ -90,8 +90,6 @@
     if (workspaceExists) {
       await client.post("workspace", workspace?.uri);
 
-      console.log("Workspace:", workspace);
-
       await loadStoresFromServer();
 
       if ($profileStore === null) {
@@ -100,16 +98,12 @@
         state = "ready";
       }
     } else {
-      // @TODO: check for a workspace in iCloud or Documents (search for Supamind directory). Create a workspace automatically if none is found in iCloud or Documents.
-      // @TODO: Use 'Supamind/workspace'
-
       const newWorkspaceRes = await client.post("new-workspace");
 
       if (newWorkspaceRes.error) {
         console.error(newWorkspaceRes.error);
 
         // @TODO: Handle error or permission denied. Show a message to a user that we need it to create a workspace.
-
         return;
       }
 
@@ -123,13 +117,8 @@
 
       await loadStoresFromServer();
 
-      console.log("New workspace created:", newWorkspace);
-
       state = "ready";
     }
-
-    //await client.post('workspace', '/Users/dk/Library/Mobile Documents/com~apple~CloudDocs/test-supamind');
-    //await client.post('workspace', 'data-dev');
   });
 
   onDestroy(async () => {

@@ -220,7 +220,12 @@ export class AppDb {
         const messageStr = await Deno.readTextFile(
           this.resolvePath("threads", threadId, messageFile.name),
         );
-        messages.push(JSON.parse(messageStr));
+        try {
+          messages.push(JSON.parse(messageStr));
+        } catch {
+          console.error("Invalid message file", messageFile.name);
+        }
+        
       }
     }
 
