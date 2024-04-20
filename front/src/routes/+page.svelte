@@ -23,5 +23,6 @@
 {#if threadId}
   <ChatThreadComponent {threadId} />
 {:else}
-  <p>@TODO: make a page for new users</p>
+  <h1 class="h1">Welcome!</h1>
+  <p>Press on that button on the left to start a chat with AI.</p>
 {/if}
