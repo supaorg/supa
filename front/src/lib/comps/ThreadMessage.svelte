@@ -38,7 +38,7 @@
         <p class="font-bold">AI</p>
       {/if}
     </header>
-    <div class="leading-relaxed">
+    <div class="thread-message leading-relaxed">
       <Markdown
         source={message.text ? message.text : "Loading..."}
         renderers={{

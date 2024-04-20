@@ -36,6 +36,33 @@ html, body { @apply h-full overflow-hidden; }
   display: inline-block;
 }
 
+.thread-message p {
+  margin-bottom: 1.25em;
+}
+
+.thread-message p:last-child {
+  margin-bottom: 0;
+}
+
+.thread-message ol {
+  margin-bottom: 1.25em;
+}
+
+.thread-message ol li {
+  list-style-type: decimal;
+  list-style-position: inside;
+  margin-bottom: 0.5em;
+  padding-left: .375em;
+}
+
+.thread-message code, .thread-message pre {
+  //font-family: ui-monospace;
+}
+
+.thread-message ul {
+  margin-bottom: 1.25em;
+}
+
 .article h1 {
   @apply h1 mb-4 md:mb-6;
 }
