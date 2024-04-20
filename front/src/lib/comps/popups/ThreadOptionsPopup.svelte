@@ -37,8 +37,10 @@
 <Portal>
   <div class="card shadow-xl z-10" data-popup={`popup-${threadId}`}>
     <div class="btn-group-vertical variant-filled">
+      <!--
       <button on:click={startRenamingThread}>Rename</button>
-      <button on:click={deleteThread} class="mt-4">Delete</button>
+      -->
+      <button on:click={deleteThread}>Delete</button>
     </div>
     <div class="arrow variant-filled" />
   </div>
