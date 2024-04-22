@@ -12,8 +12,6 @@
   import { menuDrawerSettings } from "$lib/utils/drawersSettings";
   import Sidebar from "./sidebar/Sidebar.svelte";
   import { ServerInTauri, isTauri } from "$lib/tauri/serverInTauri";
-  import { invoke } from "@tauri-apps/api";
-  import { appWindow } from "@tauri-apps/api/window";
   import { client } from "$lib/tools/client";
   import NewThreadModal from "./modals/NewThreadModal.svelte";
   import { loadThreadsFromServer } from "$lib/stores/threads";
@@ -32,16 +30,18 @@
   import { storeHighlightJs } from "@skeletonlabs/skeleton";
   // For code highlighting in conversations
   import hljs from "highlight.js";
-  import "highlight.js/styles/github-dark.css";
   import {
     getCurrentWorkspace,
     setCurrentWorkspace,
     type WorkspaceInfo,
   } from "$lib/stores/workspaceStore";
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
-    import TauriWindowProps from "./TauriWindowProps.svelte";
+  import TauriWindowSetup from "./TauriWindowSetup.svelte";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
+
+  console.log("Highlight.js");
+  console.log(hljs);
 
   storeHighlightJs.set(hljs);
 
@@ -169,5 +169,5 @@
 {/if}
 
 {#if isTauri()}
-  <TauriWindowProps />
+  <TauriWindowSetup />
 {/if}
