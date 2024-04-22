@@ -40,9 +40,6 @@
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
-  console.log("Highlight.js");
-  console.log(hljs);
-
   storeHighlightJs.set(hljs);
 
   let state: AppState = "initializing";
@@ -57,6 +54,10 @@
   $: {
     if ($profileStore === null && getCurrentWorkspace() !== null) {
       state = "needsSetup";
+    }
+
+    if ($profileStore !== null && $profileStore?.name && getCurrentWorkspace() !== null) {
+      state = "ready";
     }
   }
 
@@ -84,13 +85,17 @@
     console.log("Server URL:", serverUrl);
 
     const workspace = getCurrentWorkspace();
+    let workspaceExists = false;
 
-    // @TODO: check if the workspace exists.
-    const workspaceExists = workspace
-      ? await client
-          .post("workspace-exists", workspace.uri)
-          .then((res) => res.data as boolean)
-      : false;
+    if (workspace) {
+      const workspaceExistsRes = await client.post("workspace-exists", workspace?.uri);
+
+      if (!workspaceExistsRes.error) {
+        workspaceExists = workspaceExistsRes.data as boolean;
+      } else {
+        console.error(workspaceExistsRes.error);
+      }
+    }
 
     if (workspaceExists) {
       await client.post("workspace", workspace?.uri);
@@ -99,7 +104,7 @@
 
       await loadStoresFromServer();
 
-      if ($profileStore === null) {
+      if ($profileStore === null || !$profileStore?.name) {
         state = "needsSetup";
       } else {
         state = "ready";
@@ -124,9 +129,13 @@
 
       setCurrentWorkspace(newWorkspace);
 
+      // Doing it in case if the folder contains some files already
       await loadStoresFromServer();
-
-      state = "ready";
+      if ($profileStore === null || !$profileStore?.name) {
+        state = "needsSetup";
+      } else {
+        state = "ready";
+      }
     }
   });
 

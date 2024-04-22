@@ -6,6 +6,7 @@ import { ThreadMessage } from "@shared/models.ts";
 import { Agent, Profile } from "../shared/models.ts";
 import { defaultAgent } from "./agents/defaultAgent.ts";
 import { createWorkspaceInDocuments } from "./workspace.ts";
+import { fs } from "./tools/fs.ts";
 
 export function controllers(router: Router) {
   const aiChat = new Chat();
@@ -26,6 +27,30 @@ export function controllers(router: Router) {
     })
     .onPost("workspace", async (ctx) => {
       db = new AppDb(ctx.data as string);
+
+      // Check if the workspace folder exists
+      try {
+        const exists = await fs.dirExists(ctx.data as string);
+        if (!exists) {
+          ctx.error = "Workspace folder doesn't exist";
+          return;
+        }
+      } catch (e) {
+        ctx.error = e.message;
+        return;
+      }
+    })
+    .onPost("workspace-exists", async (ctx) => {
+      try {
+        const path = ctx.data as string;
+        const exists = await fs.dirExists(path);
+
+        ctx.response = exists;
+      }
+      catch (e) {
+        ctx.error = e.message;
+        return;
+      }
     })
     .onPost("setup", async (ctx) => {
       if (db === null) {
@@ -44,10 +69,16 @@ export function controllers(router: Router) {
         return;
       }
 
-      const profile = await db.insertProfile({ name: data.name });
-      await db.insertSecrets({ openai: data.openai });
-      router.broadcast("profile", profile);
-      ctx.response = profile;
+      try {
+        const profile = await db.insertProfile({ name: data.name });
+        await db.insertSecrets({ openai: data.openai });
+        router.broadcast("profile", profile);
+        ctx.response = profile;
+      } catch (e) {
+        ctx.error = e.message;
+        return;
+      }
+      
     })
     .onGet("profile", async (ctx) => {
       if (db === null) {
@@ -55,8 +86,13 @@ export function controllers(router: Router) {
         return;
       }
 
-      const profile = await db.getProfile();
-      ctx.response = profile;
+      try {
+        const profile = await db.getProfile();
+        ctx.response = profile;
+      } catch (e) {
+        ctx.error = e.message;
+        return;
+      }
     })
     .onPost("profile", async (ctx) => {
       if (db === null) {
@@ -77,8 +113,13 @@ export function controllers(router: Router) {
         return;
       }
 
-      const agents = await db.getAgents();
-      ctx.response = agents;
+      try {
+        const agents = await db.getAgents();
+        ctx.response = agents;
+      } catch (e) {
+        ctx.error = e.message;
+        return;
+      }
     })
     .onPost("agents", async (ctx) => {
       if (db === null) {
@@ -111,8 +152,14 @@ export function controllers(router: Router) {
         return;
       }
 
-      const threads = await db.getThreads();
-      ctx.response = threads;
+      try {
+        const threads = await db.getThreads();
+        ctx.response = threads;
+      } catch (e) {
+        ctx.error = e.message;
+        return;
+      }
+      
     })
     .onPost("threads", async (ctx) => {
       if (db === null) {

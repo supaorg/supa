@@ -2,6 +2,8 @@
   import { ProgressRadial, Step, Stepper } from "@skeletonlabs/skeleton";
   import { client } from "$lib/tools/client";
   import { CheckCircle, Icon } from "svelte-hero-icons";
+  import { profileStore } from "$lib/stores/profile";
+  import type { Profile } from "@shared/models";
 
   let name = "";
   let openai = "";
@@ -14,11 +16,17 @@
         openai,
       })
       .then((res) => {
-        console.log(res);
+        if (res.error) {
+          console.error(res.error);
+          return;
+        }
+
+        console.log("Profile setup complete");
+        profileStore.set(res.data as Profile);
       });
   }
 
-  let timeout;
+  let timeout: any;
   let checkingKey = false;
   let controller = new AbortController();
   let signal = controller.signal;

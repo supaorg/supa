@@ -36,6 +36,14 @@
 			"url": "http://localhost:5173",
 			"webRoot": "${workspaceFolder}/front/"
 		},
+    {
+      "name": "Attach to Deno (when runs outside VS Code)",
+      "type": "node",
+      "request": "attach",
+      "cwd": "${workspaceFolder}",
+      "port": 9229,
+    }
+   
   ],
   "compounds": [
 		{
