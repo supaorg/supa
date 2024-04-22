@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
   <meta charset="utf-8" />
@@ -9,6 +9,10 @@
   <script>
     function updateColorScheme() {
       let colorScheme = 'dark';
+
+      // @TODO: enable light theme when ready
+
+      /*
 
       // Get the user's theme preference form local storage
       const savedColorScheme = localStorage.getItem("colorScheme");
@@ -20,6 +24,7 @@
         const darkModeIsOnInOS = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         colorScheme = darkModeIsOnInOS ? 'dark' : 'light';
       }
+      */
 
       if (colorScheme === 'dark') {
         document.documentElement.classList.add('dark');
