@@ -1,5 +1,4 @@
 import type { Writable } from 'svelte/store';
-import { get } from 'svelte/store';
 import { localStorageStore } from '@skeletonlabs/skeleton';
 import { client } from '$lib/tools/client';
 import type { Agent } from '@shared/models';

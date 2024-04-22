@@ -12,6 +12,8 @@
   import { menuDrawerSettings } from "$lib/utils/drawersSettings";
   import Sidebar from "./sidebar/Sidebar.svelte";
   import { ServerInTauri, isTauri } from "$lib/tauri/serverInTauri";
+  import { invoke } from "@tauri-apps/api";
+  import { appWindow } from "@tauri-apps/api/window";
   import { client } from "$lib/tools/client";
   import NewThreadModal from "./modals/NewThreadModal.svelte";
   import { loadThreadsFromServer } from "$lib/stores/threads";
@@ -37,6 +39,7 @@
     type WorkspaceInfo,
   } from "$lib/stores/workspaceStore";
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
+    import TauriWindowProps from "./TauriWindowProps.svelte";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
@@ -163,4 +166,8 @@
     </svelte:fragment>
     <slot />
   </AppShell>
+{/if}
+
+{#if isTauri()}
+  <TauriWindowProps />
 {/if}
