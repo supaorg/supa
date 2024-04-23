@@ -4,11 +4,11 @@
 
   export let token: Tokens.Code;
 
-  let language: string | undefined;
+  let language: string;
   let code: string;
 
   $: {
-    language = token.lang ? token.lang : undefined;
+    language = token.lang ? token.lang : 'plaintext';
     code = token.text;
   }
 </script>

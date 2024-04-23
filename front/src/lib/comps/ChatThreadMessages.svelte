@@ -144,8 +144,6 @@
       hour12: false, // Use 24-hour format
     });
   }
-
-  function handleTextareaHeightChange(newHeight: number) {}
 </script>
 
 <div class="flex h-full flex-col max-w-3xl mx-auto justify-center items-center">
@@ -163,7 +161,6 @@
     <section class="p-2 pt-2">
       <SendMessageForm
         onSend={sendMsg}
-        onHeightChange={handleTextareaHeightChange}
       />
     </section>
   </div>
