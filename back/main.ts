@@ -1,6 +1,5 @@
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { Router as NeoRouter } from "../shared/restOnSockets/Router.ts";
-import { AppDb } from "./db/appDb.ts";
 import { ProcessPortMsg } from "@shared/serverProcessMessages.ts";
 import { controllers } from "./controllers.ts";
 import { startServer } from "./startServer.ts";

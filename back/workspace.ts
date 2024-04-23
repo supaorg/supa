@@ -1,4 +1,5 @@
 import { fs } from "./tools/fs.ts";
+import { v4 as uuidv4 } from "npm:uuid";
 
 /*
 class Workspace {
@@ -12,6 +13,12 @@ class Workspace {
 }
 */
 
+let workspacePath: string | null = null;
+
+export function setWorkspacePath(path: string) {
+  workspacePath = path;
+}
+
 export async function createWorkspaceInDocuments() {
   const homeDir = Deno.env.get("HOME");
   if (homeDir === undefined) {
@@ -23,10 +30,9 @@ export async function createWorkspaceInDocuments() {
 
   let dir: string;
 
-  if(await fs.dirExists(iCloudPath)) {
+  if (await fs.dirExists(iCloudPath)) {
     dir = iCloudPath;
-  }
-  else if(await fs.dirExists(documentsPath)) {
+  } else if (await fs.dirExists(documentsPath)) {
     dir = documentsPath;
   } else {
     throw new Error("Neither iCloud nor Documents directory exists");
@@ -36,7 +42,7 @@ export async function createWorkspaceInDocuments() {
 }
 
 async function checkAndCreateWorkspaceDir(rootDir: string): Promise<string> {
-  const workspacePath = rootDir + "/Supamind/workspace";
+  workspacePath = rootDir + "/Supamind/workspace";
   const workspaceExists = await fs.dirExists(workspacePath);
   if (!workspaceExists) {
     await fs.mkdir(workspacePath, { recursive: true });
@@ -46,3 +52,22 @@ async function checkAndCreateWorkspaceDir(rootDir: string): Promise<string> {
 
   return workspacePath;
 }
+
+const SESSIONS_DIR = "/.sessions";
+
+const sessionId = uuidv4();
+
+// start an infinite loop to update session file
+// every 5 minutes
+setInterval(async () => {
+  if (workspacePath === null) {
+    return;
+  }
+
+  await fs.ensureDir(workspacePath + SESSIONS_DIR);
+
+  const sessionFile = workspacePath + SESSIONS_DIR + "/" + sessionId + ".json";
+
+  await fs.writeTextFile(sessionFile, "{}");
+  
+}, 10000);

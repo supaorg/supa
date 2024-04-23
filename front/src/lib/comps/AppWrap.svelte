@@ -37,8 +37,9 @@
   } from "$lib/stores/workspaceStore";
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
   import TauriWindowSetup from "./TauriWindowSetup.svelte";
+    import WaitingForPermission from "./WaitingForPermission.svelte";
 
-  type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
+  type AppState = "initializing" | "needsWorkspace" | "needsFsPermission" | "needsSetup" | "ready";
 
   storeHighlightJs.set(hljs);
 
@@ -94,6 +95,10 @@
         workspaceExists = workspaceExistsRes.data as boolean;
       } else {
         console.error(workspaceExistsRes.error);
+
+        state = "needsFsPermission";
+
+        return;
       }
     }
 
@@ -115,7 +120,7 @@
       if (newWorkspaceRes.error) {
         console.error(newWorkspaceRes.error);
 
-        // @TODO: Handle error or permission denied. Show a message to a user that we need it to create a workspace.
+        state = "needsFsPermission";
         return;
       }
 
@@ -158,6 +163,8 @@
 
 {#if state === "initializing"}
   <Loading />
+{:else if state === "needsFsPermission"}
+  <WaitingForPermission />
 {:else if state === "needsWorkspace"}
   <WorkspaceSetup />
 {:else if state === "needsSetup"}

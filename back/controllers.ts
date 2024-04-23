@@ -5,8 +5,14 @@ import { AppDb } from "./db/appDb.ts";
 import { ThreadMessage } from "@shared/models.ts";
 import { Agent, Profile } from "../shared/models.ts";
 import { defaultAgent } from "./agents/defaultAgent.ts";
-import { createWorkspaceInDocuments } from "./workspace.ts";
+import { createWorkspaceInDocuments, setWorkspacePath } from "./workspace.ts";
 import { fs } from "./tools/fs.ts";
+
+async function checkWorkspaceDir(path: string): Promise<boolean> {
+  const pathToWorkspace = path + "/_supamind.json";
+
+  return await fs.fileExists(pathToWorkspace);
+}
 
 export function controllers(router: Router) {
   const aiChat = new Chat();
@@ -26,16 +32,17 @@ export function controllers(router: Router) {
       }
     })
     .onPost("workspace", async (ctx) => {
-      db = new AppDb(ctx.data as string);
-
-      // Check if the workspace folder exists
       try {
-        const exists = await fs.dirExists(ctx.data as string);
-        if (!exists) {
-          ctx.error = "Workspace folder doesn't exist";
-          return;
+        const path = ctx.data as string;
+        const exists = await checkWorkspaceDir(path);
+        ctx.response = exists;
+
+        if (exists) {
+          db = new AppDb(ctx.data as string);
+          setWorkspacePath(path);
         }
-      } catch (e) {
+      }
+      catch (e) {
         ctx.error = e.message;
         return;
       }
@@ -43,9 +50,7 @@ export function controllers(router: Router) {
     .onPost("workspace-exists", async (ctx) => {
       try {
         const path = ctx.data as string;
-        const exists = await fs.dirExists(path);
-
-        ctx.response = exists;
+        ctx.response = await checkWorkspaceDir(path);
       }
       catch (e) {
         ctx.error = e.message;

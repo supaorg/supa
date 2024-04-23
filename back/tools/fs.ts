@@ -4,6 +4,7 @@ export interface FileSystem {
   dirExists(path: string): Promise<boolean>;
   fileExists(path: string): Promise<boolean>;
   mkdir(path: string, options?: MkdirOptions): Promise<void>;
+  ensureDir(path: string): Promise<void>;
   writeTextFile(path: string, content: string): Promise<void>;
   readTextFile(path: string): Promise<string>;
 }
