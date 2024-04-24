@@ -6,7 +6,7 @@ import { startServer } from "./startServer.ts";
 
 const app = new Application();
 const httpRouter = new Router();
-const neoRouter = new NeoRouter();
+export const neoRouter = new NeoRouter();
 
 controllers(neoRouter);
 

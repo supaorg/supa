@@ -1,3 +1,4 @@
+import { neoRouter } from "./main.ts";
 import { fs } from "./tools/fs.ts";
 import { v4 as uuidv4 } from "npm:uuid";
 
@@ -15,8 +16,10 @@ class Workspace {
 
 let workspacePath: string | null = null;
 
-export function setWorkspacePath(path: string) {
+export async function setWorkspacePath(path: string) {
   workspacePath = path;
+
+  await writeSessionFile();
 }
 
 export async function createWorkspaceInDocuments() {
@@ -53,21 +56,43 @@ async function checkAndCreateWorkspaceDir(rootDir: string): Promise<string> {
   return workspacePath;
 }
 
-const SESSIONS_DIR = "/.sessions";
+const SESSIONS_DIR = "/sessions";
 
 const sessionId = uuidv4();
 
-// start an infinite loop to update session file
-// every 5 minutes
-setInterval(async () => {
+type Session = {
+  id: string;
+  startedAt: Date;
+  updatedAt: Date;
+};
+
+async function writeSessionFile() {
   if (workspacePath === null) {
     return;
   }
 
-  await fs.ensureDir(workspacePath + SESSIONS_DIR);
+  try {
+    await fs.ensureDir(workspacePath + SESSIONS_DIR);
 
-  const sessionFile = workspacePath + SESSIONS_DIR + "/" + sessionId + ".json";
+    const sessionFile = workspacePath + SESSIONS_DIR + "/" + sessionId +
+      ".json";
 
-  await fs.writeTextFile(sessionFile, "{}");
-  
-}, 10000);
+    await fs.writeTextFile(
+      sessionFile,
+      JSON.stringify({
+        id: sessionId,
+        startedAt: new Date(),
+        updatedAt: new Date(),
+      } as Session),
+    );
+  } catch (e) {
+    console.error(e);
+    neoRouter.broadcast("session", {
+      error: "fs-permission",
+    });
+  }
+}
+
+setInterval(async () => {
+  await writeSessionFile();
+}, 3000);

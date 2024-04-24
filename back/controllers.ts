@@ -9,7 +9,7 @@ import { createWorkspaceInDocuments, setWorkspacePath } from "./workspace.ts";
 import { fs } from "./tools/fs.ts";
 
 async function checkWorkspaceDir(path: string): Promise<boolean> {
-  const pathToWorkspace = path + "/_supamind.json";
+  const pathToWorkspace = path + "/_workspace.json";
 
   return await fs.fileExists(pathToWorkspace);
 }
@@ -39,7 +39,7 @@ export function controllers(router: Router) {
 
         if (exists) {
           db = new AppDb(ctx.data as string);
-          setWorkspacePath(path);
+          await setWorkspacePath(path);
         }
       }
       catch (e) {
@@ -110,6 +110,9 @@ export function controllers(router: Router) {
       router.broadcast(ctx.route, profile);
     })
     .onValidateBroadcast("profile", (conn, params) => {
+      return true;
+    })
+    .onValidateBroadcast("session", (conn, params) => {
       return true;
     })
     .onGet("agents", async (ctx) => {

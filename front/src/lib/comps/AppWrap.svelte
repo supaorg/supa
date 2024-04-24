@@ -37,9 +37,14 @@
   } from "$lib/stores/workspaceStore";
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
   import TauriWindowSetup from "./TauriWindowSetup.svelte";
-    import WaitingForPermission from "./WaitingForPermission.svelte";
+  import WaitingForPermission from "./WaitingForPermission.svelte";
 
-  type AppState = "initializing" | "needsWorkspace" | "needsFsPermission" | "needsSetup" | "ready";
+  type AppState =
+    | "initializing"
+    | "needsWorkspace"
+    | "needsFsPermission"
+    | "needsSetup"
+    | "ready";
 
   storeHighlightJs.set(hljs);
 
@@ -57,7 +62,11 @@
       state = "needsSetup";
     }
 
-    if ($profileStore !== null && $profileStore?.name && getCurrentWorkspace() !== null) {
+    if (
+      $profileStore !== null &&
+      $profileStore?.name &&
+      getCurrentWorkspace() !== null
+    ) {
       state = "ready";
     }
   }
@@ -89,7 +98,10 @@
     let workspaceExists = false;
 
     if (workspace) {
-      const workspaceExistsRes = await client.post("workspace-exists", workspace?.uri);
+      const workspaceExistsRes = await client.post(
+        "workspace-exists",
+        workspace?.uri,
+      );
 
       if (!workspaceExistsRes.error) {
         workspaceExists = workspaceExistsRes.data as boolean;
@@ -103,6 +115,15 @@
     }
 
     if (workspaceExists) {
+      await client.listen("session", async ({ data }) => {
+        const session = data as object;
+        if (data && "error" in session && session.error === "fs-permission") {
+          state = "needsFsPermission";
+        } else {
+          
+        }
+      });
+
       await client.post("workspace", workspace?.uri);
 
       console.log("Workspace:", workspace?.uri);

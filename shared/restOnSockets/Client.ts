@@ -114,20 +114,28 @@ export class Client {
     });
   }
 
-  public listen(route: string, callback: (broadcast: { action: 'POST' | 'DELETE' | 'UPDATE'; data: Payload; }) => void) {
-    if (this.subscribedRoutes[route]) {
-      console.error(`Route "${route}" already has a subscription`);
-      return;
-    }
-
-    this.subscribedRoutes[route] = callback;
-
-    this.conn.post(new_MsgSubscribeToRoute(route), (response) => {
-      if (response.error) {
-        console.error(`Failed to subscribe to route "${route}"`);
-        // Remove the subscription if the server rejected it
-        delete this.subscribedRoutes[route];
+  public listen(route: string, callback: (broadcast: { action: 'POST' | 'DELETE' | 'UPDATE'; data: Payload; }) => void): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.subscribedRoutes[route]) {
+        const errorMsg = `Route "${route}" already has a subscription`;
+        console.error(errorMsg);
+        reject(new Error(errorMsg));
+        return;
       }
+
+      this.subscribedRoutes[route] = callback;
+
+      this.conn.post(new_MsgSubscribeToRoute(route), (response) => {
+        if (response.error) {
+          const errorMsg = `Failed to subscribe to route "${route}"`;
+          console.error(errorMsg);
+          // Remove the subscription if the server rejected it
+          delete this.subscribedRoutes[route];
+          reject(new Error(errorMsg));
+        } else {
+          resolve();
+        }
+      });
     });
   }
 
