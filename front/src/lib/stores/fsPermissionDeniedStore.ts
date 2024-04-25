@@ -5,10 +5,10 @@ export async function subscribeToSession() {
   return client.listen("session", async ({ data }) => {
     const session = data as object;
     if (data && "error" in session && session.error === "fs-permission") {
-      fsPermissionDeniedStore.set("fs-permission");
+      fsPermissionDeniedStore.set(true);
     } else {
-      if (get(fsPermissionDeniedStore) === "fs-permission") {
-        fsPermissionDeniedStore.set(null);
+      if (get(fsPermissionDeniedStore)) {
+        fsPermissionDeniedStore.set(false);
         // Here we reload the page so the app can setup the workspace correctly
         window.location.reload();
       }
@@ -16,4 +16,4 @@ export async function subscribeToSession() {
   });
 }
 
-export const fsPermissionDeniedStore = writable<string | null>(null);
+export const fsPermissionDeniedStore = writable<boolean>(false);

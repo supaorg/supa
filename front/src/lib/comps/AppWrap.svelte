@@ -109,6 +109,7 @@
         workspaceExists = workspaceExistsRes.data as boolean;
       } else {
         console.error(workspaceExistsRes.error);
+        fsPermissionDeniedStore.set(true);
         return;
       }
     }
@@ -130,6 +131,7 @@
 
       if (newWorkspaceRes.error) {
         console.error(newWorkspaceRes.error);
+        fsPermissionDeniedStore.set(true);
         return;
       }
 
@@ -171,7 +173,7 @@
 
 <Modal components={modalRegistry} />
 
-{#if $fsPermissionDeniedStore !== null}
+{#if $fsPermissionDeniedStore}
   <FsPermissionDenied />
 {:else if state === "initializing"}
   <Loading />
