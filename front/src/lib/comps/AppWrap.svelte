@@ -37,12 +37,12 @@
   } from "$lib/stores/workspaceStore";
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
   import TauriWindowSetup from "./TauriWindowSetup.svelte";
-  import WaitingForPermission from "./WaitingForPermission.svelte";
+  import FsPermissionDenied from "./FsPermissionDenied.svelte";
+  import { fsPermissionDeniedStore, subscribeToSession } from "$lib/stores/fsPermissionDeniedStore";
 
   type AppState =
     | "initializing"
     | "needsWorkspace"
-    | "needsFsPermission"
     | "needsSetup"
     | "ready";
 
@@ -94,6 +94,8 @@
 
     console.log("Server URL:", serverUrl);
 
+    await subscribeToSession();
+
     const workspace = getCurrentWorkspace();
     let workspaceExists = false;
 
@@ -107,23 +109,11 @@
         workspaceExists = workspaceExistsRes.data as boolean;
       } else {
         console.error(workspaceExistsRes.error);
-
-        state = "needsFsPermission";
-
         return;
       }
     }
 
     if (workspaceExists) {
-      await client.listen("session", async ({ data }) => {
-        const session = data as object;
-        if (data && "error" in session && session.error === "fs-permission") {
-          state = "needsFsPermission";
-        } else {
-          
-        }
-      });
-
       await client.post("workspace", workspace?.uri);
 
       console.log("Workspace:", workspace?.uri);
@@ -140,8 +130,6 @@
 
       if (newWorkspaceRes.error) {
         console.error(newWorkspaceRes.error);
-
-        state = "needsFsPermission";
         return;
       }
 
@@ -178,14 +166,15 @@
   const modalRegistry: Record<string, ModalComponent> = {
     newThread: { ref: NewThreadModal },
   };
+
 </script>
 
 <Modal components={modalRegistry} />
 
-{#if state === "initializing"}
+{#if $fsPermissionDeniedStore !== null}
+  <FsPermissionDenied />
+{:else if state === "initializing"}
   <Loading />
-{:else if state === "needsFsPermission"}
-  <WaitingForPermission />
 {:else if state === "needsWorkspace"}
   <WorkspaceSetup />
 {:else if state === "needsSetup"}
