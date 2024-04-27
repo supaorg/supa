@@ -7,6 +7,8 @@ import { Agent, Profile } from "../shared/models.ts";
 import { defaultAgent } from "./agents/defaultAgent.ts";
 import { createWorkspaceInDocuments, setWorkspacePath } from "./workspace.ts";
 import { fs } from "./tools/fs.ts";
+import { SimpleChatAgent } from "./agents/simpleChatAgent.ts";
+import { AgentServices } from "./agents/agentServices.ts";
 
 async function checkWorkspaceDir(path: string): Promise<boolean> {
   const pathToWorkspace = path + "/_workspace.json";
@@ -17,15 +19,18 @@ async function checkWorkspaceDir(path: string): Promise<boolean> {
 export function controllers(router: Router) {
   const aiChat = new Chat();
 
+  const agentServices = new AgentServices();
+
   let db: AppDb | null = null;
 
   const DB_ERROR = "Database is not initialized";
 
   router
-    .onPost("new-workspace", async (ctx) => { 
+    .onPost("new-workspace", async (ctx) => {
       try {
         const path = await createWorkspaceInDocuments();
         db = new AppDb(path);
+        agentServices.db = db;
         ctx.response = path;
       } catch (e) {
         ctx.error = e.message;
@@ -39,10 +44,10 @@ export function controllers(router: Router) {
 
         if (exists) {
           db = new AppDb(ctx.data as string);
+          agentServices.db = db;
           await setWorkspacePath(path);
         }
-      }
-      catch (e) {
+      } catch (e) {
         ctx.error = e.message;
         return;
       }
@@ -51,8 +56,7 @@ export function controllers(router: Router) {
       try {
         const path = ctx.data as string;
         ctx.response = await checkWorkspaceDir(path);
-      }
-      catch (e) {
+      } catch (e) {
         ctx.error = e.message;
         return;
       }
@@ -83,7 +87,6 @@ export function controllers(router: Router) {
         ctx.error = e.message;
         return;
       }
-      
     })
     .onGet("profile", async (ctx) => {
       if (db === null) {
@@ -167,7 +170,6 @@ export function controllers(router: Router) {
         ctx.error = e.message;
         return;
       }
-      
     })
     .onPost("threads", async (ctx) => {
       if (db === null) {
@@ -244,11 +246,14 @@ export function controllers(router: Router) {
         return;
       }
 
-      const messages = await db.getThreadMessages(threadId);
-
+      // First create a message sent by the user
       await db.createThreadMessage(threadId, message);
       router.broadcast(ctx.route, message);
 
+      // Get all the messages in the thread (new message included)
+      const messages = await db.getThreadMessages(threadId);
+
+      // Create a in-progress message sent by the assistant
       const dbThreadReply = await db.createThreadMessage(threadId, {
         id: uuidv4(),
         role: "assistant",
@@ -257,43 +262,38 @@ export function controllers(router: Router) {
         createdAt: Date.now(),
         updatedAt: null,
       });
-
       router.broadcast(ctx.route, dbThreadReply);
 
-      const agent = await db.getAgent(thread.agentId) || defaultAgent;
+      const config = await db.getAgent(thread.agentId) || defaultAgent;
 
-      const profile = await db.getProfile();
-      const userName = profile?.name || "User";
+      // Let's run the messages through the agent
+      const chatAgent = new SimpleChatAgent(agentServices, {
+        models: [
+          {
+            model: "openai/gpt-4-turbo",
+          },
+        ],
+        instructions: config.instructions,
+      });
+      const response = await chatAgent.input(messages, (resp) => {
+        dbThreadReply.text = resp;
+        router.broadcast(ctx.route, dbThreadReply);
+        // And save the message to the database
+        if (db !== null) {
+          db.updateThreadMessage(threadId, dbThreadReply);
+        }
+      });
 
-      const systemPrompt = agent.instructions + "\n\n" +
-        "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks." +
-        "\n\n" +
-        "User name is " + userName;
+      console.log(response);
 
-      await aiChat.ask(
-        message.text as string,
-        messages,
-        systemPrompt,
-        db.getOpenaiKey(),
-        (res) => {
-          dbThreadReply.text = res.answer;
-          router.broadcast(ctx.route, dbThreadReply);
-          // And save the message to the database
-          if (db !== null) {
-            db.updateThreadMessage(threadId, dbThreadReply);
-          }
-        },
-      );
-
+      dbThreadReply.text = response;
       dbThreadReply.inProgress = 0;
       dbThreadReply.updatedAt = Date.now();
       dbThreadReply.inProgress = 0;
       await db.updateThreadMessage(threadId, dbThreadReply);
       router.broadcast(ctx.route, dbThreadReply);
 
-      messages.push(message);
-      messages.push(dbThreadReply);
-
+      // @TODO: make this with an agent
       if (!thread.title && messages.length >= 2) {
         const title = await aiChat.comeUpWithThreadTitle(
           messages,

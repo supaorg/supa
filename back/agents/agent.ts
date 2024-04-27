@@ -1,15 +1,36 @@
-export type AgentPayload = string | object;
+import { ThreadMessage } from "../../shared/models.ts";
+import { AgentServices } from "./agentServices.ts";
+
+export type AgentOutput = string | object;
+
+export interface AgentConfig {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export type AgentInput = ThreadMessage[];
 
 export type AgentResponse = {
   status: number;
   error: string;
-  payload: AgentPayload;
+  payload: AgentOutput;
 };
 
-export interface Agent {
-  input: (payload: AgentPayload) => Promise<AgentResponse>;
-  onOutput: (callback: (response: AgentResponse) => void) => void;
-  configure: (config: object) => void;
-  getConfig: () => object;
-  getExpectedConfig: () => object; // @TODO: make a schema for this
+export abstract class Agent<TConfig> {
+  protected services: AgentServices;
+  protected config: TConfig;
+
+  constructor(services: AgentServices, config: TConfig) {
+    this.services = services;
+    this.config = config;
+  }
+
+  abstract input(payload: AgentInput, onStream?: (output: AgentOutput) => void): Promise<AgentOutput>;
+
+  getConfig(): TConfig {
+    return this.config;
+  }
+
+  //abstract getExpectedConfig(): TConfig;
 }
