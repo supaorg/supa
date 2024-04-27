@@ -4,16 +4,10 @@
 		"checkJs": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": false,
     "target": "ES2020",
     "lib": ["es2015", "es2017", "dom"],
-    // Experiment to see if it helps VSCode to recognize alias (set it in deno.json for Deno)
-    "baseUrl": ".", // This must be set if you're using "paths"
-    "paths": {
-      "@shared/*": ["../shared/*"] // Adjust the path as necessary
-    }
 	}
 }
