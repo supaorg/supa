@@ -68,15 +68,15 @@ export function controllers(router: Router) {
         return;
       }
 
-      const data = ctx.data as { name: string; api_openai: string };
-      if (!data.name || !data.api_openai) {
+      const data = ctx.data as { name: string; key_openai: string };
+      if (!data.name || !data.key_openai) {
         ctx.error = "Name and OpenAI key are required";
         return;
       }
 
       try {
         const profile = await db.insertProfile({ name: data.name });
-        await db.insertSecrets({ openai: data.openai });
+        await db.insertSecrets({ openai: data.key_openai });
         router.broadcast("profile", profile);
         ctx.response = profile;
       } catch (e) {
@@ -258,7 +258,7 @@ export function controllers(router: Router) {
       // Let's run the messages through the agent
       const chatAgent = new SimpleChatAgent(agentServices, config);
       const response = await chatAgent.input(messages, (resp) => {
-        dbThreadReply.text = resp;
+        dbThreadReply.text = resp as string;
         router.broadcast(ctx.route, dbThreadReply);
         // And save the message to the database
         if (db !== null) {
@@ -266,7 +266,7 @@ export function controllers(router: Router) {
         }
       });
 
-      dbThreadReply.text = response;
+      dbThreadReply.text = response as string;
       dbThreadReply.inProgress = 0;
       dbThreadReply.updatedAt = Date.now();
       dbThreadReply.inProgress = 0;

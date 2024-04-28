@@ -16,14 +16,16 @@ export class SimpleChatAgent extends Agent<AgentConfigForChat> {
       throw new Error("No database");
     }
 
-    const profile = await this.services.db.getProfile();
 
     const lang = this.services.lang(this.config.targetLLM);
 
-    const systemPrompt = this.config.instructions + "\n\n" +
-      "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks." +
-      "\n\n" +
-      "User name is " + profile.name;
+    let systemPrompt = this.config.instructions + "\n\n" +
+      "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks.";
+
+    const profile = await this.services.db.getProfile();
+    if (profile) {
+      systemPrompt += "\n\nUser name is " + profile?.name;
+    }
 
     const remappedMessages = [
       { role: "system", content: systemPrompt },

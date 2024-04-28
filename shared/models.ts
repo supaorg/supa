@@ -29,4 +29,5 @@ export interface AgentConfig {
   button: string;
   description: string;
   instructions: string;
+  targetLLM: string;
 };
