@@ -4,10 +4,10 @@ import {
   Lang,
   LangVecs,
   PromptForObject,
-} from "https://deno.land/x/aiwrapper@v0.0.15/mod.ts";
+} from "https://deno.land/x/aiwrapper@v0.0.17/mod.ts";
 import { ThreadMessage } from "../shared/models.ts";
 import { Agent } from "../shared/models.ts";
-import { LangResultWithMessages } from "https://deno.land/x/aiwrapper@v0.0.15/src/lang/language-model.ts";
+import { LangResultWithMessages } from "https://deno.land/x/aiwrapper@v0.0.17/src/lang/language-model.ts";
 
 function normalizeStringForID(str: string) {
   const trimmed = str.trim();

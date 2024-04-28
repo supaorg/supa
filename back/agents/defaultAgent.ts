@@ -1,6 +1,6 @@
-import { Agent } from "@shared/models.ts";
+import { AgentConfig } from "@shared/models.ts";
 
-export const defaultAgent: Agent = {
+export const defaultAgent: AgentConfig = {
   id: "default",
   name: "Ask AI",
   button: "New query",

@@ -1,7 +1,7 @@
 import { Thread, ThreadMessage, Profile, Secrets } from "@shared/models.ts";
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
 import { join } from "https://deno.land/std/path/mod.ts";
-import { Agent } from "../../shared/models.ts";
+import { AgentConfig } from "../../shared/models.ts";
 import { defaultAgent } from "../agents/defaultAgent.ts";
 
 export class AppDb {
@@ -11,10 +11,10 @@ export class AppDb {
     return join(this.workspaceDir, ...paths);
   }
 
-  getOpenaiKey(): string {
+  getSecret(key: string): string {
     const secrets = JSON.parse(Deno.readTextFileSync(this.resolvePath("secrets.json")));
   
-    return secrets.openai;
+    return secrets[key] || "";
   }
 
   async getProfile(): Promise<Profile | null> {
@@ -51,7 +51,7 @@ export class AppDb {
     return secrets;
   }
 
-  async getAgents(): Promise<Agent[]> {
+  async getAgents(): Promise<AgentConfig[]> {
     await ensureDir(this.resolvePath("agents"));
     const agents = this.getFiles(this.resolvePath("agents"), "_agent.json");
 
@@ -61,7 +61,7 @@ export class AppDb {
     })];
   }
 
-  async getAgent(agentId: string): Promise<Agent | null> {
+  async getAgent(agentId: string): Promise<AgentConfig | null> {
     await ensureDir(this.resolvePath("agents"));
 
     try {
@@ -79,7 +79,7 @@ export class AppDb {
     }
   }
 
-  async insertAgent(agent: Agent): Promise<Agent> {
+  async insertAgent(agent: AgentConfig): Promise<AgentConfig> {
     await ensureDir(this.resolvePath("agents", agent.id));
 
     Deno.writeTextFileSync(

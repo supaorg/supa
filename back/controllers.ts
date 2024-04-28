@@ -3,7 +3,7 @@ import { Chat } from "./chat.ts";
 import { v4 as uuidv4 } from "npm:uuid";
 import { AppDb } from "./db/appDb.ts";
 import { ThreadMessage } from "@shared/models.ts";
-import { Agent, Profile } from "../shared/models.ts";
+import { AgentConfig, Profile } from "../shared/models.ts";
 import { defaultAgent } from "./agents/defaultAgent.ts";
 import { createWorkspaceInDocuments, setWorkspacePath } from "./workspace.ts";
 import { fs } from "./tools/fs.ts";
@@ -19,8 +19,6 @@ async function checkWorkspaceDir(path: string): Promise<boolean> {
 export function controllers(router: Router) {
   const aiChat = new Chat();
 
-  const agentServices = new AgentServices();
-
   let db: AppDb | null = null;
 
   const DB_ERROR = "Database is not initialized";
@@ -30,7 +28,6 @@ export function controllers(router: Router) {
       try {
         const path = await createWorkspaceInDocuments();
         db = new AppDb(path);
-        agentServices.db = db;
         ctx.response = path;
       } catch (e) {
         ctx.error = e.message;
@@ -44,7 +41,6 @@ export function controllers(router: Router) {
 
         if (exists) {
           db = new AppDb(ctx.data as string);
-          agentServices.db = db;
           await setWorkspacePath(path);
         }
       } catch (e) {
@@ -72,8 +68,8 @@ export function controllers(router: Router) {
         return;
       }
 
-      const data = ctx.data as { name: string; openai: string };
-      if (!data.name || !data.openai) {
+      const data = ctx.data as { name: string; api_openai: string };
+      if (!data.name || !data.api_openai) {
         ctx.error = "Name and OpenAI key are required";
         return;
       }
@@ -143,19 +139,9 @@ export function controllers(router: Router) {
         return;
       }
 
-      const agentForm = JSON.parse(ctx.data as string);
-
-      const newAgent: Agent = {
-        id: uuidv4(),
-        name: agentForm.name,
-        button: agentForm.buttonText,
-        description: agentForm.description,
-        targetLLM: "openai/gpt-4-turbo",
-        instructions: agentForm.instructions,
-      };
-
-      await db.insertAgent(newAgent);
-      router.broadcast(ctx.route, newAgent);
+      const config = JSON.parse(ctx.data as string) as AgentConfig;
+      await db.insertAgent(config);
+      router.broadcast(ctx.route, config);
     })
     .onGet("threads", async (ctx) => {
       if (db === null) {
@@ -253,7 +239,7 @@ export function controllers(router: Router) {
       // Get all the messages in the thread (new message included)
       const messages = await db.getThreadMessages(threadId);
 
-      // Create a in-progress message sent by the assistant
+      // Create an in-progress message for the agent
       const dbThreadReply = await db.createThreadMessage(threadId, {
         id: uuidv4(),
         role: "assistant",
@@ -264,17 +250,13 @@ export function controllers(router: Router) {
       });
       router.broadcast(ctx.route, dbThreadReply);
 
+      // @TODO: get the actual config that we can pass to the agent
       const config = await db.getAgent(thread.agentId) || defaultAgent;
 
+      const agentServices = new AgentServices(db);
+
       // Let's run the messages through the agent
-      const chatAgent = new SimpleChatAgent(agentServices, {
-        models: [
-          {
-            model: "openai/gpt-4-turbo",
-          },
-        ],
-        instructions: config.instructions,
-      });
+      const chatAgent = new SimpleChatAgent(agentServices, config);
       const response = await chatAgent.input(messages, (resp) => {
         dbThreadReply.text = resp;
         router.broadcast(ctx.route, dbThreadReply);
@@ -283,8 +265,6 @@ export function controllers(router: Router) {
           db.updateThreadMessage(threadId, dbThreadReply);
         }
       });
-
-      console.log(response);
 
       dbThreadReply.text = response;
       dbThreadReply.inProgress = 0;
@@ -297,7 +277,7 @@ export function controllers(router: Router) {
       if (!thread.title && messages.length >= 2) {
         const title = await aiChat.comeUpWithThreadTitle(
           messages,
-          db.getOpenaiKey(),
+          db.getSecret("key_openai"),
         );
         thread.title = title;
         await db.updateThread(thread);

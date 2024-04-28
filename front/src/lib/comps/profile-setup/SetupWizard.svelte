@@ -13,7 +13,7 @@
     client
       .post("setup", {
         name,
-        openai,
+        key_openai: openai,
       })
       .then((res) => {
         if (res.error) {

@@ -23,11 +23,10 @@ export type Secrets = {
   openai: string;
 }
 
-export type Agent = {
+export interface AgentConfig {
   id: string;
   name: string;
   button: string;
   description: string;
-  targetLLM: string;
   instructions: string;
 };
