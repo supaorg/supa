@@ -8,6 +8,10 @@
   let threadId: string | null = null;
 
   page.subscribe((val) => {
+    if (val.route.id !== '/') {
+      return;
+    }
+
     const threadIdInParams = val.url.searchParams.get('t');
     if(threadIdInParams) {
       threadId = threadIdInParams;

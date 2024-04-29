@@ -29,25 +29,22 @@
       on:click={openNewThreadModal}
     >
       <span class="w-8 h-8 flex-shrink-0">
-        <span class="relative flex h-full items-center justify-center rounded-full bg-white">
+        <span
+          class="relative flex h-full items-center justify-center rounded-full bg-white"
+        >
           <Icon src={PencilSquare} micro class="text-black w-4" />
         </span>
       </span>
       <span class="flex-grow text-left">{agent.button}</span>
     </button>
   {/each}
-  <!--
-  <a
-  href="/agents"
-  class="sidebar-btn w-full flex"
->
-  <span class="w-8 h-8 flex-shrink-0">
-    <span class="relative flex h-full items-center justify-center">
-      <Icon src={SquaresPlus} mini class="w-6" />
+  <a href="/agents" class="sidebar-btn w-full flex">
+    <span class="w-8 h-8 flex-shrink-0">
+      <span class="relative flex h-full items-center justify-center">
+        <Icon src={SquaresPlus} mini class="w-6" />
+      </span>
     </span>
-  </span>
-  <span class="flex-grow text-left">Agents</span>
-</a>
--->
+    <span class="flex-grow text-left">Agents</span>
+  </a>
   <ThreadsInSidebar />
 </div>
