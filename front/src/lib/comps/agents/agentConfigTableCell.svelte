@@ -1,11 +1,30 @@
 <script lang="ts">
   import { agentConfigStore } from "$lib/stores/agentStore";
+    import { client } from "$lib/tools/client";
   import type { AgentConfig } from "@shared/models";
   import { SlideToggle } from "@skeletonlabs/skeleton";
   import { Icon, Trash } from "svelte-hero-icons";
 
   export let agent: AgentConfig;
-  let isVisible: boolean = false;
+  let isVisible: boolean = isAgentVisible();
+
+  function isAgentVisible() {
+    return agent.meta ? agent.meta.visible !== "false" : true;
+  }
+
+  function setAgentVisibility(visible: boolean) {
+    agent.meta = agent.meta || {};
+    agent.meta.visible = visible ? "true" : "false";
+
+    client.post("agent-configs/"+agent.id, agent).then((response) => {
+    });
+  }
+
+  $: {
+    if (isVisible !== isAgentVisible()) {
+      setAgentVisibility(isVisible);
+    }
+  }
 
   function deleteAgent(id: string) {}
 </script>

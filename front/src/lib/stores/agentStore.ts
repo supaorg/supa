@@ -1,4 +1,4 @@
-import type { Writable } from 'svelte/store';
+import { get, type Writable } from 'svelte/store';
 import { localStorageStore } from '@skeletonlabs/skeleton';
 import { client } from '$lib/tools/client';
 import type { AgentConfig } from '@shared/models';
@@ -35,7 +35,19 @@ export async function loadAgentsFromServer() {
   agentConfigStore.set(agents);
 
   client.listen("agent-configs", (broadcast) => {
-    // TODO: implement
+    const config = broadcast.data as AgentConfig;
+
+    agentConfigStore.update((agents) => {
+      // Check if we need to update or add the config
+      const index = agents.findIndex((c) => c.id === config.id);
+      if (index === -1) {
+        agents.push(config);
+      } else {
+        agents[index] = config;
+      }
+
+      return agents;
+    });
   });
 }
 

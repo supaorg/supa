@@ -124,7 +124,13 @@
         bind:value={agentConfig.button}
       />
     </label>
-    <button type="submit" class="btn variant-filled">Update</button>
+    <button type="submit" class="btn variant-filled">
+      {#if isNewAgent}
+        Create
+      {:else}
+        Update
+      {/if}
+    </button>
   </form>
 {:else}
   <p>Loading...</p>

@@ -150,6 +150,11 @@ export function controllers(router: Router) {
         return;
       }
 
+      if (ctx.data === null) {
+        ctx.error = "Data is required";
+        return;
+      }
+
       const configId = ctx.params.configId;
       const agent = await db.getAgent(configId);
 
@@ -158,9 +163,9 @@ export function controllers(router: Router) {
         return;
       }
 
-      const data = ctx.data as AgentConfig;
-      await db.updateAgent(data);
-      router.broadcast(ctx.route, data);
+      const config = ctx.data as AgentConfig;
+      await db.updateAgent(config);
+      router.broadcast("agent-configs", config);
     })
     .onPost("agent-configs", async (ctx) => {
       if (db === null) {
@@ -175,7 +180,10 @@ export function controllers(router: Router) {
 
       const config = JSON.parse(ctx.data as string) as AgentConfig;
       await db.insertAgent(config);
-      router.broadcast(ctx.route, config);
+      router.broadcast("agent-configs", config);
+    })
+    .onValidateBroadcast("agent-configs", (conn, params) => {
+      return true;
     })
     .onGet("threads", async (ctx) => {
       if (db === null) {
