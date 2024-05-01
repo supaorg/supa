@@ -1,14 +1,14 @@
 import type { Writable } from 'svelte/store';
 import { localStorageStore } from '@skeletonlabs/skeleton';
 import { client } from '$lib/tools/client';
-import type { Agent } from '@shared/models';
+import type { AgentConfig } from '@shared/models';
 
-export const agentStore: Writable<Agent[]> = localStorageStore('agents', []);
+export const agentConfigStore: Writable<AgentConfig[]> = localStorageStore('agent-configs', []);
 
 export async function createAgent() {
   // TODO: put info about the agent
   const agent = await client.post("agents").then((res) => {
-    return res.data as Agent;
+    return res.data as AgentConfig;
   });
 
   return agent;
@@ -17,8 +17,8 @@ export async function createAgent() {
 export async function loadAgentsFromServer() {
     // @TODO: subsctibe to reconnect so we can re-fetch the threads
     
-  const agents = await client.get("agents").then((res) => {
-    const agents = Array.isArray(res.data) ? res.data as Agent[] : [];
+  const agents = await client.get("agent-configs").then((res) => {
+    const agents = Array.isArray(res.data) ? res.data as AgentConfig[] : [];
     // sort by name
     agents.sort((a, b) => {
       if (a.name < b.name) {
@@ -32,9 +32,9 @@ export async function loadAgentsFromServer() {
     return agents;
   });
 
-  agentStore.set(agents);
+  agentConfigStore.set(agents);
 
-  client.listen("agents", (broadcast) => {
+  client.listen("agent-configs", (broadcast) => {
     // TODO: implement
   });
 }

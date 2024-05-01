@@ -114,7 +114,7 @@ export function controllers(router: Router) {
     .onValidateBroadcast("session", (conn, params) => {
       return true;
     })
-    .onGet("agents", async (ctx) => {
+    .onGet("agent-configs", async (ctx) => {
       if (db === null) {
         ctx.error = DB_ERROR;
         return;
@@ -128,7 +128,41 @@ export function controllers(router: Router) {
         return;
       }
     })
-    .onPost("agents", async (ctx) => {
+    .onGet("agent-configs/:configId", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
+      const configId = ctx.params.configId;
+      const agent = await db.getAgent(configId);
+
+      if (agent === null) {
+        ctx.error = "Couldn't get agent";
+        return;
+      }
+
+      ctx.response = agent;
+    })
+    .onPost("agent-configs/:configId", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
+      const configId = ctx.params.configId;
+      const agent = await db.getAgent(configId);
+
+      if (agent === null) {
+        ctx.error = "Agent doesn't exist";
+        return;
+      }
+
+      const data = ctx.data as AgentConfig;
+      await db.updateAgent(data);
+      router.broadcast(ctx.route, data);
+    })
+    .onPost("agent-configs", async (ctx) => {
       if (db === null) {
         ctx.error = DB_ERROR;
         return;

@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true
-  }
+  },
+  "exclude": [
+    "back/node_modules/",
+    "front/node_modules/"
+  ]
 }

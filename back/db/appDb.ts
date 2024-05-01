@@ -52,8 +52,8 @@ export class AppDb {
   }
 
   async getAgents(): Promise<AgentConfig[]> {
-    await ensureDir(this.resolvePath("agents"));
-    const agents = this.getFiles(this.resolvePath("agents"), "_agent.json");
+    await ensureDir(this.resolvePath("agent-configs"));
+    const agents = this.getFiles(this.resolvePath("agent-configs"), "_config.json");
 
     return [defaultAgent, ...agents.map((agentFile) => {
       const agentStr = Deno.readTextFileSync(agentFile);
@@ -62,11 +62,15 @@ export class AppDb {
   }
 
   async getAgent(agentId: string): Promise<AgentConfig | null> {
-    await ensureDir(this.resolvePath("agents"));
+    if (agentId === defaultAgent.id) {
+      return defaultAgent;
+    }
+
+    await ensureDir(this.resolvePath("agent-configs"));
 
     try {
       const agentStr = Deno.readTextFileSync(
-        this.resolvePath(`agents/${agentId}/_agent.json`),
+        this.resolvePath("agent-configs", agentId, "_config.json"),
       );
 
       if (agentStr) {
@@ -80,14 +84,23 @@ export class AppDb {
   }
 
   async insertAgent(agent: AgentConfig): Promise<AgentConfig> {
-    await ensureDir(this.resolvePath("agents", agent.id));
+    await ensureDir(this.resolvePath("agent-configs", agent.id));
 
     Deno.writeTextFileSync(
-      this.resolvePath("agents", agent.id, "_agent.json"),
+      this.resolvePath("agent-configs", agent.id, "_config.json"),
       JSON.stringify(agent),
     );
 
     return agent;
+  }
+
+  async updateAgent(agent: AgentConfig): Promise<void> {
+    await ensureDir(this.resolvePath("agent-configs", agent.id));
+
+    Deno.writeTextFileSync(
+      this.resolvePath("agent-configs", agent.id, "_config.json"),
+      JSON.stringify(agent),
+    );
   }
 
   async createThread(thread: Thread): Promise<Thread> {

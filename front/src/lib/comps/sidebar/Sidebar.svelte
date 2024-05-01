@@ -3,7 +3,7 @@
   import { getModalStore } from "@skeletonlabs/skeleton";
   import ThreadsInSidebar from "./ThreadsInSidebar.svelte";
   import { Icon, PencilSquare, SquaresPlus } from "svelte-hero-icons";
-  import { agentStore } from "$lib/stores/agentStore";
+  import { agentConfigStore } from "$lib/stores/agentStore";
 
   const modalStore = getModalStore();
 
@@ -22,7 +22,7 @@
 </script>
 
 <div class="p-2">
-  {#each $agentStore as agent (agent.id)}
+  {#each $agentConfigStore as agent (agent.id)}
     <button
       class="sidebar-btn w-full flex"
       data-agent-id={agent.id}

@@ -13,11 +13,11 @@ export type Thread = {
   createdAt: number;
   updatedAt: number | null;
   title: string | null;
-};
+}
 
 export type Profile = {
   name: string;
-};
+}
 
 export type Secrets = {
   openai: string;
@@ -30,4 +30,5 @@ export interface AgentConfig {
   description: string;
   instructions: string;
   targetLLM: string;
-};
+  meta?: { [key: string]: string };
+}

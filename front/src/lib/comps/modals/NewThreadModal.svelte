@@ -6,7 +6,7 @@
   import { v4 as uuidv4 } from "uuid";
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { createThread } from "$lib/stores/threads";
-  import { agentStore } from "$lib/stores/agentStore";
+  import { agentConfigStore } from "$lib/stores/agentStore";
 
   const modalStore = getModalStore();
 
@@ -17,7 +17,7 @@
   $: {
     let targetAgent: Agent | undefined;
 
-    for (const agent of $agentStore) {
+    for (const agent of $agentConfigStore) {
       if (agent.id === agentId) {
         targetAgent = agent;
         break;
