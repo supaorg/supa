@@ -7,7 +7,7 @@ export const agentConfigStore: Writable<AgentConfig[]> = localStorageStore('agen
 
 export async function createAgent() {
   // TODO: put info about the agent
-  const agent = await client.post("agents").then((res) => {
+  const agent = await client.post("agent-configs").then((res) => {
     return res.data as AgentConfig;
   });
 

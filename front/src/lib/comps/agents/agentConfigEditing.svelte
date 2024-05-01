@@ -55,11 +55,11 @@
 
   function handleSubmit() {
     if (isNewAgent) {
-      client.post("agents", agentConfig).then((response) => {
+      client.post("agent-configs", agentConfig).then((response) => {
         console.log("new agent: " + response);
       });
     } else {
-      client.post("agents/" + agentConfig?.id, agentConfig).then((response) => {
+      client.post("agent-configs/" + agentConfig?.id, agentConfig).then((response) => {
         console.log("updated agent: " + response);
       });
     }
