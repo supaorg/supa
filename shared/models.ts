@@ -32,3 +32,13 @@ export interface AgentConfig {
   targetLLM: string;
   meta?: { [key: string]: string };
 }
+
+export type ModelProvider = {
+  id: string;
+  name: string;
+  access: ModelProviderAccessType;
+  url: string;
+  logoUrl: string;
+};
+
+export type ModelProviderAccessType = 'cloud' | 'local';
