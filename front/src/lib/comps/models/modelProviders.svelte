@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ModelProvider } from "@shared/models";
-  import ModelProviderCard from "./modelProviderCard.svelte";
+  import ModelProviderCard from "./ModelProviderCard.svelte";
 
   const providers: ModelProvider[] = [
     {
@@ -36,7 +36,6 @@
 
 <div class="grid grid-cols-2 gap-4">
   {#each providers as provider (provider.id)}
-  <ModelProviderCard {provider} />
-{/each}
+    <ModelProviderCard {provider} />
+  {/each}
 </div>
-

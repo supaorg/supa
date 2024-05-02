@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { ModelProvider } from "@shared/models";
+  import ModelProviderApiKeyForm from './ModelProviderApiKeyForm.svelte'
 
   export let provider: ModelProvider;
+
+  let readyToConnect = false;
 
   let activated = false;
 </script>
@@ -18,6 +21,13 @@
     <a href={provider.url} target="_blank" class="font-semibold"
       >{provider.name}</a
     >
-    <button class="btn btn-sm variant-filled">Connect</button>
+    {#if readyToConnect}
+      <ModelProviderApiKeyForm />
+    {:else}
+    <button
+      class="btn btn-md variant-filled"
+      on:click={() => (readyToConnect = true)}>Connect</button
+    >
+    {/if}
   </div>
 </div>
