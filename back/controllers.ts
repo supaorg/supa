@@ -9,6 +9,7 @@ import { createWorkspaceInDocuments, setWorkspacePath } from "./workspace.ts";
 import { fs } from "./tools/fs.ts";
 import { SimpleChatAgent } from "./agents/simpleChatAgent.ts";
 import { AgentServices } from "./agents/agentServices.ts";
+import { validateKey } from "./tools/providerKeyValidators.ts";
 
 async function checkWorkspaceDir(path: string): Promise<boolean> {
   const pathToWorkspace = path + "/_workspace.json";
@@ -325,5 +326,11 @@ export function controllers(router: Router) {
         await db.updateThread(thread);
         router.broadcastUpdate("threads", thread);
       }
+    })
+    .onPost('validate-key/:provider', async (ctx) => {
+      const provider = ctx.params.provider;
+      const key = ctx.data as string;
+
+      ctx.response = await validateKey(provider, key);
     });
 }
