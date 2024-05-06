@@ -1,14 +1,14 @@
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
-import { Router as NeoRouter } from "../shared/restOnSockets/Router.ts";
+import { Router as NeoRouter } from "../shared/neorest/Router.ts";
 import { ProcessPortMsg } from "@shared/serverProcessMessages.ts";
-import { controllers } from "./controllers.ts";
 import { startServer } from "./startServer.ts";
+import { setupControllers } from "./controllers/setupControllers.ts";
 
 const app = new Application();
 const httpRouter = new Router();
 export const neoRouter = new NeoRouter();
 
-controllers(neoRouter);
+setupControllers(neoRouter);
 
 httpRouter.get("/", (context) => {
   if (!context.isUpgradable) {

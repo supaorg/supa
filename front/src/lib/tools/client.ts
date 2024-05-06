@@ -1,4 +1,4 @@
-import { Client } from "@shared/restOnSockets/Client";
+import { Client } from "@shared/neorest/Client";
 
 export const client = new Client();
 

@@ -87,6 +87,7 @@ async function writeSessionFile() {
     );
   } catch (e) {
     console.error(e);
+    // @TODO: refactor, use one from backServices
     neoRouter.broadcast("session", {
       error: "fs-permission",
     });
