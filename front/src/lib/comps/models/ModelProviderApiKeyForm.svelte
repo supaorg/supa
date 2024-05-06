@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ProgressRadial } from "@skeletonlabs/skeleton";
-  import { CheckCircle, Icon } from "svelte-hero-icons";
+  import { CheckCircle, ExclamationCircle, Icon } from "svelte-hero-icons";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
 
@@ -43,11 +43,17 @@
       inputElement.focus();
     }
   });
+
+  let showWarning = false;
+
+  $: showWarning = !checkingKey && !apiKeyIsValid && apiKey.length > 6;
+
 </script>
 
 <div
-  class="input-group variant-form-material grid-cols-[1fr_auto]"
+  class="relative input-group variant-form-material"
   class:input-success={apiKeyIsValid}
+  class:input-warning={showWarning}
 >
   <input
     type="password"
@@ -56,9 +62,11 @@
     on:input={handleApiKeyChange}
   />
   {#if apiKeyIsValid}
-    <span><Icon src={CheckCircle} solid class="w-6 ml-2 mr-2" /></span>
+    <span class="absolute right-0"><Icon src={CheckCircle} solid class="w-6 mt-2 ml-2 mr-2" /></span>
   {/if}
   {#if checkingKey}
-    <span><ProgressRadial class="w-6 m-2" /></span>
+    <span class="absolute right-0"><ProgressRadial class="w-6 m-2" /></span>
+  {:else if showWarning}
+  <span class="absolute right-0"><Icon src={ExclamationCircle} solid class="w-6 mt-2 ml-2 mr-2" /></span>
   {/if}
 </div>
