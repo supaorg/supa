@@ -63,8 +63,7 @@
   />
   {#if apiKeyIsValid}
     <span class="absolute right-0"><Icon src={CheckCircle} solid class="w-6 mt-2 ml-2 mr-2" /></span>
-  {/if}
-  {#if checkingKey}
+  {:else if checkingKey}
     <span class="absolute right-0"><ProgressRadial class="w-6 m-2" /></span>
   {:else if showWarning}
   <span class="absolute right-0"><Icon src={ExclamationCircle} solid class="w-6 mt-2 ml-2 mr-2" /></span>

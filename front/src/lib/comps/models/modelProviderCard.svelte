@@ -5,7 +5,12 @@
   import { client } from "$lib/tools/client";
   import { ProgressBar } from "@skeletonlabs/skeleton";
 
-  type State = "loading" | "disconnected" | "connecting" | "connected";
+  type State =
+    | "loading"
+    | "disconnected"
+    | "invalid-key"
+    | "connecting"
+    | "connected";
   let state: State = "disconnected";
 
   export let provider: ModelProvider;
@@ -27,7 +32,7 @@
         .post("validate-key/" + provider.id, key)
         .then((res) => res.data as boolean);
 
-      state = apiKeyIsValid ? "connected" : "disconnected";
+      state = apiKeyIsValid ? "connected" : "invalid-key";
     } else {
       state = "disconnected";
     }
@@ -42,7 +47,10 @@
   }
 </script>
 
-<div class="card p-4 flex gap-4" class:border-token={state === "connected"}>
+<div 
+  class="card p-4 flex gap-4" 
+  class:border-token={state === "connected" || state === "invalid-key"}
+  class:border-error-100-800-token={state === "invalid-key"}>
   <a
     href={provider.url}
     target="_blank"
@@ -62,6 +70,11 @@
       <button
         class="btn btn-md variant-filled"
         on:click={() => (state = "connecting")}>Connect</button
+      >
+    {:else if state === "invalid-key"}
+      <button
+        class="btn btn-md variant-filled"
+        on:click={() => (state = "connecting")}>Re-Connect</button
       >
     {:else if state === "connecting"}
       {#if provider.access === "cloud"}
