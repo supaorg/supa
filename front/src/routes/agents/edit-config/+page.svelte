@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import CenteredPage from "$lib/comps/CenteredPage.svelte";
   import AgentConfigEditing from "$lib/comps/agents/agentConfigEditing.svelte";
 
   let configId: string | null = null;
@@ -12,6 +13,8 @@
   });
 </script>
 
-{#if configId}
-  <AgentConfigEditing {configId} />
-{/if}
+<CenteredPage>
+  {#if configId}
+    <AgentConfigEditing {configId} />
+  {/if}
+</CenteredPage>
