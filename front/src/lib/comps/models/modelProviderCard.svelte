@@ -3,27 +3,43 @@
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
+  import { ProgressBar } from "@skeletonlabs/skeleton";
 
-  type State = "disconnected" | "connecting" | "connected";
+  type State = "loading" | "disconnected" | "connecting" | "connected";
   let state: State = "disconnected";
 
   export let provider: ModelProvider;
 
   onMount(async () => {
-    if (provider.access === "cloud") {
-      const key = await client
-        .get("secrets/key_" + provider.id)
-        .then((res) => res.data as string);
-
-      if (key) {
-        const apiKeyIsValid = await client
-          .post("validate-key/" + provider.id, key)
-          .then((res) => res.data as boolean);
-
-        state = apiKeyIsValid ? "connected" : "disconnected";
-      }
-    }
+    await checkApiKey();
   });
+
+  async function checkApiKey() {
+    if (provider.access !== "cloud") return;
+
+    state = "loading";
+    const key = await client
+      .get("secrets/key_" + provider.id)
+      .then((res) => res.data as string);
+
+    if (key) {
+      const apiKeyIsValid = await client
+        .post("validate-key/" + provider.id, key)
+        .then((res) => res.data as boolean);
+
+      state = apiKeyIsValid ? "connected" : "disconnected";
+    } else {
+      state = "disconnected";
+    }
+  }
+
+  function disconnect() {
+    state = "disconnected";
+
+    if (provider.access === "cloud") {
+      client.delete("secrets/key_" + provider.id);
+    }
+  }
 </script>
 
 <div class="card p-4 flex gap-4" class:border-token={state === "connected"}>
@@ -38,8 +54,8 @@
     <span
       ><a href={provider.url} target="_blank" class="font-semibold"
         >{provider.name}</a
-      >{#if state === "connected"}<span class="ml-4 badge variant-filled-primary"
-          >Connected</span
+      >{#if state === "connected"}<span
+          class="ml-4 badge variant-filled-primary">Connected</span
         >{/if}
     </span>
     {#if state === "disconnected"}
@@ -55,10 +71,11 @@
         />
       {/if}
     {:else if state === "connected"}
-      <button
-        class="btn btn-md variant-ringed"
-        on:click={() => (state = "disconnected")}>Disconnect</button
+      <button class="btn btn-md variant-ringed" on:click={disconnect}
+        >Disconnect</button
       >
+    {:else if state === "loading"}
+      <div class="w-full"><ProgressBar value={undefined} /></div>
     {/if}
   </div>
 </div>

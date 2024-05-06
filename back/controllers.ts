@@ -202,7 +202,7 @@ export function controllers(router: Router) {
       const value = ctx.data as string;
       await db.insertSecrets({ [key]: value });
     })
-    .onGet("secrets/:key", async (ctx) => {
+    .onGet("secrets/:key", (ctx) => {
       if (db === null) {
         ctx.error = DB_ERROR;
         return;
@@ -211,6 +211,15 @@ export function controllers(router: Router) {
       const key = ctx.params.key;
       const value = db.getSecret(key);
       ctx.response = value;
+    })
+    .onDelete("secrets/:key", (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
+      const key = ctx.params.key;
+      db.deleteSecret(key);
     })
     .onGet("threads", async (ctx) => {
       if (db === null) {

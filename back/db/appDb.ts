@@ -17,6 +17,12 @@ export class AppDb {
     return secrets[key] || "";
   }
 
+  deleteSecret(key: string): void {
+    const secrets = JSON.parse(Deno.readTextFileSync(this.resolvePath("secrets.json")));
+    delete secrets[key];
+    Deno.writeTextFileSync(this.resolvePath("secrets.json"), JSON.stringify(secrets));
+  }
+
   async getProfile(): Promise<Profile | null> {
     try {
       const profileStr = await Deno.readTextFile(
