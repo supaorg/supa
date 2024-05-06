@@ -8,7 +8,6 @@ import { Chat } from "../chat.ts";
 
 export function threadsController(services: BackServices) {
   const router = services.router;
-  const db = services.db;
 
   router
     .onGet("threads", async (ctx) => {
