@@ -19,10 +19,6 @@ export type Profile = {
   name: string;
 }
 
-export type Secrets = {
-  openai: string;
-}
-
 export interface AgentConfig {
   id: string;
   name: string;

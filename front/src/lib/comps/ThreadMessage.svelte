@@ -7,6 +7,9 @@
 
   export let message: ThreadMessage;
 
+  let createdAt = new Date(message.createdAt);
+  $: createdAt = new Date(message.createdAt);
+
   function formatChatDate(dateInMs: number) {
     const date = new Date(dateInMs);
     return date.toLocaleString("en-US", {
@@ -14,6 +17,10 @@
       minute: "2-digit",
       hour12: false, // Use 24-hour format
     });
+  }
+
+  function messageTakesTooLong() {
+    return createdAt.getTime() + 60000 < Date.now();
   }
 </script>
 
@@ -46,6 +53,11 @@
           link: MarkdownLink,
         }}
       />
+      <!-- @TODO: also somehow check if we got an error -->
+      <!-- @TODO: allow to retry -->
+      {#if message.role !== "user" && message.inProgress === 1 && messageTakesTooLong()}
+        <button class="btn variant-filled">Retry</button>
+      {/if}
     </div>
     <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
       <div class="h-7"></div>

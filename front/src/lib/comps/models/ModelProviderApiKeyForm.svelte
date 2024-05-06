@@ -13,20 +13,26 @@
 
   let timeout: any;
   let checkingKey = false;
-  let controller = new AbortController();
+  //let controller = new AbortController();
 
   async function handleApiKeyChange() {
     checkingKey = true;
     clearTimeout(timeout);
     timeout = setTimeout(async () => {
       apiKeyIsValid = false;
-      controller.abort();
-      controller = new AbortController();
+      //controller.abort();
+      //controller = new AbortController();
+      console.log("Checking key", apiKey);
+      console.log("validate-key/" + id);
       apiKeyIsValid = await client
         .post("validate-key/" + id, apiKey)
         .then((res) => res.data as boolean);
       if (apiKeyIsValid) {
         onValidKey();
+
+        client.post("secrets/key_" + id, apiKey).then((res) => {
+          console.log("Key saved", res);
+        });
       }
       checkingKey = false;
     }, 500);

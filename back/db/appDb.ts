@@ -1,4 +1,4 @@
-import { Thread, ThreadMessage, Profile, Secrets } from "@shared/models.ts";
+import { Thread, ThreadMessage, Profile } from "@shared/models.ts";
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
 import { join } from "https://deno.land/std/path/mod.ts";
 import { AgentConfig } from "../../shared/models.ts";
@@ -42,13 +42,16 @@ export class AppDb {
     return profile;
   }
 
-  async insertSecrets(secrets: Secrets): Promise<Secrets> {
+  async insertSecrets(secrets: Record<string, string>): Promise<Record<string, string>> {
+    const existingSecrets = JSON.parse(Deno.readTextFileSync(this.resolvePath("secrets.json")));
+    const updatedSecrets = { ...existingSecrets, ...secrets };
+
     await Deno.writeTextFile(
       this.resolvePath("secrets.json"),
-      JSON.stringify(secrets),
+      JSON.stringify(updatedSecrets),
     );
 
-    return secrets;
+    return updatedSecrets;
   }
 
   async getAgents(): Promise<AgentConfig[]> {

@@ -186,6 +186,32 @@ export function controllers(router: Router) {
     .onValidateBroadcast("agent-configs", (conn, params) => {
       return true;
     })
+    .onPost("validate-key/:provider", async (ctx) => {
+      const provider = ctx.params.provider;
+      const key = ctx.data as string;
+      const keyIsValid = await validateKey(provider, key);
+      ctx.response = keyIsValid;
+    })
+    .onPost("secrets/:key", async (ctx) => { 
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
+      const key = ctx.params.key;
+      const value = ctx.data as string;
+      await db.insertSecrets({ [key]: value });
+    })
+    .onGet("secrets/:key", async (ctx) => {
+      if (db === null) {
+        ctx.error = DB_ERROR;
+        return;
+      }
+
+      const key = ctx.params.key;
+      const value = db.getSecret(key);
+      ctx.response = value;
+    })
     .onGet("threads", async (ctx) => {
       if (db === null) {
         ctx.error = DB_ERROR;
@@ -326,11 +352,5 @@ export function controllers(router: Router) {
         await db.updateThread(thread);
         router.broadcastUpdate("threads", thread);
       }
-    })
-    .onPost('validate-key/:provider', async (ctx) => {
-      const provider = ctx.params.provider;
-      const key = ctx.data as string;
-
-      ctx.response = await validateKey(provider, key);
     });
 }
