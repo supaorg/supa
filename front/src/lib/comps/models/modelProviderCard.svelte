@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ModelProvider } from "@shared/models";
+  import type { ModelProvider, ModelProviderCloudConfig, ModelProviderConfig } from "@shared/models";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
@@ -15,42 +15,57 @@
 
   export let provider: ModelProvider;
 
+  let config: ModelProviderConfig | null;
+
   onMount(async () => {
-    await checkApiKey();
+    await checkProvider();
   });
 
-  async function checkApiKey() {
-    if (provider.access !== "cloud") return;
+  async function checkProvider() {
+    const res = await client.get("provider-configs/" + provider.id);
 
-    state = "loading";
-    const key = await client
-      .get("secrets/key_" + provider.id)
-      .then((res) => res.data as string);
-
-    if (key) {
-      const apiKeyIsValid = await client
-        .post("validate-key/" + provider.id, key)
-        .then((res) => res.data as boolean);
-
-      state = apiKeyIsValid ? "connected" : "invalid-key";
+    if (res.data) {
+      config = res.data as ModelProviderConfig;
+      await checkIfValid();
     } else {
       state = "disconnected";
     }
+  }
+
+  async function saveCloudProviderWithApiKey(apiKey: string) {
+    config = {
+      id: provider.id,
+      type: "cloud",
+      apiKey,
+    } as ModelProviderCloudConfig;
+
+    await client.post("provider-configs", config);
+  }
+
+  async function checkIfValid() {
+    state = "loading";
+
+    const isValid = await client
+      .post(`provider-configs/${provider.id}/validate`)
+      .then((res) => res.data as boolean);
+
+    state = isValid ? "connected" : "invalid-key";
   }
 
   function disconnect() {
     state = "disconnected";
 
     if (provider.access === "cloud") {
-      client.delete("secrets/key_" + provider.id);
+      client.delete("provider-configs/" + provider.id);
     }
   }
 </script>
 
-<div 
-  class="card p-4 flex gap-4" 
+<div
+  class="card p-4 flex gap-4"
   class:border-token={state === "connected" || state === "invalid-key"}
-  class:border-error-100-800-token={state === "invalid-key"}>
+  class:border-error-100-800-token={state === "invalid-key"}
+>
   <a
     href={provider.url}
     target="_blank"
@@ -80,7 +95,10 @@
       {#if provider.access === "cloud"}
         <ModelProviderApiKeyForm
           id={provider.id}
-          onValidKey={() => (state = "connected")}
+          onValidKey={(key) => {
+            state = "connected";
+            saveCloudProviderWithApiKey(key);
+          }}
         />
       {/if}
     {:else if state === "connected"}

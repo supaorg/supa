@@ -5,7 +5,7 @@
   import { client } from "$lib/tools/client";
 
   export let id: string;
-  export let onValidKey: () => void;
+  export let onValidKey: (key: string) => void;
 
   let apiKey = "";
   let apiKeyIsValid = false;
@@ -22,17 +22,11 @@
       apiKeyIsValid = false;
       //controller.abort();
       //controller = new AbortController();
-      console.log("Checking key", apiKey);
-      console.log("validate-key/" + id);
       apiKeyIsValid = await client
         .post("validate-key/" + id, apiKey)
         .then((res) => res.data as boolean);
       if (apiKeyIsValid) {
-        onValidKey();
-
-        client.post("secrets/key_" + id, apiKey).then((res) => {
-          console.log("Key saved", res);
-        });
+        onValidKey(apiKey);
       }
       checkingKey = false;
     }, 500);

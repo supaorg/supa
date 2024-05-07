@@ -1,7 +1,7 @@
 import { Thread, ThreadMessage, Profile } from "@shared/models.ts";
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
 import { join } from "https://deno.land/std/path/mod.ts";
-import { AgentConfig } from "../../shared/models.ts";
+import { AgentConfig, ModelProviderConfig } from "../../shared/models.ts";
 import { defaultAgent } from "../agents/defaultAgent.ts";
 
 export class AppDb {
@@ -254,5 +254,52 @@ export class AppDb {
     messages.sort((a, b) => a.createdAt - b.createdAt);
 
     return messages;
+  }
+
+  async getModelProviders(): Promise<ModelProviderConfig[]> {
+    await ensureDir(this.resolvePath("provider-configs"));
+
+    const providerFiles = this.getFiles(this.resolvePath("provider-configs"), ".json");
+    const providers: ModelProviderConfig[] = [];
+
+    for (const providerFile of providerFiles) {
+      const providerStr = Deno.readTextFileSync(providerFile);
+      providers.push(JSON.parse(providerStr));
+    }
+
+    return providers;
+  }
+
+  async getProviderConfig(providerId: string): Promise<ModelProviderConfig | null> {
+    await ensureDir(this.resolvePath("provider-configs"));
+
+    try {
+      const providerStr = Deno.readTextFileSync(
+        this.resolvePath("provider-configs", `${providerId}.json`),
+      );
+
+      if (providerStr) {
+        return JSON.parse(providerStr);
+      }
+
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async deleteProviderConfig(providerId: string): Promise<void> {
+    await Deno.remove(this.resolvePath("provider-configs", `${providerId}.json`));
+  }
+
+  async insertProviderConfig(provider: ModelProviderConfig): Promise<ModelProviderConfig> {
+    await ensureDir(this.resolvePath("provider-configs"));
+
+    Deno.writeTextFileSync(
+      this.resolvePath("provider-configs", `${provider.id}.json`),
+      JSON.stringify(provider),
+    );
+
+    return provider;
   }
 }

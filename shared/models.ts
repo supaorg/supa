@@ -38,3 +38,17 @@ export type ModelProvider = {
 };
 
 export type ModelProviderAccessType = 'cloud' | 'local';
+
+export type ModelProviderCloudConfig = {
+  id: string;
+  type: 'cloud';
+  apiKey: string;
+}
+
+export type ModelProviderLocalConfig = {
+  id: string;
+  type: 'local';
+  apiUrl: string;
+}
+
+export type ModelProviderConfig = ModelProviderCloudConfig | ModelProviderLocalConfig;
