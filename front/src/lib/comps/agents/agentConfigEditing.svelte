@@ -115,6 +115,15 @@
       />
     </label>
     <label class="label">
+      <span>Model</span>
+      <input
+        name="button"
+        class="input variant-form-material"
+        type="text"
+        bind:value={agentConfig.targetLLM}
+      />
+    </label>
+    <label class="label">
       <span>New thread button (optional)</span>
       <input
         name="button"

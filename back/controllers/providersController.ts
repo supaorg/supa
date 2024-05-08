@@ -1,13 +1,48 @@
+import { ModelProvider } from "../../shared/models.ts";
 import { ModelProviderCloudConfig } from "../../shared/models.ts";
 import { ModelProviderConfig } from "../../shared/models.ts";
 import { validateKey } from "../tools/providerKeyValidators.ts";
 import { getCloudProviderModels } from "../tools/providerModels.ts";
 import { BackServices } from "./backServices.ts";
 
+const providers: ModelProvider[] = [
+  {
+    id: "openai",
+    name: "OpenAI",
+    access: "cloud",
+    url: "https://openai.com/",
+    logoUrl: "/providers/openai.png",
+  },
+  {
+    id: "groq",
+    name: "Groq",
+    access: "cloud",
+    url: "https://groq.com/",
+    logoUrl: "/providers/groq.png",
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic",
+    access: "cloud",
+    url: "https://anthropic.com/",
+    logoUrl: "/providers/anthropic.png",
+  },
+  {
+    id: "ollama",
+    name: "Ollama",
+    access: "local",
+    url: "https://ollama.com/",
+    logoUrl: "/providers/ollama.png",
+  },
+];
+
 export function providersController(services: BackServices) {
   const router = services.router;
 
   router
+    .onGet("providers", (ctx) => {
+      ctx.response = providers;
+    })
     .onGet("provider-configs/:providerId", async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
@@ -40,10 +75,10 @@ export function providersController(services: BackServices) {
         return;
       }
 
-      if (provider.type === 'cloud') {
+      if (provider.type === "cloud") {
         const cloudConfig = provider as ModelProviderCloudConfig;
         const keyIsValid = await validateKey(providerId, cloudConfig.apiKey);
-  
+
         ctx.response = keyIsValid;
       } else {
         // @TODO: check if the endpoint is alive
@@ -65,7 +100,7 @@ export function providersController(services: BackServices) {
         return;
       }
 
-      if (provider.type !== 'cloud') {
+      if (provider.type !== "cloud") {
         ctx.data = [];
         return;
       }
@@ -124,5 +159,5 @@ export function providersController(services: BackServices) {
       const key = ctx.data as string;
       const keyIsValid = await validateKey(provider, key);
       ctx.response = keyIsValid;
-    })
+    });
 }
