@@ -58,6 +58,16 @@ export function agentController(services: BackServices) {
       await services.db.updateAgent(config);
       router.broadcast("agent-configs", config);
     })
+    .onDelete("agent-configs/:configId", async (ctx) => {
+      if (services.db === null) {
+        ctx.error = services.getDbNotSetupError();
+        return;
+      }
+
+      const configId = ctx.params.configId;
+      await services.db.deleteAgent(configId);
+      router.broadcastDeletion("agent-configs", configId);
+    })
     .onPost("agent-configs", async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();

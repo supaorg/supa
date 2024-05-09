@@ -109,6 +109,16 @@ export class AppDb {
     }
   }
 
+  async deleteAgent(agentId: string): Promise<void> {
+    try {
+      await Deno.remove(this.resolvePath("agent-configs", agentId), {
+        recursive: true,
+      });
+    } catch (error) {
+      console.error("Couldn't remove the agent", error);
+    }
+  }
+
   async insertAgent(agent: AgentConfig): Promise<AgentConfig> {
     await ensureDir(this.resolvePath("agent-configs", agent.id));
 

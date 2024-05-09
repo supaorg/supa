@@ -12,7 +12,7 @@
       type: "component",
       component: "selectModel",
       meta: {
-        selectedModel: value,
+        selectedModel: value ? value : null,
         onModelSelect: (model: string) => {
           value = model;
         },
@@ -30,6 +30,13 @@
   }
 
   async function update() {
+    if (!value) {
+      provider = null;
+      providerId = "";
+      model = "";
+      return;
+    }
+
     [providerId, model] = value.split("/");
 
     provider = null;
@@ -39,8 +46,8 @@
   }
 </script>
 
-<div class="input variant-form-material">
-  {#if provider}
+{#if provider}
+  <div class="input variant-form-material">
     <button
       class="flex p-4 gap-4 items-center cursor-pointer w-full"
       on:click={onRequestChange}
@@ -54,7 +61,13 @@
         <span class="font-semibold">{provider.name} — {model}</span>
       </div>
     </button>
-  {:else}
-    <ProgressRadial />
-  {/if}
-</div>
+  </div>
+{:else if !value}
+  <div>
+    <button class="btn variant-filled" on:click={onRequestChange}>Select a model</button>
+  </div>
+{:else}
+  <div class="input variant-form-material">
+    <ProgressRadial class="w-6" />
+  </div>
+{/if}

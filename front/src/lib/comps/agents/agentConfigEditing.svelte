@@ -37,23 +37,6 @@
     init();
   });
 
-  function getJsonFromForm() {
-    const form = formElement;
-    const formData = new FormData(form);
-    const jsonObject: { [key: string]: any } = {};
-
-    for (const [key, value] of formData.entries()) {
-      jsonObject[key] = value;
-    }
-
-    /*
-    jsonObject["targetLLM"] = "groq/llama3-70b-8192";
-    jsonObject["id"] = uuidv4();
-    */
-
-    return JSON.stringify(jsonObject);
-  }
-
   function handleSubmit() {
     if (isNewAgent) {
       client.post("agent-configs", agentConfig).then((response) => {
@@ -80,7 +63,6 @@
   <form
     class="space-y-4"
     bind:this={formElement}
-    on:submit|preventDefault={handleSubmit}
   >
     <p class="text-sm">
       You can create you own system prompts (instructions) based on the default
@@ -131,7 +113,7 @@
         bind:value={agentConfig.button}
       />
     </label>
-    <button type="submit" class="btn variant-filled">
+    <button type="submit" class="btn variant-filled" on:click={handleSubmit}>
       {#if isNewAgent}
         Create
       {:else}
