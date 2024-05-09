@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
+  import InputModel from "../models/InputModel.svelte";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
@@ -32,7 +33,7 @@
     }
   }
 
-  onMount(() => { 
+  onMount(() => {
     init();
   });
 
@@ -59,9 +60,11 @@
         console.log("new agent: " + response);
       });
     } else {
-      client.post("agent-configs/" + agentConfig?.id, agentConfig).then((response) => {
-        console.log("updated agent: " + response);
-      });
+      client
+        .post("agent-configs/" + agentConfig?.id, agentConfig)
+        .then((response) => {
+          console.log("updated agent: " + response);
+        });
     }
   }
 </script>
@@ -114,15 +117,10 @@
         bind:value={agentConfig.instructions}
       />
     </label>
-    <label class="label">
+    <div class="label">
       <span>Model</span>
-      <input
-        name="button"
-        class="input variant-form-material"
-        type="text"
-        bind:value={agentConfig.targetLLM}
-      />
-    </label>
+      <InputModel bind:value={agentConfig.targetLLM} />
+    </div>
     <label class="label">
       <span>New thread button (optional)</span>
       <input
@@ -137,7 +135,7 @@
       {#if isNewAgent}
         Create
       {:else}
-        Update
+        Save Changes
       {/if}
     </button>
   </form>

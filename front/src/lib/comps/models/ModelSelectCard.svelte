@@ -7,11 +7,10 @@
   export let provider: ModelProvider;
   export let selected = false;
   export let onSelect: (providerId: string, model: string) => void;
+  export let modelId: string | null = null;
 
   let models: string[] = [];
   let showModels = false;
-
-  let modelId: string | null = null;
 
   onMount(async () => {
     models = await client

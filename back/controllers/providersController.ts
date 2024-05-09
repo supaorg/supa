@@ -43,6 +43,18 @@ export function providersController(services: BackServices) {
     .onGet("providers", (ctx) => {
       ctx.response = providers;
     })
+    .onGet("providers/:providerId", (ctx) => {
+      const providerId = ctx.params.providerId;
+
+      const provider = providers.find((p) => p.id === providerId);
+
+      if (provider === undefined) {
+        ctx.error = "Provider not found";
+        return;
+      }
+
+      ctx.response = provider;
+    })
     .onGet("provider-configs/:providerId", async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();

@@ -39,6 +39,7 @@
   import TauriWindowSetup from "./TauriWindowSetup.svelte";
   import FsPermissionDenied from "./FsPermissionDenied.svelte";
   import { fsPermissionDeniedStore, subscribeToSession } from "$lib/stores/fsPermissionDeniedStore";
+    import SelectModelModal from "./modals/SelectModelModal.svelte";
 
   type AppState =
     | "initializing"
@@ -167,6 +168,7 @@
 
   const modalRegistry: Record<string, ModalComponent> = {
     newThread: { ref: NewThreadModal },
+    selectModel: { ref: SelectModelModal }
   };
 
 </script>
