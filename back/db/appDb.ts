@@ -1,4 +1,4 @@
-import { Thread, ThreadMessage, Profile } from "@shared/models.ts";
+import { Profile, Thread, ThreadMessage } from "@shared/models.ts";
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
 import { join } from "https://deno.land/std/path/mod.ts";
 import { AgentConfig, ModelProviderConfig } from "../../shared/models.ts";
@@ -12,15 +12,22 @@ export class AppDb {
   }
 
   getSecret(key: string): string {
-    const secrets = JSON.parse(Deno.readTextFileSync(this.resolvePath("secrets.json")));
-  
+    const secrets = JSON.parse(
+      Deno.readTextFileSync(this.resolvePath("secrets.json")),
+    );
+
     return secrets[key] || "";
   }
 
   deleteSecret(key: string): void {
-    const secrets = JSON.parse(Deno.readTextFileSync(this.resolvePath("secrets.json")));
+    const secrets = JSON.parse(
+      Deno.readTextFileSync(this.resolvePath("secrets.json")),
+    );
     delete secrets[key];
-    Deno.writeTextFileSync(this.resolvePath("secrets.json"), JSON.stringify(secrets));
+    Deno.writeTextFileSync(
+      this.resolvePath("secrets.json"),
+      JSON.stringify(secrets),
+    );
   }
 
   async getProfile(): Promise<Profile | null> {
@@ -48,8 +55,12 @@ export class AppDb {
     return profile;
   }
 
-  async insertSecrets(secrets: Record<string, string>): Promise<Record<string, string>> {
-    const existingSecrets = JSON.parse(Deno.readTextFileSync(this.resolvePath("secrets.json")));
+  async insertSecrets(
+    secrets: Record<string, string>,
+  ): Promise<Record<string, string>> {
+    const existingSecrets = JSON.parse(
+      Deno.readTextFileSync(this.resolvePath("secrets.json")),
+    );
     const updatedSecrets = { ...existingSecrets, ...secrets };
 
     await Deno.writeTextFile(
@@ -62,12 +73,18 @@ export class AppDb {
 
   async getAgents(): Promise<AgentConfig[]> {
     await ensureDir(this.resolvePath("agent-configs"));
-    const agents = this.getFiles(this.resolvePath("agent-configs"), "_config.json");
+    const agents = this.getFiles(
+      this.resolvePath("agent-configs"),
+      "_config.json",
+    );
 
-    return [defaultAgent, ...agents.map((agentFile) => {
-      const agentStr = Deno.readTextFileSync(agentFile);
-      return JSON.parse(agentStr);
-    })];
+    return [
+      defaultAgent,
+      ...agents.map((agentFile) => {
+        const agentStr = Deno.readTextFileSync(agentFile);
+        return JSON.parse(agentStr);
+      }),
+    ];
   }
 
   async getAgent(agentId: string): Promise<AgentConfig | null> {
@@ -166,7 +183,10 @@ export class AppDb {
   async getThreads(): Promise<Thread[]> {
     await ensureDir(this.resolvePath("threads"));
 
-    const threadFiles = this.getFiles(this.resolvePath("threads"), "_thread.json");
+    const threadFiles = this.getFiles(
+      this.resolvePath("threads"),
+      "_thread.json",
+    );
     const threads: Thread[] = [];
 
     for (const threadFile of threadFiles) {
@@ -182,7 +202,7 @@ export class AppDb {
     const entries = Deno.readDirSync(folderPath);
 
     for (const entry of entries) {
-      const entryPath = folderPath + '/' + entry.name;
+      const entryPath = folderPath + "/" + entry.name;
 
       if (entry.isFile && entry.name === targetFilename) {
         threadFiles.push(entryPath);
@@ -195,7 +215,10 @@ export class AppDb {
     return threadFiles;
   }
 
-  async createThreadMessage(threadId: string, message: ThreadMessage): Promise<ThreadMessage> {
+  async createThreadMessage(
+    threadId: string,
+    message: ThreadMessage,
+  ): Promise<ThreadMessage> {
     await ensureDir(this.resolvePath("threads", threadId));
 
     // Create a file with the id of the message
@@ -207,7 +230,10 @@ export class AppDb {
     return message;
   }
 
-  async checkThreadMessage(threadId: string, messageId: string): Promise<boolean> {
+  async checkThreadMessage(
+    threadId: string,
+    messageId: string,
+  ): Promise<boolean> {
     try {
       await Deno.readTextFile(
         this.resolvePath("threads", threadId, `${messageId}.json`),
@@ -218,7 +244,10 @@ export class AppDb {
     }
   }
 
-  async updateThreadMessage(threadId: string, message: ThreadMessage): Promise<void> {
+  async updateThreadMessage(
+    threadId: string,
+    message: ThreadMessage,
+  ): Promise<void> {
     await Deno.writeTextFile(
       this.resolvePath("threads", threadId, `${message.id}.json`),
       JSON.stringify(message),
@@ -247,7 +276,6 @@ export class AppDb {
         } catch {
           console.error("Invalid message file", messageFile.name);
         }
-        
       }
     }
 
@@ -257,20 +285,31 @@ export class AppDb {
   }
 
   async getModelProviders(): Promise<ModelProviderConfig[]> {
-    await ensureDir(this.resolvePath("provider-configs"));
+    const providerFiles = Deno.readDirSync(
+      this.resolvePath("provider-configs"),
+    );
 
-    const providerFiles = this.getFiles(this.resolvePath("provider-configs"), ".json");
     const providers: ModelProviderConfig[] = [];
 
     for (const providerFile of providerFiles) {
-      const providerStr = Deno.readTextFileSync(providerFile);
-      providers.push(JSON.parse(providerStr));
+      if (providerFile.isFile && providerFile.name.endsWith(".json")) {
+        const providerStr = await Deno.readTextFile(
+          this.resolvePath("provider-configs", providerFile.name),
+        );
+        try {
+          providers.push(JSON.parse(providerStr));
+        } catch {
+          console.error("Invalid provider file", providerFile.name);
+        }
+      }
     }
 
     return providers;
   }
 
-  async getProviderConfig(providerId: string): Promise<ModelProviderConfig | null> {
+  async getProviderConfig(
+    providerId: string,
+  ): Promise<ModelProviderConfig | null> {
     await ensureDir(this.resolvePath("provider-configs"));
 
     try {
@@ -289,10 +328,14 @@ export class AppDb {
   }
 
   async deleteProviderConfig(providerId: string): Promise<void> {
-    await Deno.remove(this.resolvePath("provider-configs", `${providerId}.json`));
+    await Deno.remove(
+      this.resolvePath("provider-configs", `${providerId}.json`),
+    );
   }
 
-  async insertProviderConfig(provider: ModelProviderConfig): Promise<ModelProviderConfig> {
+  async insertProviderConfig(
+    provider: ModelProviderConfig,
+  ): Promise<ModelProviderConfig> {
     await ensureDir(this.resolvePath("provider-configs"));
 
     Deno.writeTextFileSync(
