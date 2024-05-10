@@ -4,6 +4,7 @@
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
 
   export let value: string;
+  export let required: boolean = false;
 
   const modalStore = getModalStore();
 

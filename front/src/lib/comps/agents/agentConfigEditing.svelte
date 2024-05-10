@@ -4,6 +4,7 @@
   import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
   import InputModel from "../models/InputModel.svelte";
+    import { goto } from "$app/navigation";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
@@ -38,10 +39,17 @@
   });
 
   function handleSubmit() {
+    if (!formElement.checkValidity()) {
+      formElement.reportValidity();
+      return;
+    }
+
     if (isNewAgent) {
       client.post("agent-configs", agentConfig).then((response) => {
         console.log("new agent: " + response);
       });
+
+      goto('/agents');
     } else {
       client
         .post("agent-configs/" + agentConfig?.id, agentConfig)
@@ -60,10 +68,7 @@
       Edit Agent Configuration
     {/if}
   </h2>
-  <form
-    class="space-y-4"
-    bind:this={formElement}
-  >
+  <form class="space-y-4" bind:this={formElement} on:submit|preventDefault>
     <p class="text-sm">
       You can create you own system prompts (instructions) based on the default
       chat agent. It will be posssible to create other type of agents with tools
@@ -76,6 +81,7 @@
         class="input variant-form-material"
         type="text"
         placeholder="Name your agent"
+        required
         bind:value={agentConfig.name}
       />
     </label>
@@ -86,6 +92,7 @@
         class="input variant-form-material"
         type="text"
         placeholder="A short description of what this agent does"
+        required
         bind:value={agentConfig.description}
       />
     </label>
@@ -96,12 +103,13 @@
         class="input variant-form-material"
         rows="7"
         placeholder="Start with 'You are a ...'. Instruct the agent as if you were writing an instruction for a new employee"
+        required
         bind:value={agentConfig.instructions}
       />
     </label>
     <div class="label">
       <span>Model</span>
-      <InputModel bind:value={agentConfig.targetLLM} />
+      <InputModel bind:value={agentConfig.targetLLM} required />
     </div>
     <label class="label">
       <span>New thread button (optional)</span>
@@ -113,7 +121,7 @@
         bind:value={agentConfig.button}
       />
     </label>
-    <button type="submit" class="btn variant-filled" on:click={handleSubmit}>
+    <button type="submit" on:click={handleSubmit} class="btn variant-filled">
       {#if isNewAgent}
         Create
       {:else}

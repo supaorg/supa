@@ -79,7 +79,7 @@ export function agentController(services: BackServices) {
         return;
       }
 
-      const config = JSON.parse(ctx.data as string) as AgentConfig;
+      const config = ctx.data as string as AgentConfig;
       await services.db.insertAgent(config);
       router.broadcast("agent-configs", config);
     })
