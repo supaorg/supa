@@ -2,11 +2,16 @@
   import { client } from "$lib/tools/client";
   import type { ModelProvider } from "@shared/models";
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
+  import { onMount } from "svelte";
+    import { ExclamationCircle, Icon } from "svelte-hero-icons";
 
   export let value: string;
   export let required: boolean = false;
 
+  let error = "";
+
   const modalStore = getModalStore();
+  let inputElement: HTMLInputElement;
 
   function onRequestChange() {
     modalStore.trigger({
@@ -16,6 +21,7 @@
         selectedModel: value ? value : null,
         onModelSelect: (model: string) => {
           value = model;
+          update();
         },
       },
     });
@@ -25,16 +31,35 @@
   let model: string;
   let provider: ModelProvider | null;
 
-  $: {
-    console.log("modelPair: " + value);
-    update();
+  function validate() {
+    if (!value) {
+      inputElement.setCustomValidity("Choose a model");
+      return;
+    }
+
+    if (value.split("/").length !== 2) {
+      inputElement.setCustomValidity("Invalid model:" + value);
+      return;
+    }
+
+    inputElement.setCustomValidity("");
+    error = "";
   }
+
+  function onInputInvalid() {
+    error = inputElement.validationMessage;
+  }
+
+  onMount(() => {
+    update();
+  });
 
   async function update() {
     if (!value) {
       provider = null;
       providerId = "";
       model = "";
+      validate();
       return;
     }
 
@@ -44,12 +69,15 @@
     provider = await client
       .get("providers/" + providerId)
       .then((res) => res.data as ModelProvider);
+
+    validate();
   }
 </script>
 
 {#if provider}
   <div class="input variant-form-material">
     <button
+      type="button"
       class="flex p-4 gap-4 items-center cursor-pointer w-full"
       on:click={onRequestChange}
     >
@@ -65,10 +93,24 @@
   </div>
 {:else if !value}
   <div>
-    <button class="btn variant-filled" on:click={onRequestChange}>Select a model</button>
+    <button type="button" class="btn variant-filled" on:invalid={onInputInvalid} on:click={onRequestChange}
+      >Select a model</button
+    >
   </div>
 {:else}
   <div class="input variant-form-material">
     <ProgressRadial class="w-6" />
   </div>
 {/if}
+{#if error}
+  <div class="flex intems-center mt-2 text-red-500 text-sm"><Icon src={ExclamationCircle} solid class="w-6 mr-2" /><span>{error}</span></div>
+{/if}
+<input
+  bind:this={inputElement}
+  bind:value
+  on:invalid={onInputInvalid}
+  type="text"
+  name="model"
+  style="position: absolute; left: -9999px;"
+  {required}
+/>
