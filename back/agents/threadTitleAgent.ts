@@ -5,7 +5,7 @@ interface AgentConfigForChat extends AgentConfig {
   targetLLM: string;
 }
 
-export class SimpleChatAgent extends Agent<AgentConfigForChat> {
+export class ThreadTitleAgent extends Agent<AgentConfigForChat> {
   async input(
     payload: AgentInput,
     onStream?: (output: AgentOutput) => void,
@@ -18,13 +18,10 @@ export class SimpleChatAgent extends Agent<AgentConfigForChat> {
 
     const lang = this.services.lang(this.config.targetLLM);
 
-    let systemPrompt = this.config.instructions + "\n\n" +
-      "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks.";
-
-    const profile = await this.services.db.getProfile();
-    if (profile) {
-      systemPrompt += "\n\nUser name is " + profile?.name;
-    }
+    const systemPrompt =
+      `You write great, snappy titles. Your job is to come up with a short (1-3 words) title for a chat thread based on the conversation. 
+Be as concise as possible. You MUST provide only the title, no additional comments, explanations or messages. 
+If it's not clear what the title should be yet, return NO TITLE. No Markdown or formatting - only plain text is allowed.`;
 
     const remappedMessages = [
       { role: "system", content: systemPrompt },
@@ -41,6 +38,20 @@ export class SimpleChatAgent extends Agent<AgentConfigForChat> {
     const promptEndPerf = performance.now();
     console.log(`Prompt took ${promptEndPerf - promptStartPerf} milliseconds`);
 
-    return finalResult.answer;
+    let answer = finalResult.answer;
+    if (answer.startsWith('"') || answer.startsWith("'")) {
+      answer = answer.substring(1);
+    }
+    if (answer.endsWith('"') || answer.endsWith("'")) {
+      answer = answer.slice(0, -1);
+    }
+
+    answer = answer.substring(0, 50);
+
+    if (answer === "NO TITLE") {
+      return "";
+    } else {
+      return answer;
+    }
   }
 }

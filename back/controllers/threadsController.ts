@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "npm:uuid";
 import { ThreadMessage } from "@shared/models.ts";
 import { defaultAgent } from "../agents/defaultAgent.ts";
 import { SimpleChatAgent } from "../agents/simpleChatAgent.ts";
+import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
 import { AgentServices } from "../agents/agentServices.ts";
-import { Chat } from "../chat.ts";
 
 export function threadsController(services: BackServices) {
   const router = services.router;
@@ -140,16 +140,14 @@ export function threadsController(services: BackServices) {
       await services.db.updateThreadMessage(threadId, dbThreadReply);
       router.broadcast(ctx.route, dbThreadReply);
 
-      // @TODO: make this with an agent
-      const aiChat = new Chat();
       if (!thread.title && messages.length >= 2) {
-        const title = await aiChat.comeUpWithThreadTitle(
-          messages,
-          services.db.getSecret("key_openai"),
-        );
-        thread.title = title;
-        await services.db.updateThread(thread);
-        router.broadcastUpdate("threads", thread);
+        const titleAgent = new ThreadTitleAgent(agentServices, config);
+        const title = await titleAgent.input(messages) as string;
+        if (title && title !== "NO TITLE") {
+          thread.title = title;
+          await services.db.updateThread(thread);
+          router.broadcastUpdate("threads", thread);
+        }
       }
     });
 }
