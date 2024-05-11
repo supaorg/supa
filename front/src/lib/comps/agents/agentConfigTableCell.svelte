@@ -63,7 +63,6 @@
       name={"visible-" + agent.id}
       bind:checked={isVisible}
       size="sm"
-      disabled={isDefault}
     /></td
   >
   <td>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import type { Agent, ChatMessage, ChatThread } from "@shared/models";
+  import type { AgentConfig, ThreadMessage } from "@shared/models";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
@@ -11,11 +11,11 @@
   const modalStore = getModalStore();
 
   const agentId = $modalStore[0].meta.agentId as string;
-  let agent: Agent | undefined;
+  let agent: AgentConfig | undefined;
   let placeholder = "Write a message...";
 
   $: {
-    let targetAgent: Agent | undefined;
+    let targetAgent: AgentConfig | undefined;
 
     for (const agent of $agentConfigStore) {
       if (agent.id === agentId) {
@@ -56,7 +56,7 @@
       inProgress: null,
       createdAt: Date.now(),
       updatedAt: null,
-    } as ChatMessage;
+    } as ThreadMessage;
 
     // Post and don't wait for the response, just go to the new thread
     // to see it live

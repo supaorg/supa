@@ -4,7 +4,7 @@
   import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
   import InputModel from "../models/InputModel.svelte";
-    import { goto } from "$app/navigation";
+  import { goto } from "$app/navigation";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
@@ -13,6 +13,8 @@
   let formElement: HTMLFormElement;
   let agentConfig: AgentConfig | null = null;
 
+  let disableFields = false;
+
   function init() {
     if (configId !== null) {
       prevConfigId = configId;
@@ -20,8 +22,11 @@
       isNewAgent = false;
       client.get("agent-configs/" + configId).then((response) => {
         agentConfig = response.data as AgentConfig;
-        console.log(agentConfig);
       });
+
+      if (configId === "default") {
+        disableFields = true;
+      }
     } else {
       isNewAgent = true;
       agentConfig = {
@@ -49,7 +54,7 @@
         console.log("new agent: " + response);
       });
 
-      goto('/agents');
+      goto("/agents");
     } else {
       client
         .post("agent-configs/" + agentConfig?.id, agentConfig)
@@ -64,16 +69,28 @@
   <h2 class="h2 pb-6">
     {#if isNewAgent}
       New Agent Configuration
-    {:else}
+    {:else if configId !== "default"}
       Edit Agent Configuration
+    {:else}
+      Default Agent Configuration
     {/if}
   </h2>
   <form class="space-y-4" bind:this={formElement} on:submit|preventDefault>
+    <!--
     <p class="text-sm">
       You can create you own system prompts (instructions) based on the default
       chat agent. It will be posssible to create other type of agents with tools
       and external APIs in the future versions of Supamind.
     </p>
+    -->
+    {#if configId === "default"}
+      <p>
+        This is the configuration of the default chat agent. You can only change
+        the model it uses.<br />
+        <a href="/agents/new-config" class="anchor">Go here</a> if you want to create
+        a new agent configuration.
+      </p>
+    {/if}
     <label class="label">
       <span>Name</span>
       <input
@@ -83,6 +100,7 @@
         placeholder="Name your agent"
         required
         bind:value={agentConfig.name}
+        disabled={disableFields}
       />
     </label>
     <label class="label">
@@ -94,6 +112,7 @@
         placeholder="A short description of what this agent does"
         required
         bind:value={agentConfig.description}
+        disabled={disableFields}
       />
     </label>
     <label class="label">
@@ -105,6 +124,7 @@
         placeholder="Start with 'You are a ...'. Instruct the agent as if you were writing an instruction for a new employee"
         required
         bind:value={agentConfig.instructions}
+        disabled={disableFields}
       />
     </label>
     <div class="label">
@@ -119,6 +139,7 @@
         type="text"
         placeholder="A short actionable text for a button"
         bind:value={agentConfig.button}
+        disabled={disableFields}
       />
     </label>
     <button type="submit" on:click={handleSubmit} class="btn variant-filled">

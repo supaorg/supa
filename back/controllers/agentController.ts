@@ -47,15 +47,29 @@ export function agentController(services: BackServices) {
       }
 
       const configId = ctx.params.configId;
-      const agent = await services.db.getAgent(configId);
+      const oldConfig = await services.db.getAgent(configId);
 
-      if (agent === null) {
+      if (oldConfig === null) {
         ctx.error = "Agent doesn't exist";
         return;
       }
 
       const config = ctx.data as AgentConfig;
-      await services.db.updateAgent(config);
+
+      if (config.id !== "default") {
+        await services.db.updateAgent(config);
+      } else {
+        if (oldConfig === null) {
+          ctx.error = "Couldn't get the default agent config";
+          return;
+        }
+
+        // For the default - we only allow to update the targetLLM
+        const defaultConfigWithUpdTargetLLM = { id: config.id, targetLLM: config.targetLLM, meta: config.meta };
+        await services.db.updateAgent(defaultConfigWithUpdTargetLLM);
+      }
+
+      
       router.broadcast("agent-configs", config);
     })
     .onDelete("agent-configs/:configId", async (ctx) => {

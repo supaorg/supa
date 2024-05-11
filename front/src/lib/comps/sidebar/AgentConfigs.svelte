@@ -9,6 +9,13 @@
   let visibleConfigs: AgentConfig[] = [];
 
   agentConfigStore.subscribe((configs) => {
+    // Filter out configs with the same IDs
+    configs = configs.filter((config, index, self) => {
+      return index === self.findIndex((t) => (
+        t.id === config.id
+      ));
+    });
+
     visibleConfigs = configs.filter((config) => { 
       if (config.meta && config.meta.visible === "false") {
         return false;

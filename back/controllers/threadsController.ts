@@ -78,6 +78,32 @@ export function threadsController(services: BackServices) {
     .onValidateBroadcast("threads/:threadId", (conn, params) => {
       return true;
     })
+    .onPost("threads/retry", async (ctx) => {
+      if (services.db === null) {
+        ctx.error = services.getDbNotSetupError();
+        return;
+      }
+     
+      const threadId = ctx.params.threadId;
+      const thread = await services.db.getThread(threadId);
+
+      if (thread === null) {
+        ctx.error = "Thread doesn't exist";
+        return;
+      }
+
+      const messages = await services.db.getThreadMessages(threadId);
+
+      // Only re-try if the last message is from the AI
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role !== "assistant") {
+        ctx.error = "Last message is not from the AI";
+        return;
+      }
+
+      // @TODO: finish
+
+    })
     .onPost("threads/:threadId", async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();

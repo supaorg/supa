@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { ChatThread } from "@shared/models";
+  import type { Thread } from "@shared/models";
   import ThreadOptionsPopup from "../popups/ThreadOptionsPopup.svelte";
 
-  export let thread: ChatThread;
+  export let thread: Thread;
   export let active = false;
 
   let classActive = "";

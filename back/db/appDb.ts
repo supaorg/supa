@@ -78,20 +78,33 @@ export class AppDb {
       "_config.json",
     );
 
-    return [
-      defaultAgent,
+    const configs = [
       ...agents.map((agentFile) => {
         const agentStr = Deno.readTextFileSync(agentFile);
         return JSON.parse(agentStr);
       }),
-    ];
+    ]
+
+    const defaultAgentIndex = configs.findIndex((agent) =>
+      agent.id === defaultAgent.id
+    );
+    if (defaultAgentIndex !== -1) {
+      const overrideForDefaultAgent = JSON.parse(Deno.readTextFileSync(agents[defaultAgentIndex])) as AgentConfig;
+
+      // Merge the default agent config with the overriding config
+      configs[defaultAgentIndex] = {
+        ...defaultAgent,
+        ...overrideForDefaultAgent,
+      };
+    } else {
+      // If there is no overriding config, just use the default agent
+      configs.push(defaultAgent);
+    }
+
+    return configs;
   }
 
   async getAgent(agentId: string): Promise<AgentConfig | null> {
-    if (agentId === defaultAgent.id) {
-      return defaultAgent;
-    }
-
     await ensureDir(this.resolvePath("agent-configs"));
 
     try {
@@ -99,12 +112,23 @@ export class AppDb {
         this.resolvePath("agent-configs", agentId, "_config.json"),
       );
 
+      if (agentId === "default") {
+        return {
+          ...defaultAgent,
+          ...JSON.parse(agentStr),
+        };
+      }
+
       if (agentStr) {
         return JSON.parse(agentStr);
       }
 
       return null;
     } catch (_) {
+      if (agentId === "default") {
+        return defaultAgent;
+      }
+
       return null;
     }
   }
