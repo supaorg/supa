@@ -5,6 +5,7 @@
   import { v4 as uuidv4 } from "uuid";
   import InputModel from "../models/InputModel.svelte";
   import { goto } from "$app/navigation";
+  import { txtStore } from "$lib/stores/txtStore";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
@@ -68,11 +69,11 @@
 {#if agentConfig}
   <h2 class="h2 pb-6">
     {#if isNewAgent}
-      New Agent Configuration
+      {$txtStore.agentConfigPage.newConfigTitle}
     {:else if configId !== "default"}
-      Edit Agent Configuration
+      {$txtStore.agentConfigPage.editConfigTitle}
     {:else}
-      Default Agent Configuration
+      {$txtStore.agentConfigPage.defaultConfigTitle}
     {/if}
   </h2>
   <form class="space-y-4" bind:this={formElement} on:submit|preventDefault>
@@ -92,64 +93,64 @@
       </p>
     {/if}
     <label class="label">
-      <span>Name</span>
+      <span>{$txtStore.basics.name}</span>
       <input
         name="name"
         class="input variant-form-material"
         type="text"
-        placeholder="Name your agent"
+        placeholder={$txtStore.agentConfigPage.namePlaceholder}
         required
         bind:value={agentConfig.name}
         disabled={disableFields}
       />
     </label>
     <label class="label">
-      <span>Description</span>
+      <span>{$txtStore.basics.description}</span>
       <input
         name="description"
         class="input variant-form-material"
         type="text"
-        placeholder="A short description of what this agent does"
+        placeholder={$txtStore.agentConfigPage.descriptionPlaceholder}
         required
         bind:value={agentConfig.description}
         disabled={disableFields}
       />
     </label>
     <label class="label">
-      <span>Instructions</span>
+      <span>{$txtStore.basics.instructions}</span>
       <textarea
         name="instructions"
         class="input variant-form-material"
         rows="7"
-        placeholder="Start with 'You are a ...'. Instruct the agent as if you were writing an instruction for a new employee"
+        placeholder={$txtStore.agentConfigPage.instructionsPlaceholder}
         required
         bind:value={agentConfig.instructions}
         disabled={disableFields}
       />
     </label>
     <div class="label">
-      <span>Model</span>
+      <span>{$txtStore.basics.model}</span>
       <InputModel bind:value={agentConfig.targetLLM} required />
     </div>
     <label class="label">
-      <span>New thread button (optional)</span>
+      <span>{$txtStore.agentConfigPage.newConfigButton}</span>
       <input
         name="button"
         class="input variant-form-material"
         type="text"
-        placeholder="A short actionable text for a button"
+        placeholder={$txtStore.agentConfigPage.buttonPlaceholder}
         bind:value={agentConfig.button}
         disabled={disableFields}
       />
     </label>
     <button type="submit" on:click={handleSubmit} class="btn variant-filled">
       {#if isNewAgent}
-        Create
+        {$txtStore.agentConfigPage.buttonCreate}
       {:else}
-        Save Changes
+        {$txtStore.agentConfigPage.buttonSave}
       {/if}
     </button>
   </form>
 {:else}
-  <p>Loading...</p>
+  <p>{$txtStore.basics.loading}</p>
 {/if}
