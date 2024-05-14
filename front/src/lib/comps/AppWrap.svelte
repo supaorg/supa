@@ -122,7 +122,7 @@
 
       await loadStoresFromServer();
 
-      if ($profileStore === null || !$profileStore?.name) {
+      if ($profileStore === null || !$profileStore?.setup) {
         state = "needsSetup";
       } else {
         state = "ready";
@@ -148,7 +148,7 @@
 
       // Doing it in case if the folder contains some files already
       await loadStoresFromServer();
-      if ($profileStore === null || !$profileStore?.name) {
+      if ($profileStore === null || !$profileStore?.setup) {
         state = "needsSetup";
       } else {
         state = "ready";

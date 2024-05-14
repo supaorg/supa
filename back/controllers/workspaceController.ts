@@ -60,15 +60,14 @@ export function workspaceController(services: BackServices) {
         return;
       }
 
-      const data = ctx.data as { name: string; key_openai: string };
-      if (!data.name || !data.key_openai) {
-        ctx.error = "Name and OpenAI key are required";
+      const data = ctx.data as { name: string; };
+      if (!data.name) {
+        ctx.error = "Name is required";
         return;
       }
 
       try {
-        const profile = await services.db.insertProfile({ name: data.name });
-        await services.db.insertSecrets({ openai: data.key_openai });
+        const profile = await services.db.insertProfile({ name: data.name, setup: true } as Profile);
         router.broadcast("profile", profile);
         ctx.response = profile;
       } catch (e) {

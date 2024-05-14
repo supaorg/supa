@@ -17,6 +17,7 @@ export type Thread = {
 
 export type Profile = {
   name: string;
+  setup: boolean;
 }
 
 export interface AgentConfig {

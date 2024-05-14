@@ -14,6 +14,8 @@
   let state: State = "disconnected";
 
   export let provider: ModelProvider;
+  export let onConnect: (provider: ModelProvider) => void = () => {};
+  export let onDisconnect: (provider: ModelProvider) => void = () => {};
 
   let config: ModelProviderConfig | null;
 
@@ -50,10 +52,17 @@
       .then((res) => res.data as boolean);
 
     state = isValid ? "connected" : "invalid-key";
+
+    if (isValid) {
+      onConnect(provider);
+    } else {
+      onDisconnect(provider);
+    }
   }
 
   function disconnect() {
     state = "disconnected";
+    onDisconnect(provider);
 
     if (provider.access === "cloud") {
       client.delete("provider-configs/" + provider.id);
@@ -97,6 +106,7 @@
           id={provider.id}
           onValidKey={(key) => {
             state = "connected";
+            onConnect?.(provider);
             saveCloudProviderWithApiKey(key);
           }}
         />
