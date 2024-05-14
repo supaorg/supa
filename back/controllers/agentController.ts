@@ -65,7 +65,7 @@ export function agentController(services: BackServices) {
         }
 
         // For the default - we only allow to update the targetLLM
-        const defaultConfigWithUpdTargetLLM = { id: config.id, targetLLM: config.targetLLM, meta: config.meta };
+        const defaultConfigWithUpdTargetLLM = { id: config.id, targetLLM: config.targetLLM, meta: config.meta } as AgentConfig;
         await services.db.updateAgent(defaultConfigWithUpdTargetLLM);
       }
 
@@ -93,7 +93,7 @@ export function agentController(services: BackServices) {
         return;
       }
 
-      const config = ctx.data as string as AgentConfig;
+      const config = ctx.data as AgentConfig;
       await services.db.insertAgent(config);
       router.broadcast("agent-configs", config);
     })

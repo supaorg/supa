@@ -1,7 +1,5 @@
 import {
   Lang,
-  LangVecs,
-  PromptForObject,
 } from "https://deno.land/x/aiwrapper@v0.0.17/mod.ts";
 import { LanguageModel } from "https://deno.land/x/aiwrapper@v0.0.17/src/lang/language-model.ts";
 import { AppDb } from "../db/appDb.ts";
@@ -13,7 +11,7 @@ export class AgentServices {
     this.db = db;
   }
 
-  lang(model: string): LanguageModel {
+  async lang(model: string): Promise<LanguageModel> {
     const modelSplit = model.split("/");
     if (modelSplit.length !== 2) {
       throw new Error("Invalid model name");
@@ -25,25 +23,42 @@ export class AgentServices {
     switch (modelProvider) {
       case "openai":
         return Lang.openai({
-          apiKey: this.db.getSecret('key_openai'),
+          apiKey: await this.getKey(modelProvider),
           model: modelName,
         });
       case "groq":
         return Lang.groq({
-          apiKey: this.db.getSecret('key_groq'),
+          apiKey: await this.getKey(modelProvider),
           model: modelName,
-        })
+        });
       case "anthropic":
         return Lang.anthropic({
-          apiKey: this.db.getSecret('key_anthropic'),
+          apiKey: await this.getKey(modelProvider),
           model: modelName,
         });
       case "ollama":
         return Lang.ollama({
-          'url': 'none'
+          "url": "none",
         });
       default:
         throw new Error("Invalid model provider");
     }
+  }
+
+  async getKey(provider: string): Promise<string> {
+    const providerConfig = await this.db.getProviderConfig(provider);
+
+    if (!providerConfig) {
+      throw new Error("No provider config found");
+    }
+
+    // First check if config itself contains 'apiKey'
+    if ("apiKey" in providerConfig) {
+      return providerConfig.apiKey as string;
+    }
+
+    // @NOTE: consider adding checks in other parts, such as user profile
+
+    throw new Error("No API key found");
   }
 }

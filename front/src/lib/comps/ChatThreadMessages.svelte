@@ -119,8 +119,18 @@
     scrollToBottom();
 
     client.listen(`threads/${threadId}`, (broadcast) => {
-      const chatMsg = broadcast.data as Message;
-      onChatMsg(chatMsg);
+      if (broadcast.action === 'POST' || broadcast.action === 'UPDATE') {
+        const chatMsg = broadcast.data as Message;
+        onChatMsg(chatMsg);
+      }
+      if (broadcast.action === 'DELETE') {
+        const chatMsg = broadcast.data as Message;
+        const index = messages.findIndex((m) => m.id === chatMsg.id);
+        if (index !== -1) {
+          messages.splice(index, 1);
+          messages = [...messages];
+        }
+      }
 
       scrollToBottom();
     });
@@ -153,7 +163,7 @@
       bind:this={chatWrapperElement}
     >
       {#each messages as message}
-        <ThreadMessage {message} />
+        <ThreadMessage {message} {threadId} />
       {/each}
     </section>
   </div>

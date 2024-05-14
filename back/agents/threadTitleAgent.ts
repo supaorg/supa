@@ -16,7 +16,7 @@ export class ThreadTitleAgent extends Agent<AgentConfigForChat> {
       throw new Error("No database");
     }
 
-    const lang = this.services.lang(this.config.targetLLM);
+    const lang = await this.services.lang(this.config.targetLLM);
 
     const systemPrompt =
       `You write great, snappy titles. Your job is to come up with a short (1-3 words) title for a chat thread based on the conversation. 

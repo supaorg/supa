@@ -78,12 +78,12 @@ export function threadsController(services: BackServices) {
     .onValidateBroadcast("threads/:threadId", (conn, params) => {
       return true;
     })
-    .onPost("threads/retry", async (ctx) => {
+    .onPost("threads/:threadId/retry", async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
       }
-     
+
       const threadId = ctx.params.threadId;
       const thread = await services.db.getThread(threadId);
 
@@ -92,16 +92,57 @@ export function threadsController(services: BackServices) {
         return;
       }
 
-      const messages = await services.db.getThreadMessages(threadId);
+      let messages = await services.db.getThreadMessages(threadId);
 
       // Only re-try if the last message is from the AI
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role !== "assistant") {
+      const dbThreadReply = messages[messages.length - 1];
+      if (dbThreadReply.role !== "assistant") {
         ctx.error = "Last message is not from the AI";
         return;
       }
 
-      // @TODO: finish
+      const route = `threads/${threadId}`;
+
+      messages = await services.db.getThreadMessages(threadId);
+
+      // Update the last message
+      dbThreadReply.text = "Thinking...";
+      dbThreadReply.createdAt = Date.now();
+      dbThreadReply.updatedAt = Date.now();
+      router.broadcast(route, dbThreadReply);
+
+      // @TODO: get the actual config that we can pass to the agent
+      const config = await services.db.getAgent(thread.agentId) || defaultAgent;
+
+      const agentServices = new AgentServices(services.db);
+
+      // Let's run the messages through the agent
+      const chatAgent = new SimpleChatAgent(agentServices, config);
+      const response = await chatAgent.input(messages, (resp) => {
+        dbThreadReply.text = resp as string;
+        router.broadcast(route, dbThreadReply);
+        // And save the message to the database
+        if (services.db !== null) {
+          services.db.updateThreadMessage(threadId, dbThreadReply);
+        }
+      });
+
+      dbThreadReply.text = response as string;
+      dbThreadReply.inProgress = 0;
+      dbThreadReply.updatedAt = Date.now();
+      dbThreadReply.inProgress = 0;
+      await services.db.updateThreadMessage(threadId, dbThreadReply);
+      router.broadcast(ctx.route, dbThreadReply);
+
+      if (!thread.title && messages.length >= 2) {
+        const titleAgent = new ThreadTitleAgent(agentServices, config);
+        const title = await titleAgent.input(messages) as string;
+        if (title && title !== "NO TITLE") {
+          thread.title = title;
+          await services.db.updateThread(thread);
+          router.broadcastUpdate("threads", thread);
+        }
+      }
 
     })
     .onPost("threads/:threadId", async (ctx) => {
@@ -150,16 +191,23 @@ export function threadsController(services: BackServices) {
 
       // Let's run the messages through the agent
       const chatAgent = new SimpleChatAgent(agentServices, config);
-      const response = await chatAgent.input(messages, (resp) => {
-        dbThreadReply.text = resp as string;
-        router.broadcast(ctx.route, dbThreadReply);
-        // And save the message to the database
-        if (services.db !== null) {
-          services.db.updateThreadMessage(threadId, dbThreadReply);
-        }
-      });
 
-      dbThreadReply.text = response as string;
+      try {
+        const response = await chatAgent.input(messages, (resp) => {
+          dbThreadReply.text = resp as string;
+          router.broadcast(ctx.route, dbThreadReply);
+          // And save the message to the database
+          if (services.db !== null) {
+            services.db.updateThreadMessage(threadId, dbThreadReply);
+          }
+        });
+
+        dbThreadReply.text = response as string;
+      } catch (e) {
+        dbThreadReply.text = e.message;
+        // @TODO: mark the message as failed
+      }
+      
       dbThreadReply.inProgress = 0;
       dbThreadReply.updatedAt = Date.now();
       dbThreadReply.inProgress = 0;
@@ -168,11 +216,15 @@ export function threadsController(services: BackServices) {
 
       if (!thread.title && messages.length >= 2) {
         const titleAgent = new ThreadTitleAgent(agentServices, config);
-        const title = await titleAgent.input(messages) as string;
-        if (title && title !== "NO TITLE") {
-          thread.title = title;
-          await services.db.updateThread(thread);
-          router.broadcastUpdate("threads", thread);
+        try {
+          const title = await titleAgent.input(messages) as string;
+          if (title) {
+            thread.title = title;
+            await services.db.updateThread(thread);
+            router.broadcastUpdate("threads", thread);
+          }
+        } catch (e) {
+          console.error(e);
         }
       }
     });

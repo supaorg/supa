@@ -16,7 +16,7 @@ export class SimpleChatAgent extends Agent<AgentConfigForChat> {
       throw new Error("No database");
     }
 
-    const lang = this.services.lang(this.config.targetLLM);
+    const lang = await this.services.lang(this.config.targetLLM);
 
     let systemPrompt = this.config.instructions + "\n\n" +
       "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks.";

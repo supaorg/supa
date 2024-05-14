@@ -318,6 +318,15 @@ export class AppDb {
     return messages;
   }
 
+  async deleteThreadMessage(
+    threadId: string,
+    messageId: string,
+  ): Promise<void> {
+    await Deno.remove(
+      this.resolvePath("threads", threadId, `${messageId}.json`),
+    );
+  }
+
   async getModelProviders(): Promise<ModelProviderConfig[]> {
     const providerFiles = Deno.readDirSync(
       this.resolvePath("provider-configs"),

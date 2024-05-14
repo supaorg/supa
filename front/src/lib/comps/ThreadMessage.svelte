@@ -4,11 +4,19 @@
   import Markdown from "@magidoc/plugin-svelte-marked";
   import MarkdownCode from "./markdown/MarkdownCode.svelte";
   import MarkdownLink from "./markdown/MarkdownLink.svelte";
+  import { client } from "$lib/tools/client";
 
   export let message: ThreadMessage;
+  export let threadId: string;
 
+  let messageTakesTooLong = false;
+  let retrying = false;
+  
   let createdAt = new Date(message.createdAt);
-  $: createdAt = new Date(message.createdAt);
+  $: {
+    createdAt = new Date(message.createdAt);
+    messageTakesTooLong = message.role !== "user" && message.inProgress === 1 && createdAt.getTime() + 60000 < Date.now();
+  }
 
   function formatChatDate(dateInMs: number) {
     const date = new Date(dateInMs);
@@ -19,8 +27,9 @@
     });
   }
 
-  function messageTakesTooLong() {
-    return createdAt.getTime() + 60000 < Date.now();
+  async function retry() {
+    retrying = true;
+    await client.post(`threads/${threadId}/retry`);
   }
 </script>
 
@@ -53,10 +62,8 @@
           link: MarkdownLink,
         }}
       />
-      <!-- @TODO: also somehow check if we got an error -->
-      <!-- @TODO: allow to retry -->
-      {#if message.role !== "user" && message.inProgress === 1 && messageTakesTooLong()}
-        <button class="btn variant-filled">Retry</button>
+      {#if messageTakesTooLong && !retrying}
+        <button class="btn variant-filled" on:click={retry}>Retry</button>
       {/if}
     </div>
     <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
