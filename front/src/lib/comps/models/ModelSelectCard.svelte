@@ -1,6 +1,7 @@
 <script lang="ts">
   import { client } from "$lib/tools/client";
   import type { ModelProvider } from "@shared/models";
+    import { routes } from "@shared/routes/routes";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
 
@@ -15,7 +16,7 @@
 
   onMount(async () => {
     models = await client
-      .get(`provider-configs/${provider.id}/models`)
+      .get(routes.providerModel(provider.id))
       .then((res) => {
         return res.data as string[];
       });

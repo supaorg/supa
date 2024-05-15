@@ -3,6 +3,7 @@
   import ModelProviderCard from "./ModelProviderCard.svelte";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
+    import { routes } from "@shared/routes/routes";
 
   let providers: ModelProvider[] = [];
 
@@ -11,7 +12,7 @@
 
   onMount(async () => {
     providers = await client
-      .get("providers")
+      .get(routes.providers)
       .then((res) => res.data as ModelProvider[]);
   });
 </script>

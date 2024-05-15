@@ -67,7 +67,7 @@ export function providersController(services: BackServices) {
         ctx.response = true;
       }
     })
-    .onGet(routes.providerModels(), async (ctx) => {
+    .onGet(routes.providerModel(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;

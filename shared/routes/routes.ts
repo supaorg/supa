@@ -15,7 +15,7 @@ export const routes = {
     `provider-configs/${providerId}`,
   validateProviderConfig: (providerId = ":providerId") =>
     `provider-configs/${providerId}/validate`,
-  providerModels: (providerId = ":providerId") =>
+  providerModel: (providerId = ":providerId") =>
     `provider-configs/${providerId}/models`,
   validateProviderKey: (provider = ":provider") => `validate-key/${provider}`,
 
