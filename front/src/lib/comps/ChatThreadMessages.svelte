@@ -7,6 +7,7 @@
   import { goto } from "$app/navigation";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
   import ThreadMessage from "./ThreadMessage.svelte";
+    import { routes } from "@shared/routes/routes";
 
   export let threadId: string;
 
@@ -72,7 +73,7 @@
       updatedAt: null,
     } as Message;
 
-    client.post(`threads/${threadId}`, msg);
+    client.post(routes.thread(threadId), msg);
 
     messages.push(msg);
     messages = [...messages];
@@ -105,7 +106,7 @@
   }
 
   async function fetchThreadMessages() {
-    messages = await client.get(`threads/${threadId}`).then((res) => {
+    messages = await client.get(routes.thread(threadId)).then((res) => {
       if (res.error) {
         console.error(res.error);
         goto("/");
@@ -118,7 +119,7 @@
 
     scrollToBottom();
 
-    client.listen(`threads/${threadId}`, (broadcast) => {
+    client.listen(routes.thread(threadId), (broadcast) => {
       if (broadcast.action === 'POST' || broadcast.action === 'UPDATE') {
         const chatMsg = broadcast.data as Message;
         onChatMsg(chatMsg);
@@ -142,7 +143,7 @@
 
   onDestroy(async () => {
     if (threadId) {
-      client.unlisten(`threads/${threadId}`);
+      client.unlisten(routes.thread(threadId));
     }
   });
 

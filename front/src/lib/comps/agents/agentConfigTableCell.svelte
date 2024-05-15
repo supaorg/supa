@@ -2,7 +2,12 @@
   import { agentConfigStore } from "$lib/stores/agentStore";
   import { client } from "$lib/tools/client";
   import type { AgentConfig } from "@shared/models";
-  import { SlideToggle, getModalStore, type ModalSettings } from "@skeletonlabs/skeleton";
+  import { routes } from "@shared/routes/routes";
+  import {
+    SlideToggle,
+    getModalStore,
+    type ModalSettings,
+  } from "@skeletonlabs/skeleton";
   import { Icon, Trash } from "svelte-hero-icons";
 
   export let agent: AgentConfig;
@@ -18,7 +23,7 @@
     agent.meta = agent.meta || {};
     agent.meta.visible = visible ? "true" : "false";
 
-    client.post("agent-configs/" + agent.id, agent).then((response) => {});
+    client.post(routes.agentConfig(agent.id), agent).then((response) => {});
   }
 
   $: {
@@ -43,12 +48,11 @@
   }
 
   function deleteAgent() {
-    client.delete("agent-configs/" + agent.id).then((response) => {
+    client.delete(routes.agentConfig(agent.id)).then((response) => {
       agentConfigStore.update((agents) => {
         return agents.filter((a) => a.id !== agent.id);
       });
     });
-  
   }
 </script>
 

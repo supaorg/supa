@@ -7,6 +7,7 @@
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { createThread } from "$lib/stores/threads";
   import { agentConfigStore } from "$lib/stores/agentStore";
+    import { routes } from "@shared/routes/routes";
 
   const modalStore = getModalStore();
 
@@ -60,7 +61,7 @@
 
     // Post and don't wait for the response, just go to the new thread
     // to see it live
-    client.post(`threads/${newThread.id}`, msg);
+    client.post(routes.thread(newThread.id), msg);
 
     goto(`/?t=${newThread.id}`);
 

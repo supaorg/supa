@@ -26,7 +26,7 @@ export interface AgentConfig {
   button: string;
   description: string;
   instructions: string;
-  targetLLM: string;
+  targetLLM?: string;
   meta?: { [key: string]: string };
 }
 

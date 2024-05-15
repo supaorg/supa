@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getModalStore } from "@skeletonlabs/skeleton";
-  import { Icon, PencilSquare, SquaresPlus } from "svelte-hero-icons";
+  import { Icon, PencilSquare } from "svelte-hero-icons";
   import { agentConfigStore } from "$lib/stores/agentStore";
   import type { AgentConfig } from "@shared/models";
 

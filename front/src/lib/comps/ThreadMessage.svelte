@@ -5,6 +5,7 @@
   import MarkdownCode from "./markdown/MarkdownCode.svelte";
   import MarkdownLink from "./markdown/MarkdownLink.svelte";
   import { client } from "$lib/tools/client";
+    import { routes } from "@shared/routes/routes";
 
   export let message: ThreadMessage;
   export let threadId: string;
@@ -29,7 +30,7 @@
 
   async function retry() {
     retrying = true;
-    await client.post(`threads/${threadId}/retry`);
+    await client.post(routes.retryThread(threadId));
   }
 </script>
 

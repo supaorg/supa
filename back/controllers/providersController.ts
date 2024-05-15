@@ -1,52 +1,19 @@
-import { ModelProvider } from "../../shared/models.ts";
 import { ModelProviderCloudConfig } from "../../shared/models.ts";
 import { ModelProviderConfig } from "../../shared/models.ts";
 import { validateKey } from "../tools/providerKeyValidators.ts";
 import { getCloudProviderModels } from "../tools/providerModels.ts";
 import { BackServices } from "./backServices.ts";
-
-const providers: ModelProvider[] = [
-  {
-    id: "openai",
-    name: "OpenAI",
-    access: "cloud",
-    url: "https://openai.com/",
-    logoUrl: "/providers/openai.png",
-    defaultModel: "gpt-4o"
-  },
-  {
-    id: "groq",
-    name: "Groq",
-    access: "cloud",
-    url: "https://groq.com/",
-    logoUrl: "/providers/groq.png",
-    defaultModel: "llama3-70b-8192"
-  },
-  {
-    id: "anthropic",
-    name: "Anthropic",
-    access: "cloud",
-    url: "https://anthropic.com/",
-    logoUrl: "/providers/anthropic.png",
-    defaultModel: "claude-3-opus-20240229"
-  },
-  {
-    id: "ollama",
-    name: "Ollama",
-    access: "local",
-    url: "https://ollama.com/",
-    logoUrl: "/providers/ollama.png",
-  },
-];
+import { providers } from "../providers.ts";
+import { routes } from "../../shared/routes/routes.ts";
 
 export function providersController(services: BackServices) {
   const router = services.router;
 
   router
-    .onGet("providers", (ctx) => {
+    .onGet(routes.providers, (ctx) => {
       ctx.response = providers;
     })
-    .onGet("providers/:providerId", (ctx) => {
+    .onGet(routes.provider(), (ctx) => {
       const providerId = ctx.params.providerId;
 
       const provider = providers.find((p) => p.id === providerId);
@@ -58,7 +25,7 @@ export function providersController(services: BackServices) {
 
       ctx.response = provider;
     })
-    .onGet("provider-configs/:providerId", async (ctx) => {
+    .onGet(routes.providerConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -75,7 +42,7 @@ export function providersController(services: BackServices) {
 
       ctx.response = provider;
     })
-    .onPost("provider-configs/:providerId/validate", async (ctx) => {
+    .onPost(routes.validateProviderConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -100,7 +67,7 @@ export function providersController(services: BackServices) {
         ctx.response = true;
       }
     })
-    .onGet("provider-configs/:providerId/models", async (ctx) => {
+    .onGet(routes.providerModels(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -124,7 +91,7 @@ export function providersController(services: BackServices) {
 
       ctx.response = models;
     })
-    .onGet("provider-configs", async (ctx) => {
+    .onGet(routes.providerConfigs, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -134,7 +101,7 @@ export function providersController(services: BackServices) {
 
       ctx.response = providers;
     })
-    .onPost("provider-configs", async (ctx) => {
+    .onPost(routes.providerConfigs, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -148,7 +115,7 @@ export function providersController(services: BackServices) {
 
       router.broadcast(ctx.route, newProvider);
     })
-    .onDelete("provider-configs/:providerId", async (ctx) => {
+    .onDelete(routes.providerConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -169,7 +136,7 @@ export function providersController(services: BackServices) {
 
       router.broadcast(ctx.route, provider);
     })
-    .onPost("validate-key/:provider", async (ctx) => {
+    .onPost(routes.validateProviderKey(), async (ctx) => {
       const provider = ctx.params.provider;
       const key = ctx.data as string;
       const keyIsValid = await validateKey(provider, key);

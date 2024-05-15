@@ -1,11 +1,12 @@
 import { AgentConfig } from "@shared/models.ts";
 import { BackServices } from "./backServices.ts";
+import { routes } from "../../shared/routes/routes.ts";
 
 export function agentController(services: BackServices) {
   const router = services.router;
 
   router
-    .onGet("agent-configs", async (ctx) => {
+    .onGet(routes.agentConfigs, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -19,7 +20,7 @@ export function agentController(services: BackServices) {
         return;
       }
     })
-    .onGet("agent-configs/:configId", async (ctx) => {
+    .onGet(routes.agentConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -35,7 +36,7 @@ export function agentController(services: BackServices) {
 
       ctx.response = agent;
     })
-    .onPost("agent-configs/:configId", async (ctx) => {
+    .onPost(routes.agentConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -72,7 +73,7 @@ export function agentController(services: BackServices) {
       
       router.broadcast("agent-configs", config);
     })
-    .onDelete("agent-configs/:configId", async (ctx) => {
+    .onDelete(routes.agentConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -80,9 +81,9 @@ export function agentController(services: BackServices) {
 
       const configId = ctx.params.configId;
       await services.db.deleteAgent(configId);
-      router.broadcastDeletion("agent-configs", configId);
+      router.broadcastDeletion(routes.agentConfigs, configId);
     })
-    .onPost("agent-configs", async (ctx) => {
+    .onPost(routes.agentConfigs, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -95,9 +96,9 @@ export function agentController(services: BackServices) {
 
       const config = ctx.data as AgentConfig;
       await services.db.insertAgent(config);
-      router.broadcast("agent-configs", config);
+      router.broadcast(routes.agentConfigs, config);
     })
-    .onValidateBroadcast("agent-configs", (conn, params) => {
+    .onValidateBroadcast(routes.agentConfigs, (conn, params) => {
       return true;
     });
 }

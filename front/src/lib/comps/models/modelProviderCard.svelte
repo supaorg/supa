@@ -4,6 +4,7 @@
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
   import { ProgressBar } from "@skeletonlabs/skeleton";
+    import { routes } from "@shared/routes/routes";
 
   type State =
     | "loading"
@@ -24,7 +25,7 @@
   });
 
   async function checkProvider() {
-    const res = await client.get("provider-configs/" + provider.id);
+    const res = await client.get(routes.providerConfig(provider.id));
 
     if (res.data) {
       config = res.data as ModelProviderConfig;
@@ -41,14 +42,14 @@
       apiKey,
     } as ModelProviderCloudConfig;
 
-    await client.post("provider-configs", config);
+    await client.post(routes.providerConfigs, config);
   }
 
   async function checkIfValid() {
     state = "loading";
 
     const isValid = await client
-      .post(`provider-configs/${provider.id}/validate`)
+      .post(routes.validateProviderConfig(provider.id))
       .then((res) => res.data as boolean);
 
     state = isValid ? "connected" : "invalid-key";
@@ -65,7 +66,7 @@
     onDisconnect(provider);
 
     if (provider.access === "cloud") {
-      client.delete("provider-configs/" + provider.id);
+      client.delete(routes.providerConfig(provider.id));
     }
   }
 </script>

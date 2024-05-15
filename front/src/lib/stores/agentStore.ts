@@ -2,22 +2,20 @@ import { get, type Writable } from 'svelte/store';
 import { localStorageStore } from '@skeletonlabs/skeleton';
 import { client } from '$lib/tools/client';
 import type { AgentConfig } from '@shared/models';
+import { routes } from '@shared/routes/routes';
 
-export const agentConfigStore: Writable<AgentConfig[]> = localStorageStore('agent-configs', []);
+export const agentConfigStore: Writable<AgentConfig[]> = localStorageStore(routes.agentConfigs, []);
 
 export async function createAgent() {
-  // TODO: put info about the agent
-  const agent = await client.post("agent-configs").then((res) => {
+  const agent = await client.post(routes.agentConfigs).then((res) => {
     return res.data as AgentConfig;
   });
 
   return agent;
 }
 
-export async function loadAgentsFromServer() {
-    // @TODO: subsctibe to reconnect so we can re-fetch the threads
-    
-  const agents = await client.get("agent-configs").then((res) => {
+export async function loadAgentsFromServer() {    
+  const agents = await client.get(routes.agentConfigs).then((res) => {
     const agents = Array.isArray(res.data) ? res.data as AgentConfig[] : [];
     // sort by name
     agents.sort((a, b) => {
@@ -34,7 +32,7 @@ export async function loadAgentsFromServer() {
 
   agentConfigStore.set(agents);
 
-  client.listen("agent-configs", (broadcast) => {
+  client.listen(routes.agentConfigs, (broadcast) => {
     const config = broadcast.data as AgentConfig;
 
     agentConfigStore.update((agents) => {

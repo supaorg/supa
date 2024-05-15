@@ -40,6 +40,7 @@
   import FsPermissionDenied from "./FsPermissionDenied.svelte";
   import { fsPermissionDeniedStore, subscribeToSession } from "$lib/stores/fsPermissionDeniedStore";
     import SelectModelModal from "./modals/SelectModelModal.svelte";
+    import { routes } from "@shared/routes/routes";
 
   type AppState =
     | "initializing"
@@ -102,7 +103,7 @@
 
     if (workspace) {
       const workspaceExistsRes = await client.post(
-        "workspace-exists",
+        routes.workspaceExists,
         workspace?.uri,
       );
 
@@ -116,7 +117,7 @@
     }
 
     if (workspaceExists) {
-      await client.post("workspace", workspace?.uri);
+      await client.post(routes.workspace, workspace?.uri);
 
       console.log("Workspace:", workspace?.uri);
 
@@ -128,7 +129,7 @@
         state = "ready";
       }
     } else {
-      const newWorkspaceRes = await client.post("new-workspace");
+      const newWorkspaceRes = await client.post(routes.newWorkspace);
 
       if (newWorkspaceRes.error) {
         console.error(newWorkspaceRes.error);

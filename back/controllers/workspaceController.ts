@@ -2,6 +2,7 @@ import { BackServices } from "./backServices.ts";
 import { Profile } from "@shared/models.ts";
 import { createWorkspaceInDocuments, setWorkspacePath } from "../workspace.ts";
 import { fs } from "../tools/fs.ts";
+import { routes } from "../../shared/routes/routes.ts";
 
 async function checkWorkspaceDir(path: string): Promise<boolean> {
   const pathToWorkspace = path + "/_workspace.json";
@@ -13,7 +14,7 @@ export function workspaceController(services: BackServices) {
   const router = services.router;
 
   router
-    .onPost("new-workspace", async (ctx) => {
+    .onPost(routes.newWorkspace, async (ctx) => {
       try {
         const path = await createWorkspaceInDocuments();
         services.setupDatabase(path);
@@ -22,7 +23,7 @@ export function workspaceController(services: BackServices) {
         ctx.error = e.message;
       }
     })
-    .onPost("workspace", async (ctx) => {
+    .onPost(routes.workspace, async (ctx) => {
       try {
         const path = ctx.data as string;
         const exists = await checkWorkspaceDir(path);
@@ -40,7 +41,7 @@ export function workspaceController(services: BackServices) {
         return;
       }
     })
-    .onPost("workspace-exists", async (ctx) => {
+    .onPost(routes.workspaceExists, async (ctx) => {
       try {
         const path = ctx.data as string;
         ctx.response = await checkWorkspaceDir(path);
@@ -49,7 +50,7 @@ export function workspaceController(services: BackServices) {
         return;
       }
     })
-    .onPost("setup", async (ctx) => {
+    .onPost(routes.setup, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -75,7 +76,7 @@ export function workspaceController(services: BackServices) {
         return;
       }
     })
-    .onGet("profile", async (ctx) => {
+    .onGet(routes.profile, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -89,7 +90,7 @@ export function workspaceController(services: BackServices) {
         return;
       }
     })
-    .onPost("profile", async (ctx) => {
+    .onPost(routes.profile, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -99,10 +100,10 @@ export function workspaceController(services: BackServices) {
       await services.db.insertProfile(profile);
       router.broadcast(ctx.route, profile);
     })
-    .onValidateBroadcast("profile", (conn, params) => {
+    .onValidateBroadcast(routes.profile, (conn, params) => {
       return true;
     })
-    .onValidateBroadcast("session", (conn, params) => {
+    .onValidateBroadcast(routes.session, (conn, params) => {
       return true;
     });
 }

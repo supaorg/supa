@@ -3,6 +3,7 @@
   import type { ModelProvider, ModelProviderConfig } from "@shared/models";
   import { onMount } from "svelte";
   import ModelSelectCard from "./ModelSelectCard.svelte";
+    import { routes } from "@shared/routes/routes";
 
   let providers: ModelProvider[] = [];
   let configs: ModelProviderConfig[] = [];
@@ -20,8 +21,8 @@
 
   onMount(async () => {
     const [providersResponse, configsResponse] = await Promise.all([
-      client.get("providers"),
-      client.get("provider-configs"),
+      client.get(routes.providers),
+      client.get(routes.providerConfigs),
     ]);
 
     providers = providersResponse.data as ModelProvider[];

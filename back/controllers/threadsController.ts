@@ -5,12 +5,13 @@ import { defaultAgent } from "../agents/defaultAgent.ts";
 import { SimpleChatAgent } from "../agents/simpleChatAgent.ts";
 import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
 import { AgentServices } from "../agents/agentServices.ts";
+import { routes } from "../../shared/routes/routes.ts";
 
 export function threadsController(services: BackServices) {
   const router = services.router;
 
   router
-    .onGet("threads", async (ctx) => {
+    .onGet(routes.threads, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -24,7 +25,7 @@ export function threadsController(services: BackServices) {
         return;
       }
     })
-    .onPost("threads", async (ctx) => {
+    .onPost(routes.threads, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -44,7 +45,7 @@ export function threadsController(services: BackServices) {
 
       router.broadcast(ctx.route, thread);
     })
-    .onDelete("threads/:threadId", async (ctx) => {
+    .onDelete(routes.thread(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -52,9 +53,9 @@ export function threadsController(services: BackServices) {
 
       const threadId = ctx.params.threadId;
       await services.db.deleteThread(threadId);
-      router.broadcastDeletion("threads", threadId);
+      router.broadcastDeletion(routes.threads, threadId);
     })
-    .onGet("threads/:threadId", async (ctx) => {
+    .onGet(routes.thread(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -72,13 +73,13 @@ export function threadsController(services: BackServices) {
 
       ctx.response = messages;
     })
-    .onValidateBroadcast("threads", (conn, params) => {
+    .onValidateBroadcast(routes.threads, (conn, params) => {
       return true;
     })
-    .onValidateBroadcast("threads/:threadId", (conn, params) => {
+    .onValidateBroadcast(routes.thread(), (conn, params) => {
       return true;
     })
-    .onPost("threads/:threadId/retry", async (ctx) => {
+    .onPost(routes.retryThread(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -101,7 +102,7 @@ export function threadsController(services: BackServices) {
         return;
       }
 
-      const route = `threads/${threadId}`;
+      const route = routes.thread(threadId);
 
       messages = await services.db.getThreadMessages(threadId);
 
@@ -140,12 +141,12 @@ export function threadsController(services: BackServices) {
         if (title && title !== "NO TITLE") {
           thread.title = title;
           await services.db.updateThread(thread);
-          router.broadcastUpdate("threads", thread);
+          router.broadcastUpdate(routes.threads, thread);
         }
       }
 
     })
-    .onPost("threads/:threadId", async (ctx) => {
+    .onPost(routes.thread(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -221,7 +222,7 @@ export function threadsController(services: BackServices) {
           if (title) {
             thread.title = title;
             await services.db.updateThread(thread);
-            router.broadcastUpdate("threads", thread);
+            router.broadcastUpdate(routes.threads, thread);
           }
         } catch (e) {
           console.error(e);

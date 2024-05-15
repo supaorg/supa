@@ -1,4 +1,4 @@
-import { Router } from "@shared/neorest/Router.ts";
+import { Router } from "../../shared/neorest/Router.ts";
 import { BackServices } from "./backServices.ts";
 import { workspaceController } from "./workspaceController.ts";
 import { agentController } from "./agentController.ts";

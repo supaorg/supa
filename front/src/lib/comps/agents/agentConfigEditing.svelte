@@ -6,6 +6,7 @@
   import InputModel from "../models/InputModel.svelte";
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
+    import { routes } from "@shared/routes/routes";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
@@ -21,7 +22,7 @@
       prevConfigId = configId;
       console.log("configId: " + configId);
       isNewAgent = false;
-      client.get("agent-configs/" + configId).then((response) => {
+      client.get(routes.agentConfig(configId)).then((response) => {
         agentConfig = response.data as AgentConfig;
       });
 
@@ -51,14 +52,14 @@
     }
 
     if (isNewAgent) {
-      client.post("agent-configs", agentConfig).then((response) => {
+      client.post(routes.agentConfigs, agentConfig).then((response) => {
         console.log("new agent: " + response);
       });
 
       goto("/agents");
     } else {
       client
-        .post("agent-configs/" + agentConfig?.id, agentConfig)
+        .post(routes.agentConfig(agentConfig?.id), agentConfig)
         .then((response) => {
           console.log("updated agent: " + response);
         });
@@ -83,6 +84,9 @@
       chat agent. It will be posssible to create other type of agents with tools
       and external APIs in the future versions of Supamind.
     </p>
+    -->
+    <!--
+      @TODO: print the description of the agent that describes how the agent works
     -->
     {#if configId === "default"}
       <p>
