@@ -12,6 +12,7 @@ const providers: ModelProvider[] = [
     access: "cloud",
     url: "https://openai.com/",
     logoUrl: "/providers/openai.png",
+    defaultModel: "gpt-4o"
   },
   {
     id: "groq",
@@ -19,6 +20,7 @@ const providers: ModelProvider[] = [
     access: "cloud",
     url: "https://groq.com/",
     logoUrl: "/providers/groq.png",
+    defaultModel: "llama3-70b-8192"
   },
   {
     id: "anthropic",
@@ -26,6 +28,7 @@ const providers: ModelProvider[] = [
     access: "cloud",
     url: "https://anthropic.com/",
     logoUrl: "/providers/anthropic.png",
+    defaultModel: "claude-3-opus-20240229"
   },
   {
     id: "ollama",

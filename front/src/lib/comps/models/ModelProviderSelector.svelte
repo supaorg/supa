@@ -55,7 +55,7 @@
       {provider}
       {onSelect}
       selected={selectedPair?.providerId === provider.id}
-      modelId={selectedPair ? selectedPair.model : null}
+      modelId={selectedPair?.providerId === provider.id ? selectedPair.model : null}
     />
   {/each}
 </div>

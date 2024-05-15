@@ -8,6 +8,7 @@
   export let selected = false;
   export let onSelect: (providerId: string, model: string) => void;
   export let modelId: string | null = null;
+  let prevSelectedModelId: string | null = null;
 
   let models: string[] = [];
   let showModels = false;
@@ -25,17 +26,26 @@
       return;
     }
 
-    onSelect(provider.id, models[0]);
-
     if (modelId === null) {
-      modelId = models[0];
-      showModels = true;
+      if (prevSelectedModelId && models.includes(prevSelectedModelId)) {
+        modelId = prevSelectedModelId;
+      } else if (
+        provider.defaultModel &&
+        models.includes(provider.defaultModel)
+      ) {
+        modelId = provider.defaultModel;
+      } else {
+        modelId = models[0];
+      }
     }
+
+    onSelect(provider.id, modelId);
   }
 
   function onChangeModel(model: string) {
     onSelect(provider.id, model);
     modelId = model;
+    prevSelectedModelId = model;
     showModels = false;
   }
 </script>
@@ -76,8 +86,9 @@
       {:else}
         <div class="p-4 flex gap-4 items-center">
           <strong>{modelId}</strong>
-          <button class="btn btn-sm variant-filled" on:click={() => (showModels = true)}
-            >Change</button
+          <button
+            class="btn btn-sm variant-filled"
+            on:click={() => (showModels = true)}>Change</button
           >
         </div>
       {/if}

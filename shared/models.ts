@@ -36,6 +36,7 @@ export type ModelProvider = {
   access: ModelProviderAccessType;
   url: string;
   logoUrl: string;
+  defaultModel?: string;
 };
 
 export type ModelProviderAccessType = 'cloud' | 'local';
