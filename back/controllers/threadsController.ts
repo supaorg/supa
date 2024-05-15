@@ -2,7 +2,7 @@ import { BackServices } from "./backServices.ts";
 import { v4 as uuidv4 } from "npm:uuid";
 import { ThreadMessage } from "@shared/models.ts";
 import { defaultAgent } from "../agents/defaultAgent.ts";
-import { SimpleChatAgent } from "../agents/simpleChatAgent.ts";
+import { AgentConfigForChat, SimpleChatAgent } from "../agents/simpleChatAgent.ts";
 import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
 import { AgentServices } from "../agents/agentServices.ts";
 import { routes } from "../../shared/routes/routes.ts";

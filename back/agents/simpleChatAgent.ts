@@ -1,7 +1,7 @@
 import { AgentConfig } from "../../shared/models.ts";
 import { Agent, AgentInput, AgentOutput, AgentResponse } from "./agent.ts";
 
-interface AgentConfigForChat extends AgentConfig {
+export interface AgentConfigForChat extends AgentConfig {
   targetLLM?: string;
 }
 

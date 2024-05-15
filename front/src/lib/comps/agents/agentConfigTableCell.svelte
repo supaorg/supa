@@ -75,7 +75,7 @@
         ><Icon src={Trash} micro class="w-4" /></button
       >
     {:else}
-      <Icon src={Trash} micro class="w-4 opacity-30" />
+      <div><Icon src={Trash} micro class="w-4 opacity-30" /></div>
     {/if}
   </td>
 </tr>

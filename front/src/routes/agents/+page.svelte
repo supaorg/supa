@@ -2,7 +2,7 @@
   import CenteredPage from "$lib/comps/CenteredPage.svelte";
   import AgentConfigTableCell from "$lib/comps/agents/agentConfigTableCell.svelte";
   import { agentConfigStore } from "$lib/stores/agentStore";
-    import { txtStore } from "$lib/stores/txtStore";
+  import { txtStore } from "$lib/stores/txtStore";
 </script>
 
 <CenteredPage>
