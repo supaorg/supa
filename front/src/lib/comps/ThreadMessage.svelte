@@ -1,22 +1,25 @@
 <script lang="ts">
   import type { ThreadMessage } from "@shared/models";
-  import { Icon, Sparkles, UserCircle } from "svelte-hero-icons";
+  import { ExclamationCircle, Icon, Sparkles, UserCircle } from "svelte-hero-icons";
   import Markdown from "@magidoc/plugin-svelte-marked";
   import MarkdownCode from "./markdown/MarkdownCode.svelte";
   import MarkdownLink from "./markdown/MarkdownLink.svelte";
   import { client } from "$lib/tools/client";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
 
   export let message: ThreadMessage;
   export let threadId: string;
 
   let messageTakesTooLong = false;
   let retrying = false;
-  
+
   let createdAt = new Date(message.createdAt);
   $: {
     createdAt = new Date(message.createdAt);
-    messageTakesTooLong = message.role !== "user" && message.inProgress === 1 && createdAt.getTime() + 60000 < Date.now();
+    messageTakesTooLong =
+      message.role !== "user" &&
+      message.inProgress === 1 &&
+      createdAt.getTime() + 60000 < Date.now();
   }
 
   function formatChatDate(dateInMs: number) {
@@ -31,6 +34,7 @@
   async function retry() {
     retrying = true;
     await client.post(routes.retryThread(threadId));
+    retrying = false;
   }
 </script>
 
@@ -41,8 +45,10 @@
     >
       {#if message.role === "user"}
         <Icon src={UserCircle} mini class="h-6 w-6" />
-      {:else}
+      {:else if message.role === "assistant"}
         <Icon src={Sparkles} mini class="h-6 w-6" />
+      {:else}
+        <Icon src={ExclamationCircle} mini class="h-6 w-6" />
       {/if}
     </div>
   </div>
@@ -51,8 +57,10 @@
       {#if message.role === "user"}
         <p class="font-bold">You</p>
         <small class="opacity-50">{formatChatDate(message.createdAt)}</small>
-      {:else}
+      {:else if message.role === "assistant"}
         <p class="font-bold">AI</p>
+      {:else}
+        <p class="font-bold">Error</p>
       {/if}
     </header>
     <div class="thread-message leading-relaxed">
@@ -63,7 +71,7 @@
           link: MarkdownLink,
         }}
       />
-      {#if messageTakesTooLong && !retrying}
+      {#if (message.role === 'error' || messageTakesTooLong) && !retrying}
         <button class="btn variant-filled" on:click={retry}>Retry</button>
       {/if}
     </div>

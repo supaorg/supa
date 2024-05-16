@@ -6,6 +6,7 @@
   export let onHeightChange: (height: number) => void = () => {};
   export let isFocused = true;
   export let placeholder = "Write a message...";
+  export let disabled = false;
 
   let query = "";
 
@@ -35,6 +36,10 @@
   }
 
   async function sendMsg() {
+    if (disabled) {
+      return;
+    }
+
     onSend(query);
 
     query = "";
@@ -60,6 +65,7 @@
       class={`btn btn-sm h-10 ${query ? "variant-filled-primary" : "input-group-shim"}`}
       data-focusindex="1"
       on:click={sendMsg}
+      {disabled}
     >
       <Icon src={PaperAirplane} mini class="w-4 h-4" />
     </button>

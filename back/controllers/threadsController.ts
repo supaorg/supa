@@ -6,6 +6,7 @@ import { AgentConfigForChat, SimpleChatAgent } from "../agents/simpleChatAgent.t
 import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
 import { AgentServices } from "../agents/agentServices.ts";
 import { routes } from "../../shared/routes/routes.ts";
+import { Thread } from "../../shared/models.ts";
 
 export function threadsController(services: BackServices) {
   const router = services.router;
@@ -93,58 +94,21 @@ export function threadsController(services: BackServices) {
         return;
       }
 
-      let messages = await services.db.getThreadMessages(threadId);
+      const messages = await services.db.getThreadMessages(threadId);
 
       // Only re-try if the last message is from the AI
-      const dbThreadReply = messages[messages.length - 1];
-      if (dbThreadReply.role !== "assistant") {
-        ctx.error = "Last message is not from the AI";
+      const replyMessage = messages[messages.length - 1];
+      if (replyMessage.role === "user") {
+        ctx.error = "Last message is from the user";
         return;
       }
 
-      const route = routes.thread(threadId);
+      // Delete the last message
+      await services.db.deleteThreadMessage(threadId, replyMessage.id);
 
-      messages = await services.db.getThreadMessages(threadId);
+      router.broadcastDeletion(routes.thread(threadId), replyMessage);
 
-      // Update the last message
-      dbThreadReply.text = "Thinking...";
-      dbThreadReply.createdAt = Date.now();
-      dbThreadReply.updatedAt = Date.now();
-      router.broadcast(route, dbThreadReply);
-
-      // @TODO: get the actual config that we can pass to the agent
-      const config = await services.db.getAgent(thread.agentId) || defaultAgent;
-
-      const agentServices = new AgentServices(services.db);
-
-      // Let's run the messages through the agent
-      const chatAgent = new SimpleChatAgent(agentServices, config);
-      const response = await chatAgent.input(messages, (resp) => {
-        dbThreadReply.text = resp as string;
-        router.broadcast(route, dbThreadReply);
-        // And save the message to the database
-        if (services.db !== null) {
-          services.db.updateThreadMessage(threadId, dbThreadReply);
-        }
-      });
-
-      dbThreadReply.text = response as string;
-      dbThreadReply.inProgress = 0;
-      dbThreadReply.updatedAt = Date.now();
-      dbThreadReply.inProgress = 0;
-      await services.db.updateThreadMessage(threadId, dbThreadReply);
-      router.broadcast(ctx.route, dbThreadReply);
-
-      if (!thread.title && messages.length >= 2) {
-        const titleAgent = new ThreadTitleAgent(agentServices, config);
-        const title = await titleAgent.input(messages) as string;
-        if (title && title !== "NO TITLE") {
-          thread.title = title;
-          await services.db.updateThread(thread);
-          router.broadcastUpdate(routes.threads, thread);
-        }
-      }
-
+      await sendReplyToThread(thread);
     })
     .onPost(routes.thread(), async (ctx) => {
       if (services.db === null) {
@@ -171,11 +135,21 @@ export function threadsController(services: BackServices) {
       await services.db.createThreadMessage(threadId, message);
       router.broadcast(ctx.route, message);
 
+      await sendReplyToThread(thread);
+    });
+    
+    async function sendReplyToThread(thread: Thread) {
+      if (services.db === null) {
+        throw new Error("No database");
+      }
+      
+      const threadId = thread.id;
+
       // Get all the messages in the thread (new message included)
       const messages = await services.db.getThreadMessages(threadId);
 
       // Create an in-progress message for the agent
-      const dbThreadReply = await services.db.createThreadMessage(threadId, {
+      const replyMessage = await services.db.createThreadMessage(threadId, {
         id: uuidv4(),
         role: "assistant",
         text: "Thinking...",
@@ -183,9 +157,9 @@ export function threadsController(services: BackServices) {
         createdAt: Date.now(),
         updatedAt: null,
       });
-      router.broadcast(ctx.route, dbThreadReply);
+      
+      router.broadcast(routes.thread(threadId), replyMessage);
 
-      // @TODO: get the actual config that we can pass to the agent
       const config = await services.db.getAgent(thread.agentId) || defaultAgent;
 
       const agentServices = new AgentServices(services.db);
@@ -195,25 +169,25 @@ export function threadsController(services: BackServices) {
 
       try {
         const response = await chatAgent.input(messages, (resp) => {
-          dbThreadReply.text = resp as string;
-          router.broadcast(ctx.route, dbThreadReply);
+          replyMessage.text = resp as string;
+          router.broadcast(routes.thread(threadId), replyMessage);
           // And save the message to the database
           if (services.db !== null) {
-            services.db.updateThreadMessage(threadId, dbThreadReply);
+            services.db.updateThreadMessage(threadId, replyMessage);
           }
         });
 
-        dbThreadReply.text = response as string;
+        replyMessage.text = response as string;
       } catch (e) {
-        dbThreadReply.text = e.message;
-        // @TODO: mark the message as failed
+        replyMessage.text = e.message;
+        replyMessage.role = "error";
       }
       
-      dbThreadReply.inProgress = 0;
-      dbThreadReply.updatedAt = Date.now();
-      dbThreadReply.inProgress = 0;
-      await services.db.updateThreadMessage(threadId, dbThreadReply);
-      router.broadcast(ctx.route, dbThreadReply);
+      replyMessage.inProgress = 0;
+      replyMessage.updatedAt = Date.now();
+      replyMessage.inProgress = 0;
+      await services.db.updateThreadMessage(threadId, replyMessage);
+      router.broadcast(routes.thread(threadId), replyMessage);
 
       if (!thread.title && messages.length >= 2) {
         const titleAgent = new ThreadTitleAgent(agentServices, config);
@@ -228,5 +202,5 @@ export function threadsController(services: BackServices) {
           console.error(e);
         }
       }
-    });
+    }
 }

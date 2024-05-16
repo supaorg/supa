@@ -7,26 +7,39 @@
   import { goto } from "$app/navigation";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
   import ThreadMessage from "./ThreadMessage.svelte";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
 
   export let threadId: string;
 
   let prevThreadId = threadId;
   let chatWrapperElement: HTMLElement;
+  let canSendMessage = false;
+  let messages: Message[] = [];
 
   $: {
     if (prevThreadId !== threadId) {
       fetchThreadMessages();
 
       client.unlisten(`threads/${prevThreadId}`);
+
+      client.listen(routes.thread(threadId), (broadcast) => {
+        if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
+          onPostOrUpdateChatMsg(broadcast.data as Message);
+        }
+        if (broadcast.action === "DELETE") {
+          onDeleteChatMsg(broadcast.data as Message);
+        }
+
+        scrollToBottom();
+      });
     }
 
     prevThreadId = threadId;
+
+    canSendMessage = checkIfCanSendMessage();
   }
 
-  let messages: Message[] = [];
-
-  function allowToSendMessage(): boolean {
+  function checkIfCanSendMessage(): boolean {
     if (messages.length === 0) {
       return true;
     }
@@ -35,13 +48,19 @@
 
     const lastMessageIsByUser = lastMessage.role === "user";
     if (lastMessageIsByUser) {
-      console.log("Last message is by user, wait for the answer");
+      //console.log("Last message is by user, wait for the answer");
       return false;
     }
 
     const lastMessageIsInProgress = lastMessage.inProgress;
     if (lastMessageIsInProgress) {
-      console.log("Last message is in progress, wait for it to finish");
+      //console.log("Last message is in progress, wait for it to finish");
+      return false;
+    }
+
+    const lastMessageIsError = lastMessage.role === "error";
+    if (lastMessageIsError) {
+      //console.log("Last message is an error, wait for it to be resolved");
       return false;
     }
 
@@ -59,7 +78,7 @@
       return;
     }
 
-    if (!allowToSendMessage()) {
+    if (!canSendMessage) {
       return;
     }
 
@@ -82,7 +101,7 @@
     scrollToBottom();
   }
 
-  function onChatMsg(message: Message) {
+  function onPostOrUpdateChatMsg(message: Message) {
     // search for the message in the list with the same id
     const index = messages.findIndex((m) => m.id === message.id);
 
@@ -105,7 +124,17 @@
     }
   }
 
+  function onDeleteChatMsg(message: Message) {
+    const index = messages.findIndex((m) => m.id === message.id);
+    if (index !== -1) {
+      messages.splice(index, 1);
+      messages = [...messages];
+    }
+  }
+
   async function fetchThreadMessages() {
+    messages = [];
+
     messages = await client.get(routes.thread(threadId)).then((res) => {
       if (res.error) {
         console.error(res.error);
@@ -118,23 +147,6 @@
     });
 
     scrollToBottom();
-
-    client.listen(routes.thread(threadId), (broadcast) => {
-      if (broadcast.action === 'POST' || broadcast.action === 'UPDATE') {
-        const chatMsg = broadcast.data as Message;
-        onChatMsg(chatMsg);
-      }
-      if (broadcast.action === 'DELETE') {
-        const chatMsg = broadcast.data as Message;
-        const index = messages.findIndex((m) => m.id === chatMsg.id);
-        if (index !== -1) {
-          messages.splice(index, 1);
-          messages = [...messages];
-        }
-      }
-
-      scrollToBottom();
-    });
   }
 
   onMount(async () => {
@@ -170,9 +182,7 @@
   </div>
   <div class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 page-bg">
     <section class="p-2 pt-2">
-      <SendMessageForm
-        onSend={sendMsg}
-      />
+      <SendMessageForm onSend={sendMsg} disabled={!canSendMessage} />
     </section>
   </div>
 </div>
