@@ -71,7 +71,7 @@ export function agentController(services: BackServices) {
       }
 
       
-      router.broadcast("agent-configs", config);
+      router.broadcast(routes.agentConfigs, config);
     })
     .onDelete(routes.agentConfig(), async (ctx) => {
       if (services.db === null) {

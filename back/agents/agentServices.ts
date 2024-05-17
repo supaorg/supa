@@ -1,5 +1,5 @@
-import { Lang } from "https://deno.land/x/aiwrapper@v0.0.17/mod.ts";
-import { LanguageModel } from "https://deno.land/x/aiwrapper@v0.0.17/src/lang/language-model.ts";
+import { Lang } from "https://deno.land/x/aiwrapper@v0.0.18/mod.ts";
+import { LanguageModel } from "https://deno.land/x/aiwrapper@v0.0.18/src/lang/language-model.ts";
 import { AppDb } from "../db/appDb.ts";
 import { providers } from "../providers.ts";
 
@@ -52,7 +52,7 @@ export class AgentServices {
         });
       case "ollama":
         return Lang.ollama({
-          "url": "none",
+          model: 'mistral',
         });
       default:
         throw new Error("Invalid model provider");

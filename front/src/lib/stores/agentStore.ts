@@ -1,10 +1,13 @@
-import { get, type Writable } from 'svelte/store';
-import { localStorageStore } from '@skeletonlabs/skeleton';
-import { client } from '$lib/tools/client';
-import type { AgentConfig } from '@shared/models';
-import { routes } from '@shared/routes/routes';
+import { get, type Writable } from "svelte/store";
+import { localStorageStore } from "@skeletonlabs/skeleton";
+import { client } from "$lib/tools/client";
+import type { AgentConfig } from "@shared/models";
+import { routes } from "@shared/routes/routes";
 
-export const agentConfigStore: Writable<AgentConfig[]> = localStorageStore(routes.agentConfigs, []);
+export const agentConfigStore: Writable<AgentConfig[]> = localStorageStore(
+  routes.agentConfigs,
+  [],
+);
 
 export async function createAgent() {
   const agent = await client.post(routes.agentConfigs).then((res) => {
@@ -14,7 +17,7 @@ export async function createAgent() {
   return agent;
 }
 
-export async function loadAgentsFromServer() {    
+export async function loadAgentsFromServer() {
   const agents = await client.get(routes.agentConfigs).then((res) => {
     const agents = Array.isArray(res.data) ? res.data as AgentConfig[] : [];
     // sort by name
@@ -33,19 +36,26 @@ export async function loadAgentsFromServer() {
   agentConfigStore.set(agents);
 
   client.listen(routes.agentConfigs, (broadcast) => {
-    const config = broadcast.data as AgentConfig;
+    if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
+      const config = broadcast.data as AgentConfig;
 
-    agentConfigStore.update((agents) => {
-      // Check if we need to update or add the config
-      const index = agents.findIndex((c) => c.id === config.id);
-      if (index === -1) {
-        agents.push(config);
-      } else {
-        agents[index] = config;
-      }
+      agentConfigStore.update((agents) => {
+        // Check if we need to update or add the config
+        const index = agents.findIndex((c) => c.id === config.id);
+        if (index === -1) {
+          agents.push(config);
+        } else {
+          agents[index] = config;
+        }
 
-      return agents;
-    });
+        return agents;
+      });
+    } else if (broadcast.action === "DELETE") {
+      const configId = broadcast.data as string;
+
+      agentConfigStore.update((agents) => {
+        return agents.filter((c) => c.id !== configId);
+      });
+    }
   });
 }
-

@@ -367,7 +367,7 @@ type OutRouteLayer = {
   ) => boolean | Promise<boolean>;
 };
 
-type ResponseContext = {
+export type ResponseContext = {
   params: Record<string, string>;
   sender: Connection;
   data: Payload;
