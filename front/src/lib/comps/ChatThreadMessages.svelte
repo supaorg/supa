@@ -151,6 +151,16 @@
 
   onMount(async () => {
     await fetchThreadMessages();
+
+    client.listen(routes.threads, (broadcast) => {
+      if (broadcast.action === "DELETE") {
+        const deletedThreadId = broadcast.data as string;
+        
+        if (deletedThreadId === threadId) {
+          goto("/");
+        }
+      }
+    });
   });
 
   onDestroy(async () => {
