@@ -14,7 +14,7 @@
   import { ServerInTauri, isTauri } from "$lib/tauri/serverInTauri";
   import { client } from "$lib/tools/client";
   import NewThreadModal from "./modals/NewThreadModal.svelte";
-  import { loadThreadsFromServer } from "$lib/stores/threads";
+  import { loadThreadsFromServer } from "$lib/stores/threadStore";
   import { storePopup } from "@skeletonlabs/skeleton";
   import {
     computePosition,

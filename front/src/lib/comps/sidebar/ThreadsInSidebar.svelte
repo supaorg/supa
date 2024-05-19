@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { threadsStore } from "$lib/stores/threads";
+  import { threadsStore } from "$lib/stores/threadStore";
   import ThreadButtonInSidebar from "./ThreadButtonInSidebar.svelte";
 
   let currentThreadId: string | null;

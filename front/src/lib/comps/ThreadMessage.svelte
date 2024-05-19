@@ -38,11 +38,9 @@
   }
 </script>
 
-<div class="flex flex-1 text-base mx-auto gap-3">
+<div class="flex flex-1 text-base mx-auto gap-3 w-full">
   <div class="flex-shrink-0 flex flex-col relative items-end">
-    <div
-      class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden"
-    >
+    <div class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden">
       {#if message.role === "user"}
         <Icon src={UserCircle} mini class="h-6 w-6" />
       {:else if message.role === "assistant"}
@@ -52,7 +50,7 @@
       {/if}
     </div>
   </div>
-  <div class="relative flex w-full flex-col">
+  <div class="relative flex w-full flex-col flex-grow">
     <header class="flex justify-between items-center">
       {#if message.role === "user"}
         <p class="font-bold">You</p>
@@ -63,7 +61,7 @@
         <p class="font-bold">Error</p>
       {/if}
     </header>
-    <div class="thread-message leading-relaxed">
+    <div class="thread-message flex-grow leading-relaxed">
       <Markdown
         source={message.text ? message.text : "Loading..."}
         renderers={{

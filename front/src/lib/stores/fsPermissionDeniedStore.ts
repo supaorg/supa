@@ -1,8 +1,9 @@
 import { get, writable } from "svelte/store";
 import { client } from "$lib/tools/client";
+import { routes } from "@shared/routes/routes";
 
 export async function subscribeToSession() {
-  return client.listen("session", async ({ data }) => {
+  return client.listen(routes.session, async ({ data }) => {
     const session = data as object;
     if (data && "error" in session && session.error === "fs-permission") {
       fsPermissionDeniedStore.set(true);

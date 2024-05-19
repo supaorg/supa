@@ -5,7 +5,7 @@
   import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
   import { getModalStore } from "@skeletonlabs/skeleton";
-  import { createThread } from "$lib/stores/threads";
+  import { createThread } from "$lib/stores/threadStore";
   import { agentConfigStore } from "$lib/stores/agentStore";
     import { routes } from "@shared/routes/routes";
 

@@ -2,13 +2,14 @@
   import { onMount, onDestroy } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { tick } from "svelte";
-  import type { ThreadMessage as Message } from "@shared/models";
+  import type { ThreadMessage as Message, Thread } from "@shared/models";
   import { client } from "$lib/tools/client";
   import { goto } from "$app/navigation";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
   import ThreadMessage from "./ThreadMessage.svelte";
   import { routes } from "@shared/routes/routes";
   import AgentDropdown from "./AgentDropdown.svelte";
+  import { threadsStore } from "$lib/stores/threadStore";
 
   export let threadId: string;
 
@@ -16,6 +17,20 @@
   let chatWrapperElement: HTMLElement;
   let canSendMessage = false;
   let messages: Message[] = [];
+  let thread: Thread;
+
+  threadsStore.subscribe((_) => {
+    setThreadOrRedirect();
+  });
+
+  function setThreadOrRedirect() {
+    const t = $threadsStore.find((t) => t.id === threadId);
+    if (t === undefined) {
+      goto("/");
+    } else {
+      thread = t;
+    }
+  }
 
   $: {
     if (prevThreadId !== threadId) {
@@ -34,6 +49,8 @@
         scrollToBottom();
       });
     }
+
+    setThreadOrRedirect();
 
     prevThreadId = threadId;
 
@@ -152,16 +169,6 @@
 
   onMount(async () => {
     await fetchThreadMessages();
-
-    client.listen(routes.threads, (broadcast) => {
-      if (broadcast.action === "DELETE") {
-        const deletedThreadId = broadcast.data as string;
-
-        if (deletedThreadId === threadId) {
-          goto("/");
-        }
-      }
-    });
   });
 
   onDestroy(async () => {
@@ -171,16 +178,19 @@
   });
 </script>
 
-<div class="flex flex-col">
-  <div class="sticky top-0 page-bg z-10">
+<div class="flex flex-col h-full">
+  <div class="sticky top-0 page-bg z-10 px-4 py-2 flex flex-1 gap-2 items-center">
     <AgentDropdown {threadId} />
+    {#if thread.title}
+      <h3 class="text-lg">{thread.title}</h3>
+    {/if}
   </div>
   <div
-    class="flex h-full flex-col max-w-3xl mx-auto justify-center items-center"
+    class="flex w-full h-full flex-col max-w-3xl mx-auto justify-center items-center"
   >
     <div class="flex-1 w-full overflow-hidden">
       <section
-        class="overflow-y-auto space-y-4 pb-4 p-4"
+        class="w-full overflow-y-auto space-y-4 pb-4 p-4"
         bind:this={chatWrapperElement}
       >
         {#each messages as message}

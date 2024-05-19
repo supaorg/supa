@@ -27,6 +27,6 @@ export const routes = {
   /* Threads */
   threads: "threads",
   thread: (threadId = ":threadId") => `threads/${threadId}`,
-  retryThread: (threadId = ":threadId") => `threads/${threadId}/retry`,
+  retryThread: (threadId = ":threadId") => `threads/${threadId}/messages/retry`,
   threadMessages: (threadId = ":threadId") => `threads/${threadId}/messages`,
 };

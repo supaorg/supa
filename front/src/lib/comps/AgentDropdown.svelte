@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { threadsStore } from "$lib/stores/threads";
+  import { threadsStore } from "$lib/stores/threadStore";
   import { client } from "$lib/tools/client";
   import type { AgentConfig } from "@shared/models";
   import { routes } from "@shared/routes/routes";
@@ -34,7 +34,7 @@
 </script>
 
 {#if agent}
-  <button class="btn font-bold" use:popup={popupClick}
+  <button class="btn btn-sm variant-ringed" use:popup={popupClick}
     >{agent.name} <Icon src={ChevronDown} mini class="w-6" /></button
   >
 {:else}
