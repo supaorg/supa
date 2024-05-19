@@ -9,7 +9,7 @@
 </svelte:head>
 
 <AppWrap>
-  <div class="h-full bg-surface-50 page-bg">
+  <div class="h-full page-bg relative">
     <slot />
   </div>
 </AppWrap>

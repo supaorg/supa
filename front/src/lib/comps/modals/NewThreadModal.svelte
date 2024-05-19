@@ -61,7 +61,7 @@
 
     // Post and don't wait for the response, just go to the new thread
     // to see it live
-    client.post(routes.thread(newThread.id), msg);
+    client.post(routes.threadMessages(newThread.id), msg);
 
     goto(`/?t=${newThread.id}`);
 

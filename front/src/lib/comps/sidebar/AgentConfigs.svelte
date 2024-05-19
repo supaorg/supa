@@ -1,13 +1,12 @@
 <script lang="ts">
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { Icon, PencilSquare } from "svelte-hero-icons";
-  import { agentConfigStore } from "$lib/stores/agentStore";
+  import { visibleAgentConfigStore } from "$lib/stores/agentStore";
   import type { AgentConfig } from "@shared/models";
 
   const modalStore = getModalStore();
 
-  let visibleConfigs: AgentConfig[] = [];
-
+  /*
   agentConfigStore.subscribe((configs) => {
     // Filter out configs with the same IDs
     configs = configs.filter((config, index, self) => {
@@ -24,6 +23,7 @@
       return true;
     });
   });
+  */
 
   function openNewThreadModal(event: any) {
     const agentId = event.currentTarget.getAttribute("data-agent-id");
@@ -37,7 +37,7 @@
   }
 </script>
 
-{#each visibleConfigs as config (config.id)}
+{#each $visibleAgentConfigStore as config (config.id)}
   <button
     class="sidebar-btn w-full flex"
     data-agent-id={config.id}

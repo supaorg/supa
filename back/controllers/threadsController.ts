@@ -56,7 +56,7 @@ export function threadsController(services: BackServices) {
       await services.db.deleteThread(threadId);
       router.broadcastDeletion(routes.threads, threadId);
     })
-    .onGet(routes.thread(), async (ctx) => {
+    .onGet(routes.threadMessages(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -78,6 +78,9 @@ export function threadsController(services: BackServices) {
       return true;
     })
     .onValidateBroadcast(routes.thread(), (conn, params) => {
+      return true;
+    })
+    .onValidateBroadcast(routes.threadMessages(), (conn, params) => {
       return true;
     })
     .onPost(routes.retryThread(), async (ctx) => {
@@ -106,11 +109,31 @@ export function threadsController(services: BackServices) {
       // Delete the last message
       await services.db.deleteThreadMessage(threadId, replyMessage.id);
 
-      router.broadcastDeletion(routes.thread(threadId), replyMessage);
+      router.broadcastDeletion(routes.threadMessages(threadId), replyMessage);
 
       await sendReplyToThread(thread);
     })
     .onPost(routes.thread(), async (ctx) => {
+      if (services.db === null) {
+        ctx.error = services.getDbNotSetupError();
+        return;
+      }
+
+      const threadId = ctx.params.threadId;
+      const thread = await services.db.getThread(threadId);
+      
+      if (thread === null) {
+        ctx.error = "Thread doesn't exist";
+        return;
+      }
+
+      const updThread = { ...thread, ...ctx.data as Thread };
+
+      await services.db.updateThread(updThread);
+
+      router.broadcastUpdate(ctx.route, updThread);
+    })
+    .onPost(routes.threadMessages(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -158,7 +181,7 @@ export function threadsController(services: BackServices) {
         updatedAt: null,
       });
       
-      router.broadcast(routes.thread(threadId), replyMessage);
+      router.broadcast(routes.threadMessages(threadId), replyMessage);
 
       const config = await services.db.getAgent(thread.agentId) || defaultAgent;
 
@@ -170,7 +193,7 @@ export function threadsController(services: BackServices) {
       try {
         const response = await chatAgent.input(messages, (resp) => {
           replyMessage.text = resp as string;
-          router.broadcast(routes.thread(threadId), replyMessage);
+          router.broadcast(routes.threadMessages(threadId), replyMessage);
           // And save the message to the database
           if (services.db !== null) {
             services.db.updateThreadMessage(threadId, replyMessage);
@@ -187,7 +210,7 @@ export function threadsController(services: BackServices) {
       replyMessage.updatedAt = Date.now();
       replyMessage.inProgress = 0;
       await services.db.updateThreadMessage(threadId, replyMessage);
-      router.broadcast(routes.thread(threadId), replyMessage);
+      router.broadcast(routes.threadMessages(threadId), replyMessage);
 
       if (!thread.title && messages.length >= 2) {
         const titleAgent = new ThreadTitleAgent(agentServices, config);

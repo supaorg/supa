@@ -8,6 +8,7 @@
   import SendMessageForm from "./forms/SendMessageForm.svelte";
   import ThreadMessage from "./ThreadMessage.svelte";
   import { routes } from "@shared/routes/routes";
+  import AgentDropdown from "./AgentDropdown.svelte";
 
   export let threadId: string;
 
@@ -20,9 +21,9 @@
     if (prevThreadId !== threadId) {
       fetchThreadMessages();
 
-      client.unlisten(`threads/${prevThreadId}`);
+      client.unlisten(routes.threadMessages(prevThreadId));
 
-      client.listen(routes.thread(threadId), (broadcast) => {
+      client.listen(routes.threadMessages(threadId), (broadcast) => {
         if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
           onPostOrUpdateChatMsg(broadcast.data as Message);
         }
@@ -92,7 +93,7 @@
       updatedAt: null,
     } as Message;
 
-    client.post(routes.thread(threadId), msg);
+    client.post(routes.threadMessages(threadId), msg);
 
     messages.push(msg);
     messages = [...messages];
@@ -135,7 +136,7 @@
   async function fetchThreadMessages() {
     messages = [];
 
-    messages = await client.get(routes.thread(threadId)).then((res) => {
+    messages = await client.get(routes.threadMessages(threadId)).then((res) => {
       if (res.error) {
         console.error(res.error);
         goto("/");
@@ -155,7 +156,7 @@
     client.listen(routes.threads, (broadcast) => {
       if (broadcast.action === "DELETE") {
         const deletedThreadId = broadcast.data as string;
-        
+
         if (deletedThreadId === threadId) {
           goto("/");
         }
@@ -168,31 +169,29 @@
       client.unlisten(routes.thread(threadId));
     }
   });
-
-  function formatChatDate(dateInMs: number) {
-    const date = new Date(dateInMs);
-    return date.toLocaleString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false, // Use 24-hour format
-    });
-  }
 </script>
 
-<div class="flex h-full flex-col max-w-3xl mx-auto justify-center items-center">
-  <div class="flex-1 w-full overflow-hidden">
-    <section
-      class="overflow-y-auto space-y-4 pb-4 p-4"
-      bind:this={chatWrapperElement}
-    >
-      {#each messages as message}
-        <ThreadMessage {message} {threadId} />
-      {/each}
-    </section>
+<div class="flex flex-col">
+  <div class="sticky top-0 page-bg z-10">
+    <AgentDropdown {threadId} />
   </div>
-  <div class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 page-bg">
-    <section class="p-2 pt-2">
-      <SendMessageForm onSend={sendMsg} disabled={!canSendMessage} />
-    </section>
+  <div
+    class="flex h-full flex-col max-w-3xl mx-auto justify-center items-center"
+  >
+    <div class="flex-1 w-full overflow-hidden">
+      <section
+        class="overflow-y-auto space-y-4 pb-4 p-4"
+        bind:this={chatWrapperElement}
+      >
+        {#each messages as message}
+          <ThreadMessage {message} {threadId} />
+        {/each}
+      </section>
+    </div>
+    <div class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 page-bg">
+      <section class="p-2 pt-2">
+        <SendMessageForm onSend={sendMsg} disabled={!canSendMessage} />
+      </section>
+    </div>
   </div>
 </div>

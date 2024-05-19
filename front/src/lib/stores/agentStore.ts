@@ -1,4 +1,4 @@
-import { get, type Writable } from "svelte/store";
+import { get, type Writable, writable } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import { client } from "$lib/tools/client";
 import type { AgentConfig } from "@shared/models";
@@ -8,6 +8,18 @@ export const agentConfigStore: Writable<AgentConfig[]> = localStorageStore(
   routes.agentConfigs,
   [],
 );
+
+export const visibleAgentConfigStore = writable<AgentConfig[]>([]);
+
+agentConfigStore.subscribe((agents) => {
+  const visibleAgents = agents.filter((a) => {
+    if (a.meta && a.meta.visible === "false") {
+      return false;
+    }
+    return true;
+  });
+  visibleAgentConfigStore.set(visibleAgents);
+});
 
 export async function createAgent() {
   const agent = await client.post(routes.agentConfigs).then((res) => {
