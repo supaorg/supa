@@ -1,10 +1,15 @@
 <script lang="ts">
-  import type { ModelProvider, ModelProviderCloudConfig, ModelProviderConfig } from "@shared/models";
+  import type {
+    ModelProvider,
+    ModelProviderCloudConfig,
+    ModelProviderLocalConfig,
+    ModelProviderConfig,
+  } from "@shared/models";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
   import { ProgressBar } from "@skeletonlabs/skeleton";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
 
   type State =
     | "loading"
@@ -41,6 +46,15 @@
       type: "cloud",
       apiKey,
     } as ModelProviderCloudConfig;
+
+    await client.post(routes.providerConfigs, config);
+  }
+
+  async function saveLocalProvider() {
+    config = {
+      id: provider.id,
+      type: "local",
+    } as ModelProviderLocalConfig;
 
     await client.post(routes.providerConfigs, config);
   }
@@ -111,6 +125,14 @@
             saveCloudProviderWithApiKey(key);
           }}
         />
+      {:else}
+        <button
+          on:click={() => {
+            state = "connected";
+            onConnect?.(provider);
+            saveLocalProvider();
+          }}>Add</button
+        >
       {/if}
     {:else if state === "connected"}
       <button class="btn btn-md variant-ringed" on:click={disconnect}

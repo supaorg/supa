@@ -2,28 +2,8 @@
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { Icon, PencilSquare } from "svelte-hero-icons";
   import { visibleAgentConfigStore } from "$lib/stores/agentStore";
-  import type { AgentConfig } from "@shared/models";
 
   const modalStore = getModalStore();
-
-  /*
-  agentConfigStore.subscribe((configs) => {
-    // Filter out configs with the same IDs
-    configs = configs.filter((config, index, self) => {
-      return index === self.findIndex((t) => (
-        t.id === config.id
-      ));
-    });
-
-    visibleConfigs = configs.filter((config) => { 
-      if (config.meta && config.meta.visible === "false") {
-        return false;
-      }
-
-      return true;
-    });
-  });
-  */
 
   function openNewThreadModal(event: any) {
     const agentId = event.currentTarget.getAttribute("data-agent-id");

@@ -3,7 +3,7 @@
   import ModelProviderCard from "./ModelProviderCard.svelte";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
 
   let providers: ModelProvider[] = [];
 

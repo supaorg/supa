@@ -3,7 +3,7 @@
   import { CheckCircle, ExclamationCircle, Icon } from "svelte-hero-icons";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
 
   export let id: string;
   export let onValidKey: (key: string) => void;
