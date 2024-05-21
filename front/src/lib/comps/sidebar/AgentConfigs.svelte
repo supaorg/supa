@@ -30,6 +30,6 @@
         <Icon src={PencilSquare} micro class="text-black w-4" />
       </span>
     </span>
-    <span class="flex-grow text-left">{config.button}</span>
+    <span class="flex-grow text-left">{config.name}</span>
   </button>
 {/each}

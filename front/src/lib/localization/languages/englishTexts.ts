@@ -14,13 +14,13 @@ export const englishTexts: Texts = {
 
   agentsPage: {
     title: "Agents",
-    buttonNewConfig: "New Agent Configuration",
+    buttonNewConfig: "New Agent Config",
   },
 
   agentConfigPage: {
-    newConfigTitle: "New Agent Configuration",
-    editConfigTitle: "Edit Agent Configuration",
-    defaultConfigTitle: "Default Agent Configuration",
+    newConfigTitle: "New Agent Config",
+    editConfigTitle: "Edit Agent Config",
+    defaultConfigTitle: "Default Agent Config",
     newConfigButton: "New thread button (optional)",
     buttonCreate: "Create",
     buttonSave: "Save Changes",
@@ -29,8 +29,8 @@ export const englishTexts: Texts = {
     instructionsPlaceholder:
       "Start with 'You are a ...'. Instruct the agent as if you were writing an instruction for a new employee",
     buttonPlaceholder: "A short actionable text for a button",
-    gotoNewConfig: "Go here if you want to create a new agent configuration",
+    gotoNewConfig: "Go here if you want to create a new agent config",
     errorValidationRequired: "This field is required",
-    errorAgentLoadFailure: "Failed to load agent configuration",
+    errorAgentLoadFailure: "Failed to load agent config",
   },
 };

@@ -136,17 +136,6 @@
       <span>{$txtStore.basics.model}</span>
       <InputModel bind:value={agentConfig.targetLLM} required />
     </div>
-    <label class="label">
-      <span>{$txtStore.agentConfigPage.newConfigButton}</span>
-      <input
-        name="button"
-        class="input variant-form-material"
-        type="text"
-        placeholder={$txtStore.agentConfigPage.buttonPlaceholder}
-        bind:value={agentConfig.button}
-        disabled={disableFields}
-      />
-    </label>
     <button type="submit" on:click={handleSubmit} class="btn variant-filled">
       {#if isNewAgent}
         {$txtStore.agentConfigPage.buttonCreate}
