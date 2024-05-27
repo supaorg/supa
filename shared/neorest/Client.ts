@@ -1,10 +1,20 @@
 import { Connection as Connection } from "./Connection";
-import { type Payload, type RouteResponse, new_MsgSubscribeToRoute, new_MsgUnsubscribeFromRoute, type RouteVerb } from "./types";
+import {
+  new_MsgSubscribeToRoute,
+  new_MsgUnsubscribeFromRoute,
+  type Payload,
+  type RouteResponse,
+  type RouteVerb,
+} from "./types";
 
 export class Client {
   private conn: Connection;
+  private isFullyConnected = false;
   private url?: string;
-  private subscribedRoutes: Record<string, (broadcast: { action: 'POST' | 'DELETE'; data: Payload; }) => void> = {};
+  private subscribedRoutes: Record<
+    string,
+    (broadcast: { action: "POST" | "DELETE"; data: Payload }) => void
+  > = {};
   private reconnectTimeout = -1;
 
   public getURL() {
@@ -15,9 +25,6 @@ export class Client {
     if (url) {
       const socket = new WebSocket(url);
       this.conn = Connection.newClient(socket);
-      this.conn.onOpen = () => {
-        // @TODO: trigger open event
-      }
       this.url = url;
     } else {
       this.conn = Connection.newClient();
@@ -26,12 +33,18 @@ export class Client {
     this.conn.onRouteMessage = async (_, msg) => {
       const sub = this.subscribedRoutes[msg.route];
       if (sub) {
-        const action = msg.verb as 'POST' | 'DELETE';
+        const action = msg.verb as "POST" | "DELETE";
         sub({ data: msg.data, action: action });
       }
-    }
+    };
+
+    this.conn.onClientConnect = () => {
+      this.isFullyConnected = true;
+    };
 
     this.conn.onClose = () => {
+      this.isFullyConnected = false;
+
       clearTimeout(this.reconnectTimeout);
 
       console.error("Connection closed, re-connecting...");
@@ -89,22 +102,26 @@ export class Client {
   }
 
   public get(route: string) {
-    return this.sendToRoute(route, '', "GET");
+    return this.sendToRoute(route, "", "GET");
   }
 
   public delete(route: string) {
-    return this.sendToRoute(route, '', "DELETE");
+    return this.sendToRoute(route, "", "DELETE");
   }
 
   public post(route: string, payload?: Payload): Promise<RouteResponse> {
-    return this.sendToRoute(route, payload ? payload : '', "POST");
+    return this.sendToRoute(route, payload ? payload : "", "POST");
   }
 
   public postAndForget(route: string, payload?: Payload) {
     // @TODO: implement postAndForget
   }
 
-  private sendToRoute(route: string, payload: Payload, verb: RouteVerb): Promise<RouteResponse> {
+  private sendToRoute(
+    route: string,
+    payload: Payload,
+    verb: RouteVerb,
+  ): Promise<RouteResponse> {
     // Here we return a promise that resolves when the server responds.
     // When the server responds, the callback is called from Connection's `handleResponse` method.
     return new Promise((resolve, _) => {
@@ -114,8 +131,13 @@ export class Client {
     });
   }
 
-  public listen(route: string, callback: (broadcast: { action: 'POST' | 'DELETE' | 'UPDATE'; data: Payload; }) => void): Promise<void> {
-    return new Promise((resolve, reject) => {
+  public listen(
+    route: string,
+    callback: (
+      broadcast: { action: "POST" | "DELETE" | "UPDATE"; data: Payload },
+    ) => void,
+  ): Promise<void> {
+    return new Promise(async (resolve, reject) => {
       if (this.subscribedRoutes[route]) {
         const errorMsg = `Route "${route}" already has a subscription`;
         console.error(errorMsg);
@@ -124,12 +146,21 @@ export class Client {
       }
 
       this.subscribedRoutes[route] = callback;
+      
+      // Wait until the connection is fully established before subscribing to a route
+      // otherwise the server will reject the subscription.
+      while(true) {
+        if (this.isFullyConnected) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
 
       this.conn.post(new_MsgSubscribeToRoute(route), (response) => {
         if (response.error) {
           const errorMsg = `Failed to subscribe to route "${route}"`;
           console.error(errorMsg);
-          // Remove the subscription if the server rejected it
+          // Remove the subscription if the server rejects it
           delete this.subscribedRoutes[route];
           reject(new Error(errorMsg));
         } else {
@@ -145,9 +176,8 @@ export class Client {
         console.error(`Failed to unsubscribe from route "${route}"`);
         return;
       }
-
-      delete this.subscribedRoutes[route];
     });
+    
+    delete this.subscribedRoutes[route];
   }
-
 }

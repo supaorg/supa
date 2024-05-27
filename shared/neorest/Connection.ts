@@ -24,13 +24,14 @@ export class Connection {
   private callbacks: Map<MsgID, (response: RouteResponse) => void> = new Map();
   private messagesSentInASecond = 0;
   private header: Record<string, Payload> = {};
-
+  
   onOpen = () => { };
   onDataSet: (data: [string, Payload]) => void = () => { };
   onRouteMessage: (msgId: MsgID, msg: MsgRoute) => Promise<RouteResponse | void> = async () => { };
   onSubscribeToRoute: (route: string) => void = () => { };
   onUnsubscribeFromRoute: (route: string) => void = () => { };
   onClose: () => void = () => { };
+  onClientConnect: () => void = () => { };
 
   static newClient(ws?: WebSocket): Connection {
     const conn = new Connection(ws, newConnectionSecret(), true);
@@ -105,12 +106,21 @@ export class Connection {
     }
 
     if (this.isClient) {
-      // @TODO: turn into a method for setting any data. Send the whole 'header' array
+      // @TODO: turn into a method for setting any data. 
+      // @TODO: allow to send the whole 'header' array in one go.
       const msgId = this.postAndExpectResponse(msg_ConnDataSet('secret', this.header['secret'] as string));
-      //@TODO: save prev values and set them back if the fallback is not 200
+      
       this.callbacks.set(msgId, (response: RouteResponse) => {
-        const data = response.data as [string, Payload]
-        this.header[data[0]] = data[1];
+        if (!response.error) {
+          const data = response.data as [string, Payload]
+          this.header[data[0]] = data[1];
+          if (this.header['secret']) {
+            this.onClientConnect();
+          }
+        } else {
+          this.header['secret'] = '';
+          // @TODO: handle if the server rejects the secret.
+        }        
       });
     }
 

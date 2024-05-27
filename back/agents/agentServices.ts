@@ -52,7 +52,7 @@ export class AgentServices {
         });
       case "ollama":
         return Lang.ollama({
-          model: 'mistral',
+          model: 'llama3',
         });
       default:
         throw new Error("Invalid model provider");

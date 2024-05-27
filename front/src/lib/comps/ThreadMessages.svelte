@@ -13,10 +13,10 @@
 
   export let threadId: string;
 
-  let prevThreadId = threadId;
+  let prevThreadId: string;
   let chatWrapperElement: HTMLElement;
   let canSendMessage = false;
-  let messages: Message[] = [];
+  let messages: Message[] | null = null;
   let thread: Thread;
 
   threadsStore.subscribe((_) => {
@@ -36,7 +36,9 @@
     if (prevThreadId !== threadId) {
       fetchThreadMessages();
 
-      client.unlisten(routes.threadMessages(prevThreadId));
+      if (prevThreadId) {
+        client.unlisten(routes.threadMessages(prevThreadId));
+      }
 
       client.listen(routes.threadMessages(threadId), (broadcast) => {
         if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
@@ -58,7 +60,11 @@
   }
 
   function checkIfCanSendMessage(): boolean {
-    if (messages.length === 0) {
+    if (!messages) {
+      return false;
+    }
+
+    if (messages?.length === 0) {
       return true;
     }
 
@@ -92,7 +98,7 @@
   }
 
   async function sendMsg(query: string) {
-    if (query === "") {
+    if (query === "" || !messages) {
       return;
     }
 
@@ -112,21 +118,23 @@
 
     client.post(routes.threadMessages(threadId), msg);
 
-    messages.push(msg);
-    messages = [...messages];
+    messages = [...messages, msg];
 
     query = "";
     scrollToBottom();
   }
 
   function onPostOrUpdateChatMsg(message: Message) {
+    if (!messages) {
+      return;
+    }
+
     // search for the message in the list with the same id
     const index = messages.findIndex((m) => m.id === message.id);
 
     // If the message is not found, add it to the list
     if (index === -1) {
-      messages.push(message);
-      messages = [...messages];
+      messages = [...messages, message];
 
       scrollToBottom();
 
@@ -143,6 +151,10 @@
   }
 
   function onDeleteChatMsg(message: Message) {
+    if (!messages) {
+      return;
+    }
+
     const index = messages.findIndex((m) => m.id === message.id);
     if (index !== -1) {
       messages.splice(index, 1);
@@ -164,22 +176,22 @@
       return messages;
     });
 
+    canSendMessage = checkIfCanSendMessage();
+
     scrollToBottom();
   }
 
-  onMount(async () => {
-    await fetchThreadMessages();
-  });
-
   onDestroy(async () => {
     if (threadId) {
-      client.unlisten(routes.thread(threadId));
+      client.unlisten(routes.threadMessages(threadId));
     }
   });
 </script>
 
 <div class="flex flex-col h-full">
-  <div class="sticky top-0 page-bg z-10 px-4 py-2 flex flex-1 gap-2 items-center">
+  <div
+    class="sticky top-0 page-bg z-10 px-4 py-2 flex flex-1 gap-2 items-center"
+  >
     <AgentDropdown {threadId} />
     {#if thread.title}
       <h3 class="text-lg">{thread.title}</h3>
@@ -193,9 +205,13 @@
         class="w-full overflow-y-auto space-y-4 pb-4 p-4"
         bind:this={chatWrapperElement}
       >
-        {#each messages as message}
-          <ThreadMessage {message} {threadId} />
-        {/each}
+        {#if !messages}
+          <div class="text-center">Loading...</div>
+        {:else}
+          {#each messages as message}
+            <ThreadMessage {message} {threadId} />
+          {/each}
+        {/if}
       </section>
     </div>
     <div class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 page-bg">
