@@ -138,12 +138,12 @@ export function threadsController(services: BackServices) {
         await services.db.deleteThreadMessage(threadId, replyMessage.id);
 
         router.broadcastDeletion(routes.threadMessages(threadId), replyMessage);
+
+        await sendReplyToThread(thread);
       } catch (e) {
         ctx.error = e;
         return;
-      }
-
-      await sendReplyToThread(thread);
+      }      
     })
     .onPost(routes.thread(), async (ctx) => {
       if (services.db === null) {
@@ -221,7 +221,7 @@ export function threadsController(services: BackServices) {
       messages = await services.db.getThreadMessages(threadId);
 
       // Create an in-progress message for the agent
-      const replyMessage = await services.db.createThreadMessage(threadId, {
+      replyMessage = await services.db.createThreadMessage(threadId, {
         id: uuidv4(),
         role: "assistant",
         text: "Thinking...",

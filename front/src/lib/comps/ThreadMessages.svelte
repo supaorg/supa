@@ -10,6 +10,7 @@
   import { routes } from "@shared/routes/routes";
   import AgentDropdown from "./AgentDropdown.svelte";
   import { threadsStore } from "$lib/stores/threadStore";
+  import { ProgressRadial } from "@skeletonlabs/skeleton";
 
   export let threadId: string;
 
@@ -34,6 +35,7 @@
 
   $: {
     if (prevThreadId !== threadId) {
+      messages = null;
       fetchThreadMessages();
 
       if (prevThreadId) {
@@ -163,18 +165,26 @@
   }
 
   async function fetchThreadMessages() {
-    messages = [];
+    let targetThreadId = threadId;
+    const fetchedMessages = await client
+      .get(routes.threadMessages(threadId))
+      .then((res) => {
+        if (res.error) {
+          console.error(res.error);
+          goto("/");
+          return [];
+        }
 
-    messages = await client.get(routes.threadMessages(threadId)).then((res) => {
-      if (res.error) {
-        console.error(res.error);
-        goto("/");
-        return [];
-      }
+        const messages = res.data as Message[];
+        return messages;
+      });
 
-      const messages = res.data as Message[];
-      return messages;
-    });
+    // Prevent a possible override from an old thread when we move on to another thread before the messages are fetched
+    if (threadId !== targetThreadId) {
+      return;
+    }
+
+    messages = fetchedMessages;
 
     canSendMessage = checkIfCanSendMessage();
 
@@ -206,7 +216,9 @@
         bind:this={chatWrapperElement}
       >
         {#if !messages}
-          <div class="text-center">Loading...</div>
+          <div class="flex items-center justify-center">
+            <ProgressRadial class="w-10" />
+          </div>
         {:else}
           {#each messages as message}
             <ThreadMessage {message} {threadId} />
