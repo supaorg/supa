@@ -70,9 +70,12 @@ export function threadsController(services: BackServices) {
         return;
       }
 
-      const messages = await services.db.getThreadMessages(threadId);
-
-      ctx.response = messages;
+      try {
+        const messages = await services.db.getThreadMessages(threadId);
+        ctx.response = messages;
+      } catch(e) {
+        ctx.error = e;
+      }
     })
     .onValidateBroadcast(routes.threads, (conn, params) => {
       return true;
@@ -97,19 +100,24 @@ export function threadsController(services: BackServices) {
         return;
       }
 
-      const messages = await services.db.getThreadMessages(threadId);
+      try {
+        const messages = await services.db.getThreadMessages(threadId);
 
-      // Only re-try if the last message is from the AI
-      const replyMessage = messages[messages.length - 1];
-      if (replyMessage.role === "user") {
-        ctx.error = "Last message is from the user";
+        // Only re-try if the last message is from the AI
+        const replyMessage = messages[messages.length - 1];
+        if (replyMessage.role === "user") {
+          ctx.error = "Last message is from the user";
+          return;
+        }
+  
+        // Delete the last message
+        await services.db.deleteThreadMessage(threadId, replyMessage.id);
+  
+        router.broadcastDeletion(routes.threadMessages(threadId), replyMessage);
+      } catch (e) {
+        ctx.error = e;
         return;
       }
-
-      // Delete the last message
-      await services.db.deleteThreadMessage(threadId, replyMessage.id);
-
-      router.broadcastDeletion(routes.threadMessages(threadId), replyMessage);
 
       await sendReplyToThread(thread);
     })

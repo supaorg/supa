@@ -97,7 +97,14 @@ export function workspaceController(services: BackServices) {
       }
 
       const profile = ctx.data as Profile;
-      await services.db.insertProfile(profile);
+
+      try {
+        await services.db.insertProfile(profile);
+      } catch (e) {
+        ctx.error = e;
+        return;
+      }
+      
       router.broadcast(ctx.route, profile);
     })
     .onValidateBroadcast(routes.profile, (conn, params) => {

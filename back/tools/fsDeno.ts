@@ -1,5 +1,5 @@
-import { FileSystem } from "./fs.ts";
-import type { MkdirOptions } from "./fs.ts";
+import { FileSystem, DirEntry } from "./fs.ts";
+import type { MkdirOptions, RemoveOptions } from "./fs.ts";
 import { ensureDir } from "https://deno.land/std/fs/mod.ts";
 
 export const fsDeno: FileSystem = {
@@ -16,6 +16,18 @@ export const fsDeno: FileSystem = {
     }
   },
 
+  async readDir(path: string): Promise<DirEntry[]> {
+    try {
+      const entries = [];
+      for await (const dirEntry of Deno.readDir(path)) {
+        entries.push(dirEntry);
+      }
+      return entries;
+    } catch(e) {
+      throw(e);
+    }
+  },
+
   async fileExists(path: string): Promise<boolean> {
     try {
       const stat = await Deno.stat(path);
@@ -29,19 +41,23 @@ export const fsDeno: FileSystem = {
     }
   },
 
-  async mkdir(path: string, options?: MkdirOptions): Promise<void> {
-    await Deno.mkdir(path, options);
+  mkdir(path: string, options?: MkdirOptions): Promise<void> {
+    return Deno.mkdir(path, options);
   },
 
-  async ensureDir(path: string): Promise<void> {
-    await ensureDir(path);
+  ensureDir(path: string): Promise<void> {
+    return ensureDir(path);
   },
 
-  async writeTextFile(path: string, content: string): Promise<void> {
-    await Deno.writeTextFile(path, content);
+  writeTextFile(path: string, content: string): Promise<void> {
+    return Deno.writeTextFile(path, content);
   },
 
-  async readTextFile(path: string): Promise<string> {
-    return await Deno.readTextFile(path);
-  }
+  readTextFile(path: string): Promise<string> {
+    return Deno.readTextFile(path);
+  },
+
+  remove(path: string, options?: RemoveOptions): Promise<void> {
+    return Deno.remove(path, options);
+  },
 };
