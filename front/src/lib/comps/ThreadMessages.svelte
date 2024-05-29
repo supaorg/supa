@@ -1,16 +1,21 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onDestroy } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { tick } from "svelte";
   import type { ThreadMessage as Message, Thread } from "@shared/models";
-  import { client } from "$lib/tools/client";
-  import { goto } from "$app/navigation";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
   import ThreadMessage from "./ThreadMessage.svelte";
-  import { routes } from "@shared/routes/routes";
   import AgentDropdown from "./AgentDropdown.svelte";
   import { threadsStore } from "$lib/stores/threadStore";
   import { ProgressRadial } from "@skeletonlabs/skeleton";
+  import {
+    checkIfCanSendMessage,
+    fetchThreadMessages,
+    listenToMessages,
+    postNewMessage,
+    threadsMessagesStore,
+    unlistenMessages,
+  } from "$lib/stores/threadMessagesStore";
 
   export let threadId: string;
 
@@ -20,77 +25,71 @@
   let messages: Message[] | null = null;
   let thread: Thread;
 
-  threadsStore.subscribe((_) => {
-    setThreadOrRedirect();
+  threadsMessagesStore.subscribe((dic) => {
+    const prevLastMessages =
+      messages && messages.length > 0 ? messages[messages.length - 1] : null;
+
+    messages = dic[threadId] ? dic[threadId] : null;
+    canSendMessage = checkIfCanSendMessage(threadId);
+
+    // If the last previous message is not the same as the last message in the store, scroll to the bottom
+    if (
+      messages &&
+      messages.length > 0 &&
+      prevLastMessages &&
+      prevLastMessages.id !== messages[messages.length - 1].id
+    ) {
+      scrollToBottom();
+    }
   });
 
-  function setThreadOrRedirect() {
-    const t = $threadsStore.find((t) => t.id === threadId);
-    if (t === undefined) {
-      goto("/");
+  function setThread() {
+    const targetThread = $threadsStore.find((t) => t.id === threadId);
+
+    if (targetThread) {
+      thread = targetThread;
     } else {
-      thread = t;
+      console.error("Thread not found");
     }
+  }
+
+  function fetchMessagesAndPossiblyJumpToBottom() {
+    let jumpToBottom = !messages || messages.length === 0;
+    let targetThreadId = threadId;
+
+    fetchThreadMessages(targetThreadId).then(() => {
+      canSendMessage = checkIfCanSendMessage(threadId);
+
+      // In case the user navigates to another thread before the messages are fetched
+      if (jumpToBottom && threadId === targetThreadId) {
+        scrollToBottom();
+      }
+    });
   }
 
   $: {
     if (prevThreadId !== threadId) {
-      messages = null;
-      fetchThreadMessages();
+      messages = $threadsMessagesStore[threadId]
+        ? $threadsMessagesStore[threadId]
+        : null;
 
-      if (prevThreadId) {
-        client.unlisten(routes.threadMessages(prevThreadId));
+      // If we already have messages, scroll to the bottom
+      if (messages) {
+        scrollToBottom();
       }
 
-      client.listen(routes.threadMessages(threadId), (broadcast) => {
-        if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
-          onPostOrUpdateChatMsg(broadcast.data as Message);
-        }
-        if (broadcast.action === "DELETE") {
-          onDeleteChatMsg(broadcast.data as Message);
-        }
+      fetchMessagesAndPossiblyJumpToBottom();
 
-        scrollToBottom();
-      });
+      if (prevThreadId) {
+        unlistenMessages(prevThreadId);
+      }
+
+      listenToMessages(threadId);
+
+      setThread();
+
+      prevThreadId = threadId;
     }
-
-    setThreadOrRedirect();
-
-    prevThreadId = threadId;
-
-    canSendMessage = checkIfCanSendMessage();
-  }
-
-  function checkIfCanSendMessage(): boolean {
-    if (!messages) {
-      return false;
-    }
-
-    if (messages?.length === 0) {
-      return true;
-    }
-
-    const lastMessage = messages[messages.length - 1];
-
-    const lastMessageIsByUser = lastMessage.role === "user";
-    if (lastMessageIsByUser) {
-      //console.log("Last message is by user, wait for the answer");
-      return false;
-    }
-
-    const lastMessageIsInProgress = lastMessage.inProgress;
-    if (lastMessageIsInProgress) {
-      //console.log("Last message is in progress, wait for it to finish");
-      return false;
-    }
-
-    const lastMessageIsError = lastMessage.role === "error";
-    if (lastMessageIsError) {
-      //console.log("Last message is an error, wait for it to be resolved");
-      return false;
-    }
-
-    return true;
   }
 
   async function scrollToBottom() {
@@ -99,6 +98,7 @@
     pageElement.scrollTo(0, pageElement.scrollHeight);
   }
 
+  // @TODO: also move to the store
   async function sendMsg(query: string) {
     if (query === "" || !messages) {
       return;
@@ -118,82 +118,15 @@
       updatedAt: null,
     } as Message;
 
-    client.post(routes.threadMessages(threadId), msg);
-
-    messages = [...messages, msg];
+    postNewMessage(threadId, msg);
 
     query = "";
     scrollToBottom();
   }
 
-  function onPostOrUpdateChatMsg(message: Message) {
-    if (!messages) {
-      return;
-    }
-
-    // search for the message in the list with the same id
-    const index = messages.findIndex((m) => m.id === message.id);
-
-    // If the message is not found, add it to the list
-    if (index === -1) {
-      messages = [...messages, message];
-
-      scrollToBottom();
-
-      return;
-    }
-
-    // If the message is found, update it
-    messages[index] = message;
-    messages = [...messages];
-
-    if (!message.inProgress) {
-      scrollToBottom();
-    }
-  }
-
-  function onDeleteChatMsg(message: Message) {
-    if (!messages) {
-      return;
-    }
-
-    const index = messages.findIndex((m) => m.id === message.id);
-    if (index !== -1) {
-      messages.splice(index, 1);
-      messages = [...messages];
-    }
-  }
-
-  async function fetchThreadMessages() {
-    let targetThreadId = threadId;
-    const fetchedMessages = await client
-      .get(routes.threadMessages(threadId))
-      .then((res) => {
-        if (res.error) {
-          console.error(res.error);
-          goto("/");
-          return [];
-        }
-
-        const messages = res.data as Message[];
-        return messages;
-      });
-
-    // Prevent a possible override from an old thread when we move on to another thread before the messages are fetched
-    if (threadId !== targetThreadId) {
-      return;
-    }
-
-    messages = fetchedMessages;
-
-    canSendMessage = checkIfCanSendMessage();
-
-    scrollToBottom();
-  }
-
   onDestroy(async () => {
     if (threadId) {
-      client.unlisten(routes.threadMessages(threadId));
+      unlistenMessages(threadId);
     }
   });
 </script>
@@ -220,7 +153,7 @@
             <ProgressRadial class="w-10" />
           </div>
         {:else}
-          {#each messages as message}
+          {#each messages as message (message.id)}
             <ThreadMessage {message} {threadId} />
           {/each}
         {/if}

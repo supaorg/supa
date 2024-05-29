@@ -1,9 +1,8 @@
-import type { Writable } from "svelte/store";
+import { get, type Writable } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
-import type { Thread, ThreadMessage } from "@shared/models";
+import type { ThreadMessage } from "@shared/models";
 import { client } from "$lib/tools/client";
 import { routes } from "@shared/routes/routes";
-import type { Message } from "postcss";
 
 export interface ThreadMessagesDictionary {
   [key: string]: ThreadMessage[];
@@ -29,6 +28,7 @@ export async function unlistenMessages(threadId: string) {
 
 export async function postNewMessage(threadId: string, msg: ThreadMessage) {
   client.post(routes.threadMessages(threadId), msg);
+  onPostOrUpdateChatMsg(threadId, msg);
 }
 
 function onDeleteChatMsg(threadId: string, message: ThreadMessage) {
@@ -44,20 +44,30 @@ function onDeleteChatMsg(threadId: string, message: ThreadMessage) {
 }
 
 function onPostOrUpdateChatMsg(threadId: string, message: ThreadMessage) {
-  threadsMessagesStore.update((messages) => {
-    const newMessages = { ...messages };
-    if (newMessages[threadId]) {
-      const newMsgs = newMessages[threadId].map((m) => {
-        if (m.id === message.id) {
-          return message;
+  threadsMessagesStore.update((dic) => {
+    const threadMessages = dic[threadId];
+    if (threadMessages) {
+      const updMessages = [...threadMessages];
+      let hasUpdatedMessage = false;
+
+      // Iterate messages from the end to the beginning
+      for (let i = threadMessages.length - 1; i >= 0; i--) {
+        if (threadMessages[i].id === message.id) {
+          updMessages[i] = message;
+          hasUpdatedMessage = true;
+          break;
         }
-        return m;
-      });
-      newMessages[threadId] = newMsgs;
+      }
+
+      if (!hasUpdatedMessage) {
+        updMessages.push(message);
+      }
+      
+      dic[threadId] = updMessages;
     } else {
-      newMessages[threadId] = [message];
+      dic[threadId] = [message];
     }
-    return newMessages;
+    return dic;
   });
 }
 
@@ -79,4 +89,38 @@ export async function fetchThreadMessages(threadId: string): Promise<void> {
     dic[threadId] = messages;
     return dic;
   });
+}
+
+export function checkIfCanSendMessage(threadId: string): boolean {
+  const messages = get(threadsMessagesStore)[threadId];
+
+  if (!messages) {
+    return false;
+  }
+
+  if (messages?.length === 0) {
+    return true;
+  }
+
+  const lastMessage = messages[messages.length - 1];
+
+  const lastMessageIsByUser = lastMessage.role === "user";
+  if (lastMessageIsByUser) {
+    // Last message is by user, wait for the new request
+    return false;
+  }
+
+  const lastMessageIsInProgress = lastMessage.inProgress;
+  if (lastMessageIsInProgress) {
+    // Last message is in progress, wait for it to finish
+    return false;
+  }
+
+  const lastMessageIsError = lastMessage.role === "error";
+  if (lastMessageIsError) {
+    // Last message is an error, wait for it to be resolved
+    return false;
+  }
+
+  return true;
 }
