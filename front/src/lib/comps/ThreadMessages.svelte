@@ -154,7 +154,7 @@
           </div>
         {:else}
           {#each messages as message (message.id)}
-            <ThreadMessage {message} {threadId} />
+            <ThreadMessage {message} {threadId} isLastInThread={message.id === messages[messages.length - 1].id} />
           {/each}
         {/if}
       </section>

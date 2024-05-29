@@ -2,9 +2,7 @@ import { BackServices } from "./backServices.ts";
 import { v4 as uuidv4 } from "npm:uuid";
 import { ThreadMessage } from "@shared/models.ts";
 import { defaultAgent } from "../agents/defaultAgent.ts";
-import {
-  SimpleChatAgent,
-} from "../agents/simpleChatAgent.ts";
+import { SimpleChatAgent } from "../agents/simpleChatAgent.ts";
 import { AgentServices } from "../agents/agentServices.ts";
 import { routes } from "../../shared/routes/routes.ts";
 import { Thread } from "../../shared/models.ts";
@@ -127,23 +125,20 @@ export function threadsController(services: BackServices) {
       try {
         const messages = await services.db.getThreadMessages(threadId);
 
-        // Only re-try if the last message is from the AI
+        // Only re-try if the last message is from the AI, an error or a lonely user message
         const replyMessage = messages[messages.length - 1];
-        if (replyMessage.role === "user") {
-          ctx.error = "Last message is from the user";
-          return;
+
+        if (replyMessage.role !== "user") {
+          // Delete the last message by the AI or an error
+          await services.db.deleteThreadMessage(threadId, replyMessage.id);
+          router.broadcastDeletion(routes.threadMessages(threadId), replyMessage);
         }
-
-        // Delete the last message
-        await services.db.deleteThreadMessage(threadId, replyMessage.id);
-
-        router.broadcastDeletion(routes.threadMessages(threadId), replyMessage);
 
         await sendReplyToThread(thread);
       } catch (e) {
         ctx.error = e;
         return;
-      }      
+      }
     })
     .onPost(routes.thread(), async (ctx) => {
       if (services.db === null) {

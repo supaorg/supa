@@ -1,25 +1,40 @@
 <script lang="ts">
   import type { ThreadMessage } from "@shared/models";
-  import { ExclamationCircle, Icon, Sparkles, UserCircle } from "svelte-hero-icons";
+  import {
+    ExclamationCircle,
+    Icon,
+    Sparkles,
+    UserCircle,
+  } from "svelte-hero-icons";
   import Markdown from "@magidoc/plugin-svelte-marked";
   import MarkdownCode from "./markdown/MarkdownCode.svelte";
   import MarkdownLink from "./markdown/MarkdownLink.svelte";
   import { client } from "$lib/tools/client";
   import { routes } from "@shared/routes/routes";
+  import { postNewMessage } from "$lib/stores/threadMessagesStore";
 
   export let message: ThreadMessage;
   export let threadId: string;
+  export let isLastInThread = false;
 
-  let messageTakesTooLong = false;
+  let canBeReTried = false;
   let retrying = false;
 
   let createdAt = new Date(message.createdAt);
   $: {
     createdAt = new Date(message.createdAt);
-    messageTakesTooLong =
-      message.role !== "user" &&
-      message.inProgress === 1 &&
-      createdAt.getTime() + 60000 < Date.now();
+    canBeReTried =
+      isLastInThread &&
+      ((message.role === "user" &&
+        isMoreThanOneMinuteOld(createdAt.getTime())) ||
+        (message.role === "assistant" &&
+          message.inProgress === 1 &&
+          isMoreThanOneMinuteOld(createdAt.getTime())) ||
+        message.role === "error");
+  }
+
+  function isMoreThanOneMinuteOld(dateInMs: number) {
+    return dateInMs + 60000 < Date.now();
   }
 
   function formatChatDate(dateInMs: number) {
@@ -40,7 +55,9 @@
 
 <div class="flex flex-1 text-base mx-auto gap-3 w-full">
   <div class="flex-shrink-0 flex flex-col relative items-end">
-    <div class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden">
+    <div
+      class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden"
+    >
       {#if message.role === "user"}
         <Icon src={UserCircle} mini class="h-6 w-6" />
       {:else if message.role === "assistant"}
@@ -69,7 +86,7 @@
           link: MarkdownLink,
         }}
       />
-      {#if (message.role === 'error' || messageTakesTooLong) && !retrying}
+      {#if (message.role === "error" || canBeReTried) && !retrying}
         <button class="btn variant-filled" on:click={retry}>Retry</button>
       {/if}
     </div>
