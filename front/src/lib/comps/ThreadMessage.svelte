@@ -16,13 +16,13 @@
   export let threadId: string;
   export let isLastInThread = false;
 
-  let canBeReTried = false;
+  let canRetry = false;
   let retrying = false;
 
   let createdAt = new Date(message.createdAt);
   $: {
     createdAt = new Date(message.createdAt);
-    canBeReTried =
+    canRetry =
       isLastInThread &&
       ((message.role === "user" &&
         isMoreThanOneMinuteOld(createdAt.getTime())) ||
@@ -85,7 +85,7 @@
           link: MarkdownLink,
         }}
       />
-      {#if canBeReTried && !retrying}
+      {#if canRetry && !retrying}
         <button class="btn variant-filled" on:click={retry}>Retry</button>
       {/if}
     </div>
