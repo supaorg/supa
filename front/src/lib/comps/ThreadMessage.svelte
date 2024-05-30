@@ -11,7 +11,6 @@
   import MarkdownLink from "./markdown/MarkdownLink.svelte";
   import { client } from "$lib/tools/client";
   import { routes } from "@shared/routes/routes";
-  import { postNewMessage } from "$lib/stores/threadMessagesStore";
 
   export let message: ThreadMessage;
   export let threadId: string;
@@ -86,7 +85,7 @@
           link: MarkdownLink,
         }}
       />
-      {#if (message.role === "error" || canBeReTried) && !retrying}
+      {#if canBeReTried && !retrying}
         <button class="btn variant-filled" on:click={retry}>Retry</button>
       {/if}
     </div>

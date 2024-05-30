@@ -109,7 +109,7 @@ export function threadsController(services: BackServices) {
 
       const threadId = ctx.params.threadId;
 
-      let thread: Thread;
+      let thread: Thread | null;
       try {
         thread = await services.db.getThread(threadId);
       } catch (e) {
