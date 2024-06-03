@@ -101,37 +101,38 @@ export class Client {
     this.conn.close();
   }
 
-  public get(route: string) {
-    return this.sendToRoute(route, "", "GET");
+  public get(route: string, headers?: Record<string, string>) {
+    return this.sendToRoute(route, "GET", "", headers);
   }
 
-  public delete(route: string) {
-    return this.sendToRoute(route, "", "DELETE");
+  public delete(route: string, headers?: Record<string, string>) {
+    return this.sendToRoute(route, "DELETE", "", headers);
   }
 
-  public post(route: string, payload?: Payload): Promise<RouteResponse> {
-    return this.sendToRoute(route, payload ? payload : "", "POST");
+  public post(route: string, payload?: Payload, headers?: Record<string, string>): Promise<RouteResponse> {
+    return this.sendToRoute(route, "POST", payload, headers);
   }
 
-  public postAndForget(route: string, payload?: Payload) {
-    // @TODO: implement postAndForget
+  public postAndForget(route: string, payload?: Payload, headers?: Record<string, string>) {
+    this.conn.sendToRouteAndForget(route, "POST", payload, headers);
   }
 
   private sendToRoute(
     route: string,
-    payload: Payload,
     verb: RouteVerb,
+    payload?: Payload,
+    headers?: Record<string, string>,
   ): Promise<RouteResponse> {
     // Here we return a promise that resolves when the server responds.
     // When the server responds, the callback is called from Connection's `handleResponse` method.
     return new Promise((resolve, _) => {
-      this.conn.sendToRoute(route, payload, verb, (response: RouteResponse) => {
+      this.conn.sendToRoute(route, verb, payload, headers, (response: RouteResponse) => {
         resolve(response);
       });
     });
   }
 
-  public listen(
+  public on(
     route: string,
     callback: (
       broadcast: { action: "POST" | "DELETE" | "UPDATE"; data: Payload },
@@ -170,7 +171,7 @@ export class Client {
     });
   }
 
-  public unlisten(route: string) {
+  public off(route: string) {
     this.conn.post(new_MsgUnsubscribeFromRoute(route), (response) => {
       if (response.error) {
         console.error(`Failed to unsubscribe from route "${route}"`);

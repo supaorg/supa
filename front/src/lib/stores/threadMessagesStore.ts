@@ -12,7 +12,7 @@ export const threadsMessagesStore: Writable<ThreadMessagesDictionary> =
   localStorageStore<ThreadMessagesDictionary>("threadMessages", {});
 
 export async function listenToMessages(threadId: string) {
-  client.listen(routes.threadMessages(threadId), (broadcast) => {
+  client.on(routes.threadMessages(threadId), (broadcast) => {
     if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
       onPostOrUpdateChatMsg(threadId, broadcast.data as ThreadMessage);
     }
@@ -23,7 +23,7 @@ export async function listenToMessages(threadId: string) {
 }
 
 export async function unlistenMessages(threadId: string) {
-  client.unlisten(routes.threadMessages(threadId));
+  client.off(routes.threadMessages(threadId));
 }
 
 export async function postNewMessage(threadId: string, msg: ThreadMessage) {

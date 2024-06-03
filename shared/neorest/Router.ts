@@ -89,9 +89,10 @@ export class Router {
         const ctx = {
           params,
           data: msg.data,
+          headers: msg.headers || {},
           sender: this.connections[connSecret],
           route: msg.route,
-        } as ResponseContext;
+        } as RequestContext;
 
         const verbAndHandler = route.verbs.find((vh) => vh.verb === msg.verb);
         if (!verbAndHandler) {
@@ -114,7 +115,7 @@ export class Router {
   private setInRoute(
     route: string,
     verb: RouteVerb,
-    handler: (ctx: ResponseContext) => void | Promise<void>,
+    handler: (ctx: RequestContext) => void | Promise<void>,
   ): RouteSubID {
     const keys: Key[] = [];
     const regexp = pathToRegexp(route, keys);
@@ -192,7 +193,7 @@ export class Router {
 
   onPost(
     route: string,
-    handler: (ctx: ResponseContext) => void | Promise<void>,
+    handler: (ctx: RequestContext) => void | Promise<void>,
   ): this {
     this.setInRoute(route, "POST", handler);
 
@@ -201,7 +202,7 @@ export class Router {
 
   onGet(
     route: string,
-    handler: (ctx: ResponseContext) => void | Promise<void>,
+    handler: (ctx: RequestContext) => void | Promise<void>,
   ): this {
     this.setInRoute(route, "GET", handler);
 
@@ -210,7 +211,7 @@ export class Router {
 
   onDelete(
     route: string,
-    handler: (ctx: ResponseContext) => void | Promise<void>,
+    handler: (ctx: RequestContext) => void | Promise<void>,
   ): this {
     this.setInRoute(route, "DELETE", handler);
 
@@ -230,7 +231,7 @@ export class Router {
   }
 
   post(route: string, conn: Connection, payload: Payload) {
-    this.connections[conn.getSecret()].sendToRoute(route, payload, "POST");
+    this.connections[conn.getSecret()].sendToRoute(route, "POST", payload);
   }
 
   broadcast(route: string, payload: Payload, exceptConn?: Connection) {
@@ -309,11 +310,11 @@ export class Router {
               if (isValidForListener instanceof Promise) {
                 isValidForListener.then((isValid) => {
                   if (isValid) {
-                    conn.sendToRoute(route, payload, verb);
+                    conn.sendToRoute(route, verb, payload);
                   }
                 });
               } else if (isValidForListener) {
-                conn.sendToRoute(route, payload, verb);
+                conn.sendToRoute(route, verb, payload);
               }
             }
           }
@@ -331,7 +332,7 @@ export class Router {
   }
 }
 
-type RouteHandler = (ctx: ResponseContext) => void | Promise<void>;
+type RouteHandler = (ctx: RequestContext) => void | Promise<void>;
 
 type RouteSubID = number;
 
@@ -367,10 +368,11 @@ type OutRouteLayer = {
   ) => boolean | Promise<boolean>;
 };
 
-export type ResponseContext = {
+export type RequestContext = {
   params: Record<string, string>;
   sender: Connection;
   data: Payload;
+  headers: Record<string, string>;
   error?: string;
   response: Payload;
   route: string;

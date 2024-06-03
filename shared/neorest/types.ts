@@ -153,18 +153,21 @@ export interface MsgRoute extends MsgForRoute {
   verb: RouteVerb;
   route: string;
   data: Payload;
+  headers?: Record<string, string>;
 }
 
 export function new_MsgRoute(
   route: string,
-  data: Payload,
   verb: RouteVerb = "ANY",
+  data: Payload,
+  headers?: Record<string, string>,
 ): MsgRoute {
   return {
     type: ROUTE_MESSAGE,
+    verb,
     route,
     data,
-    verb
+    headers
   };
 }
 

@@ -31,7 +31,7 @@ export async function loadProfileFromServer() {
 
   profileStore.set(profile);
 
-  client.listen(routes.profile, (broadcast) => {
+  client.on(routes.profile, (broadcast) => {
     const profile = broadcast.data as Profile;
     profileStore.set(profile);
   });

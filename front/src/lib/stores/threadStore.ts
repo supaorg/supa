@@ -26,7 +26,7 @@ export async function loadThreadsFromServer() {
 
   threadsStore.set(threads);
 
-  client.listen(routes.threads, (broadcast) => {
+  client.on(routes.threads, (broadcast) => {
     if (broadcast.action === 'POST') {
       const thread = broadcast.data as Thread;
       threadsStore.update((threads) => { 

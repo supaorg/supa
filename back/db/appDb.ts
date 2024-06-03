@@ -6,7 +6,11 @@ import { fs } from "../tools/fs.ts";
 import perf from "../tools/perf.ts";
 
 export class AppDb {
-  constructor(private workspaceDir: string) {}
+  readonly workspaceDir: string;
+
+  constructor(path: string) {
+    this.workspaceDir = path;
+  }
 
   private resolvePath(...paths: string[]): string {
     return join(this.workspaceDir, ...paths);

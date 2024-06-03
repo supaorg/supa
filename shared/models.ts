@@ -1,3 +1,15 @@
+export type ServerInfo = {
+  version: string;
+  type: 'local' | 'remote';
+  workspacePath: string | null;
+}
+
+export type Workspace = {
+  id: string;
+  name: string | null;
+  createdAt: number;
+}
+
 export type ThreadMessage = {
   id: string;
   role: string | null;

@@ -5,6 +5,23 @@ export function isTauri() {
   return typeof window !== "undefined" && "__TAURI__" in window;
 }
 
+let serverInTauri: ServerInTauri | null = null;
+
+export async function setupServerInTauri(): Promise<ServerInTauri> {
+  serverInTauri = new ServerInTauri();
+  await serverInTauri.init();
+
+  return serverInTauri;
+}
+
+export function getServerInTauri(): ServerInTauri {
+  if (!serverInTauri) {
+    throw new Error("Server is not set up.");
+  }
+
+  return serverInTauri;
+}
+
 export class ServerInTauri {
   process: Child | null = null;
   port = -1;

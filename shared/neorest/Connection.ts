@@ -167,12 +167,12 @@ export class Connection {
     }
   }
 
-  public sendToRoute(route: string, payload: Payload, verb: RouteVerb, callback?: (response: RouteResponse) => void) {
+  public sendToRoute(route: string, verb: RouteVerb, payload: Payload, headers?: Record<string, string>, callback?: (response: RouteResponse) => void) {
     if (this.messagesSentInASecond > Connection.SEND_LIMIT_PER_SEC) {
       callback?.(new_MsgResponseWithCode(-1, 429, `Rate limit of ${Connection.SEND_LIMIT_PER_SEC} messages per second exceeded`));
     }
 
-    const msg = new_MsgRoute(route, payload, verb);
+    const msg = new_MsgRoute(route, verb, payload ? payload : "", headers);
     const msgId = this.postAndExpectResponse(msg);
     this.messagesSentInASecond++;
 
@@ -183,8 +183,8 @@ export class Connection {
     }
   }
 
-  public sendToRouteAndForget(route: string, payload: Payload) {
-    const msg = new_MsgRoute(route, payload);
+  public sendToRouteAndForget(route: string, verb: RouteVerb, payload: Payload, headers?: Record<string, string>) {
+    const msg = new_MsgRoute(route, verb, payload, headers);
     this.postAndForget(msg);
   }
 
@@ -421,7 +421,7 @@ export class Connection {
   private async handleRouteMessage(msgId: number, msg: MsgRoute): Promise<MsgResponse> {
     const resp = await this.onRouteMessage(msgId, msg);
 
-    if (resp === undefined) {
+    if (!resp) {
       return new_MsgResponseOK(msgId);
     } else {
       if (!resp.error) {

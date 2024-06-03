@@ -11,7 +11,11 @@
   } from "@skeletonlabs/skeleton";
   import { menuDrawerSettings } from "$lib/utils/drawersSettings";
   import Sidebar from "./sidebar/Sidebar.svelte";
-  import { ServerInTauri, isTauri } from "$lib/tauri/serverInTauri";
+  import {
+    ServerInTauri,
+    getServerInTauri,
+    isTauri,
+  } from "$lib/tauri/serverInTauri";
   import { client } from "$lib/tools/client";
   import NewThreadModal from "./modals/NewThreadModal.svelte";
   import { loadThreadsFromServer } from "$lib/stores/threadStore";
@@ -31,30 +35,34 @@
   // For code highlighting in conversations
   import hljs from "highlight.js";
   import {
+    connectToLocalWorkspace,
+    connectToRemoteWorkspace,
     getCurrentWorkspace,
     setCurrentWorkspace,
+    type LocalWorkspaceInfo,
+    type RemoteWorkspaceInfo,
     type WorkspaceInfo,
   } from "$lib/stores/workspaceStore";
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
   import TauriWindowSetup from "./TauriWindowSetup.svelte";
   import FsPermissionDenied from "./FsPermissionDenied.svelte";
-  import { fsPermissionDeniedStore, subscribeToSession } from "$lib/stores/fsPermissionDeniedStore";
-    import SelectModelModal from "./modals/SelectModelModal.svelte";
-    import { routes } from "@shared/routes/routes";
+  import {
+    fsPermissionDeniedStore,
+    subscribeToSession,
+  } from "$lib/stores/fsPermissionDeniedStore";
+  import SelectModelModal from "./modals/SelectModelModal.svelte";
+  import { routes } from "@shared/routes/routes";
 
-  type AppState =
-    | "initializing"
-    | "needsWorkspace"
-    | "needsSetup"
-    | "ready";
+  type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
   storeHighlightJs.set(hljs);
 
   let state: AppState = "initializing";
 
+  /*
   let tauriIntegration: ServerInTauri | null = null;
-  let serverUrl = "http://localhost:6969";
   let serverWsUrl = "ws://localhost:6969";
+  */
 
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
   initializeStores();
@@ -82,29 +90,77 @@
   }
 
   onMount(async () => {
+    const workspace = getCurrentWorkspace();
+
+    if (workspace && workspace.type) {
+      if (workspace.type === "local") {
+        await connectToLocalWorkspace(
+          workspace as LocalWorkspaceInfo,
+        );
+      } else if (workspace.type === "remote") {
+        await connectToRemoteWorkspace(
+          workspace as RemoteWorkspaceInfo,
+        );
+      }
+    } else {
+      await connectToLocalWorkspace();
+    }
+
+    await loadStoresFromServer();
+
+    if ($profileStore === null || !$profileStore?.setup) {
+      state = "needsSetup";
+    } else {
+      state = "ready";
+    }
+
+    /*
     if (isTauri()) {
       tauriIntegration = new ServerInTauri();
       await tauriIntegration.init();
-
-      serverUrl = tauriIntegration.getHttpUrl();
       serverWsUrl = tauriIntegration.getWebSocketUrl();
     }
 
-    if (client.getURL() !== serverUrl) {
+    if (client.getURL() !== serverWsUrl) {
       client.setUrl(serverWsUrl);
     }
 
-    console.log("Server URL:", serverUrl);
+    console.log("Server Ws URL:", serverWsUrl);
 
     await subscribeToSession();
 
-    const workspace = getCurrentWorkspace();
     let workspaceExists = false;
+    */
 
+    /*
+    What if we client.get(routes.wokspace, { uri: 'PATH' }) - it would return true if the workspace exists
+    If it doesn't exist, we do client.post(routes.workspace, { uri: 'PATH' })
+    Check isTauri in workspaceStore
+    Do it in workspaceStore
+
+    let workspace = $localWorkspaceStore;
+
+    Put type: 'local' || 'remote'
+    Local one would have a path
+    Remote one would have a uri
+
+    if (workspace && !workspace.local) {
+      // @TODO: show an error message
+    }
+
+    const connRes = await connectToLocalWorkspace(workspace);
+    if (connRes.error) {
+      // @TODO: Handle error, probably show a message
+    } else {
+      // @TODO: Load stores and so on
+    }
+    */
+
+    /*
     if (workspace) {
       const workspaceExistsRes = await client.post(
         routes.workspaceExists,
-        workspace?.uri,
+        workspace?.path,
       );
 
       if (!workspaceExistsRes.error) {
@@ -117,9 +173,9 @@
     }
 
     if (workspaceExists) {
-      await client.post(routes.workspace, workspace?.uri);
+      await client.post(routes.workspace, workspace?.path);
 
-      console.log("Workspace:", workspace?.uri);
+      console.log("Workspace:", workspace?.path);
 
       await loadStoresFromServer();
 
@@ -142,7 +198,7 @@
       console.log("Workspace:", workspaceDir);
 
       const newWorkspace = {
-        uri: workspaceDir,
+        path: workspaceDir,
       } as WorkspaceInfo;
 
       setCurrentWorkspace(newWorkspace);
@@ -155,10 +211,11 @@
         state = "ready";
       }
     }
+    */
   });
 
   onDestroy(async () => {
-    await tauriIntegration?.kill();
+    await getServerInTauri()?.kill();
   });
 
   let drawer = getDrawerStore();
@@ -169,9 +226,8 @@
 
   const modalRegistry: Record<string, ModalComponent> = {
     newThread: { ref: NewThreadModal },
-    selectModel: { ref: SelectModelModal }
+    selectModel: { ref: SelectModelModal },
   };
-
 </script>
 
 <Modal components={modalRegistry} />

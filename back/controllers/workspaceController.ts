@@ -3,48 +3,44 @@ import { Profile } from "@shared/models.ts";
 import { createWorkspaceInDocuments, setWorkspacePath } from "../workspace.ts";
 import { fs } from "../tools/fs.ts";
 import { routes } from "../../shared/routes/routes.ts";
+import { Workspace } from "../../shared/models.ts";
 
-async function checkWorkspaceDir(path: string): Promise<boolean> {
+async function checkWorkspaceDir(path: string): Promise<Workspace | null> {
   const pathToWorkspace = path + "/_workspace.json";
 
-  return await fs.fileExists(pathToWorkspace);
+  if (!await fs.fileExists(pathToWorkspace)) {
+    return null;
+  }
+
+  const file = await fs.readTextFile(path);
+  const workspace = JSON.parse(file) as Workspace;
+
+  if (!workspace.id) {
+    return null;
+  }
+
+  return workspace;
 }
 
 export function workspaceController(services: BackServices) {
   const router = services.router;
 
   router
-    .onPost(routes.newWorkspace, async (ctx) => {
-      try {
-        const path = await createWorkspaceInDocuments();
-        services.setupDatabase(path);
-        ctx.response = path;
-      } catch (e) {
-        ctx.error = e.message;
-      }
+    .onGet(routes.workspace, (ctx) => {
+      ctx.response = services.db !== null ? services.db.workspaceDir : "";
     })
     .onPost(routes.workspace, async (ctx) => {
       try {
         const path = ctx.data as string;
         const exists = await checkWorkspaceDir(path);
-        ctx.response = exists;
 
-        if (exists) {
-          if (services.db === null) {
-            services.setupDatabase(path);
-          }
-
-          await setWorkspacePath(path);
+        if (!exists) {
+          const path = await createWorkspaceInDocuments();
+          services.setupDatabase(path);
         }
-      } catch (e) {
-        ctx.error = e.message;
-        return;
-      }
-    })
-    .onPost(routes.workspaceExists, async (ctx) => {
-      try {
-        const path = ctx.data as string;
-        ctx.response = await checkWorkspaceDir(path);
+
+        services.setupDatabase(path);
+        ctx.response = path;
       } catch (e) {
         ctx.error = e.message;
         return;
@@ -61,14 +57,16 @@ export function workspaceController(services: BackServices) {
         return;
       }
 
-      const data = ctx.data as { name: string; };
+      const data = ctx.data as { name: string };
       if (!data.name) {
         ctx.error = "Name is required";
         return;
       }
 
       try {
-        const profile = await services.db.insertProfile({ name: data.name, setup: true } as Profile);
+        const profile = await services.db.insertProfile(
+          { name: data.name, setup: true } as Profile,
+        );
         router.broadcast("profile", profile);
         ctx.response = profile;
       } catch (e) {
@@ -104,7 +102,7 @@ export function workspaceController(services: BackServices) {
         ctx.error = e;
         return;
       }
-      
+
       router.broadcast(ctx.route, profile);
     })
     .onValidateBroadcast(routes.profile, (conn, params) => {

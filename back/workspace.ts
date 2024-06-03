@@ -1,18 +1,7 @@
+import { Workspace } from "../shared/models.ts";
 import { neoRouter } from "./main.ts";
 import { fs } from "./tools/fs.ts";
 import { v4 as uuidv4 } from "npm:uuid";
-
-/*
-class Workspace {
-  readonly path: string;
-  readonly db: AppDb;
-
-  constructor(path: string) {
-    this.path = path;
-    this.db = new AppDb(path);
-  }
-}
-*/
 
 let workspacePath: string | null = null;
 
@@ -50,7 +39,11 @@ async function checkAndCreateWorkspaceDir(rootDir: string): Promise<string> {
   if (!workspaceExists) {
     await fs.mkdir(workspacePath, { recursive: true });
     const workspaceJsonPath = workspacePath + "/_workspace.json";
-    await fs.writeTextFile(workspaceJsonPath, "{}");
+    await fs.writeTextFile(workspaceJsonPath, JSON.stringify({ 
+      id: uuidv4(),
+      name: null,
+      createdAt: new Date().getTime(),
+    } as Workspace));
   }
 
   return workspacePath;

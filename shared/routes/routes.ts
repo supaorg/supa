@@ -1,4 +1,6 @@
 export const routes = {
+  root: "/",
+
   /* Workspaces */
   workspace: "workspace",
   newWorkspace: "new-workspace",

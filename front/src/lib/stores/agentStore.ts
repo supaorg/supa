@@ -47,7 +47,7 @@ export async function loadAgentsFromServer() {
 
   agentConfigStore.set(agents);
 
-  client.listen(routes.agentConfigs, (broadcast) => {
+  client.on(routes.agentConfigs, (broadcast) => {
     if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
       const config = broadcast.data as AgentConfig;
 
