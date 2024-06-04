@@ -16,7 +16,6 @@
     getServerInTauri,
     isTauri,
   } from "$lib/tauri/serverInTauri";
-  import { client } from "$lib/tools/client";
   import NewThreadModal from "./modals/NewThreadModal.svelte";
   import { loadThreadsFromServer } from "$lib/stores/threadStore";
   import { storePopup } from "@skeletonlabs/skeleton";
@@ -36,22 +35,16 @@
   import hljs from "highlight.js";
   import {
     connectToLocalWorkspace,
-    connectToRemoteWorkspace,
     getCurrentWorkspace,
-    setCurrentWorkspace,
-    type LocalWorkspaceInfo,
-    type RemoteWorkspaceInfo,
-    type WorkspaceInfo,
+    type WorkspacePointer,
   } from "$lib/stores/workspaceStore";
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
   import TauriWindowSetup from "./TauriWindowSetup.svelte";
   import FsPermissionDenied from "./FsPermissionDenied.svelte";
   import {
     fsPermissionDeniedStore,
-    subscribeToSession,
   } from "$lib/stores/fsPermissionDeniedStore";
   import SelectModelModal from "./modals/SelectModelModal.svelte";
-  import { routes } from "@shared/routes/routes";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
@@ -59,24 +52,15 @@
 
   let state: AppState = "initializing";
 
-  /*
-  let tauriIntegration: ServerInTauri | null = null;
-  let serverWsUrl = "ws://localhost:6969";
-  */
-
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
   initializeStores();
 
   $: {
-    if ($profileStore === null && getCurrentWorkspace() !== null) {
+    if (state === "ready" && ($profileStore === null || !$profileStore?.setup)) {
       state = "needsSetup";
     }
 
-    if (
-      $profileStore !== null &&
-      $profileStore?.name &&
-      getCurrentWorkspace() !== null
-    ) {
+    if (state === "needsSetup" && $profileStore !== null && $profileStore.setup) {
       state = "ready";
     }
   }
@@ -94,13 +78,9 @@
 
     if (workspace && workspace.type) {
       if (workspace.type === "local") {
-        await connectToLocalWorkspace(
-          workspace as LocalWorkspaceInfo,
-        );
+        await connectToLocalWorkspace(workspace as WorkspacePointer);
       } else if (workspace.type === "remote") {
-        await connectToRemoteWorkspace(
-          workspace as RemoteWorkspaceInfo,
-        );
+        throw new Error("Remote workspace is not implemented yet");
       }
     } else {
       await connectToLocalWorkspace();
@@ -113,105 +93,6 @@
     } else {
       state = "ready";
     }
-
-    /*
-    if (isTauri()) {
-      tauriIntegration = new ServerInTauri();
-      await tauriIntegration.init();
-      serverWsUrl = tauriIntegration.getWebSocketUrl();
-    }
-
-    if (client.getURL() !== serverWsUrl) {
-      client.setUrl(serverWsUrl);
-    }
-
-    console.log("Server Ws URL:", serverWsUrl);
-
-    await subscribeToSession();
-
-    let workspaceExists = false;
-    */
-
-    /*
-    What if we client.get(routes.wokspace, { uri: 'PATH' }) - it would return true if the workspace exists
-    If it doesn't exist, we do client.post(routes.workspace, { uri: 'PATH' })
-    Check isTauri in workspaceStore
-    Do it in workspaceStore
-
-    let workspace = $localWorkspaceStore;
-
-    Put type: 'local' || 'remote'
-    Local one would have a path
-    Remote one would have a uri
-
-    if (workspace && !workspace.local) {
-      // @TODO: show an error message
-    }
-
-    const connRes = await connectToLocalWorkspace(workspace);
-    if (connRes.error) {
-      // @TODO: Handle error, probably show a message
-    } else {
-      // @TODO: Load stores and so on
-    }
-    */
-
-    /*
-    if (workspace) {
-      const workspaceExistsRes = await client.post(
-        routes.workspaceExists,
-        workspace?.path,
-      );
-
-      if (!workspaceExistsRes.error) {
-        workspaceExists = workspaceExistsRes.data as boolean;
-      } else {
-        console.error(workspaceExistsRes.error);
-        fsPermissionDeniedStore.set(true);
-        return;
-      }
-    }
-
-    if (workspaceExists) {
-      await client.post(routes.workspace, workspace?.path);
-
-      console.log("Workspace:", workspace?.path);
-
-      await loadStoresFromServer();
-
-      if ($profileStore === null || !$profileStore?.setup) {
-        state = "needsSetup";
-      } else {
-        state = "ready";
-      }
-    } else {
-      const newWorkspaceRes = await client.post(routes.newWorkspace);
-
-      if (newWorkspaceRes.error) {
-        console.error(newWorkspaceRes.error);
-        fsPermissionDeniedStore.set(true);
-        return;
-      }
-
-      const workspaceDir = newWorkspaceRes.data as string;
-
-      console.log("Workspace:", workspaceDir);
-
-      const newWorkspace = {
-        path: workspaceDir,
-      } as WorkspaceInfo;
-
-      setCurrentWorkspace(newWorkspace);
-
-      // Doing it in case if the folder contains some files already
-      await loadStoresFromServer();
-      if ($profileStore === null || !$profileStore?.setup) {
-        state = "needsSetup";
-      } else {
-        state = "ready";
-      }
-    }
-    */
   });
 
   onDestroy(async () => {

@@ -5,56 +5,47 @@ import { client } from "$lib/tools/client";
 import { ServerInTauri, isTauri, setupServerInTauri } from "$lib/tauri/serverInTauri";
 import { subscribeToSession } from "./fsPermissionDeniedStore";
 import { routes } from "@shared/routes/routes";
-import type { ServerInfo } from "@shared/models";
+import type { ServerInfo, Workspace } from "@shared/models";
 
-export type WorkspaceInfo = LocalWorkspaceInfo | RemoteWorkspaceInfo;
-
-export type LocalWorkspaceInfo = {
-  id: string;
+export type WorkspacePointer = {
   type: "local" | "remote";
-  path: string;
   url: string;
+  workspace: Workspace;
 }
 
-export type RemoteWorkspaceInfo = {
-  id: string;
-  type: "remote";
-  url: string;
-}
-
-const currentWorkspaceStore: Writable<WorkspaceInfo | null> = localStorageStore(
+const currentWorkspacePointerStore: Writable<WorkspacePointer | null> = localStorageStore(
   "currentWorkspace",
   null,
 );
 
-const workspacesStore: Writable<WorkspaceInfo[]> = localStorageStore(
+const workspacePointersStore: Writable<WorkspacePointer[]> = localStorageStore(
   "workspaces",
   [],
 );
 
-export function getCurrentWorkspace(): WorkspaceInfo | null {
-  return get(currentWorkspaceStore);
+export function getCurrentWorkspace(): WorkspacePointer | null {
+  return get(currentWorkspacePointerStore);
 }
 
-export function getWorkspaces(): WorkspaceInfo[] {
-  return get(workspacesStore);
+export function getWorkspaces(): WorkspacePointer[] {
+  return get(workspacePointersStore);
 }
 
-export function setCurrentWorkspace(workspace: WorkspaceInfo) {
-  currentWorkspaceStore.set(workspace);
+export function setCurrentWorkspace(pointer: WorkspacePointer) {
+  currentWorkspacePointerStore.set(pointer);
 
   // Check if the workspace is already in the list
-  const workspaces = getWorkspaces();
-  const index = workspaces.findIndex((w) => w.id === workspace.id);
+  const pointers = getWorkspaces();
+  const index = pointers.findIndex((p) => p.workspace.id === pointer.workspace.id);
   if (index === -1) {
-    workspacesStore.update((workspaces) => {
-      return [...workspaces, workspace];
+    workspacePointersStore.update((workspaces) => {
+      return [...workspaces, pointer];
     });
   } 
 }
 
-export async function connectToLocalWorkspace(workspace?: LocalWorkspaceInfo): Promise<void> {
-  let serverWsUrl = workspace ? workspace.url : "ws://localhost:6969";
+export async function connectToLocalWorkspace(pointer?: WorkspacePointer): Promise<void> {
+  let serverWsUrl = pointer ? pointer.url : "ws://localhost:6969";
 
   if (isTauri()) {
     const tauriIntegration = await setupServerInTauri();
@@ -72,32 +63,31 @@ export async function connectToLocalWorkspace(workspace?: LocalWorkspaceInfo): P
 
   const serverInfo = serverInfoRes.data as ServerInfo;
 
-  if (workspace && serverInfo.workspacePath && serverInfo.workspacePath !== workspace.path) {
+  if (pointer && serverInfo.workspace?.path && serverInfo.workspace.id !== pointer.workspace.id) {
     throw new Error("Workspace path mismatch");
   }
 
   await subscribeToSession();
 
-  if (serverInfo.workspacePath) {
+  if (serverInfo.workspace) {
     setCurrentWorkspace({
-      id: "local", // use id from server
       type: "local",
-      path: serverInfo.workspacePath,
       url: serverWsUrl,
+      workspace: serverInfo.workspace,
     });
   } else {
-    const newWorkspaceRes = await client.post(routes.workspace, workspace?.path);
+    const newWorkspaceRes = await client.post(routes.workspace, pointer?.workspace?.path);
 
     if (newWorkspaceRes.error) {
       throw new Error(newWorkspaceRes.error);
     }
 
-    const newWorkspaceFromServer = newWorkspaceRes.data as LocalWorkspaceInfo;
+    const newWorkspaceFromServer = newWorkspaceRes.data as Workspace;
 
-    setCurrentWorkspace(newWorkspaceFromServer);
+    setCurrentWorkspace({
+      type: "local",
+      url: serverWsUrl,
+      workspace: newWorkspaceFromServer,
+    });
   }
-}
-
-export async function connectToRemoteWorkspace(workspace: RemoteWorkspaceInfo): Promise<RemoteWorkspaceInfo> {
-  throw new Error("Not implemented");
 }

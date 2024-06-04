@@ -1,46 +1,33 @@
 import { BackServices } from "./backServices.ts";
 import { Profile } from "@shared/models.ts";
-import { createWorkspaceInDocuments, setWorkspacePath } from "../workspace.ts";
+import { createWorkspaceInDocuments, setWorkspacePath, getWorkspace } from "../workspace.ts";
 import { fs } from "../tools/fs.ts";
 import { routes } from "../../shared/routes/routes.ts";
 import { Workspace } from "../../shared/models.ts";
-
-async function checkWorkspaceDir(path: string): Promise<Workspace | null> {
-  const pathToWorkspace = path + "/_workspace.json";
-
-  if (!await fs.fileExists(pathToWorkspace)) {
-    return null;
-  }
-
-  const file = await fs.readTextFile(path);
-  const workspace = JSON.parse(file) as Workspace;
-
-  if (!workspace.id) {
-    return null;
-  }
-
-  return workspace;
-}
 
 export function workspaceController(services: BackServices) {
   const router = services.router;
 
   router
     .onGet(routes.workspace, (ctx) => {
-      ctx.response = services.db !== null ? services.db.workspaceDir : "";
+      ctx.response = services.db && services.db.workspace ? services.db.workspace : null;
     })
     .onPost(routes.workspace, async (ctx) => {
       try {
-        const path = ctx.data as string;
-        const exists = await checkWorkspaceDir(path);
-
-        if (!exists) {
-          const path = await createWorkspaceInDocuments();
-          services.setupDatabase(path);
+        if (services.db) {
+          ctx.error = "Database is already initialized";
+          return;
         }
 
-        services.setupDatabase(path);
-        ctx.response = path;
+        const path = ctx.data as string;
+        let workspace = await getWorkspace(path);
+
+        if (!workspace) {
+          workspace = await createWorkspaceInDocuments();
+        }
+
+        services.setupDatabase(workspace);
+        ctx.response = workspace;
       } catch (e) {
         ctx.error = e.message;
         return;

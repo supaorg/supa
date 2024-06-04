@@ -1,3 +1,4 @@
+import { Workspace } from "../../shared/models.ts";
 import { Router } from "../../shared/neorest/Router.ts";
 import { AppDb } from "../db/appDb.ts";
 
@@ -10,12 +11,12 @@ export class BackServices {
     this.db = null;
   }
 
-  setupDatabase(path: string) {
+  setupDatabase(workspace: Workspace) {
     if (this.db !== null) {
       throw new Error("Database is already initialized");
     }
 
-    this.db = new AppDb(path);
+    this.db = new AppDb(workspace);
   }
   
   getDbNotSetupError() {

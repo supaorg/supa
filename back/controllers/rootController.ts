@@ -1,3 +1,4 @@
+import { ServerInfo } from "../../shared/models.ts";
 import { Router } from "../../shared/neorest/Router.ts";
 import { BackServices } from "./backServices.ts";
 
@@ -8,7 +9,7 @@ export function rootController(services: BackServices) {
     ctx.response = {
       version: "0.1.0",
       type: "local",
-      workspacePath: services.db ? services.db.workspaceDir : "",
-    };
+      workspace: services.db ? services.db.workspace : null,
+    } as ServerInfo;
   });
 }

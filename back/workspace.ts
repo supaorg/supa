@@ -11,6 +11,26 @@ export async function setWorkspacePath(path: string) {
   await writeSessionFile();
 }
 
+export async function getWorkspace(path: string): Promise<Workspace | null> {
+  const pathToWorkspace = path + "/_workspace.json";
+
+  if (!await fs.fileExists(pathToWorkspace)) {
+    return null;
+  }
+
+  const file = await fs.readTextFile(pathToWorkspace);
+  const workspace = JSON.parse(file) as Workspace;
+
+  if (!workspace.id || !workspace.createdAt) {
+    return null;
+  }
+
+  // The file doesn't suppose to have the path, so we're adding it here after loading the file
+  workspace.path = path;
+
+  return workspace;
+}
+
 export async function createWorkspaceInDocuments() {
   const homeDir = Deno.env.get("HOME");
   if (homeDir === undefined) {
@@ -33,20 +53,39 @@ export async function createWorkspaceInDocuments() {
   return await checkAndCreateWorkspaceDir(dir);
 }
 
-async function checkAndCreateWorkspaceDir(rootDir: string): Promise<string> {
+async function checkAndCreateWorkspaceDir(rootDir: string): Promise<Workspace> {
   workspacePath = rootDir + "/Supamind/workspace";
   const workspaceExists = await fs.dirExists(workspacePath);
+  let workspace: Workspace;
   if (!workspaceExists) {
     await fs.mkdir(workspacePath, { recursive: true });
     const workspaceJsonPath = workspacePath + "/_workspace.json";
-    await fs.writeTextFile(workspaceJsonPath, JSON.stringify({ 
+
+    workspace = { 
       id: uuidv4(),
       name: null,
       createdAt: new Date().getTime(),
-    } as Workspace));
+    } as Workspace;
+
+    await fs.writeTextFile(workspaceJsonPath, JSON.stringify(workspace));
+
+    // We're not adding path to the file because it's not needed
+    workspace.path = workspacePath;
+
+  } else {
+    const workspaceJsonPath = workspacePath + "/_workspace.json";
+    const workspaceJson = await fs.readTextFile(workspaceJsonPath);
+    workspace = JSON.parse(workspaceJson) as Workspace;
+
+    if (!workspace.id || !workspace.createdAt) {
+      throw new Error("Workspace is not valid");
+    }
+
+    // The file doesn't suppose to have path, so we're adding it here after loading the file
+    workspace.path = workspacePath;
   }
 
-  return workspacePath;
+  return workspace;
 }
 
 const SESSIONS_DIR = "/sessions";

@@ -1,19 +1,15 @@
 import { Profile, Thread, ThreadMessage } from "@shared/models.ts";
 import { join } from "https://deno.land/std/path/mod.ts";
-import { AgentConfig, ModelProviderConfig } from "../../shared/models.ts";
+import { AgentConfig, ModelProviderConfig, Workspace } from "../../shared/models.ts";
 import { defaultAgent } from "../agents/defaultAgent.ts";
 import { fs } from "../tools/fs.ts";
 import perf from "../tools/perf.ts";
 
 export class AppDb {
-  readonly workspaceDir: string;
-
-  constructor(path: string) {
-    this.workspaceDir = path;
-  }
+  constructor(readonly workspace: Workspace) {}
 
   private resolvePath(...paths: string[]): string {
-    return join(this.workspaceDir, ...paths);
+    return join(this.workspace.path, ...paths);
   }
 
   async getProfile(): Promise<Profile | null> {
