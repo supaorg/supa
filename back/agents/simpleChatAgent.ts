@@ -1,4 +1,4 @@
-import { AgentConfig } from "../../shared/models.ts";
+import { AgentConfig, ThreadMessage } from "../../shared/models.ts";
 import { Agent, AgentInput, AgentOutput, AgentResponse } from "./agent.ts";
 
 export interface AgentConfigForChat extends AgentConfig {
@@ -10,7 +10,7 @@ export class SimpleChatAgent extends Agent<AgentConfigForChat> {
     payload: AgentInput,
     onStream?: (output: AgentOutput) => void,
   ): Promise<AgentOutput> {
-    const messages = payload;
+    const messages = payload as ThreadMessage[];
 
     if (!this.services.db) {
       throw new Error("No database");
@@ -19,6 +19,7 @@ export class SimpleChatAgent extends Agent<AgentConfigForChat> {
     const lang = await this.services.lang(this.config.targetLLM);
 
     let systemPrompt = this.config.instructions + "\n\n" +
+      "Current date and time " + new Date().toLocaleString() + "\n\n" +
       "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks.";
 
     const profile = await this.services.db.getProfile();

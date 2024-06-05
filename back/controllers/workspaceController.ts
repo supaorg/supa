@@ -54,7 +54,7 @@ export function workspaceController(services: BackServices) {
         const profile = await services.db.insertProfile(
           { name: data.name, setup: true } as Profile,
         );
-        router.broadcast("profile", profile);
+        router.broadcastPost("profile", profile);
         ctx.response = profile;
       } catch (e) {
         ctx.error = e.message;
@@ -90,7 +90,7 @@ export function workspaceController(services: BackServices) {
         return;
       }
 
-      router.broadcast(ctx.route, profile);
+      router.broadcastPost(ctx.route, profile);
     })
     .onValidateBroadcast(routes.profile, (conn, params) => {
       return true;

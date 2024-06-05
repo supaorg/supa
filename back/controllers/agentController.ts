@@ -71,7 +71,7 @@ export function agentController(services: BackServices) {
       }
 
       
-      router.broadcast(routes.agentConfigs, config);
+      router.broadcastPost(routes.agentConfigs, config);
     })
     .onDelete(routes.agentConfig(), async (ctx) => {
       if (services.db === null) {
@@ -96,7 +96,7 @@ export function agentController(services: BackServices) {
 
       const config = ctx.data as AgentConfig;
       await services.db.insertAgent(config);
-      router.broadcast(routes.agentConfigs, config);
+      router.broadcastPost(routes.agentConfigs, config);
     })
     .onValidateBroadcast(routes.agentConfigs, (conn, params) => {
       return true;

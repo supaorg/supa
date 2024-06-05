@@ -234,7 +234,7 @@ export class Router {
     this.connections[conn.getSecret()].sendToRoute(route, "POST", payload);
   }
 
-  broadcast(route: string, payload: Payload, exceptConn?: Connection) {
+  broadcastPost(route: string, payload: Payload, exceptConn?: Connection) {
     this.internalBroadcast(route, "POST", payload, exceptConn);
   }
 

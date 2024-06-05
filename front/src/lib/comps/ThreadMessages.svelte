@@ -43,6 +43,10 @@
     }
   });
 
+  threadsStore.subscribe(() => {
+    setThread();
+  });
+
   function setThread() {
     const targetThread = $threadsStore.find((t) => t.id === threadId);
 

@@ -9,7 +9,7 @@ export interface AgentConfig {
   description: string;
 }
 
-export type AgentInput = ThreadMessage[];
+export type AgentInput = any;
 
 export type AgentResponse = {
   status: number;

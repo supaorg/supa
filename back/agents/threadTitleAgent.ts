@@ -1,13 +1,14 @@
-import { AgentConfig } from "../../shared/models.ts";
+import { AgentConfig, ThreadMessage } from "../../shared/models.ts";
 import { Agent, AgentInput, AgentOutput, AgentResponse } from "./agent.ts";
 import { AgentConfigForChat } from "./simpleChatAgent.ts";
 
 export class ThreadTitleAgent extends Agent<AgentConfigForChat> {
+  // @TODO: decide if I can make input more specific for agents
   async input(
     payload: AgentInput,
     onStream?: (output: AgentOutput) => void,
   ): Promise<AgentOutput> {
-    const messages = payload;
+    const {messages, title} = payload as  { messages: ThreadMessage[], title: string };
 
     if (!this.services.db) {
       throw new Error("No database");
@@ -15,40 +16,29 @@ export class ThreadTitleAgent extends Agent<AgentConfigForChat> {
 
     const lang = await this.services.lang(this.config.targetLLM);
 
-    const systemPrompt =
-      `You write great, snappy titles. Your job is to come up with a short (1-3 words) title for a chat thread based on the conversation. 
-Be as concise as possible. You MUST provide only the title, no additional comments, explanations or messages. 
-If it's not clear what the title should be yet, return NO TITLE. No Markdown or formatting - only plain text is allowed.`;
-
-    const remappedMessages = [
-      { role: "system", content: systemPrompt },
-      ...messages.map((m) => ({
-        role: m.role || "user",
-        content: m.text || "",
-      })),
-    ];
-
-    const promptStartPerf = performance.now();
-    const finalResult = await lang.chat(remappedMessages, (res) => {
-      onStream?.(res.answer);
+    const allMessagesInOneMessage = messages.map((m) => `**${m.role}**:\n${m.text}`).join("\n\n\n");
+    
+    const result = await lang.askForObject({
+      title: "Create or Edit a Title",
+      instructions: [
+        "Read the provided messages",
+        "Look if it already has a title. Decide if it is good or not",
+        "If not, write a new short (1-3 words) title for a chat thread based on a provided conversation",
+        "Be as concise as possible. Provide only the title, with no additional comments or explanations",
+        "If decide to keep the existing title, return it as is",
+        "Use plain text only—no Markdown or formatting",
+      ],
+      content: {
+        "Current Title": title,
+        "Messages": allMessagesInOneMessage,
+      },
+      objectExamples: [{
+        title: "City Farewell"
+      }]
     });
-    const promptEndPerf = performance.now();
-    console.log(`Prompt took ${promptEndPerf - promptStartPerf} milliseconds`);
 
-    let answer = finalResult.answer;
-    if (answer.startsWith('"') || answer.startsWith("'")) {
-      answer = answer.substring(1);
-    }
-    if (answer.endsWith('"') || answer.endsWith("'")) {
-      answer = answer.slice(0, -1);
-    }
+    const answer = result.answerObj as { title: string };
 
-    answer = answer.substring(0, 50);
-
-    if (answer === "NO TITLE") {
-      return "";
-    } else {
-      return answer;
-    }
+    return answer.title;
   }
 }

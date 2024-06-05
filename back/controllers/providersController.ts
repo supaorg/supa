@@ -113,7 +113,7 @@ export function providersController(services: BackServices) {
 
       ctx.response = newProvider;
 
-      router.broadcast(ctx.route, newProvider);
+      router.broadcastPost(ctx.route, newProvider);
     })
     .onDelete(routes.providerConfig(), async (ctx) => {
       if (services.db === null) {
@@ -134,7 +134,7 @@ export function providersController(services: BackServices) {
 
       ctx.response = true;
 
-      router.broadcast(ctx.route, provider);
+      router.broadcastPost(ctx.route, provider);
     })
     .onPost(routes.validateProviderKey(), async (ctx) => {
       const provider = ctx.params.provider;
