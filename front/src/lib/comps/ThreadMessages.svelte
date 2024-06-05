@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { tick } from "svelte";
   import type { ThreadMessage as Message, Thread } from "@shared/models";
@@ -24,6 +24,11 @@
   let canSendMessage = false;
   let messages: Message[] | null = null;
   let thread: Thread;
+  let isAutoScrolling = false;
+  let scrollTimeout;
+  let stickToBottom = true;
+  const mainScrollableId = "page";
+  let scrollableElement: HTMLElement | null = null;
 
   threadsMessagesStore.subscribe((dic) => {
     const prevLastMessages =
@@ -32,14 +37,19 @@
     messages = dic[threadId] ? dic[threadId] : null;
     canSendMessage = checkIfCanSendMessage(threadId);
 
-    // If the last previous message is not the same as the last message in the store, scroll to the bottom
-    if (
-      messages &&
-      messages.length > 0 &&
-      prevLastMessages &&
-      prevLastMessages.id !== messages[messages.length - 1].id
-    ) {
+    if (!messages || messages.length === 0 || !prevLastMessages) {
+      return;
+    }
+
+    // If the last message from the store is different
+    if (prevLastMessages.id !== messages[messages.length - 1].id) {
       scrollToBottom();
+    }
+    // If the last message is the same, but the text is different
+    else if (prevLastMessages.text !== messages[messages.length - 1].text) {
+      if (stickToBottom) {
+        scrollToBottom();
+      }
     }
   });
 
@@ -97,9 +107,16 @@
   }
 
   async function scrollToBottom() {
+    isAutoScrolling = true;
     await tick();
     const pageElement = document.getElementById("page") as HTMLElement;
     pageElement.scrollTo(0, pageElement.scrollHeight);
+
+    clearTimeout(scrollTimeout);
+    // We delay setting isAutoScrolling to false so we can detect it in the scroll event handler
+    scrollTimeout = setTimeout(() => {
+      isAutoScrolling = false;
+    }, 100);
   }
 
   // @TODO: also move to the store
@@ -132,7 +149,33 @@
     if (threadId) {
       unlistenMessages(threadId);
     }
+
+    if (scrollableElement) { 
+      scrollableElement.removeEventListener("scroll", handleScroll);
+    }
   });
+  onMount(() => {
+    scrollableElement = document.getElementById(mainScrollableId);
+    if (scrollableElement) {
+      scrollableElement.addEventListener("scroll", handleScroll);
+    } else {
+      console.error(
+        `Element with id ${mainScrollableId} not found. We need this element to listen to scroll events.`,
+      );
+    }
+  });
+
+  function handleScroll() {
+    if (isAutoScrolling || !scrollableElement) {
+      return;
+    }
+
+    const threshold = 25;
+    // We set it to true if the user is at the bottom of the page within a threshold
+    stickToBottom =
+      scrollableElement.scrollHeight - scrollableElement.scrollTop <=
+      scrollableElement.clientHeight + threshold;
+  }
 </script>
 
 <div class="flex flex-col h-full">
@@ -158,7 +201,11 @@
           </div>
         {:else}
           {#each messages as message (message.id)}
-            <ThreadMessage {message} {threadId} isLastInThread={message.id === messages[messages.length - 1].id} />
+            <ThreadMessage
+              {message}
+              {threadId}
+              isLastInThread={message.id === messages[messages.length - 1].id}
+            />
           {/each}
         {/if}
       </section>
