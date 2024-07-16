@@ -19,9 +19,11 @@ export class SimpleChatAgent extends Agent<AgentConfigForChat> {
     const lang = await this.services.lang(this.config.targetLLM);
 
     let systemPrompt = this.config.instructions + "\n\n" +
-      "Current date and time " + new Date().toLocaleString() + "\n\n" +
       "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks.";
-
+      + "\n\n" + "Write math formulas in plain text: e.g. a + b = c or `x^2 + y^2 = z^2`"
+    +"\n\n" +
+      "Current date and time " + new Date().toLocaleString();
+      
     const profile = await this.services.db.getProfile();
     if (profile) {
       systemPrompt += "\n\nUser name is " + profile?.name;
