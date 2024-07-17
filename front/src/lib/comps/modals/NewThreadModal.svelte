@@ -7,7 +7,7 @@
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { createThread } from "$lib/stores/threadStore";
   import { agentConfigStore } from "$lib/stores/agentStore";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
 
   const modalStore = getModalStore();
 

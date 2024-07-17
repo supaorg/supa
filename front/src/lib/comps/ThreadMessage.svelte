@@ -50,6 +50,13 @@
     await client.post(routes.retryThread(threadId));
     retrying = false;
   }
+
+  function replaceNewlinesWithHtmlBrs(text: string) {
+    // Trim newlines at the start and end
+    text = text.replace(/^\n+|\n+$/g, "");
+    // Replace remaining newlines with <br />
+    return text.replace(/\n/g, "<br />");
+  }
 </script>
 
 <div class="flex flex-1 text-base mx-auto gap-3 w-full">
@@ -78,13 +85,18 @@
       {/if}
     </header>
     <div class="thread-message flex-grow leading-relaxed">
-      <Markdown
-        source={message.text ? message.text : "Loading..."}
-        renderers={{
-          code: MarkdownCode,
-          link: MarkdownLink,
-        }}
-      />
+      {#if message.role === "user"}
+        {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ''}
+      {:else}
+        <Markdown
+          source={message.text ? message.text : "Loading..."}
+          renderers={{
+            code: MarkdownCode,
+            link: MarkdownLink,
+          }}
+        />
+      {/if}
+
       {#if canRetry && !retrying}
         <button class="btn variant-filled" on:click={retry}>Retry</button>
       {/if}

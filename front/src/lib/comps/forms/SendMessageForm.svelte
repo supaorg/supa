@@ -53,7 +53,7 @@
     <textarea
       bind:value={query}
       data-focusindex="0"
-      class="chat-textarea bg-transparent resize-none border-0 ring-0 flex-grow"
+      class="chat-textarea bg-transparent resize-none border-0 ring-0 flex-grow max-h-[200px]"
       name="prompt"
       id="prompt"
       {placeholder}

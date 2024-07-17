@@ -170,11 +170,10 @@
       return;
     }
 
-    const threshold = 25;
-    // We set it to true if the user is at the bottom of the page within a threshold
+    // We set it to true if the user is at the bottom of the page
     stickToBottom =
       scrollableElement.scrollHeight - scrollableElement.scrollTop <=
-      scrollableElement.clientHeight + threshold;
+      scrollableElement.clientHeight;
   }
 </script>
 
