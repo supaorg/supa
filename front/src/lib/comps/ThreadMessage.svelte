@@ -6,11 +6,9 @@
     Sparkles,
     UserCircle,
   } from "svelte-hero-icons";
-  import Markdown from "@magidoc/plugin-svelte-marked";
-  import MarkdownCode from "./markdown/MarkdownCode.svelte";
-  import MarkdownLink from "./markdown/MarkdownLink.svelte";
   import { client } from "$lib/tools/client";
   import { routes } from "@shared/routes/routes";
+  import MarkdownMessage from "./markdown/MarkdownMessage.svelte";
 
   export let message: ThreadMessage;
   export let threadId: string;
@@ -86,15 +84,9 @@
     </header>
     <div class="thread-message flex-grow leading-relaxed">
       {#if message.role === "user"}
-        {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ''}
+        {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
       {:else}
-        <Markdown
-          source={message.text ? message.text : "Loading..."}
-          renderers={{
-            code: MarkdownCode,
-            link: MarkdownLink,
-          }}
-        />
+        <MarkdownMessage source={message.text ? message.text : "Loading..."} />
       {/if}
 
       {#if canRetry && !retrying}

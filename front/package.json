@@ -46,6 +46,7 @@
     "marked": "^12.0.0",
     "mixpanel-browser": "^2.49.0",
     "svelte-hero-icons": "^5.1.0",
+    "svelte-katex": "^0.1.2",
     "svelte-portal": "^2.2.1",
     "uuid": "^9.0.1"
   }

@@ -41,14 +41,15 @@
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
   import TauriWindowSetup from "./TauriWindowSetup.svelte";
   import FsPermissionDenied from "./FsPermissionDenied.svelte";
-  import {
-    fsPermissionDeniedStore,
-  } from "$lib/stores/fsPermissionDeniedStore";
+  import { fsPermissionDeniedStore } from "$lib/stores/fsPermissionDeniedStore";
   import SelectModelModal from "./modals/SelectModelModal.svelte";
+  import { extendMarked } from "$lib/utils/markdown/extendMarked";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
   storeHighlightJs.set(hljs);
+
+  extendMarked();
 
   let state: AppState = "initializing";
 
@@ -56,11 +57,18 @@
   initializeStores();
 
   $: {
-    if (state === "ready" && ($profileStore === null || !$profileStore?.setup)) {
+    if (
+      state === "ready" &&
+      ($profileStore === null || !$profileStore?.setup)
+    ) {
       state = "needsSetup";
     }
 
-    if (state === "needsSetup" && $profileStore !== null && $profileStore.setup) {
+    if (
+      state === "needsSetup" &&
+      $profileStore !== null &&
+      $profileStore.setup
+    ) {
       state = "ready";
     }
   }
