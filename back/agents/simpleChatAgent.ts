@@ -27,7 +27,7 @@ export class SimpleChatAgent extends Agent<AgentConfigForChat> {
 
     const profile = await this.services.db.getProfile();
     if (profile) {
-      systemPrompt += "\n\nUser name is " + profile?.name;
+      systemPrompt += "\n\nUser's name is " + profile?.name;
     }
 
     const remappedMessages = [
