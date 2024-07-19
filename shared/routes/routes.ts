@@ -22,9 +22,9 @@ export const routes = {
   validateProviderKey: (provider = ":provider") => `validate-key/${provider}`,
 
   /* Agents */
-  agents: "agents",
-  agentConfigs: "agent-configs",
-  agentConfig: (configId = ":configId") => `agent-configs/${configId}`,
+  agents: "apps",
+  agentConfigs: "app-configs",
+  agentConfig: (configId = ":configId") => `app-configs/${configId}`,
 
   /* Threads */
   threads: "threads",

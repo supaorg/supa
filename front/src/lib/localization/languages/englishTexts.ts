@@ -13,24 +13,24 @@ export const englishTexts: Texts = {
   },
 
   agentsPage: {
-    title: "Agents",
-    buttonNewConfig: "New Agent Config",
+    title: "Apps",
+    buttonNewConfig: "New Chat Config",
   },
 
   agentConfigPage: {
-    newConfigTitle: "New Agent Config",
-    editConfigTitle: "Edit Agent Config",
-    defaultConfigTitle: "Default Agent Config",
+    newConfigTitle: "New Chat Config",
+    editConfigTitle: "Edit Chat Config",
+    defaultConfigTitle: "Default Chat Config",
     newConfigButton: "New thread button (optional)",
     buttonCreate: "Create",
     buttonSave: "Save Changes",
-    namePlaceholder: "Name your agent",
-    descriptionPlaceholder: "A short description of what this agent does",
+    namePlaceholder: "Name your app",
+    descriptionPlaceholder: "A short description of what this app does",
     instructionsPlaceholder:
-      "Start with 'You are a ...'. Instruct the agent as if you were writing an instruction for a new employee",
+      "Start with 'You are a ...'. Instruct the AI as if you were writing an instruction for a new employee",
     buttonPlaceholder: "A short actionable text for a button",
-    gotoNewConfig: "Go here if you want to create a new agent config",
+    gotoNewConfig: "Go here if you want to create a new chat config",
     errorValidationRequired: "This field is required",
-    errorAgentLoadFailure: "Failed to load agent config",
+    errorAgentLoadFailure: "Failed to load app config",
   },
 };

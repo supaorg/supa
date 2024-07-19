@@ -92,7 +92,7 @@
       <p>
         This is the configuration of the default chat agent. You can only change
         the model it uses.<br />
-        <a href="/agents/new-config" class="anchor">Go here</a> if you want to create
+        <a href="/apps/new-config" class="anchor">Go here</a> if you want to create
         a new agent configuration.
       </p>
     {/if}

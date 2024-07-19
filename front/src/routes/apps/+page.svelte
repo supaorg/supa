@@ -7,7 +7,7 @@
 
 <CenteredPage>
   <h2 class="h2 pb-6">{$txtStore.agentsPage.title}</h2>
-  <a href="/agents/new-config" class="btn variant-ringed-primary"
+  <a href="/apps/new-config" class="btn variant-ringed-primary"
     >{$txtStore.agentsPage.buttonNewConfig}</a
   >
   <div class="flex flex-wrap gap-4">

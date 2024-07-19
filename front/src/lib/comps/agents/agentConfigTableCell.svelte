@@ -58,7 +58,7 @@
 
 <tr>
   <td
-    ><a href={"/agents/edit-config?id=" + agent.id} class="w-full h-full block"
+    ><a href={"/apps/edit-config?id=" + agent.id} class="w-full h-full block"
       ><strong>{agent.name}</strong><br />{agent.description}</a
     ></td
   >
