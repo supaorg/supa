@@ -5,7 +5,7 @@
   import Portal from "svelte-portal";
   import { client } from "$lib/tools/client";
   import { goto } from "$app/navigation";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
 
   export let threadId: string;
   export let showOpenButton = true;
@@ -22,17 +22,16 @@
 
   function deleteThread() {
     client.delete(routes.thread(threadId)).then(() => {
-      console.log('Thread deleted');
+      console.log("Thread deleted");
     });
-    goto('/');
+    goto("/");
   }
-
 </script>
 
 {#if showOpenButton}
-<button use:popup={popupSettings}
-  ><Icon src={EllipsisVertical} micro class="w-4 mr-4" /></button
->
+  <button use:popup={popupSettings}
+    ><Icon src={EllipsisVertical} micro class="w-4 mr-4" /></button
+  >
 {/if}
 
 <Portal>

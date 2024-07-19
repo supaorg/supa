@@ -9,10 +9,19 @@
   import { client } from "$lib/tools/client";
   import { routes } from "@shared/routes/routes";
   import MarkdownMessage from "./markdown/MarkdownMessage.svelte";
+  import type { PopupSettings } from "@skeletonlabs/skeleton";
+  import { popup } from "@skeletonlabs/skeleton";
 
   export let message: ThreadMessage;
   export let threadId: string;
   export let isLastInThread = false;
+
+  const datePopupSettings: PopupSettings = {
+    event: "hover",
+    target: `popup-${message.id}`,
+    placement: "top",
+    state: (e: Record<string, boolean>) => console.log(e),
+  };
 
   let canRetry = false;
   let retrying = false;
@@ -34,12 +43,21 @@
     return dateInMs + 60000 < Date.now();
   }
 
-  function formatChatDate(dateInMs: number) {
+  function formatChatDateToTime(dateInMs: number) {
     const date = new Date(dateInMs);
     return date.toLocaleString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false, // Use 24-hour format
+    });
+  }
+
+  function formatChatDate(dateInMs: number) {
+    const date = new Date(dateInMs);
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
     });
   }
 
@@ -71,11 +89,21 @@
       {/if}
     </div>
   </div>
+  <div
+    class="card p-4 variant-filled-secondary z-10"
+    data-popup={`popup-${message.id}`}
+  >
+    <p>{formatChatDate(message.createdAt)}</p>
+    <div class="arrow variant-filled-secondary" />
+  </div>
   <div class="relative flex w-full flex-col flex-grow">
     <header class="flex justify-between items-center">
       {#if message.role === "user"}
         <p class="font-bold">You</p>
-        <small class="opacity-50">{formatChatDate(message.createdAt)}</small>
+        <button class="cursor-default" use:popup={datePopupSettings}
+          ><small class="opacity-50">{formatChatDateToTime(message.createdAt)}</small
+          ></button
+        >
       {:else if message.role === "assistant"}
         <p class="font-bold">AI</p>
       {:else}

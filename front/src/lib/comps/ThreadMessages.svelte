@@ -150,7 +150,7 @@
       unlistenMessages(threadId);
     }
 
-    if (scrollableElement) { 
+    if (scrollableElement) {
       scrollableElement.removeEventListener("scroll", handleScroll);
     }
   });

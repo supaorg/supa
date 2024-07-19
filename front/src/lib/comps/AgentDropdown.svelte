@@ -14,7 +14,7 @@
 
   const popupClick: PopupSettings = {
     event: "click",
-    target: "popupClick",
+    target: "agent-dropdown-popup",
     placement: "top",
   };
 
@@ -41,7 +41,7 @@
   <button class="btn" disabled>...</button>
 {/if}
 
-<div class="card variant-filled-surface" data-popup="popupClick">
+<div class="card variant-filled-surface" data-popup="agent-dropdown-popup">
   <div class="arrow variant-filled-surface" />
   <div class="btn-group-vertical">
     {#each $visibleAgentConfigStore as config (config.id)}
