@@ -1,3 +1,4 @@
+import { LangResultWithMessages } from "https://deno.land/x/aiwrapper@v0.0.20/src/lang/language-model.ts";
 import { AgentConfig, ThreadMessage } from "../../shared/models.ts";
 import { Agent, AgentInput, AgentOutput, AgentResponse } from "./agent.ts";
 
@@ -6,10 +7,13 @@ export interface AgentConfigForChat extends AgentConfig {
 }
 
 export class SimpleChatAgent extends Agent<AgentConfigForChat> {
+  hasStopped = false;
+
   async input(
     payload: AgentInput,
     onStream?: (output: AgentOutput) => void,
   ): Promise<AgentOutput> {
+    this.hasStopped = false;
     const messages = payload as ThreadMessage[];
 
     if (!this.services.db) {
@@ -39,12 +43,30 @@ export class SimpleChatAgent extends Agent<AgentConfigForChat> {
     ];
 
     const promptStartPerf = performance.now();
-    const finalResult = await lang.chat(remappedMessages, (res) => {
-      onStream?.(res.answer);
+    const finalResult: LangResultWithMessages = await new Promise<
+      LangResultWithMessages
+    >((resolve, reject) => {
+      lang.chat(remappedMessages, (res) => {
+        if (this.hasStopped) {
+          resolve(res);
+          return;
+        }
+
+        onStream?.(res.answer);
+      })
+        .then((res) => {
+          resolve(res);
+        })
+        .catch(reject);
     });
+
     const promptEndPerf = performance.now();
     console.log(`Prompt took ${promptEndPerf - promptStartPerf} milliseconds`);
 
     return finalResult.answer;
+  }
+
+  stop(): void {
+    this.hasStopped = true;
   }
 }

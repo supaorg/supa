@@ -12,6 +12,8 @@ import { ThreadTitleAgent } from "../agents/threadTitleAgent.ts";
 export function threadsController(services: BackServices) {
   const router = services.router;
 
+  const messageAgents: { [messageId: string]: SimpleChatAgent } = {};
+
   router
     .onGet(routes.threads, async (ctx) => {
       if (services.db === null) {
@@ -143,6 +145,50 @@ export function threadsController(services: BackServices) {
         return;
       }
     })
+    .onPost(routes.stopThread(), async (ctx) => {
+      if (services.db === null) {
+        ctx.error = services.getDbNotSetupError();
+        return;
+      }
+
+      const threadId = ctx.params.threadId;
+
+      let thread: Thread | null;
+      try {
+        thread = await services.db.getThread(threadId);
+      } catch (e) {
+        ctx.error = e;
+        return;
+      }
+
+      if (thread === null) {
+        ctx.error = "Thread doesn't exist";
+        return;
+      }
+
+      try {
+        const messages = await services.db.getThreadMessages(threadId);
+
+        // Only stop if the last message is from the AI
+        const replyMessage = messages[messages.length - 1];
+
+        if (replyMessage.role !== "assistant") {
+          ctx.error = "Can't stop the message";
+          return;
+        }
+
+        const agent = messageAgents[replyMessage.id];
+        if (!agent) {
+          ctx.error = "Agent not found";
+          return;
+        }
+
+        agent.stop();
+      } catch (e) {
+        ctx.error = e;
+        return;
+      }
+    })
     .onPost(routes.thread(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
@@ -234,6 +280,8 @@ export function threadsController(services: BackServices) {
 
       // Let's run the messages through the agent
       chatAgent = new SimpleChatAgent(agentServices, config);
+
+      messageAgents[replyMessage.id] = chatAgent;
     } catch (e) {
       console.error(e);
       return;

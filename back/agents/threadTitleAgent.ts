@@ -21,8 +21,8 @@ export class ThreadTitleAgent extends Agent<AgentConfigForChat> {
     const result = await lang.askForObject({
       title: "Create or Edit a Title",
       instructions: [
-        "Read the provided messages",
-        "Look if it already has a title. Decide if it is good or not",
+        "Read the provided message thread",
+        "Look if the thread already has a title. Decide if it is good or not",
         "If not, write a new short (1-3 words) title for a chat thread based on a provided conversation",
         "Be as concise as possible. Provide only the title, with no additional comments or explanations",
         "If decide to keep the existing title, return it as is",
@@ -40,5 +40,9 @@ export class ThreadTitleAgent extends Agent<AgentConfigForChat> {
     const answer = result.answerObj as { title: string };
 
     return answer.title;
+  }
+
+  stop(): void {
+    throw new Error("Method not implemented.");
   }
 }

@@ -11,10 +11,13 @@
   import {
     checkIfCanSendMessage,
     fetchThreadMessages,
+    getThreadStatus,
     listenToMessages,
     postNewMessage,
+    stopThread,
     threadsMessagesStore,
     unlistenMessages,
+    type ThreadStatus,
   } from "$lib/stores/threadMessagesStore";
 
   export let threadId: string;
@@ -67,6 +70,8 @@
     }
   }
 
+  let threadStatus: ThreadStatus;
+
   function fetchMessagesAndPossiblyJumpToBottom() {
     let jumpToBottom = !messages || messages.length === 0;
     let targetThreadId = threadId;
@@ -104,6 +109,8 @@
 
       prevThreadId = threadId;
     }
+
+    threadStatus = getThreadStatus(threadId);
   }
 
   async function scrollToBottom() {
@@ -143,6 +150,10 @@
 
     query = "";
     scrollToBottom();
+  }
+
+  async function stop() {
+    stopThread(threadId);
   }
 
   onDestroy(async () => {
@@ -211,7 +222,7 @@
     </div>
     <div class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 page-bg">
       <section class="p-2 pt-2">
-        <SendMessageForm onSend={sendMsg} disabled={!canSendMessage} />
+        <SendMessageForm onSend={sendMsg} onStop={stop} {threadStatus} />
       </section>
     </div>
   </div>

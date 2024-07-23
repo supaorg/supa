@@ -1,16 +1,22 @@
 <script lang="ts">
-  import { Icon, PaperAirplane } from "svelte-hero-icons";
+  import { Icon, PaperAirplane, Stop } from "svelte-hero-icons";
   import { focusTrap } from "@skeletonlabs/skeleton";
+  import {
+    THREAD_STATUS,
+    type ThreadStatus,
+  } from "$lib/stores/threadMessagesStore";
 
   export let onSend: (msg: string) => void;
+  export let onStop: () => void = () => {};
   export let onHeightChange: (height: number) => void = () => {};
   export let isFocused = true;
   export let placeholder = "Write a message...";
+  export let threadStatus: ThreadStatus = THREAD_STATUS.CAN_SEND_MESSAGE;
   export let disabled = false;
 
   let query = "";
 
-  function adjustTextareaHight(textarea: HTMLTextAreaElement) {
+  function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
     textarea.style.height = "1px"; // Temporarily shrink to get accurate scrollHeight
     const scrollHeight = textarea.scrollHeight;
     textarea.style.height = scrollHeight + "px";
@@ -26,17 +32,17 @@
 
     const textarea = event.target as HTMLTextAreaElement;
 
-    adjustTextareaHight(textarea);
+    adjustTextareaHeight(textarea);
   }
 
   function handleKeyupInChatInput(event: KeyboardEvent) {
     const textarea = event.target as HTMLTextAreaElement;
 
-    adjustTextareaHight(textarea);
+    adjustTextareaHeight(textarea);
   }
 
   async function sendMsg() {
-    if (disabled) {
+    if (disabled || threadStatus !== THREAD_STATUS.CAN_SEND_MESSAGE) {
       return;
     }
 
@@ -44,6 +50,15 @@
 
     query = "";
   }
+
+  async function stopMsg() {
+    if (threadStatus !== THREAD_STATUS.AI_MESSAGE_IN_PROGRESS) {
+      return;
+    }
+
+    onStop();
+  }
+  
 </script>
 
 <form use:focusTrap={isFocused}>
@@ -61,13 +76,23 @@
       on:keydown={handleKeydownInChatInput}
       on:keyup={handleKeyupInChatInput}
     />
-    <button
-      class={`btn btn-sm h-10 ${query ? "variant-filled-primary" : "input-group-shim"}`}
-      data-focusindex="1"
-      on:click={sendMsg}
-      {disabled}
-    >
-      <Icon src={PaperAirplane} mini class="w-4 h-4" />
-    </button>
+    {#if threadStatus === THREAD_STATUS.AI_MESSAGE_IN_PROGRESS}
+      <button
+        class={`btn btn-sm h-10 variant-filled-primary`}
+        data-focusindex="1"
+        on:click={stopMsg}
+      >
+        <Icon src={Stop} mini class="w-4 h-4" />
+      </button>
+    {:else}
+      <button
+        class={`btn btn-sm h-10 ${query ? "variant-filled-primary" : "input-group-shim"}`}
+        data-focusindex="1"
+        on:click={sendMsg}
+        disabled={disabled || threadStatus !== THREAD_STATUS.CAN_SEND_MESSAGE}
+      >
+        <Icon src={PaperAirplane} mini class="w-4 h-4" />
+      </button>
+    {/if}
   </div>
 </form>

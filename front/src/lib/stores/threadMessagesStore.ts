@@ -31,8 +31,8 @@ export async function postNewMessage(threadId: string, msg: ThreadMessage) {
   onPostOrUpdateChatMsg(threadId, msg);
 }
 
-export async function stopMessageInProgress(threadId: string, msgId: string) {
-  // TODO: send a message to the server to stop the message in progress
+export async function stopThread(threadId: string) {
+  client.post(routes.stopThread(threadId));
 }
 
 function onDeleteChatMsg(threadId: string, message: ThreadMessage) {
@@ -66,7 +66,7 @@ function onPostOrUpdateChatMsg(threadId: string, message: ThreadMessage) {
       if (!hasUpdatedMessage) {
         updMessages.push(message);
       }
-      
+
       dic[threadId] = updMessages;
     } else {
       dic[threadId] = [message];
@@ -95,36 +95,49 @@ export async function fetchThreadMessages(threadId: string): Promise<void> {
   });
 }
 
-export function checkIfCanSendMessage(threadId: string): boolean {
+export const THREAD_STATUS = {
+  DISABLED: "disabled",
+  CAN_SEND_MESSAGE: "can-send-message",
+  SENDING: "sending",
+  AI_MESSAGE_IN_PROGRESS: "ai-message-in-progress",
+  ERROR: "error",
+} as const;
+
+export type ThreadStatus = typeof THREAD_STATUS[keyof typeof THREAD_STATUS];
+
+export function getThreadStatus(
+  threadId: string,
+): ThreadStatus {
   const messages = get(threadsMessagesStore)[threadId];
 
   if (!messages) {
-    return false;
+    // @TODO: consider to allow sending messages if there are no messages array
+    return THREAD_STATUS.DISABLED;
   }
 
-  if (messages?.length === 0) {
-    return true;
+  if (messages.length === 0) {
+    return THREAD_STATUS.CAN_SEND_MESSAGE;
   }
 
   const lastMessage = messages[messages.length - 1];
 
-  const lastMessageIsByUser = lastMessage.role === "user";
-  if (lastMessageIsByUser) {
-    // Last message is by user, wait for the new request
-    return false;
+  if (lastMessage.role === "user") {
+    return THREAD_STATUS.SENDING;
   }
 
-  const lastMessageIsInProgress = lastMessage.inProgress;
-  if (lastMessageIsInProgress) {
-    // Last message is in progress, wait for it to finish
-    return false;
+  if (lastMessage.inProgress) {
+    return THREAD_STATUS.AI_MESSAGE_IN_PROGRESS;
   }
 
-  const lastMessageIsError = lastMessage.role === "error";
-  if (lastMessageIsError) {
-    // Last message is an error, wait for it to be resolved
-    return false;
+  if (lastMessage.role === "error") {
+    return THREAD_STATUS.ERROR;
   }
 
-  return true;
+  return THREAD_STATUS.CAN_SEND_MESSAGE;
+}
+
+export function checkIfCanSendMessage(threadId: string): boolean {
+  const status = getThreadStatus(threadId);
+
+  return status === "can-send-message";
 }

@@ -28,6 +28,8 @@ export abstract class Agent<TConfig> {
 
   abstract input(payload: AgentInput, onStream?: (output: AgentOutput) => void): Promise<AgentOutput>;
 
+  abstract stop(): void;
+
   getConfig(): TConfig {
     return this.config;
   }
