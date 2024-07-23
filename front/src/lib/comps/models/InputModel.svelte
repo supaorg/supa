@@ -1,10 +1,10 @@
 <script lang="ts">
   import { client } from "$lib/tools/client";
   import type { ModelProvider } from "@shared/models";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
-    import { ExclamationCircle, Icon } from "svelte-hero-icons";
+  import { ExclamationCircle, Icon } from "svelte-hero-icons";
 
   export let value: string;
   export let required: boolean = false;
@@ -31,6 +31,7 @@
   let providerId: string;
   let model: string;
   let provider: ModelProvider | null;
+  let isAutoProvider: boolean;
 
   function validate() {
     if (!value) {
@@ -64,6 +65,13 @@
       return;
     }
 
+    if (value === "auto") {
+      provider = null;
+      providerId = "auto";
+      model = "";
+      return;
+    }
+
     [providerId, model] = value.split("/");
 
     provider = null;
@@ -75,7 +83,24 @@
   }
 </script>
 
-{#if provider}
+{#if providerId === "auto"}
+  <div class="input variant-form-material">
+    <button
+      type="button"
+      class="flex p-4 gap-4 items-center cursor-pointer w-full"
+      on:click={onRequestChange}
+    >
+      <div
+        class="w-8 h-8 bg-white flex items-center justify-center rounded-token"
+      >
+        <img class="w-5/6" src='' alt='auto' />
+      </div>
+      <div class="">
+        <span class="font-semibold">Auto — gpt4o</span>
+      </div>
+    </button>
+  </div>
+{:else if provider}
   <div class="input variant-form-material">
     <button
       type="button"
@@ -94,8 +119,11 @@
   </div>
 {:else if !value}
   <div>
-    <button type="button" class="btn variant-filled" on:invalid={onInputInvalid} on:click={onRequestChange}
-      >Select a model</button
+    <button
+      type="button"
+      class="btn variant-filled"
+      on:invalid={onInputInvalid}
+      on:click={onRequestChange}>Select a model</button
     >
   </div>
 {:else}
@@ -104,7 +132,9 @@
   </div>
 {/if}
 {#if error}
-  <div class="flex intems-center mt-2 text-red-500 text-sm"><Icon src={ExclamationCircle} solid class="w-6 mr-2" /><span>{error}</span></div>
+  <div class="flex intems-center mt-2 text-red-500 text-sm">
+    <Icon src={ExclamationCircle} solid class="w-6 mr-2" /><span>{error}</span>
+  </div>
 {/if}
 <input
   bind:this={inputElement}
