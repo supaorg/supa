@@ -1,3 +1,6 @@
+/*
+ * Here we keep API routes that we can use both in the front and back
+ */
 export const routes = {
   root: "/",
 
@@ -21,14 +24,15 @@ export const routes = {
     `provider-configs/${providerId}/models`,
   validateProviderKey: (provider = ":provider") => `validate-key/${provider}`,
 
-  /* Agents */
-  agents: "apps",
-  agentConfigs: "app-configs",
-  agentConfig: (configId = ":configId") => `app-configs/${configId}`,
+  /* Apps */
+  apps: "apps",
+  appConfigs: "app-configs",
+  appConfig: (configId = ":configId") => `app-configs/${configId}`,
 
   /* Threads */
   threads: "threads",
   thread: (threadId = ":threadId") => `threads/${threadId}`,
   retryThread: (threadId = ":threadId") => `threads/${threadId}/messages/retry`,
+  stopThread: (threadId = ":threadId") => `threads/${threadId}/messages/stop`,
   threadMessages: (threadId = ":threadId") => `threads/${threadId}/messages`,
 };

@@ -21,7 +21,7 @@
   $: {
     const thread = $threadsStore.find((t) => t.id === threadId);
     if (thread) {
-      client.get(routes.agentConfig(thread.agentId)).then((res) => {
+      client.get(routes.appConfig(thread.agentId)).then((res) => {
         agent = res.data as AgentConfig;
       });
     }

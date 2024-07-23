@@ -6,7 +6,7 @@ export function agentController(services: BackServices) {
   const router = services.router;
 
   router
-    .onGet(routes.agentConfigs, async (ctx) => {
+    .onGet(routes.appConfigs, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -20,7 +20,7 @@ export function agentController(services: BackServices) {
         return;
       }
     })
-    .onGet(routes.agentConfig(), async (ctx) => {
+    .onGet(routes.appConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -36,7 +36,7 @@ export function agentController(services: BackServices) {
 
       ctx.response = agent;
     })
-    .onPost(routes.agentConfig(), async (ctx) => {
+    .onPost(routes.appConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -71,9 +71,9 @@ export function agentController(services: BackServices) {
       }
 
       
-      router.broadcastPost(routes.agentConfigs, config);
+      router.broadcastPost(routes.appConfigs, config);
     })
-    .onDelete(routes.agentConfig(), async (ctx) => {
+    .onDelete(routes.appConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -81,9 +81,9 @@ export function agentController(services: BackServices) {
 
       const configId = ctx.params.configId;
       await services.db.deleteAgent(configId);
-      router.broadcastDeletion(routes.agentConfigs, configId);
+      router.broadcastDeletion(routes.appConfigs, configId);
     })
-    .onPost(routes.agentConfigs, async (ctx) => {
+    .onPost(routes.appConfigs, async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -96,9 +96,9 @@ export function agentController(services: BackServices) {
 
       const config = ctx.data as AgentConfig;
       await services.db.insertAgent(config);
-      router.broadcastPost(routes.agentConfigs, config);
+      router.broadcastPost(routes.appConfigs, config);
     })
-    .onValidateBroadcast(routes.agentConfigs, (conn, params) => {
+    .onValidateBroadcast(routes.appConfigs, (conn, params) => {
       return true;
     });
 }

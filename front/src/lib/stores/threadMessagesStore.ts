@@ -31,6 +31,10 @@ export async function postNewMessage(threadId: string, msg: ThreadMessage) {
   onPostOrUpdateChatMsg(threadId, msg);
 }
 
+export async function stopMessageInProgress(threadId: string, msgId: string) {
+  // TODO: send a message to the server to stop the message in progress
+}
+
 function onDeleteChatMsg(threadId: string, message: ThreadMessage) {
   threadsMessagesStore.update((messages) => {
     const newMessages = { ...messages };

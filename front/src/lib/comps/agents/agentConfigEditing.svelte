@@ -22,7 +22,7 @@
       prevConfigId = configId;
       console.log("configId: " + configId);
       isNewAgent = false;
-      client.get(routes.agentConfig(configId)).then((response) => {
+      client.get(routes.appConfig(configId)).then((response) => {
         agentConfig = response.data as AgentConfig;
       });
 
@@ -52,14 +52,14 @@
     }
 
     if (isNewAgent) {
-      client.post(routes.agentConfigs, agentConfig).then((response) => {
+      client.post(routes.appConfigs, agentConfig).then((response) => {
         console.log("new agent: " + response);
       });
 
       goto("/agents");
     } else {
       client
-        .post(routes.agentConfig(agentConfig?.id), agentConfig)
+        .post(routes.appConfig(agentConfig?.id), agentConfig)
         .then((response) => {
           console.log("updated agent: " + response);
         });

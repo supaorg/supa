@@ -5,7 +5,7 @@ import type { AgentConfig } from "@shared/models";
 import { routes } from "@shared/routes/routes";
 
 export const agentConfigStore: Writable<AgentConfig[]> = localStorageStore(
-  routes.agentConfigs,
+  routes.appConfigs,
   [],
 );
 
@@ -22,7 +22,7 @@ agentConfigStore.subscribe((agents) => {
 });
 
 export async function createAgent() {
-  const agent = await client.post(routes.agentConfigs).then((res) => {
+  const agent = await client.post(routes.appConfigs).then((res) => {
     return res.data as AgentConfig;
   });
 
@@ -30,7 +30,7 @@ export async function createAgent() {
 }
 
 export async function loadAgentsFromServer() {
-  const agents = await client.get(routes.agentConfigs).then((res) => {
+  const agents = await client.get(routes.appConfigs).then((res) => {
     const agents = Array.isArray(res.data) ? res.data as AgentConfig[] : [];
     // sort by name
     agents.sort((a, b) => {
@@ -47,7 +47,7 @@ export async function loadAgentsFromServer() {
 
   agentConfigStore.set(agents);
 
-  client.on(routes.agentConfigs, (broadcast) => {
+  client.on(routes.appConfigs, (broadcast) => {
     if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
       const config = broadcast.data as AgentConfig;
 

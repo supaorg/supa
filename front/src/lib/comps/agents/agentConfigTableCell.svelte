@@ -23,7 +23,7 @@
     agent.meta = agent.meta || {};
     agent.meta.visible = visible ? "true" : "false";
 
-    client.post(routes.agentConfig(agent.id), agent).then((response) => {});
+    client.post(routes.appConfig(agent.id), agent).then((response) => {});
   }
 
   $: {
@@ -48,7 +48,7 @@
   }
 
   function deleteAgent() {
-    client.delete(routes.agentConfig(agent.id)).then((response) => {
+    client.delete(routes.appConfig(agent.id)).then((response) => {
       agentConfigStore.update((agents) => {
         return agents.filter((a) => a.id !== agent.id);
       });
