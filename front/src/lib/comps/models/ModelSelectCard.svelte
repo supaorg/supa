@@ -1,7 +1,7 @@
 <script lang="ts">
   import { client } from "$lib/tools/client";
   import type { ModelProvider } from "@shared/models";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
 
@@ -15,11 +15,9 @@
   let showModels = false;
 
   onMount(async () => {
-    models = await client
-      .get(routes.providerModel(provider.id))
-      .then((res) => {
-        return res.data as string[];
-      });
+    models = await client.get(routes.providerModel(provider.id)).then((res) => {
+      return res.data as string[];
+    });
   });
 
   function onProviderClick() {
@@ -66,7 +64,20 @@
       <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
     </div>
     <div class="flex flex-col space-y-4">
-      <span class="font-semibold">{provider.name}</span>
+      <div>
+        <span class="font-semibold">
+          {provider.name}
+        </span>
+        {#if selected && !showModels}
+          <span class="font-semibold">
+            — {modelId}&nbsp;
+          </span>
+          <button
+            class="btn btn-sm variant-filled"
+            on:click={() => (showModels = true)}>Change</button
+          >
+        {/if}
+      </div>
     </div>
   </button>
   <div>
@@ -83,14 +94,6 @@
               >
             {/each}
           </ListBox>
-        </div>
-      {:else}
-        <div class="p-4 flex gap-4 items-center">
-          <strong>{modelId}</strong>
-          <button
-            class="btn btn-sm variant-filled"
-            on:click={() => (showModels = true)}>Change</button
-          >
         </div>
       {/if}
     {/if}
