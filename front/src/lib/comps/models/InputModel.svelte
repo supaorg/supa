@@ -4,7 +4,7 @@
   import { routes } from "@shared/routes/routes";
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
-  import { ExclamationCircle, Icon } from "svelte-hero-icons";
+  import { ExclamationCircle, Icon, Sparkles } from "svelte-hero-icons";
 
   export let value: string;
   export let required: boolean = false;
@@ -90,10 +90,8 @@
       class="flex p-4 gap-4 items-center cursor-pointer w-full"
       on:click={onRequestChange}
     >
-      <div
-        class="w-8 h-8 bg-white flex items-center justify-center rounded-token"
-      >
-        <img class="w-5/6" src='' alt='auto' />
+      <div class="w-8 h-8 flex items-center justify-center rounded-token">
+        <Icon src={Sparkles} class="w-5/6" />
       </div>
       <div class="">
         <span class="font-semibold">Auto — gpt4o</span>

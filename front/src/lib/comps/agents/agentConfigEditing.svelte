@@ -37,6 +37,7 @@
         description: "",
         instructions: "",
         button: "",
+        targetLLM: "auto"
       } as AgentConfig;
     }
   }
