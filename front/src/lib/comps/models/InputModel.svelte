@@ -31,7 +31,6 @@
   let providerId: string;
   let model: string;
   let provider: ModelProvider | null;
-  let isAutoProvider: boolean;
 
   function validate() {
     if (!value) {
@@ -65,14 +64,15 @@
       return;
     }
 
-    if (value === "auto") {
+    [providerId, model] = value.split("/");
+
+    if (providerId === "auto") {
       provider = null;
       providerId = "auto";
       model = "";
+      validate();
       return;
     }
-
-    [providerId, model] = value.split("/");
 
     provider = null;
     provider = await client

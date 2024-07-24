@@ -14,7 +14,7 @@ export class AgentServices {
     let modelProvider: string;
     let modelName: string;
 
-    if (model) {
+    if (model && model != 'auto/') {
       const modelSplit = model.split("/");
       if (modelSplit.length !== 2) {
         throw new Error("Invalid model name");
