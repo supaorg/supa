@@ -2,7 +2,7 @@
   import { ProgressRadial, Step, Stepper } from "@skeletonlabs/skeleton";
   import { client } from "$lib/tools/client";
   import { CheckCircle, Icon } from "svelte-hero-icons";
-  import { profileStore } from "$lib/stores/profile";
+  import { profileStore } from "$lib/stores/profileStore";
   import type { ModelProvider, Profile } from "@shared/models";
   import ModelProviders from "../models/ModelProviders.svelte";
   import { routes } from "@shared/routes/routes"

@@ -56,8 +56,8 @@
   }
 </script>
 
-<tr>
-  <td
+<tr class="table-row">
+  <td class="py-2"
     ><a href={"/apps/edit-config?id=" + agent.id} class="w-full h-full block"
       ><strong>{agent.name}</strong><br />{agent.description}</a
     ></td

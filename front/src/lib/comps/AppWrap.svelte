@@ -28,7 +28,7 @@
     arrow,
   } from "@floating-ui/dom";
   import SetupWizard from "./profile-setup/SetupWizard.svelte";
-  import { profileStore, loadProfileFromServer } from "$lib/stores/profile";
+  import { profileStore, loadProfileFromServer } from "$lib/stores/profileStore";
   import { loadAgentsFromServer } from "$lib/stores/agentStore";
   import { storeHighlightJs } from "@skeletonlabs/skeleton";
   // For code highlighting in conversations
