@@ -6,6 +6,7 @@
   import { client } from "$lib/tools/client";
   import { goto } from "$app/navigation";
   import { routes } from "@shared/routes/routes";
+    import { threadsStore } from "$lib/stores/threadStore";
 
   export let threadId: string;
   export let showOpenButton = true;
@@ -23,6 +24,9 @@
   function deleteThread() {
     client.delete(routes.thread(threadId)).then(() => {
       console.log("Thread deleted");
+    });
+    threadsStore.update((threads) => {
+      return threads.filter((t) => t.id !== threadId);
     });
     goto("/");
   }
