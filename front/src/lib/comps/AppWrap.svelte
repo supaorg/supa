@@ -133,7 +133,7 @@
   <AppShell>
     <svelte:fragment slot="sidebarLeft">
       <div
-        class="hidden md:block h-full light:bg-surface-100 dark:bg-surface-900-token border-r dark:border-surface-500/30"
+        class="hidden md:block h-full border-r border-surface-200-700-token"
         style="width: 260px;"
       >
         <Sidebar />

@@ -3,99 +3,99 @@ import type { CustomThemeConfig } from "@skeletonlabs/tw-plugin";
 export const supamindTheme: CustomThemeConfig = {
   name: "supamindTheme",
   properties: {
-    // =~= Theme Properties =~=
-    "--theme-font-family-base": `system-ui`,
-    "--theme-font-family-heading": `system-ui`,
-    "--theme-font-color-base": "0 0 0",
-    "--theme-font-color-dark": "var(--color-surface-100)",
-    "--theme-rounded-base": "4px",
-    "--theme-rounded-container": "4px",
-    "--theme-border-base": "1px",
-    // =~= Theme On-X Colors =~=
-    "--on-primary": "0 0 0",
-    "--on-secondary": "0 0 0",
-    "--on-tertiary": "0 0 0",
-    "--on-success": "0 0 0",
-    "--on-warning": "0 0 0",
-    "--on-error": "255 255 255",
-    "--on-surface": "255 255 255",
-    // =~= Theme Colors  =~=
-    // primary | #74AA9C
-    "--color-primary-50": "234 242 240", // #eaf2f0
-    "--color-primary-100": "227 238 235", // #e3eeeb
-    "--color-primary-200": "220 234 230", // #dceae6
-    "--color-primary-300": "199 221 215", // #c7ddd7
-    "--color-primary-400": "158 196 186", // #9ec4ba
-    "--color-primary-500": "116 170 156", // #74AA9C
-    "--color-primary-600": "104 153 140", // #68998c
-    "--color-primary-700": "87 128 117", // #578075
-    "--color-primary-800": "70 102 94", // #46665e
-    "--color-primary-900": "57 83 76", // #39534c
-    // secondary | #b59278
-    "--color-secondary-50": "244 239 235", // #f4efeb
-    "--color-secondary-100": "240 233 228", // #f0e9e4
-    "--color-secondary-200": "237 228 221", // #ede4dd
-    "--color-secondary-300": "225 211 201", // #e1d3c9
-    "--color-secondary-400": "203 179 161", // #cbb3a1
-    "--color-secondary-500": "181 146 120", // #b59278
-    "--color-secondary-600": "163 131 108", // #a3836c
-    "--color-secondary-700": "136 110 90", // #886e5a
-    "--color-secondary-800": "109 88 72", // #6d5848
-    "--color-secondary-900": "89 72 59", // #59483b
-    // tertiary | #baa5c3
-    "--color-tertiary-50": "245 242 246", // #f5f2f6
-    "--color-tertiary-100": "241 237 243", // #f1edf3
-    "--color-tertiary-200": "238 233 240", // #eee9f0
-    "--color-tertiary-300": "227 219 231", // #e3dbe7
-    "--color-tertiary-400": "207 192 213", // #cfc0d5
-    "--color-tertiary-500": "186 165 195", // #baa5c3
-    "--color-tertiary-600": "167 149 176", // #a795b0
-    "--color-tertiary-700": "140 124 146", // #8c7c92
-    "--color-tertiary-800": "112 99 117", // #706375
-    "--color-tertiary-900": "91 81 96", // #5b5160
-    // success | #19ae86
-    "--color-success-50": "221 243 237", // #ddf3ed
-    "--color-success-100": "209 239 231", // #d1efe7
-    "--color-success-200": "198 235 225", // #c6ebe1
-    "--color-success-300": "163 223 207", // #a3dfcf
-    "--color-success-400": "94 198 170", // #5ec6aa
-    "--color-success-500": "25 174 134", // #19ae86
-    "--color-success-600": "23 157 121", // #179d79
-    "--color-success-700": "19 131 101", // #138365
-    "--color-success-800": "15 104 80", // #0f6850
-    "--color-success-900": "12 85 66", // #0c5542
-    // warning | #ffb938
-    "--color-warning-50": "255 245 225", // #fff5e1
-    "--color-warning-100": "255 241 215", // #fff1d7
-    "--color-warning-200": "255 238 205", // #ffeecd
-    "--color-warning-300": "255 227 175", // #ffe3af
-    "--color-warning-400": "255 206 116", // #ffce74
-    "--color-warning-500": "255 185 56", // #ffb938
-    "--color-warning-600": "230 167 50", // #e6a732
-    "--color-warning-700": "191 139 42", // #bf8b2a
-    "--color-warning-800": "153 111 34", // #996f22
-    "--color-warning-900": "125 91 27", // #7d5b1b
-    // error | #830101
-    "--color-error-50": "236 217 217", // #ecd9d9
-    "--color-error-100": "230 204 204", // #e6cccc
-    "--color-error-200": "224 192 192", // #e0c0c0
-    "--color-error-300": "205 153 153", // #cd9999
-    "--color-error-400": "168 77 77", // #a84d4d
-    "--color-error-500": "131 1 1", // #830101
-    "--color-error-600": "118 1 1", // #760101
-    "--color-error-700": "98 1 1", // #620101
-    "--color-error-800": "79 1 1", // #4f0101
-    "--color-error-900": "64 0 0", // #400000
-    // surface | #171717
-    "--color-surface-50": "255 255 255", // #ffffff
-    "--color-surface-100": "230 230 230", // #e6e6e6
-    "--color-surface-200": "197 197 197", // #c5c5c5
-    "--color-surface-300": "162 162 162", // #a2a2a2
-    "--color-surface-400": "93 93 93", // #5d5d5d
-    "--color-surface-500": "23 23 23", // #171717
-    "--color-surface-600": "21 21 21", // #151515
-    "--color-surface-700": "17 17 17", // #111111
-    "--color-surface-800": "14 14 14", // #0e0e0e
-    "--color-surface-900": "11 11 11", // #0b0b0b
+		// =~= Theme Properties =~=
+		"--theme-font-family-base": `system-ui`,
+		"--theme-font-family-heading": `system-ui`,
+		"--theme-font-color-base": "0 0 0",
+		"--theme-font-color-dark": "255 255 255",
+		"--theme-rounded-base": "4px",
+		"--theme-rounded-container": "4px",
+		"--theme-border-base": "1px",
+		// =~= Theme On-X Colors =~=
+		"--on-primary": "0 0 0",
+		"--on-secondary": "255 255 255",
+		"--on-tertiary": "0 0 0",
+		"--on-success": "0 0 0",
+		"--on-warning": "0 0 0",
+		"--on-error": "255 255 255",
+		"--on-surface": "255 255 255",
+		// =~= Theme Colors  =~=
+		// primary | #07a9df 
+		"--color-primary-50": "218 242 250", // #daf2fa
+		"--color-primary-100": "205 238 249", // #cdeef9
+		"--color-primary-200": "193 234 247", // #c1eaf7
+		"--color-primary-300": "156 221 242", // #9cddf2
+		"--color-primary-400": "81 195 233", // #51c3e9
+		"--color-primary-500": "7 169 223", // #07a9df
+		"--color-primary-600": "6 152 201", // #0698c9
+		"--color-primary-700": "5 127 167", // #057fa7
+		"--color-primary-800": "4 101 134", // #046586
+		"--color-primary-900": "3 83 109", // #03536d
+		// secondary | #07555f 
+		"--color-secondary-50": "218 230 231", // #dae6e7
+		"--color-secondary-100": "205 221 223", // #cddddf
+		"--color-secondary-200": "193 213 215", // #c1d5d7
+		"--color-secondary-300": "156 187 191", // #9cbbbf
+		"--color-secondary-400": "81 136 143", // #51888f
+		"--color-secondary-500": "7 85 95", // #07555f
+		"--color-secondary-600": "6 77 86", // #064d56
+		"--color-secondary-700": "5 64 71", // #054047
+		"--color-secondary-800": "4 51 57", // #043339
+		"--color-secondary-900": "3 42 47", // #032a2f
+		// tertiary | #b588ce 
+		"--color-tertiary-50": "244 237 248", // #f4edf8
+		"--color-tertiary-100": "240 231 245", // #f0e7f5
+		"--color-tertiary-200": "237 225 243", // #ede1f3
+		"--color-tertiary-300": "225 207 235", // #e1cfeb
+		"--color-tertiary-400": "203 172 221", // #cbacdd
+		"--color-tertiary-500": "181 136 206", // #b588ce
+		"--color-tertiary-600": "163 122 185", // #a37ab9
+		"--color-tertiary-700": "136 102 155", // #88669b
+		"--color-tertiary-800": "109 82 124", // #6d527c
+		"--color-tertiary-900": "89 67 101", // #594365
+		// success | #84cc16 
+		"--color-success-50": "237 247 220", // #edf7dc
+		"--color-success-100": "230 245 208", // #e6f5d0
+		"--color-success-200": "224 242 197", // #e0f2c5
+		"--color-success-300": "206 235 162", // #ceeba2
+		"--color-success-400": "169 219 92", // #a9db5c
+		"--color-success-500": "132 204 22", // #84cc16
+		"--color-success-600": "119 184 20", // #77b814
+		"--color-success-700": "99 153 17", // #639911
+		"--color-success-800": "79 122 13", // #4f7a0d
+		"--color-success-900": "65 100 11", // #41640b
+		// warning | #EAB308 
+		"--color-warning-50": "252 244 218", // #fcf4da
+		"--color-warning-100": "251 240 206", // #fbf0ce
+		"--color-warning-200": "250 236 193", // #faecc1
+		"--color-warning-300": "247 225 156", // #f7e19c
+		"--color-warning-400": "240 202 82", // #f0ca52
+		"--color-warning-500": "234 179 8", // #EAB308
+		"--color-warning-600": "211 161 7", // #d3a107
+		"--color-warning-700": "176 134 6", // #b08606
+		"--color-warning-800": "140 107 5", // #8c6b05
+		"--color-warning-900": "115 88 4", // #735804
+		// error | #943333 
+		"--color-error-50": "239 224 224", // #efe0e0
+		"--color-error-100": "234 214 214", // #ead6d6
+		"--color-error-200": "228 204 204", // #e4cccc
+		"--color-error-300": "212 173 173", // #d4adad
+		"--color-error-400": "180 112 112", // #b47070
+		"--color-error-500": "148 51 51", // #943333
+		"--color-error-600": "133 46 46", // #852e2e
+		"--color-error-700": "111 38 38", // #6f2626
+		"--color-error-800": "89 31 31", // #591f1f
+		"--color-error-900": "73 25 25", // #491919
+		// surface | #292929 
+		"--color-surface-50": "223 223 223", // #dfdfdf
+		"--color-surface-100": "212 212 212", // #d4d4d4
+		"--color-surface-200": "202 202 202", // #cacaca
+		"--color-surface-300": "169 169 169", // #a9a9a9
+		"--color-surface-400": "105 105 105", // #696969
+		"--color-surface-500": "41 41 41", // #292929
+		"--color-surface-600": "37 37 37", // #252525
+		"--color-surface-700": "31 31 31", // #1f1f1f
+		"--color-surface-800": "25 25 25", // #191919
+		"--color-surface-900": "20 20 20", // #141414
   },
 };
