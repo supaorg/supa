@@ -1,6 +1,6 @@
 <script lang="ts">
   import ThreadsInSidebar from "./ThreadsInSidebar.svelte";
-  import { Icon, SquaresPlus } from "svelte-hero-icons";
+  import { Cog6Tooth, Icon, SquaresPlus } from "svelte-hero-icons";
   import AgentConfigs from "./AgentConfigs.svelte";
 </script>
 
@@ -20,6 +20,13 @@
     <ThreadsInSidebar />
   </div>
   <div class="min-h-min">
-   <!--@TODO: settings button-->
+    <a href="/settings" class="sidebar-btn w-full flex">
+      <span class="w-8 h-8 flex-shrink-0">
+        <span class="relative flex h-full items-center justify-center">
+          <Icon src={Cog6Tooth} mini class="w-6" />
+        </span>
+      </span>
+      <span class="flex-grow text-left">Settings</span>
+    </a>
   </div>
 </div>
