@@ -190,9 +190,9 @@
   }
 </script>
 
-<div class="flex flex-col h-screen">
+<div class="flex flex-col h-screen px-2">
   <div class="min-h-min">
-    <div class="flex flex-1 gap-2 items-center p-2">
+    <div class="flex flex-1 gap-2 items-center py-2">
       <AgentDropdown {threadId} />
       {#if thread.title}
         <h3 class="text-lg">{thread.title}</h3>
