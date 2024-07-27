@@ -6,7 +6,7 @@
   import InputModel from "../models/InputModel.svelte";
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
-    import { routes } from "@shared/routes/routes";
+  import { routes } from "@shared/routes/routes";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
@@ -37,7 +37,7 @@
         description: "",
         instructions: "",
         button: "",
-        targetLLM: "auto"
+        targetLLM: "auto",
       } as AgentConfig;
     }
   }

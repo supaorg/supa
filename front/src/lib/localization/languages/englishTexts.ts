@@ -33,4 +33,8 @@ export const englishTexts: Texts = {
     errorValidationRequired: "This field is required",
     errorAgentLoadFailure: "Failed to load app config",
   },
+
+  settingsPage: {
+    title: "Settings",
+  }
 };

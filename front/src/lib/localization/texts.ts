@@ -30,4 +30,8 @@ export interface Texts {
     errorValidationRequired: string;
     errorAgentLoadFailure: string;
   }
+
+  settingsPage: {
+    title: string;
+  }
 }
