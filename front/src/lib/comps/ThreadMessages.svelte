@@ -190,8 +190,8 @@
   }
 </script>
 
-<div class="flex flex-col h-screen px-2">
-  <div class="min-h-min">
+<div class="flex flex-col h-screen">
+  <div class="min-h-min px-2">
     <div class="flex flex-1 gap-2 items-center py-2">
       <AgentDropdown {threadId} />
       {#if thread.title}
@@ -216,7 +216,7 @@
       {/each}
     {/if}
   </div>
-  <div class="min-h-min">
+  <div class="min-h-min px-2">
     <section class="max-w-3xl mx-auto py-2">
       <SendMessageForm onSend={sendMsg} onStop={stop} {threadStatus} />
     </section>
