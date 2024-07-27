@@ -30,7 +30,7 @@
   let isAutoScrolling = false;
   let scrollTimeout;
   let stickToBottom = true;
-  const mainScrollableId = "page";
+  const mainScrollableId = "chat-messanges-scrollable";
   let scrollableElement: HTMLElement | null = null;
 
   threadsMessagesStore.subscribe((dic) => {
@@ -116,7 +116,9 @@
   async function scrollToBottom() {
     isAutoScrolling = true;
     await tick();
-    const pageElement = document.getElementById("page") as HTMLElement;
+    const pageElement = document.getElementById(
+      mainScrollableId,
+    ) as HTMLElement;
     pageElement.scrollTo(0, pageElement.scrollHeight);
 
     clearTimeout(scrollTimeout);
@@ -188,42 +190,35 @@
   }
 </script>
 
-<div class="flex flex-col h-full">
-  <div
-    class="sticky top-0 page-bg z-10 px-4 py-2 flex flex-1 gap-2 items-center"
-  >
-    <AgentDropdown {threadId} />
-    {#if thread.title}
-      <h3 class="text-lg">{thread.title}</h3>
+<div class="flex flex-col h-screen">
+  <div class="min-h-min">
+    <div class="flex flex-1 gap-2 items-center p-2">
+      <AgentDropdown {threadId} />
+      {#if thread.title}
+        <h3 class="text-lg">{thread.title}</h3>
+      {/if}
+    </div>
+  </div>
+  <div class="flex-grow overflow-y-auto pt-2" id="chat-messanges-scrollable">
+    {#if !messages}
+      <div class="flex items-center justify-center">
+        <ProgressRadial class="w-10" />
+      </div>
+    {:else}
+      {#each messages as message (message.id)}
+        <div class="w-full max-w-3xl mx-auto">
+          <ThreadMessage
+            {message}
+            {threadId}
+            isLastInThread={message.id === messages[messages.length - 1].id}
+          />
+        </div>
+      {/each}
     {/if}
   </div>
-  <div
-    class="flex w-full h-full flex-col max-w-3xl mx-auto justify-center items-center"
-  >
-    <div class="flex-1 w-full overflow-hidden">
-      <section
-        class="w-full overflow-y-auto space-y-4 pb-4 p-4"
-        bind:this={chatWrapperElement}
-      >
-        {#if !messages}
-          <div class="flex items-center justify-center">
-            <ProgressRadial class="w-10" />
-          </div>
-        {:else}
-          {#each messages as message (message.id)}
-            <ThreadMessage
-              {message}
-              {threadId}
-              isLastInThread={message.id === messages[messages.length - 1].id}
-            />
-          {/each}
-        {/if}
-      </section>
-    </div>
-    <div class="w-full max-w-3xl mx-auto sticky inset-x-0 bottom-0 page-bg">
-      <section class="p-2 pt-2">
-        <SendMessageForm onSend={sendMsg} onStop={stop} {threadStatus} />
-      </section>
-    </div>
+  <div class="min-h-min">
+    <section class="max-w-3xl mx-auto py-2">
+      <SendMessageForm onSend={sendMsg} onStop={stop} {threadStatus} />
+    </section>
   </div>
 </div>
