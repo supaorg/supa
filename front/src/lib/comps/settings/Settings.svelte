@@ -29,6 +29,10 @@
         placeholder=""
       />
     </label>
+    <label class="label">
+      <span>Theme color</span>
+      ...
+    </label>
   </form>
 </div>
 

@@ -206,7 +206,7 @@
       </div>
     {:else}
       {#each messages as message (message.id)}
-        <div class="w-full max-w-3xl mx-auto">
+        <div class="w-full max-w-3xl mx-auto px-2">
           <ThreadMessage
             {message}
             {threadId}
@@ -216,8 +216,8 @@
       {/each}
     {/if}
   </div>
-  <div class="min-h-min px-2">
-    <section class="max-w-3xl mx-auto py-2">
+  <div class="min-h-min">
+    <section class="max-w-3xl mx-auto py-2 px-2">
       <SendMessageForm onSend={sendMsg} onStop={stop} {threadStatus} />
     </section>
   </div>

@@ -41,9 +41,9 @@
   <button class="btn" disabled>...</button>
 {/if}
 
-<div class="card variant-filled-surface" data-popup="agent-dropdown-popup">
-  <div class="arrow variant-filled-surface" />
-  <div class="btn-group-vertical">
+<div class="card shadow-xl z-10" data-popup="agent-dropdown-popup">
+  <div class="arrow variant-filled" />
+  <div class="btn-group-vertical variant-filled">
     {#each $visibleAgentConfigStore as config (config.id)}
       <button
         class="btn"
