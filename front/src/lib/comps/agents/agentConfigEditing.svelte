@@ -57,7 +57,7 @@
         console.log("new agent: " + response);
       });
 
-      goto("/agents");
+      goto("/apps");
     } else {
       client
         .post(routes.appConfig(agentConfig?.id), agentConfig)

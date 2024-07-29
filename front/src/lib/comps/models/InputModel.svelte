@@ -38,7 +38,7 @@
       return;
     }
 
-    if (value.split("/").length !== 2) {
+    if (value !== 'auto' && value.split("/").length !== 2) {
       inputElement.setCustomValidity("Invalid model:" + value);
       return;
     }
