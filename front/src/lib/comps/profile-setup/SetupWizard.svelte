@@ -61,10 +61,12 @@
         Llama3.1 (from Groq or Ollama). You can set up several providers and
         later choose which model to use.
       </p>
-      <ModelProviders
-        onConnect={onProviderConnect}
-        onDisconnect={onProviderDisconnect}
-      />
+      <div class="relative">
+        <ModelProviders
+          onConnect={onProviderConnect}
+          onDisconnect={onProviderDisconnect}
+        />
+      </div>
     </Step>
   </Stepper>
 </div>
