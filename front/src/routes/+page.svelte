@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import ThreadMessages from "$lib/comps/ThreadMessages.svelte";
+  import CenteredPage from "$lib/comps/CenteredPage.svelte";
 
   let threadId: string | null = null;
 
@@ -26,6 +27,13 @@
 {#if threadId}
   <ThreadMessages {threadId} />
 {:else}
-  <h1 class="h1">Welcome!</h1>
-  <p>Press on that button on the left to start a chat with AI.</p>
+  <CenteredPage>
+    <h1 class="h1 mb-4">Welcome to Supamind</h1>
+    <p>
+      Press on "Ask AI" in the left column to chat with the default assistant or <a
+        href="/apps"
+        class="anchor">create your own</a
+      >.
+    </p>
+  </CenteredPage>
 {/if}
