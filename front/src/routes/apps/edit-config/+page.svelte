@@ -14,6 +14,13 @@
 </script>
 
 <CenteredPage>
+  <ol class="breadcrumb mb-4">
+    <li class="crumb">
+      <a class="anchor" href="/apps">Apps</a>
+    </li>
+    <li class="crumb-separator" aria-hidden="true">&rsaquo;</li>
+    <li>Editing Config</li>
+  </ol>
   {#if configId}
     <AgentConfigEditing {configId} />
   {/if}

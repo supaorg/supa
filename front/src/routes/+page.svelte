@@ -31,7 +31,7 @@
     <h1 class="h1 mb-4">Welcome to Supamind</h1>
     <p>
       Press on "Ask AI" in the left column to chat with the default assistant or <a
-        href="/apps"
+        href="/apps/new-config"
         class="anchor">create your own</a
       >.
     </p>

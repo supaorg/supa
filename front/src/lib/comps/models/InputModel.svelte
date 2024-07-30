@@ -38,7 +38,7 @@
       return;
     }
 
-    if (value !== 'auto' && value.split("/").length !== 2) {
+    if (value !== "auto" && value.split("/").length !== 2) {
       inputElement.setCustomValidity("Invalid model:" + value);
       return;
     }
@@ -83,7 +83,7 @@
   }
 </script>
 
-{#if providerId === "auto"}
+{#if !providerId || providerId === "auto"}
   <div class="input variant-form-material">
     <button
       type="button"
@@ -115,6 +115,7 @@
       </div>
     </button>
   </div>
+  <!--  
 {:else if !value}
   <div>
     <button
@@ -124,6 +125,7 @@
       on:click={onRequestChange}>Select a model</button
     >
   </div>
+  -->
 {:else}
   <div class="input variant-form-material">
     <ProgressRadial class="w-6" />
