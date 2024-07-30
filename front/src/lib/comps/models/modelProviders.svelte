@@ -24,30 +24,32 @@
   });
 </script>
 
-<div class="grid grid-cols-2 gap-4">
-  {#each providers as provider (provider.id)}
-    <ModelProviderCard {provider} {onConnect} {onDisconnect} {onHow} />
-  {/each}
-</div>
-{#if showHowForProvider}
-  <div
-    class="absolute card shadow-lg w-full h-full top-0 left-0 overflow-hidden"
-  >
-    <div class="h-full overflow-y-auto p-4">
-      <h4 class="h4 mb-4">How to setup {showHowForProvider.name}</h4>
-      <p>Here's how to setup</p>
+<div class="relative">
+  <div class="grid grid-cols-2 gap-4">
+    {#each providers as provider (provider.id)}
+      <ModelProviderCard {provider} {onConnect} {onDisconnect} {onHow} />
+    {/each}
+  </div>
+  {#if showHowForProvider}
+    <div
+      class="absolute card shadow-lg w-full h-full top-0 left-0 overflow-hidden"
+    >
+      <div class="h-full overflow-y-auto p-4">
+        <h4 class="h4 mb-4">How to setup {showHowForProvider.name}</h4>
+        <p>Here's how to setup</p>
+        <button
+          class="btn variant-ringed mt-4"
+          on:click={() => {
+            showHowForProvider = null;
+          }}>Ok</button
+        >
+      </div>
       <button
-        class="btn variant-ringed mt-4"
+        class="absolute top-4 right-4"
         on:click={() => {
           showHowForProvider = null;
-        }}>Ok</button
+        }}><Icon src={XCircle} class="w-6 h-6" micro /></button
       >
     </div>
-    <button
-      class="absolute top-4 right-4"
-      on:click={() => {
-        showHowForProvider = null;
-      }}><Icon src={XCircle} class="w-6 h-6" micro /></button
-    >
-  </div>
-{/if}
+  {/if}
+</div>
