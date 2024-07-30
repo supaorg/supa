@@ -94,7 +94,7 @@
         <Icon src={Sparkles} class="w-5/6" />
       </div>
       <div class="">
-        <span class="font-semibold">Auto — gpt4o</span>
+        <span class="font-semibold">Auto</span>
       </div>
     </button>
   </div>

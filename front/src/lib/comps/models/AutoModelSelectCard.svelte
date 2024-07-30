@@ -39,7 +39,7 @@
       <div>
         <span class="font-semibold"> Auto </span>
         {#if selected}
-          <span class="font-semibold"> — gpt4 </span>
+          <span class="font-semibold"></span>
         {/if}
       </div>
     </div>
