@@ -190,7 +190,7 @@
   }
 </script>
 
-<div class="flex flex-col h-screen">
+<div class="flex flex-col w-full h-full overflow-hidden">
   <div class="min-h-min px-2">
     <div class="flex flex-1 gap-4 items-center py-2">
       <AgentDropdown {threadId} />
@@ -206,7 +206,7 @@
       </div>
     {:else}
       {#each messages as message (message.id)}
-        <div class="w-full max-w-3xl mx-auto px-2">
+        <div class="w-full max-w-3xl mx-auto px-4">
           <ThreadMessage
             {message}
             {threadId}
