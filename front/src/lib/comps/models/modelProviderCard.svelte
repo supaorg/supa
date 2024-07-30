@@ -22,6 +22,7 @@
   export let provider: ModelProvider;
   export let onConnect: (provider: ModelProvider) => void = () => {};
   export let onDisconnect: (provider: ModelProvider) => void = () => {};
+  export let onHow: (provider: ModelProvider) => void = () => {};
 
   let config: ModelProviderConfig | null;
 
@@ -93,11 +94,11 @@
   <a
     href={provider.url}
     target="_blank"
-    class="w-16 h-16 bg-white flex items-center justify-center rounded-token"
+    class="w-16 h-16 bg-white flex flex-shrink-0 items-center justify-center rounded-token"
   >
     <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
   </a>
-  <div class="flex flex-col space-y-4">
+  <div class="flex flex-col flex-grow space-y-4">
     <span
       ><a href={provider.url} target="_blank" class="font-semibold"
         >{provider.name}</a
@@ -106,10 +107,16 @@
         >{/if}
     </span>
     {#if state === "disconnected"}
-      <button
-        class="btn btn-md variant-filled"
-        on:click={() => (state = "connecting")}>Connect</button
-      >
+      <div class="flex flex-grow gap-2">
+        <button
+          class="btn btn-md variant-filled flex-grow"
+          on:click={() => (state = "connecting")}>Connect</button
+        >
+        <button
+          class="btn btn-md variant-ringed"
+          on:click={() => onHow(provider)}>How?</button
+        >
+      </div>
     {:else if state === "invalid-key"}
       <button
         class="btn btn-md variant-filled"
@@ -123,6 +130,11 @@
             state = "connected";
             onConnect?.(provider);
             saveCloudProviderWithApiKey(key);
+          }}
+          onBlur={(key) => {
+            if (!key) {
+              state = "disconnected";
+            }
           }}
         />
       {:else}

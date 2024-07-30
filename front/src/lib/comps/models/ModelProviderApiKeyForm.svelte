@@ -7,6 +7,7 @@
 
   export let id: string;
   export let onValidKey: (key: string) => void;
+  export let onBlur: (key: string) => void = () => {};
 
   let apiKey = "";
   let apiKeyIsValid = false;
@@ -33,6 +34,10 @@
     }, 500);
   }
 
+  function handleBlur() {
+    onBlur(apiKey);
+  }
+
   onMount(() => {
     if (inputElement) {
       inputElement.focus();
@@ -42,7 +47,6 @@
   let showWarning = false;
 
   $: showWarning = !checkingKey && !apiKeyIsValid && apiKey.length > 6;
-
 </script>
 
 <div
@@ -51,16 +55,22 @@
   class:input-warning={showWarning}
 >
   <input
+    class="w-full"
     type="password"
     bind:value={apiKey}
     bind:this={inputElement}
     on:input={handleApiKeyChange}
+    on:blur={handleBlur}
   />
   {#if apiKeyIsValid}
-    <span class="absolute right-0"><Icon src={CheckCircle} solid class="w-6 mt-2 ml-2 mr-2" /></span>
+    <span class="absolute right-0"
+      ><Icon src={CheckCircle} solid class="w-6 mt-2 ml-2 mr-2" /></span
+    >
   {:else if checkingKey}
     <span class="absolute right-0"><ProgressRadial class="w-6 m-2" /></span>
   {:else if showWarning}
-  <span class="absolute right-0"><Icon src={ExclamationCircle} solid class="w-6 mt-2 ml-2 mr-2" /></span>
+    <span class="absolute right-0"
+      ><Icon src={ExclamationCircle} solid class="w-6 mt-2 ml-2 mr-2" /></span
+    >
   {/if}
 </div>

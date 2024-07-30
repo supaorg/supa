@@ -10,6 +10,10 @@
   export let onConnect: (provider: ModelProvider) => void = () => {};
   export let onDisconnect: (provider: ModelProvider) => void = () => {};
 
+  function onHow(provider: ModelProvider) {
+    console.log("HOW?");
+  }
+
   onMount(async () => {
     providers = await client
       .get(routes.providers)
@@ -19,6 +23,6 @@
 
 <div class="grid grid-cols-2 gap-4">
   {#each providers as provider (provider.id)}
-    <ModelProviderCard {provider} {onConnect} {onDisconnect} />
+    <ModelProviderCard {provider} {onConnect} {onDisconnect} {onHow} />
   {/each}
 </div>

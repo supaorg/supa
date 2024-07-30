@@ -5,7 +5,7 @@
   import { profileStore } from "$lib/stores/profileStore";
   import type { ModelProvider, Profile } from "@shared/models";
   import ModelProviders from "../models/ModelProviders.svelte";
-  import { routes } from "@shared/routes/routes"
+  import { routes } from "@shared/routes/routes";
 
   let name = "";
 
@@ -14,7 +14,7 @@
   function handleComplete() {
     client
       .post(routes.setup, {
-        name
+        name,
       })
       .then((res) => {
         if (res.error) {
@@ -55,7 +55,12 @@
     </Step>
     <Step locked={connectedProviders.length === 0}>
       <svelte:fragment slot="header">Setup a model provider</svelte:fragment>
-      <p>We need at least one of them to power the AI. The most capable models are OpenAI’s GPT-4 (used by ChatGPT), Anthropic’s Claude 3.5, and Meta's Llama3.1 (from Groq or Ollama). You can set up several providers and later choose which model to use.</p>
+      <p>
+        We need at least one of them to power the AI. The most capable models
+        are OpenAI’s GPT-4 (used by ChatGPT), Anthropic’s Claude 3.5, and Meta's
+        Llama3.1 (from Groq or Ollama). You can set up several providers and
+        later choose which model to use.
+      </p>
       <ModelProviders
         onConnect={onProviderConnect}
         onDisconnect={onProviderDisconnect}
