@@ -129,6 +129,9 @@
           }}
         />
       {:else}
+        {#if provider.name === "Ollama"}
+          <p>@TODO: add an element that would fetch ollama api to see if it's live</p>
+        {/if}
         <button
           on:click={() => {
             state = "connected";

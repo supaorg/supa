@@ -131,7 +131,7 @@
               <span class="flex-auto"
                 >Go to <Link href="https://console.groq.com/keys"
                   >https://console.groq.com/keys</Link
-                ></span
+                > and create an API key</span
               >
             </li>
             <li>
@@ -161,6 +161,12 @@
                 >Install Ollama and setup a model you would like to use.</span
               >
             </li>
+            <li>
+              <span>3.</span>
+              <span class="flex-auto"
+                >Press @button</span
+              >
+            </li>
           </ol>
         {/if}
         {#if showHowForProvider.access === "cloud"}
@@ -173,6 +179,8 @@
               fetchProviders();
             }}
           />
+        {:else if showHowForProvider.name === "Ollama"}
+            <p>@TODO: add a button to connect</p>
         {/if}
         <button
           class="btn variant-ringed mt-4"

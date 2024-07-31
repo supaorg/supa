@@ -1,10 +1,10 @@
-import { ModelProviderCloudConfig } from "../../shared/models.ts";
-import { ModelProviderConfig } from "../../shared/models.ts";
+import { ModelProviderCloudConfig } from "@shared/models.ts";
+import { ModelProviderConfig } from "@shared/models.ts";
 import { validateKey } from "../tools/providerKeyValidators.ts";
-import { getCloudProviderModels } from "../tools/providerModels.ts";
+import { getProviderModels } from "../tools/providerModels.ts";
 import { BackServices } from "./backServices.ts";
 import { providers } from "../providers.ts";
-import { routes } from "../../shared/routes/routes.ts";
+import { routes } from "@shared/routes/routes.ts";
 
 export function providersController(services: BackServices) {
   const router = services.router;
@@ -83,12 +83,12 @@ export function providersController(services: BackServices) {
       }
 
       if (provider.type !== "cloud") {
-        ctx.data = [];
+        const models = await getProviderModels(providerId, "");
+        ctx.response = models;
         return;
       }
 
-      const models = await getCloudProviderModels(providerId, provider.apiKey);
-
+      const models = await getProviderModels(providerId, provider.apiKey);
       ctx.response = models;
     })
     .onGet(routes.providerConfigs, async (ctx) => {

@@ -8,4 +8,4 @@
   }
 </script>
 
-<a {href} class="anchor" target={newTab ? "_blank" : "_self"}><slot></slot></a>
+<a {href} class="anchor" target={newTab ? "_blank" : "_self"}><slot /></a>

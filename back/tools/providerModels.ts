@@ -1,4 +1,4 @@
-export function getCloudProviderModels(
+export function getProviderModels(
   provider: string,
   key: string,
   signal?: AbortSignal,
@@ -10,6 +10,8 @@ export function getCloudProviderModels(
       return getProviderModels_groq(key, signal);
     case "anthropic":
       return getProviderModels_anthropic(key, signal);
+    case "ollama":
+      return getProviderModels_ollama();
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
@@ -64,4 +66,15 @@ async function getProviderModels_openaiLikeApi(
 // From: https://docs.anthropic.com/claude/docs/models-overview
 async function getProviderModels_anthropic(key: string, signal?: AbortSignal) {
   return ['claude-3-haiku-20240307', 'claude-3-opus-20240229', 'claude-3-5-sonnet-20240620', 'claude-3-sonnet-20240229'];
+}
+
+async function getProviderModels_ollama(): Promise<string[]> {
+  try {
+    const response = await fetch("http://localhost:11434/api/tags");
+    const data = await response.json();
+    return data.models.map((model: { name: string }) => model.name);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return [];
+  }
 }
