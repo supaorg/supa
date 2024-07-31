@@ -4,30 +4,44 @@
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
   import { routes } from "@shared/routes/routes";
+  import type {
+    ModelProviderCloudConfig,
+    ModelProviderConfig,
+  } from "@shared/models";
 
   export let id: string;
   export let onValidKey: (key: string) => void;
   export let onBlur: (key: string) => void = () => {};
+  export let autofocus = true;
 
   let apiKey = "";
   let apiKeyIsValid = false;
   let inputElement: HTMLInputElement;
-
   let timeout: any;
   let checkingKey = false;
-  //let controller = new AbortController();
+
+  let config: ModelProviderConfig | null;
+
+  async function saveCloudProviderWithApiKey(apiKey: string) {
+    config = {
+      id: id,
+      type: "cloud",
+      apiKey,
+    } as ModelProviderCloudConfig;
+
+    await client.post(routes.providerConfigs, config);
+  }
 
   async function handleApiKeyChange() {
     checkingKey = true;
     clearTimeout(timeout);
     timeout = setTimeout(async () => {
       apiKeyIsValid = false;
-      //controller.abort();
-      //controller = new AbortController();
       apiKeyIsValid = await client
         .post(routes.validateProviderKey(id), apiKey)
         .then((res) => res.data as boolean);
       if (apiKeyIsValid) {
+        saveCloudProviderWithApiKey(apiKey);
         onValidKey(apiKey);
       }
       checkingKey = false;
@@ -39,7 +53,7 @@
   }
 
   onMount(() => {
-    if (inputElement) {
+    if (autofocus && inputElement) {
       inputElement.focus();
     }
   });

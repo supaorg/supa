@@ -24,8 +24,6 @@
   export let onDisconnect: (provider: ModelProvider) => void = () => {};
   export let onHow: (provider: ModelProvider) => void = () => {};
 
-  let config: ModelProviderConfig | null;
-
   onMount(async () => {
     await checkProvider();
   });
@@ -34,25 +32,14 @@
     const res = await client.get(routes.providerConfig(provider.id));
 
     if (res.data) {
-      config = res.data as ModelProviderConfig;
       await checkIfValid();
     } else {
       state = "disconnected";
     }
   }
 
-  async function saveCloudProviderWithApiKey(apiKey: string) {
-    config = {
-      id: provider.id,
-      type: "cloud",
-      apiKey,
-    } as ModelProviderCloudConfig;
-
-    await client.post(routes.providerConfigs, config);
-  }
-
   async function saveLocalProvider() {
-    config = {
+    const config = {
       id: provider.id,
       type: "local",
     } as ModelProviderLocalConfig;
@@ -80,9 +67,14 @@
     state = "disconnected";
     onDisconnect(provider);
 
+    // @TODO: why did I delete only cloud providers?
+    /*
     if (provider.access === "cloud") {
       client.delete(routes.providerConfig(provider.id));
     }
+    */
+
+    client.delete(routes.providerConfig(provider.id));
   }
 </script>
 
@@ -129,7 +121,6 @@
           onValidKey={(key) => {
             state = "connected";
             onConnect?.(provider);
-            saveCloudProviderWithApiKey(key);
           }}
           onBlur={(key) => {
             if (!key) {
