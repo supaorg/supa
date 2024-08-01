@@ -1,6 +1,13 @@
 <script lang="ts">
   import { txtStore } from "$lib/stores/txtStore";
+    import Lightswitch from "../Lightswitch.svelte";
   let profileFormElement: HTMLFormElement;
+
+  let name: string;
+
+  $: {
+    console.log(name);
+  }
 </script>
 
 <h2 class="h2 pb-6">{$txtStore.settingsPage.title}</h2>
@@ -10,16 +17,18 @@
     bind:this={profileFormElement}
     on:submit|preventDefault
   >
-    <h3 class="h3">Profile</h3>
+    <h3 class="h3">Profile & Preferences</h3>
     <label class="label">
       <span>Your name</span>
       <input
         name="name"
         class="input variant-form-material"
         type="text"
+        bind:value={name}
         placeholder=""
       />
     </label>
+    <!--
     <label class="label">
       <span>About you</span>
       <textarea
@@ -29,9 +38,10 @@
         placeholder=""
       />
     </label>
-    <label class="label">
-      <span>Theme color</span>
-      ...
+    -->
+    <label class="label" for="appearance">
+      <span>Appearence</span>
+      <Lightswitch id="appearance" />
     </label>
   </form>
 </div>
