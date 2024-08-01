@@ -7,6 +7,7 @@
   import { Icon, XCircle } from "svelte-hero-icons";
   import Link from "../Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
+    import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
 
   let providers: ModelProvider[] = [];
   let showHowForProvider: ModelProvider | null = null;
@@ -164,7 +165,7 @@
             <li>
               <span>3.</span>
               <span class="flex-auto"
-                >Press @button</span
+                >Go back here after you start it.</span
               >
             </li>
           </ol>
@@ -180,7 +181,11 @@
             }}
           />
         {:else if showHowForProvider.name === "Ollama"}
-            <p>@TODO: add a button to connect</p>
+          <ModelProviderOllamaConnector id={showHowForProvider.id} onConnect={() => { 
+            showHowForProvider = null;
+            providers = [];
+            fetchProviders();
+          }} />
         {/if}
         <button
           class="btn variant-ringed mt-4"

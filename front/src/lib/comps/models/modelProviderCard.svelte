@@ -10,6 +10,7 @@
   import { client } from "$lib/tools/client";
   import { ProgressBar } from "@skeletonlabs/skeleton";
   import { routes } from "@shared/routes/routes";
+  import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
 
   type State =
     | "loading"
@@ -36,15 +37,6 @@
     } else {
       state = "disconnected";
     }
-  }
-
-  async function saveLocalProvider() {
-    const config = {
-      id: provider.id,
-      type: "local",
-    } as ModelProviderLocalConfig;
-
-    await client.post(routes.providerConfigs, config);
   }
 
   async function checkIfValid() {
@@ -130,15 +122,14 @@
         />
       {:else}
         {#if provider.name === "Ollama"}
-          <p>@TODO: add an element that would fetch ollama api to see if it's live</p>
+          <ModelProviderOllamaConnector
+            id={provider.id}
+            onConnect={() => {
+              state = "connected";
+              onConnect?.(provider);
+            }}
+          />
         {/if}
-        <button
-          on:click={() => {
-            state = "connected";
-            onConnect?.(provider);
-            saveLocalProvider();
-          }}>Add</button
-        >
       {/if}
     {:else if state === "connected"}
       <button class="btn btn-md variant-ringed" on:click={disconnect}
