@@ -14,7 +14,7 @@ export class AgentServices {
     let modelProvider: string;
     let modelName: string;
 
-    if (model && model != 'auto/') {
+    if (model && model != "auto/") {
       const modelSplit = model.split("/");
       if (modelSplit.length !== 2) {
         throw new Error("Invalid model name");
@@ -25,7 +25,7 @@ export class AgentServices {
     } else {
       // @TODO: get a list of available providers and choose the best one with the most capable model
       const mostCapableModel = await this.getMostCapableModel();
-      
+
       if (mostCapableModel === null) {
         throw new Error("No capable model found");
       }
@@ -52,7 +52,7 @@ export class AgentServices {
         });
       case "ollama":
         return Lang.ollama({
-          model: 'llama3',
+          model: "llama3",
         });
       default:
         throw new Error("Invalid model provider");
@@ -76,7 +76,9 @@ export class AgentServices {
     throw new Error("No API key found");
   }
 
-  async getMostCapableModel(): Promise<{ provider: string; model: string; } | null> {
+  async getMostCapableModel(): Promise<
+    { provider: string; model: string } | null
+  > {
     const providerConfigs = await this.db.getModelProviders();
 
     // First, openai, then groq, then anthropic
@@ -85,7 +87,8 @@ export class AgentServices {
       const providerConfig = providerConfigs.find((p) => p.id === provider);
       if (providerConfig) {
         // get the default model from providers
-        const defaultModel = providers.find((p) => p.id === provider)?.defaultModel;
+        const defaultModel = providers.find((p) => p.id === provider)
+          ?.defaultModel;
         if (!defaultModel) {
           throw new Error("No default model found for provider");
         }

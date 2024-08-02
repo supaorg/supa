@@ -69,7 +69,7 @@ async function checkAndCreateWorkspaceDir(rootDir: string): Promise<Workspace> {
 
     await fs.writeTextFile(workspaceJsonPath, JSON.stringify(workspace));
 
-    // We're not adding path to the file because it's not needed
+    // We're adding the path later here because the workspace file doesn't need to have it.
     workspace.path = workspacePath;
 
   } else {

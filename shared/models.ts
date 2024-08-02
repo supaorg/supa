@@ -9,6 +9,7 @@ export type Workspace = {
   name: string | null;
   createdAt: number;
   path: string;
+  setup: boolean;
 }
 
 export type ThreadMessage = {
@@ -30,7 +31,6 @@ export type Thread = {
 
 export type Profile = {
   name: string;
-  setup: boolean;
 }
 
 export interface AgentConfig {

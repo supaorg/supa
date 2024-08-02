@@ -1,6 +1,10 @@
 import { Profile, Thread, ThreadMessage } from "@shared/models.ts";
 import { join } from "https://deno.land/std/path/mod.ts";
-import { AgentConfig, ModelProviderConfig, Workspace } from "../../shared/models.ts";
+import {
+  AgentConfig,
+  ModelProviderConfig,
+  Workspace,
+} from "../../shared/models.ts";
 import { defaultAgent } from "../agents/defaultAgent.ts";
 import { fs } from "../tools/fs.ts";
 import perf from "../tools/perf.ts";
@@ -14,8 +18,10 @@ export class AppDb {
 
   async getProfile(): Promise<Profile | null> {
     try {
+      await fs.ensureDir(this.resolvePath("users/root"));
+
       const profileStr = await fs.readTextFile(
-        this.resolvePath("profile.json"),
+        this.resolvePath("users/root", "root.json"),
       );
 
       if (profileStr) {
@@ -29,8 +35,10 @@ export class AppDb {
   }
 
   async insertProfile(profile: Profile): Promise<Profile> {
+    await fs.ensureDir(this.resolvePath("users/root"));
+
     await fs.writeTextFile(
-      this.resolvePath("profile.json"),
+      this.resolvePath("users/root", "_user.json"),
       JSON.stringify(profile),
     );
 
@@ -55,7 +63,9 @@ export class AppDb {
       agent.id === defaultAgent.id
     );
     if (defaultAgentIndex !== -1) {
-      const overrideForDefaultAgent = JSON.parse(await fs.readTextFile(agents[defaultAgentIndex])) as AgentConfig;
+      const overrideForDefaultAgent = JSON.parse(
+        await fs.readTextFile(agents[defaultAgentIndex]),
+      ) as AgentConfig;
 
       // Merge the default agent config with the overriding config
       configs[defaultAgentIndex] = {
@@ -197,7 +207,10 @@ export class AppDb {
     return threads;
   }
 
-  private async getFiles(folderPath: string, targetFilename: string): Promise<string[]> {
+  private async getFiles(
+    folderPath: string,
+    targetFilename: string,
+  ): Promise<string[]> {
     const threadFiles: string[] = [];
     const entries = await fs.readDir(folderPath);
 

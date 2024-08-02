@@ -2,8 +2,6 @@
   import { onDestroy, onMount } from "svelte";
   import Loading from "$lib/comps/Loading.svelte";
   import {
-    AppBar,
-    AppShell,
     Modal,
     getDrawerStore,
     initializeStores,
@@ -11,11 +9,7 @@
   } from "@skeletonlabs/skeleton";
   import { menuDrawerSettings } from "$lib/utils/drawersSettings";
   import Sidebar from "./sidebar/Sidebar.svelte";
-  import {
-    ServerInTauri,
-    getServerInTauri,
-    isTauri,
-  } from "$lib/tauri/serverInTauri";
+  import { getServerInTauri, isTauri } from "$lib/tauri/serverInTauri";
   import NewThreadModal from "./modals/NewThreadModal.svelte";
   import { loadThreadsFromServer } from "$lib/stores/threadStore";
   import { storePopup } from "@skeletonlabs/skeleton";
@@ -59,6 +53,9 @@
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
   initializeStores();
 
+  // @TODO: get 'setup' from the _workspace.json file
+  // Perhaps detect if _workspace.json createdAt is not set - meaning it wasn't setup?
+
   $: {
     if (
       state === "ready" &&
@@ -85,24 +82,32 @@
   }
 
   onMount(async () => {
-    const workspace = getCurrentWorkspace();
+    const workspacePointer = getCurrentWorkspace();
 
-    if (workspace && workspace.type) {
-      if (workspace.type === "local") {
-        await connectToLocalWorkspace(workspace as WorkspacePointer);
-      } else if (workspace.type === "remote") {
+    /*
+    if (workspacePointer && workspacePointer.type) {
+      if (workspacePointer.type === "local") {
+        await connectToLocalWorkspace(workspacePointer as WorkspacePointer);
+      } else if (workspacePointer.type === "remote") {
         throw new Error("Remote workspace is not implemented yet");
       }
     } else {
       await connectToLocalWorkspace();
     }
+    */
 
-    await loadStoresFromServer();
-
-    if ($profileStore === null || !$profileStore?.setup) {
-      state = "needsSetup";
+    if (!workspacePointer) {
+      state = "needsWorkspace";
     } else {
-      state = "ready";
+      /*
+      await loadStoresFromServer();
+
+      if (workspacePointer.workspace.setup === false) {
+        state = "needsSetup";
+      } else {
+        state = "ready";
+      }
+      */
     }
   });
 
@@ -134,7 +139,9 @@
   <SetupWizard />
 {:else if state === "ready"}
   <div class="flex h-screen overflow-hidden">
-    <aside class="relative w-[260px] flex-shrink-0 overflow-y-auto border-r border-surface-300-600-token">
+    <aside
+      class="relative w-[260px] flex-shrink-0 overflow-y-auto border-r border-surface-300-600-token"
+    >
       <Sidebar />
     </aside>
     <main class="relative flex-grow h-full overflow-y-auto page-bg">
