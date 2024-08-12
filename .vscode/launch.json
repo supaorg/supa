@@ -39,13 +39,38 @@
       "request": "attach",
       "cwd": "${workspaceFolder}",
       "port": 9229,
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "tauri-development-debug",
+      "cargo": {
+        "args": [
+          "build",
+          "--manifest-path=./front/src-tauri/Cargo.toml",
+          "--no-default-features"
+        ]
+      },
+      "preLaunchTask": "ui:dev"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "tauri-production-debug",
+      "cargo": {
+        "args": ["build", "--release", "--manifest-path=./front/src-tauri/Cargo.toml"]
+      },
+      "preLaunchTask": "ui:build"
     }
-   
   ],
   "compounds": [
 		{
 			"name": "👉 Launch Backend+Frontend+Browser",
 			"configurations": ["backend", "sveltekit", "browser"]
+		},
+    {
+			"name": "👉 Launch Backend+Tauri",
+			"configurations": ["backend", "tauri-development-debug"]
 		}
 	]
 }

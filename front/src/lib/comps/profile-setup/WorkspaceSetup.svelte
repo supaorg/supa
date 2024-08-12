@@ -3,6 +3,25 @@
   import { client } from "$lib/tools/client";
   import { CheckCircle, Icon } from "svelte-hero-icons";
   import CenteredPage from "../CenteredPage.svelte";
+  import { open } from '@tauri-apps/api/dialog';
+
+  async function createWorkspaceDialog() {
+    const selected = await open({ 
+      title: 'Select a folder for a new workspace',
+      directory: true,
+    });
+
+    console.log(selected);
+  }
+
+  async function openWorkspaceDialog() {
+    const selected = await open({ 
+      title: 'Select a folder for a new workspace',
+      directory: true,
+    });
+
+    console.log(selected);
+  }
 </script>
 
 <CenteredPage>
@@ -37,16 +56,16 @@
             empty.
           </p>
         </div>
-        <button class="btn variant-ringed-primary">Create</button>
+        <button class="btn variant-ringed-primary" on:click={createWorkspaceDialog}>Create</button>
       </div>
       <div class="flex items-center justify-between mt-4">
         <div>
-          <h3 class="text-lg font-semibold">Choose an existing workspace</h3>
+          <h3 class="text-lg font-semibold">Open an existing workspace</h3>
           <p class="text-sm">
-            Choose a folder that contains your workspace files.
+            Open a folder that contains your workspace files.
           </p>
         </div>
-        <button class="btn variant-ringed-primary">Choose</button>
+        <button class="btn variant-ringed-primary" on:click={openWorkspaceDialog}>Open</button>
       </div>
     </div>
   </div>
