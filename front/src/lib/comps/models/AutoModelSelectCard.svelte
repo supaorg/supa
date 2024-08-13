@@ -1,7 +1,7 @@
 <script lang="ts">
   import { client } from "$lib/tools/client";
   import type { ModelProvider } from "@shared/models";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
     import { Icon, Sparkles } from "svelte-hero-icons";

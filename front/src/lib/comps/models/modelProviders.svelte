@@ -3,7 +3,7 @@
   import ModelProviderCard from "./ModelProviderCard.svelte";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
   import { Icon, XCircle } from "svelte-hero-icons";
   import Link from "../Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
@@ -22,7 +22,7 @@
 
   async function fetchProviders() {
     providers = await client
-      .get(routes.providers)
+      .get(apiRoutes.providers)
       .then((res) => res.data as ModelProvider[]);
   }
 

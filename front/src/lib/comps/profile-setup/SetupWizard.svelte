@@ -5,7 +5,7 @@
   import { profileStore } from "$lib/stores/profileStore";
   import type { ModelProvider, Profile } from "@shared/models";
   import ModelProviders from "../models/ModelProviders.svelte";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
 
   let name = "";
 
@@ -13,7 +13,7 @@
 
   function handleComplete() {
     client
-      .post(routes.setup, {
+      .post(apiRoutes.setup, {
         name,
       })
       .then((res) => {

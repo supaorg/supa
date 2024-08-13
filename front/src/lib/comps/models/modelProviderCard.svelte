@@ -9,7 +9,7 @@
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
   import { ProgressBar } from "@skeletonlabs/skeleton";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
 
   type State =
@@ -30,7 +30,7 @@
   });
 
   async function checkProvider() {
-    const res = await client.get(routes.providerConfig(provider.id));
+    const res = await client.get(apiRoutes.providerConfig(provider.id));
 
     if (res.data) {
       await checkIfValid();
@@ -43,7 +43,7 @@
     state = "loading";
 
     const isValid = await client
-      .post(routes.validateProviderConfig(provider.id))
+      .post(apiRoutes.validateProviderConfig(provider.id))
       .then((res) => res.data as boolean);
 
     state = isValid ? "connected" : "invalid-key";
@@ -66,7 +66,7 @@
     }
     */
 
-    client.delete(routes.providerConfig(provider.id));
+    client.delete(apiRoutes.providerConfig(provider.id));
   }
 </script>
 

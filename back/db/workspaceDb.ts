@@ -1,7 +1,7 @@
 import { Profile, Thread, ThreadMessage } from "@shared/models.ts";
 import { join } from "https://deno.land/std/path/mod.ts";
 import {
-  AgentConfig,
+  AppConfig,
   ModelProviderConfig,
   Workspace,
 } from "../../shared/models.ts";
@@ -9,7 +9,7 @@ import { defaultAgent } from "../agents/defaultAgent.ts";
 import { fs } from "../tools/fs.ts";
 import perf from "../tools/perf.ts";
 
-export class AppDb {
+export class WorkspaceDb {
   constructor(readonly workspace: Workspace) {}
 
   private resolvePath(...paths: string[]): string {
@@ -45,7 +45,7 @@ export class AppDb {
     return profile;
   }
 
-  async getAgents(): Promise<AgentConfig[]> {
+  async getApps(): Promise<AppConfig[]> {
     await fs.ensureDir(this.resolvePath("agent-configs"));
     const agents = await this.getFiles(
       this.resolvePath("agent-configs"),
@@ -65,7 +65,7 @@ export class AppDb {
     if (defaultAgentIndex !== -1) {
       const overrideForDefaultAgent = JSON.parse(
         await fs.readTextFile(agents[defaultAgentIndex]),
-      ) as AgentConfig;
+      ) as AppConfig;
 
       // Merge the default agent config with the overriding config
       configs[defaultAgentIndex] = {
@@ -80,7 +80,7 @@ export class AppDb {
     return configs;
   }
 
-  async getAgent(agentId: string): Promise<AgentConfig | null> {
+  async getAgent(agentId: string): Promise<AppConfig | null> {
     await fs.ensureDir(this.resolvePath("agent-configs"));
 
     try {
@@ -119,7 +119,7 @@ export class AppDb {
     }
   }
 
-  async insertAgent(agent: AgentConfig): Promise<AgentConfig> {
+  async insertAgent(agent: AppConfig): Promise<AppConfig> {
     await fs.ensureDir(this.resolvePath("agent-configs", agent.id));
 
     await fs.writeTextFile(
@@ -130,7 +130,7 @@ export class AppDb {
     return agent;
   }
 
-  async updateAgent(agent: AgentConfig): Promise<void> {
+  async updateAgent(agent: AppConfig): Promise<void> {
     await fs.ensureDir(this.resolvePath("agent-configs", agent.id));
 
     await fs.writeTextFile(

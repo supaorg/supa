@@ -3,7 +3,7 @@ import { get } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import { client } from "$lib/tools/client";
 import type { Profile } from "@shared/models";
-import { routes } from "@shared/routes/routes";
+import { apiRoutes } from "@shared/apiRoutes";
 
 export const profileStore: Writable<Profile | null> = localStorageStore(
   "profile",
@@ -17,11 +17,11 @@ export async function updateProfile(profile: Partial<Profile>) {
     ...currentProfile,
     ...profile,
   } as Profile;
-  await client.post(routes.profile, updProfile);
+  await client.post(apiRoutes.profile, updProfile);
 }
 
 export async function loadProfileFromServer() {
-  let profile = await client.get(routes.profile).then((res) => {
+  let profile = await client.get(apiRoutes.profile).then((res) => {
     if (!res.data) {
       return null;
     }
@@ -31,7 +31,7 @@ export async function loadProfileFromServer() {
 
   profileStore.set(profile);
 
-  client.on(routes.profile, (broadcast) => {
+  client.on(apiRoutes.profile, (broadcast) => {
     const profile = broadcast.data as Profile;
     profileStore.set(profile);
   });

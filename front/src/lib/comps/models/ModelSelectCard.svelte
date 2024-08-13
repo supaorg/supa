@@ -1,7 +1,7 @@
 <script lang="ts">
   import { client } from "$lib/tools/client";
   import type { ModelProvider } from "@shared/models";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
 
@@ -15,7 +15,7 @@
   let showModels = false;
 
   onMount(async () => {
-    models = await client.get(routes.providerModel(provider.id)).then((res) => {
+    models = await client.get(apiRoutes.providerModel(provider.id)).then((res) => {
       return res.data as string[];
     });
   });

@@ -56,6 +56,13 @@
   // @TODO: get 'setup' from the _workspace.json file
   // Perhaps detect if _workspace.json createdAt is not set - meaning it wasn't setup?
 
+  /*
+  Get a list of workspaces stored in the app
+  Connect to the workspaces
+  If no workspace is found, show the workspace setup screen
+
+  */
+
   $: {
     if (
       state === "ready" &&

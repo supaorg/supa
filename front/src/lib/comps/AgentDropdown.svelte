@@ -1,8 +1,8 @@
 <script lang="ts">
   import { threadsStore } from "$lib/stores/threadStore";
   import { client } from "$lib/tools/client";
-  import type { AgentConfig } from "@shared/models";
-  import { routes } from "@shared/routes/routes";
+  import type { AppConfig } from "@shared/models";
+  import { apiRoutes } from "@shared/apiRoutes";
   import { ChevronDown, Icon } from "svelte-hero-icons";
   import { popup } from "@skeletonlabs/skeleton";
   import type { PopupSettings } from "@skeletonlabs/skeleton";
@@ -10,7 +10,7 @@
 
   export let threadId: string;
 
-  let agent: AgentConfig;
+  let agent: AppConfig;
 
   const popupClick: PopupSettings = {
     event: "click",
@@ -21,15 +21,15 @@
   $: {
     const thread = $threadsStore.find((t) => t.id === threadId);
     if (thread) {
-      client.get(routes.appConfig(thread.agentId)).then((res) => {
-        agent = res.data as AgentConfig;
+      client.get(apiRoutes.appConfig(thread.appId)).then((res) => {
+        agent = res.data as AppConfig;
       });
     }
   }
 
   async function changeAgentConfig(agentId: string) {
-    agent = $visibleAgentConfigStore.find((c) => c.id === agentId) as AgentConfig;
-    await client.post(routes.thread(threadId), { agentId });
+    agent = $visibleAgentConfigStore.find((c) => c.id === agentId) as AppConfig;
+    await client.post(apiRoutes.thread(threadId), { agentId });
   }
 </script>
 

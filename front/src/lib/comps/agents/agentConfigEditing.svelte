@@ -1,19 +1,19 @@
 <script lang="ts">
-  import type { AgentConfig } from "@shared/models";
+  import type { AppConfig } from "@shared/models";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
   import InputModel from "../models/InputModel.svelte";
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
   let isNewAgent: boolean = configId === null;
 
   let formElement: HTMLFormElement;
-  let agentConfig: AgentConfig | null = null;
+  let agentConfig: AppConfig | null = null;
 
   let disableFields = false;
 
@@ -22,8 +22,8 @@
       prevConfigId = configId;
       console.log("configId: " + configId);
       isNewAgent = false;
-      client.get(routes.appConfig(configId)).then((response) => {
-        agentConfig = response.data as AgentConfig;
+      client.get(apiRoutes.appConfig(configId)).then((response) => {
+        agentConfig = response.data as AppConfig;
       });
 
       if (configId === "default") {
@@ -38,7 +38,7 @@
         instructions: "",
         button: "",
         targetLLM: "auto",
-      } as AgentConfig;
+      } as AppConfig;
     }
   }
 
@@ -53,14 +53,14 @@
     }
 
     if (isNewAgent) {
-      client.post(routes.appConfigs, agentConfig).then((response) => {
+      client.post(apiRoutes.appConfigs, agentConfig).then((response) => {
         console.log("new agent: " + response);
       });
 
       goto("/apps");
     } else {
       client
-        .post(routes.appConfig(agentConfig?.id), agentConfig)
+        .post(apiRoutes.appConfig(agentConfig?.id), agentConfig)
         .then((response) => {
           console.log("updated agent: " + response);
         });

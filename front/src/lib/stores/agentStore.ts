@@ -1,15 +1,15 @@
 import { get, type Writable, writable } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import { client } from "$lib/tools/client";
-import type { AgentConfig } from "@shared/models";
-import { routes } from "@shared/routes/routes";
+import type { AppConfig } from "@shared/models";
+import { apiRoutes } from "@shared/apiRoutes";
 
-export const agentConfigStore: Writable<AgentConfig[]> = localStorageStore(
-  routes.appConfigs,
+export const agentConfigStore: Writable<AppConfig[]> = localStorageStore(
+  apiRoutes.appConfigs,
   [],
 );
 
-export const visibleAgentConfigStore = writable<AgentConfig[]>([]);
+export const visibleAgentConfigStore = writable<AppConfig[]>([]);
 
 agentConfigStore.subscribe((agents) => {
   const visibleAgents = agents.filter((a) => {
@@ -22,16 +22,16 @@ agentConfigStore.subscribe((agents) => {
 });
 
 export async function createAgent() {
-  const agent = await client.post(routes.appConfigs).then((res) => {
-    return res.data as AgentConfig;
+  const agent = await client.post(apiRoutes.appConfigs).then((res) => {
+    return res.data as AppConfig;
   });
 
   return agent;
 }
 
 export async function loadAgentsFromServer() {
-  const agents = await client.get(routes.appConfigs).then((res) => {
-    const agents = Array.isArray(res.data) ? res.data as AgentConfig[] : [];
+  const agents = await client.get(apiRoutes.appConfigs).then((res) => {
+    const agents = Array.isArray(res.data) ? res.data as AppConfig[] : [];
     // sort by name
     agents.sort((a, b) => {
       if (a.name < b.name) {
@@ -47,9 +47,9 @@ export async function loadAgentsFromServer() {
 
   agentConfigStore.set(agents);
 
-  client.on(routes.appConfigs, (broadcast) => {
+  client.on(apiRoutes.appConfigs, (broadcast) => {
     if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
-      const config = broadcast.data as AgentConfig;
+      const config = broadcast.data as AppConfig;
 
       agentConfigStore.update((agents) => {
         // Check if we need to update or add the config

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { agentConfigStore } from "$lib/stores/agentStore";
   import { client } from "$lib/tools/client";
-  import type { AgentConfig } from "@shared/models";
-  import { routes } from "@shared/routes/routes";
+  import type { AppConfig } from "@shared/models";
+  import { apiRoutes } from "@shared/apiRoutes";
   import {
     SlideToggle,
     getModalStore,
@@ -10,7 +10,7 @@
   } from "@skeletonlabs/skeleton";
   import { Icon, Trash } from "svelte-hero-icons";
 
-  export let agent: AgentConfig;
+  export let agent: AppConfig;
   let isVisible: boolean = isAgentVisible();
   const isDefault = agent.id === "default";
   const modalStore = getModalStore();
@@ -23,7 +23,7 @@
     agent.meta = agent.meta || {};
     agent.meta.visible = visible ? "true" : "false";
 
-    client.post(routes.appConfig(agent.id), agent).then((response) => {});
+    client.post(apiRoutes.appConfig(agent.id), agent).then((response) => {});
   }
 
   $: {
@@ -48,7 +48,7 @@
   }
 
   function deleteAgent() {
-    client.delete(routes.appConfig(agent.id)).then((response) => {
+    client.delete(apiRoutes.appConfig(agent.id)).then((response) => {
       agentConfigStore.update((agents) => {
         return agents.filter((a) => a.id !== agent.id);
       });

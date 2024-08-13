@@ -7,7 +7,7 @@
   } from "@shared/models";
 
   import { client } from "$lib/tools/client";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
   import { onMount } from "svelte";
 
   export let id: string;
@@ -21,7 +21,7 @@
       type: "local",
     } as ModelProviderLocalConfig;
 
-    await client.post(routes.providerConfigs, config);
+    await client.post(apiRoutes.providerConfigs, config);
   }
 
   async function checkIfOnline() {

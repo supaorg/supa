@@ -23,7 +23,7 @@ export type ThreadMessage = {
 
 export type Thread = {
   id: string;
-  agentId: string;
+  appId: string;
   createdAt: number;
   updatedAt: number | null;
   title: string | null;
@@ -33,7 +33,7 @@ export type Profile = {
   name: string;
 }
 
-export interface AgentConfig {
+export interface AppConfig {
   id: string;
   name: string;
   button: string;

@@ -1,22 +1,22 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import type { AgentConfig, ThreadMessage } from "@shared/models";
+  import type { AppConfig, ThreadMessage } from "@shared/models";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { createThread } from "$lib/stores/threadStore";
   import { agentConfigStore } from "$lib/stores/agentStore";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
 
   const modalStore = getModalStore();
 
   const agentId = $modalStore[0].meta.agentId as string;
-  let agent: AgentConfig | undefined;
+  let agent: AppConfig | undefined;
   let placeholder = "Write a message...";
 
   $: {
-    let targetAgent: AgentConfig | undefined;
+    let targetAgent: AppConfig | undefined;
 
     for (const agent of $agentConfigStore) {
       if (agent.id === agentId) {
@@ -61,7 +61,7 @@
 
     // Post and don't wait for the response, just go to the new thread
     // to see it live
-    client.post(routes.threadMessages(newThread.id), msg);
+    client.post(apiRoutes.threadMessages(newThread.id), msg);
 
     goto(`/?t=${newThread.id}`);
 

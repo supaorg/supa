@@ -2,12 +2,12 @@ import type { Writable } from 'svelte/store';
 import { localStorageStore } from '@skeletonlabs/skeleton';
 import type { Thread } from '@shared/models';
 import { client } from '$lib/tools/client';
-import { routes } from '@shared/routes/routes';
+import { apiRoutes } from '@shared/apiRoutes';
 
 export const threadsStore: Writable<Thread[]> = localStorageStore('threads', []);
 
 export async function createThread(agentId: string) {
-  const thread = await client.post(routes.threads, agentId).then((res) => {
+  const thread = await client.post(apiRoutes.threads, agentId).then((res) => {
     return res.data as Thread;
   });
 
@@ -15,7 +15,7 @@ export async function createThread(agentId: string) {
 }
 
 export async function loadThreadsFromServer() {    
-  const threads = await client.get(routes.threads).then((res) => {
+  const threads = await client.get(apiRoutes.threads).then((res) => {
     const threads = Array.isArray(res.data) ? res.data : [];
     // sort by createdAt
     threads.sort((a, b) => {
@@ -26,7 +26,7 @@ export async function loadThreadsFromServer() {
 
   threadsStore.set(threads);
 
-  client.on(routes.threads, (broadcast) => {
+  client.on(apiRoutes.threads, (broadcast) => {
     if (broadcast.action === 'POST') {
       const thread = broadcast.data as Thread;
       threadsStore.update((threads) => { 

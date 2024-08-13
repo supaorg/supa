@@ -1,12 +1,12 @@
 import { Lang } from "https://deno.land/x/aiwrapper@v0.0.20/mod.ts";
 import { LanguageModel } from "https://deno.land/x/aiwrapper@v0.0.20/src/lang/language-model.ts";
-import { AppDb } from "../db/appDb.ts";
+import { WorkspaceDb } from "../db/workspaceDb.ts";
 import { providers } from "../providers.ts";
 
 export class AgentServices {
-  readonly db: AppDb;
+  readonly db: WorkspaceDb;
 
-  constructor(db: AppDb) {
+  constructor(db: WorkspaceDb) {
     this.db = db;
   }
 

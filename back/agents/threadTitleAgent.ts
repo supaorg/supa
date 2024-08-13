@@ -1,4 +1,4 @@
-import { AgentConfig, ThreadMessage } from "../../shared/models.ts";
+import { AppConfig, ThreadMessage } from "../../shared/models.ts";
 import { Agent, AgentInput, AgentOutput, AgentResponse } from "./agent.ts";
 import { AgentConfigForChat } from "./simpleChatAgent.ts";
 

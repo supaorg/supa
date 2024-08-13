@@ -7,7 +7,7 @@
     UserCircle,
   } from "svelte-hero-icons";
   import { client } from "$lib/tools/client";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
   import MarkdownMessage from "./markdown/MarkdownMessage.svelte";
   import type { PopupSettings } from "@skeletonlabs/skeleton";
   import { popup } from "@skeletonlabs/skeleton";
@@ -63,7 +63,7 @@
 
   async function retry() {
     retrying = true;
-    await client.post(routes.retryThread(threadId));
+    await client.post(apiRoutes.retryThread(threadId));
     retrying = false;
   }
 

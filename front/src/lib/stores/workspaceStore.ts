@@ -4,7 +4,7 @@ import { localStorageStore } from "@skeletonlabs/skeleton";
 import { client } from "$lib/tools/client";
 import { ServerInTauri, isTauri, setupServerInTauri } from "$lib/tauri/serverInTauri";
 import { subscribeToSession } from "./fsPermissionDeniedStore";
-import { routes } from "@shared/routes/routes";
+import { apiRoutes } from "@shared/apiRoutes";
 import type { ServerInfo, Workspace } from "@shared/models";
 
 export type WorkspacePointer = {
@@ -56,7 +56,7 @@ export async function connectToLocalWorkspace(pointer?: WorkspacePointer): Promi
     client.setUrl(serverWsUrl);
   }
 
-  const serverInfoRes = await client.get(routes.root);
+  const serverInfoRes = await client.get(apiRoutes.root);
   if (serverInfoRes.error) {
     throw new Error(serverInfoRes.error);
   }
@@ -76,7 +76,7 @@ export async function connectToLocalWorkspace(pointer?: WorkspacePointer): Promi
       workspace: serverInfo.workspace,
     });
   } else {
-    const newWorkspaceRes = await client.post(routes.workspace, pointer?.workspace?.path);
+    const newWorkspaceRes = await client.post(apiRoutes.workspace, pointer?.workspace?.path);
 
     if (newWorkspaceRes.error) {
       throw new Error(newWorkspaceRes.error);

@@ -2,7 +2,7 @@ import { get, type Writable } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import type { ThreadMessage } from "@shared/models";
 import { client } from "$lib/tools/client";
-import { routes } from "@shared/routes/routes";
+import { apiRoutes } from "@shared/apiRoutes";
 
 export interface ThreadMessagesDictionary {
   [key: string]: ThreadMessage[];
@@ -12,7 +12,7 @@ export const threadsMessagesStore: Writable<ThreadMessagesDictionary> =
   localStorageStore<ThreadMessagesDictionary>("threadMessages", {});
 
 export async function listenToMessages(threadId: string) {
-  client.on(routes.threadMessages(threadId), (broadcast) => {
+  client.on(apiRoutes.threadMessages(threadId), (broadcast) => {
     if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
       onPostOrUpdateChatMsg(threadId, broadcast.data as ThreadMessage);
     }
@@ -23,16 +23,16 @@ export async function listenToMessages(threadId: string) {
 }
 
 export async function unlistenMessages(threadId: string) {
-  client.off(routes.threadMessages(threadId));
+  client.off(apiRoutes.threadMessages(threadId));
 }
 
 export async function postNewMessage(threadId: string, msg: ThreadMessage) {
-  client.post(routes.threadMessages(threadId), msg);
+  client.post(apiRoutes.threadMessages(threadId), msg);
   onPostOrUpdateChatMsg(threadId, msg);
 }
 
 export async function stopThread(threadId: string) {
-  client.post(routes.stopThread(threadId));
+  client.post(apiRoutes.stopThread(threadId));
 }
 
 function onDeleteChatMsg(threadId: string, message: ThreadMessage) {
@@ -77,7 +77,7 @@ function onPostOrUpdateChatMsg(threadId: string, message: ThreadMessage) {
 
 export async function fetchThreadMessages(threadId: string): Promise<void> {
   const messages = await client
-    .get(routes.threadMessages(threadId))
+    .get(apiRoutes.threadMessages(threadId))
     .then((res) => {
       if (res.error) {
         console.error(res.error);

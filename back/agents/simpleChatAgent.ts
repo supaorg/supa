@@ -1,8 +1,8 @@
 import { LangResultWithMessages } from "https://deno.land/x/aiwrapper@v0.0.20/src/lang/language-model.ts";
-import { AgentConfig, ThreadMessage } from "../../shared/models.ts";
+import { AppConfig, ThreadMessage } from "../../shared/models.ts";
 import { Agent, AgentInput, AgentOutput, AgentResponse } from "./agent.ts";
 
-export interface AgentConfigForChat extends AgentConfig {
+export interface AgentConfigForChat extends AppConfig {
   targetLLM?: string;
 }
 

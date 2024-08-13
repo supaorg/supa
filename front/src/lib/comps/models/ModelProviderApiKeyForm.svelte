@@ -3,7 +3,7 @@
   import { CheckCircle, ExclamationCircle, Icon } from "svelte-hero-icons";
   import { onMount } from "svelte";
   import { client } from "$lib/tools/client";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
   import type {
     ModelProviderCloudConfig,
     ModelProviderConfig,
@@ -29,7 +29,7 @@
       apiKey,
     } as ModelProviderCloudConfig;
 
-    await client.post(routes.providerConfigs, config);
+    await client.post(apiRoutes.providerConfigs, config);
   }
 
   async function handleApiKeyChange() {
@@ -38,7 +38,7 @@
     timeout = setTimeout(async () => {
       apiKeyIsValid = false;
       apiKeyIsValid = await client
-        .post(routes.validateProviderKey(id), apiKey)
+        .post(apiRoutes.validateProviderKey(id), apiKey)
         .then((res) => res.data as boolean);
       if (apiKeyIsValid) {
         saveCloudProviderWithApiKey(apiKey);

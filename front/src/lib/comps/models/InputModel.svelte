@@ -1,7 +1,7 @@
 <script lang="ts">
   import { client } from "$lib/tools/client";
   import type { ModelProvider } from "@shared/models";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
   import { ExclamationCircle, Icon, Sparkles } from "svelte-hero-icons";
@@ -76,7 +76,7 @@
 
     provider = null;
     provider = await client
-      .get(routes.provider(providerId))
+      .get(apiRoutes.provider(providerId))
       .then((res) => res.data as ModelProvider);
 
     validate();

@@ -5,7 +5,7 @@
   import Portal from "svelte-portal";
   import { client } from "$lib/tools/client";
   import { goto } from "$app/navigation";
-  import { routes } from "@shared/routes/routes";
+  import { apiRoutes } from "@shared/apiRoutes";
     import { threadsStore } from "$lib/stores/threadStore";
 
   export let threadId: string;
@@ -22,7 +22,7 @@
   }
 
   function deleteThread() {
-    client.delete(routes.thread(threadId)).then(() => {
+    client.delete(apiRoutes.thread(threadId)).then(() => {
       console.log("Thread deleted");
     });
     threadsStore.update((threads) => {

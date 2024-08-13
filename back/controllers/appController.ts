@@ -1,26 +1,26 @@
 import { AgentConfig } from "@shared/models.ts";
 import { BackServices } from "./backServices.ts";
-import { routes } from "../../shared/routes/routes.ts";
+import { apiRoutes } from "@shared/apiRoutes.ts";
 
-export function agentController(services: BackServices) {
+export function appController(services: BackServices) {
   const router = services.router;
 
   router
-    .onGet(routes.appConfigs, async (ctx) => {
+    .onGet(apiRoutes.appConfigs(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
       }
 
       try {
-        const agents = await services.db.getAgents();
+        const agents = await services.db.getApps();
         ctx.response = agents;
       } catch (e) {
         ctx.error = e.message;
         return;
       }
     })
-    .onGet(routes.appConfig(), async (ctx) => {
+    .onGet(apiRoutes.appConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -36,7 +36,7 @@ export function agentController(services: BackServices) {
 
       ctx.response = agent;
     })
-    .onPost(routes.appConfig(), async (ctx) => {
+    .onPost(apiRoutes.appConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -71,9 +71,9 @@ export function agentController(services: BackServices) {
       }
 
       
-      router.broadcastPost(routes.appConfigs, config);
+      router.broadcastPost(apiRoutes.appConfigs(), config);
     })
-    .onDelete(routes.appConfig(), async (ctx) => {
+    .onDelete(apiRoutes.appConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -81,9 +81,9 @@ export function agentController(services: BackServices) {
 
       const configId = ctx.params.configId;
       await services.db.deleteAgent(configId);
-      router.broadcastDeletion(routes.appConfigs, configId);
+      router.broadcastDeletion(apiRoutes.appConfigs(), configId);
     })
-    .onPost(routes.appConfigs, async (ctx) => {
+    .onPost(apiRoutes.appConfigs(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -96,9 +96,9 @@ export function agentController(services: BackServices) {
 
       const config = ctx.data as AgentConfig;
       await services.db.insertAgent(config);
-      router.broadcastPost(routes.appConfigs, config);
+      router.broadcastPost(apiRoutes.appConfigs(), config);
     })
-    .onValidateBroadcast(routes.appConfigs, (conn, params) => {
+    .onValidateBroadcast(apiRoutes.appConfigs(), (conn, params) => {
       return true;
     });
 }

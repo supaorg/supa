@@ -1,10 +1,10 @@
 import { Workspace } from "../../shared/models.ts";
-import { Router } from "../../shared/neorest/Router.ts";
-import { AppDb } from "../db/appDb.ts";
+import { RequestContext, Router } from "../../shared/neorest/Router.ts";
+import { WorkspaceDb } from "../db/workspaceDb.ts";
 
 export class BackServices {
   public router: Router;
-  public db: AppDb | null;
+  public db: WorkspaceDb | null; // @TODO: have a list of 'workspaces', rename AppDb to WorkspaceDb
 
   constructor(router: Router) {
     this.router = router;
@@ -16,10 +16,21 @@ export class BackServices {
       throw new Error("Database is already initialized");
     }
 
-    this.db = new AppDb(workspace);
+    this.db = new WorkspaceDb(workspace);
   }
   
   getDbNotSetupError() {
     return "Database is not initialized";
   }
+
+  workspaceEndpoint(ctx: RequestContext, handler: (ctx: RequestContext) => void | Promise<void>) { 
+    const workspaceId = ctx.params.workspaceId;
+
+    if (!workspaceId) {
+      ctx.error = "workspaceId wasn't provided.";
+    }
+
+    // TODO: find workspace from dbs
+  }
+
 }

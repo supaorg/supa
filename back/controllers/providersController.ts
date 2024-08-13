@@ -4,16 +4,16 @@ import { validateKey } from "../tools/providerKeyValidators.ts";
 import { getProviderModels } from "../tools/providerModels.ts";
 import { BackServices } from "./backServices.ts";
 import { providers } from "../providers.ts";
-import { routes } from "@shared/routes/routes.ts";
+import { apiRoutes } from "@shared/apiRoutes.ts";
 
 export function providersController(services: BackServices) {
   const router = services.router;
 
   router
-    .onGet(routes.providers, (ctx) => {
+    .onGet(apiRoutes.providers(), (ctx) => {
       ctx.response = providers;
     })
-    .onGet(routes.provider(), (ctx) => {
+    .onGet(apiRoutes.provider(), (ctx) => {
       const providerId = ctx.params.providerId;
 
       const provider = providers.find((p) => p.id === providerId);
@@ -25,7 +25,7 @@ export function providersController(services: BackServices) {
 
       ctx.response = provider;
     })
-    .onGet(routes.providerConfig(), async (ctx) => {
+    .onGet(apiRoutes.providerConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -42,7 +42,7 @@ export function providersController(services: BackServices) {
 
       ctx.response = provider;
     })
-    .onPost(routes.validateProviderConfig(), async (ctx) => {
+    .onPost(apiRoutes.validateProviderConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -67,7 +67,7 @@ export function providersController(services: BackServices) {
         ctx.response = true;
       }
     })
-    .onGet(routes.providerModel(), async (ctx) => {
+    .onGet(apiRoutes.providerModel(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -91,7 +91,7 @@ export function providersController(services: BackServices) {
       const models = await getProviderModels(providerId, provider.apiKey);
       ctx.response = models;
     })
-    .onGet(routes.providerConfigs, async (ctx) => {
+    .onGet(apiRoutes.providerConfigs(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -101,7 +101,7 @@ export function providersController(services: BackServices) {
 
       ctx.response = providers;
     })
-    .onPost(routes.providerConfigs, async (ctx) => {
+    .onPost(apiRoutes.providerConfigs(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -115,7 +115,7 @@ export function providersController(services: BackServices) {
 
       router.broadcastPost(ctx.route, newProvider);
     })
-    .onDelete(routes.providerConfig(), async (ctx) => {
+    .onDelete(apiRoutes.providerConfig(), async (ctx) => {
       if (services.db === null) {
         ctx.error = services.getDbNotSetupError();
         return;
@@ -136,7 +136,7 @@ export function providersController(services: BackServices) {
 
       router.broadcastPost(ctx.route, provider);
     })
-    .onPost(routes.validateProviderKey(), async (ctx) => {
+    .onPost(apiRoutes.validateProviderKey(), async (ctx) => {
       const provider = ctx.params.provider;
       const key = ctx.data as string;
       const keyIsValid = await validateKey(provider, key);
