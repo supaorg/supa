@@ -13,18 +13,11 @@ export function workspaceController(services: BackServices) {
   const router = services.router;
 
   router
-    .onGet(apiRoutes.workspace(), (ctx) => {
-      ctx.response = services.db && services.db.workspace
-        ? services.db.workspace
-        : null;
-    })
-    .onPost(apiRoutes.workspace(), async (ctx) => {
+    .onGet(apiRoutes.workspace(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
+      ctx.response = db.workspace;
+    }))
+    .onPost(apiRoutes.workspace(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
       try {
-        if (services.db) {
-          ctx.error = "Database is already initialized";
-          return;
-        }
-
         const path = ctx.data as string;
 
         if (!path) {
@@ -45,13 +38,8 @@ export function workspaceController(services: BackServices) {
         ctx.error = e.message;
         return;
       }
-    })
-    .onPost(apiRoutes.setup(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
-
+    }))
+    .onPost(apiRoutes.setup(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
       if (!ctx.data) {
         ctx.error = "Data is required";
         return;
@@ -64,7 +52,7 @@ export function workspaceController(services: BackServices) {
       }
 
       try {
-        const profile = await services.db.insertProfile(
+        const profile = await db.insertProfile(
           { name: data.name, setup: true } as Profile,
         );
         router.broadcastPost("profile", profile);
@@ -73,38 +61,28 @@ export function workspaceController(services: BackServices) {
         ctx.error = e.message;
         return;
       }
-    })
-    .onGet(apiRoutes.profile(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
-
+    }))
+    .onGet(apiRoutes.profile(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
       try {
-        const profile = await services.db.getProfile();
+        const profile = await db.getProfile();
         ctx.response = profile;
       } catch (e) {
         ctx.error = e.message;
         return;
       }
-    })
-    .onPost(apiRoutes.profile(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
-
+    }))
+    .onPost(apiRoutes.profile(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
       const profile = ctx.data as Profile;
 
       try {
-        await services.db.insertProfile(profile);
+        await db.insertProfile(profile);
       } catch (e) {
         ctx.error = e;
         return;
       }
 
       router.broadcastPost(ctx.route, profile);
-    })
+    }))
     .onValidateBroadcast(apiRoutes.profile(), (conn, params) => {
       return true;
     })

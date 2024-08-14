@@ -25,121 +25,116 @@ export function providersController(services: BackServices) {
 
       ctx.response = provider;
     })
-    .onGet(apiRoutes.providerConfig(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+    .onGet(
+      apiRoutes.providerConfig(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const providerId = ctx.params.providerId;
+          const provider = await db.getProviderConfig(providerId);
 
-      const providerId = ctx.params.providerId;
+          if (provider === null) {
+            ctx.error = "Provider not found";
+            return;
+          }
 
-      const provider = await services.db.getProviderConfig(providerId);
+          ctx.response = provider;
+        }),
+    )
+    .onPost(
+      apiRoutes.validateProviderConfig(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const providerId = ctx.params.providerId;
+          const provider = await db.getProviderConfig(providerId);
+          if (provider === null) {
+            ctx.response = false;
+            return;
+          }
 
-      if (provider === null) {
-        ctx.error = "Provider not found";
-        return;
-      }
+          if (provider.type === "cloud") {
+            const cloudConfig = provider as ModelProviderCloudConfig;
+            const keyIsValid = await validateKey(
+              providerId,
+              cloudConfig.apiKey,
+            );
 
-      ctx.response = provider;
-    })
-    .onPost(apiRoutes.validateProviderConfig(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+            ctx.response = keyIsValid;
+          } else {
+            // @TODO: check if the endpoint is alive
+            ctx.response = true;
+          }
+        }),
+    )
+    .onGet(
+      apiRoutes.providerModel(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const providerId = ctx.params.providerId;
+          const provider = await db.getProviderConfig(providerId);
 
-      const providerId = ctx.params.providerId;
+          if (provider === null) {
+            ctx.error = "Provider not found";
+            return;
+          }
 
-      const provider = await services.db.getProviderConfig(providerId);
+          if (provider.type !== "cloud") {
+            const models = await getProviderModels(providerId, "");
+            ctx.response = models;
+            return;
+          }
 
-      if (provider === null) {
-        ctx.response = false;
-        return;
-      }
+          const models = await getProviderModels(providerId, provider.apiKey);
+          ctx.response = models;
+        }),
+    )
+    .onGet(
+      apiRoutes.providerConfigs(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const providers = await db.getModelProviders();
+          ctx.response = providers;
+        }),
+    )
+    .onPost(
+      apiRoutes.providerConfigs(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const provider = ctx.data as ModelProviderConfig;
 
-      if (provider.type === "cloud") {
-        const cloudConfig = provider as ModelProviderCloudConfig;
-        const keyIsValid = await validateKey(providerId, cloudConfig.apiKey);
+          const newProvider = await db.insertProviderConfig(provider);
 
-        ctx.response = keyIsValid;
-      } else {
-        // @TODO: check if the endpoint is alive
-        ctx.response = true;
-      }
-    })
-    .onGet(apiRoutes.providerModel(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+          ctx.response = newProvider;
 
-      const providerId = ctx.params.providerId;
+          router.broadcastPost(ctx.route, newProvider);
+        }),
+    )
+    .onDelete(
+      apiRoutes.providerConfig(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const providerId = ctx.params.providerId;
+          const provider = await db.getProviderConfig(providerId);
 
-      const provider = await services.db.getProviderConfig(providerId);
+          if (provider === null) {
+            ctx.error = "Provider not found";
+            return;
+          }
 
-      if (provider === null) {
-        ctx.error = "Provider not found";
-        return;
-      }
+          await db.deleteProviderConfig(providerId);
 
-      if (provider.type !== "cloud") {
-        const models = await getProviderModels(providerId, "");
-        ctx.response = models;
-        return;
-      }
+          ctx.response = true;
 
-      const models = await getProviderModels(providerId, provider.apiKey);
-      ctx.response = models;
-    })
-    .onGet(apiRoutes.providerConfigs(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
-
-      const providers = await services.db.getModelProviders();
-
-      ctx.response = providers;
-    })
-    .onPost(apiRoutes.providerConfigs(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
-
-      const provider = ctx.data as ModelProviderConfig;
-
-      const newProvider = await services.db.insertProviderConfig(provider);
-
-      ctx.response = newProvider;
-
-      router.broadcastPost(ctx.route, newProvider);
-    })
-    .onDelete(apiRoutes.providerConfig(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
-
-      const providerId = ctx.params.providerId;
-
-      const provider = await services.db.getProviderConfig(providerId);
-
-      if (provider === null) {
-        ctx.error = "Provider not found";
-        return;
-      }
-
-      await services.db.deleteProviderConfig(providerId);
-
-      ctx.response = true;
-
-      router.broadcastPost(ctx.route, provider);
-    })
-    .onPost(apiRoutes.validateProviderKey(), async (ctx) => {
-      const provider = ctx.params.provider;
-      const key = ctx.data as string;
-      const keyIsValid = await validateKey(provider, key);
-      ctx.response = keyIsValid;
-    });
+          router.broadcastPost(ctx.route, provider);
+        }),
+    )
+    .onPost(
+      apiRoutes.validateProviderKey(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, _) => {
+          const provider = ctx.params.provider;
+          const key = ctx.data as string;
+          const keyIsValid = await validateKey(provider, key);
+          ctx.response = keyIsValid;
+        }),
+    );
 }

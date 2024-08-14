@@ -1,7 +1,7 @@
 export type ServerInfo = {
   version: string;
   type: 'local' | 'remote';
-  workspace: Workspace | null;
+  workspaces: Workspace[];
 }
 
 export type Workspace = {

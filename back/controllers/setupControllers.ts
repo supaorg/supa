@@ -3,7 +3,7 @@ import { BackServices } from "./backServices.ts";
 import { workspaceController } from "./workspaceController.ts";
 import { appController } from "./appController.ts";
 import { threadsController } from "./threadsController.ts";
-import { providersController } from './providersController.ts';
+import { providersController } from "./providersController.ts";
 import { rootController } from "./rootController.ts";
 
 export function setupControllers(router: Router) {
@@ -13,5 +13,5 @@ export function setupControllers(router: Router) {
   workspaceController(services);
   appController(services);
   threadsController(services);
-  providersController(services); 
+  providersController(services);
 }

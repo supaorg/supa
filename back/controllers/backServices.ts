@@ -4,33 +4,37 @@ import { WorkspaceDb } from "../db/workspaceDb.ts";
 
 export class BackServices {
   public router: Router;
-  public db: WorkspaceDb | null; // @TODO: have a list of 'workspaces', rename AppDb to WorkspaceDb
+  public db: Record<string, WorkspaceDb> = {};
 
   constructor(router: Router) {
     this.router = router;
-    this.db = null;
   }
 
   setupDatabase(workspace: Workspace) {
-    if (this.db !== null) {
-      throw new Error("Database is already initialized");
+    if (workspace.id in this.db) {
+      throw new Error(`Database for workspace ${workspace.id} already exists`);
     }
 
-    this.db = new WorkspaceDb(workspace);
+    this.db[workspace.id] = new WorkspaceDb(workspace);
   }
   
   getDbNotSetupError() {
     return "Database is not initialized";
   }
 
-  workspaceEndpoint(ctx: RequestContext, handler: (ctx: RequestContext) => void | Promise<void>) { 
+  async workspaceEndpoint(ctx: RequestContext, handler: (ctx: RequestContext, db: WorkspaceDb) => void | Promise<void>) { 
     const workspaceId = ctx.params.workspaceId;
 
     if (!workspaceId) {
       ctx.error = "workspaceId wasn't provided.";
     }
 
-    // TODO: find workspace from dbs
+    if (!(workspaceId in this.db)) {
+      ctx.error = `Database for workspace ${workspaceId} doesn't exist`;
+      return;
+    }
+
+    await handler(ctx, this.db[workspaceId]);
   }
 
 }

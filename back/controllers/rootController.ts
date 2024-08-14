@@ -9,7 +9,7 @@ export function rootController(services: BackServices) {
     ctx.response = {
       version: "0.1.0",
       type: "local",
-      workspace: services.db ? services.db.workspace : null,
+      workspaces: [],
     } as ServerInfo;
   });
 }

@@ -8,6 +8,7 @@ import { apiRoutes } from "@shared/apiRoutes.ts";
 import { Thread } from "../../shared/models.ts";
 import { AppConfig } from "../../shared/models.ts";
 import { ThreadTitleAgent } from "../agents/threadTitleAgent.ts";
+import { WorkspaceDb } from "../db/workspaceDb.ts";
 
 export function threadsController(services: BackServices) {
   const router = services.router;
@@ -15,85 +16,81 @@ export function threadsController(services: BackServices) {
   const messageAgents: { [messageId: string]: SimpleChatAgent } = {};
 
   router
-    .onGet(apiRoutes.threads(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+    .onGet(
+      apiRoutes.threads(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          try {
+            const threads = await db.getThreads();
+            ctx.response = threads;
+          } catch (e) {
+            ctx.error = e.message;
+            return;
+          }
+        }),
+    )
+    .onPost(
+      apiRoutes.threads(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const appId = ctx.data as string;
 
-      try {
-        const threads = await services.db.getThreads();
-        ctx.response = threads;
-      } catch (e) {
-        ctx.error = e.message;
-        return;
-      }
-    })
-    .onPost(apiRoutes.threads(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+          try {
+            const thread = await db.createThread({
+              id: uuidv4(),
+              appId,
+              createdAt: Date.now(),
+              updatedAt: null,
+              title: "",
+            });
 
-      const agentId = ctx.data as string;
+            ctx.response = thread;
 
-      try {
-        const thread = await services.db.createThread({
-          id: uuidv4(),
-          agentId,
-          createdAt: Date.now(),
-          updatedAt: null,
-          title: "",
-        });
+            router.broadcastPost(ctx.route, thread);
+          } catch (e) {
+            ctx.error = e;
+          }
+        }),
+    )
+    .onDelete(
+      apiRoutes.thread(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const threadId = ctx.params.threadId;
+          try {
+            await db.deleteThread(threadId);
+            router.broadcastDeletion(apiRoutes.threads(), threadId);
+          } catch (e) {
+            ctx.error = e;
+          }
+        }),
+    )
+    .onGet(
+      apiRoutes.threadMessages(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const threadId = ctx.params.threadId;
 
-        ctx.response = thread;
+          try {
+            const thread = await db.getThread(threadId);
 
-        router.broadcastPost(ctx.route, thread);
-      } catch (e) {
-        ctx.error = e;
-      }
-    })
-    .onDelete(apiRoutes.thread(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+            if (thread === null) {
+              ctx.error = "Couldn't get thread";
+              return;
+            }
+          } catch (e) {
+            ctx.error = e;
+            return;
+          }
 
-      const threadId = ctx.params.threadId;
-      try {
-        await services.db.deleteThread(threadId);
-        router.broadcastDeletion(apiRoutes.threads(), threadId);
-      } catch (e) {
-        ctx.error = e;
-      }
-    })
-    .onGet(apiRoutes.threadMessages(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
-
-      const threadId = ctx.params.threadId;
-
-      try {
-        const thread = await services.db.getThread(threadId);
-
-        if (thread === null) {
-          ctx.error = "Couldn't get thread";
-          return;
-        }
-      } catch (e) {
-        ctx.error = e;
-        return;
-      }
-
-      try {
-        const messages = await services.db.getThreadMessages(threadId);
-        ctx.response = messages;
-      } catch (e) {
-        ctx.error = e;
-      }
-    })
+          try {
+            const messages = await db.getThreadMessages(threadId);
+            ctx.response = messages;
+          } catch (e) {
+            ctx.error = e;
+          }
+        }),
+    )
     .onValidateBroadcast(apiRoutes.threads(), (conn, params) => {
       return true;
     })
@@ -103,158 +100,149 @@ export function threadsController(services: BackServices) {
     .onValidateBroadcast(apiRoutes.threadMessages(), (conn, params) => {
       return true;
     })
-    .onPost(apiRoutes.retryThread(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+    .onPost(
+      apiRoutes.retryThread(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const threadId = ctx.params.threadId;
+          let thread: Thread | null;
 
-      const threadId = ctx.params.threadId;
+          try {
+            thread = await db.getThread(threadId);
+          } catch (e) {
+            ctx.error = e;
+            return;
+          }
 
-      let thread: Thread | null;
-      try {
-        thread = await services.db.getThread(threadId);
-      } catch (e) {
-        ctx.error = e;
-        return;
-      }
+          if (thread === null) {
+            ctx.error = "Thread doesn't exist";
+            return;
+          }
 
-      if (thread === null) {
-        ctx.error = "Thread doesn't exist";
-        return;
-      }
+          try {
+            const messages = await db.getThreadMessages(threadId);
 
-      try {
-        const messages = await services.db.getThreadMessages(threadId);
+            // Only re-try if the last message is from the AI, an error or a lonely user message
+            const replyMessage = messages[messages.length - 1];
 
-        // Only re-try if the last message is from the AI, an error or a lonely user message
-        const replyMessage = messages[messages.length - 1];
+            if (replyMessage.role !== "user") {
+              // Delete the last message by the AI or an error
+              await db.deleteThreadMessage(threadId, replyMessage.id);
+              router.broadcastDeletion(
+                apiRoutes.threadMessages(threadId),
+                replyMessage,
+              );
+            }
 
-        if (replyMessage.role !== "user") {
-          // Delete the last message by the AI or an error
-          await services.db.deleteThreadMessage(threadId, replyMessage.id);
-          router.broadcastDeletion(
-            apiRoutes.threadMessages(threadId),
-            replyMessage,
-          );
-        }
+            await sendReplyToThread(db, thread);
+          } catch (e) {
+            ctx.error = e;
+            return;
+          }
+        }),
+    )
+    .onPost(
+      apiRoutes.stopThread(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const threadId = ctx.params.threadId;
 
-        await sendReplyToThread(thread);
-      } catch (e) {
-        ctx.error = e;
-        return;
-      }
-    })
-    .onPost(apiRoutes.stopThread(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+          let thread: Thread | null;
+          try {
+            thread = await db.getThread(threadId);
+          } catch (e) {
+            ctx.error = e;
+            return;
+          }
 
-      const threadId = ctx.params.threadId;
+          if (thread === null) {
+            ctx.error = "Thread doesn't exist";
+            return;
+          }
 
-      let thread: Thread | null;
-      try {
-        thread = await services.db.getThread(threadId);
-      } catch (e) {
-        ctx.error = e;
-        return;
-      }
+          try {
+            const messages = await db.getThreadMessages(threadId);
 
-      if (thread === null) {
-        ctx.error = "Thread doesn't exist";
-        return;
-      }
+            // Only stop if the last message is from the AI
+            const replyMessage = messages[messages.length - 1];
 
-      try {
-        const messages = await services.db.getThreadMessages(threadId);
+            if (replyMessage.role !== "assistant") {
+              ctx.error = "Can't stop the message";
+              return;
+            }
 
-        // Only stop if the last message is from the AI
-        const replyMessage = messages[messages.length - 1];
+            const agent = messageAgents[replyMessage.id];
+            if (!agent) {
+              ctx.error = "Agent not found";
+              return;
+            }
 
-        if (replyMessage.role !== "assistant") {
-          ctx.error = "Can't stop the message";
-          return;
-        }
+            agent.stop();
+          } catch (e) {
+            ctx.error = e;
+            return;
+          }
+        }),
+    )
+    .onPost(
+      apiRoutes.thread(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const threadId = ctx.params.threadId;
 
-        const agent = messageAgents[replyMessage.id];
-        if (!agent) {
-          ctx.error = "Agent not found";
-          return;
-        }
+          try {
+            const thread = await db.getThread(threadId);
 
-        agent.stop();
-      } catch (e) {
-        ctx.error = e;
-        return;
-      }
-    })
-    .onPost(apiRoutes.thread(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+            if (thread === null) {
+              ctx.error = "Thread doesn't exist";
+              return;
+            }
 
-      const threadId = ctx.params.threadId;
+            const updThread = { ...thread, ...ctx.data as Thread };
 
-      try {
-        const thread = await services.db.getThread(threadId);
+            await db.updateThread(updThread);
 
-        if (thread === null) {
-          ctx.error = "Thread doesn't exist";
-          return;
-        }
+            router.broadcastUpdate(ctx.route, updThread);
+          } catch (e) {
+            ctx.error = e;
+          }
+        }),
+    )
+    .onPost(
+      apiRoutes.threadMessages(),
+      (ctx) =>
+        services.workspaceEndpoint(ctx, async (ctx, db) => {
+          const threadId = ctx.params.threadId;
 
-        const updThread = { ...thread, ...ctx.data as Thread };
+          try {
+            const thread = await db.getThread(threadId);
 
-        await services.db.updateThread(updThread);
+            if (thread === null) {
+              ctx.error = "Thread doesn't exist";
+              return;
+            }
 
-        router.broadcastUpdate(ctx.route, updThread);
-      } catch (e) {
-        ctx.error = e;
-      }
-    })
-    .onPost(apiRoutes.threadMessages(), async (ctx) => {
-      if (services.db === null) {
-        ctx.error = services.getDbNotSetupError();
-        return;
-      }
+            const message = ctx.data as ThreadMessage;
 
-      const threadId = ctx.params.threadId;
+            if (await db.checkThreadMessage(threadId, message.id)) {
+              ctx.error = "Message already exists";
+              return;
+            }
 
-      try {
-        const thread = await services.db.getThread(threadId);
+            // First create a message sent by the user
+            await db.createThreadMessage(threadId, message);
+            router.broadcastPost(ctx.route, message);
 
-        if (thread === null) {
-          ctx.error = "Thread doesn't exist";
-          return;
-        }
+            await sendReplyToThread(db, thread);
+          } catch (e) {
+            ctx.error = e;
+          }
+        }),
+    );
 
-        const message = ctx.data as ThreadMessage;
-
-        if (await services.db.checkThreadMessage(threadId, message.id)) {
-          ctx.error = "Message already exists";
-          return;
-        }
-
-        // First create a message sent by the user
-        await services.db.createThreadMessage(threadId, message);
-        router.broadcastPost(ctx.route, message);
-
-        await sendReplyToThread(thread);
-      } catch (e) {
-        ctx.error = e;
-      }
-    });
-
-  async function sendReplyToThread(thread: Thread) {
-    if (services.db === null) {
-      throw new Error("No database");
-    }
-
+  async function sendReplyToThread(db: WorkspaceDb, thread: Thread) {
     const threadId = thread.id;
-
-    const agentServices = new AgentServices(services.db);
+    const agentServices = new AgentServices(db);
     let messages: ThreadMessage[];
     let replyMessage: ThreadMessage;
     let chatAgent: SimpleChatAgent;
@@ -262,10 +250,10 @@ export function threadsController(services: BackServices) {
 
     try {
       // Get all the messages in the thread (new message included)
-      messages = await services.db.getThreadMessages(threadId);
+      messages = await db.getThreadMessages(threadId);
 
       // Create an in-progress message for the agent
-      replyMessage = await services.db.createThreadMessage(threadId, {
+      replyMessage = await db.createThreadMessage(threadId, {
         id: uuidv4(),
         role: "assistant",
         text: "Thinking...",
@@ -276,7 +264,7 @@ export function threadsController(services: BackServices) {
 
       router.broadcastPost(apiRoutes.threadMessages(threadId), replyMessage);
 
-      config = await services.db.getAgent(thread.appId) || defaultAgent;
+      config = await db.getAgent(thread.appId) || defaultAgent;
 
       // Let's run the messages through the agent
       chatAgent = new SimpleChatAgent(agentServices, config);
@@ -292,9 +280,7 @@ export function threadsController(services: BackServices) {
         replyMessage.text = resp as string;
         router.broadcastPost(apiRoutes.threadMessages(threadId), replyMessage);
         // And save the message to the database
-        if (services.db !== null) {
-          services.db.updateThreadMessage(threadId, replyMessage);
-        }
+        db.updateThreadMessage(threadId, replyMessage);
       });
 
       replyMessage.text = response as string;
@@ -306,7 +292,7 @@ export function threadsController(services: BackServices) {
     replyMessage.inProgress = 0;
     replyMessage.updatedAt = Date.now();
     replyMessage.inProgress = 0;
-    await services.db.updateThreadMessage(threadId, replyMessage);
+    await db.updateThreadMessage(threadId, replyMessage);
     router.broadcastPost(apiRoutes.threadMessages(threadId), replyMessage);
 
     if (messages.length >= 1) {
@@ -318,7 +304,7 @@ export function threadsController(services: BackServices) {
         }) as string;
         if (title) {
           thread.title = title;
-          await services.db.updateThread(thread);
+          await db.updateThread(thread);
           router.broadcastUpdate(apiRoutes.threads(), thread);
         }
       } catch (e) {
