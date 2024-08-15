@@ -16,7 +16,7 @@ export function workspaceController(services: BackServices) {
     .onGet(apiRoutes.workspace(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
       ctx.response = db.workspace;
     }))
-    .onPost(apiRoutes.workspace(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
+    .onPost(apiRoutes.workspaces(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
       try {
         const path = ctx.data as string;
 
