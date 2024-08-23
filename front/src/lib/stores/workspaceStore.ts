@@ -1,5 +1,5 @@
 import type { Writable } from "svelte/store";
-import { get } from "svelte/store";
+import { get, writable } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import { client } from "$lib/tools/client";
 import { ServerInTauri, isTauri, setupServerInTauri } from "$lib/tauri/serverInTauri";
@@ -13,10 +13,22 @@ export type WorkspacePointer = {
   workspace: Workspace;
 }
 
+let currentWorkspaceId = "";
+
+export function getCurrentWorkspaceId(): string {
+  return currentWorkspaceId;
+}
+
 const currentWorkspacePointerStore: Writable<WorkspacePointer | null> = localStorageStore(
   "currentWorkspace",
   null,
 );
+
+currentWorkspacePointerStore.subscribe((pointer) => {
+  if (pointer) {
+    currentWorkspaceId = pointer.workspace.id;
+  }
+});
 
 const workspacePointersStore: Writable<WorkspacePointer[]> = localStorageStore(
   "workspaces",
@@ -41,7 +53,35 @@ export function setCurrentWorkspace(pointer: WorkspacePointer) {
     workspacePointersStore.update((workspaces) => {
       return [...workspaces, pointer];
     });
-  } 
+  }
+}
+
+export async function connectOrStartServerInTauri(): Promise<void> {
+  if (!isTauri()) {
+    throw new Error("This function is only available in Tauri.");
+  }
+
+  const tauriIntegration = await setupServerInTauri();
+  const serverWsUrl = tauriIntegration.getWebSocketUrl();
+
+  if (client.getURL() !== serverWsUrl) {
+    client.setUrl(serverWsUrl);
+  }
+
+  const serverInfoRes = await client.get(apiRoutes.root);
+  if (serverInfoRes.error) {
+    throw new Error(serverInfoRes.error);
+  }
+
+  //await subscribeToSession();
+}
+
+export function setLocalWorkspace(workspace: Workspace) {
+  setCurrentWorkspace({
+    type: "local",
+    url: "http://localhost:6969",
+    workspace: workspace,
+  });
 }
 
 export async function connectToLocalWorkspace(pointer?: WorkspacePointer): Promise<void> {
@@ -56,26 +96,30 @@ export async function connectToLocalWorkspace(pointer?: WorkspacePointer): Promi
     client.setUrl(serverWsUrl);
   }
 
-  const serverInfoRes = await client.get(apiRoutes.root);
-  if (serverInfoRes.error) {
-    throw new Error(serverInfoRes.error);
+  const res = await client.post(apiRoutes.workspaces(), pointer?.workspace.path);
+
+  if (res.error) {
+    console.error(res.error);
+    return;
   }
 
-  const serverInfo = serverInfoRes.data as ServerInfo;
-
-  if (pointer && serverInfo.workspace?.path && serverInfo.workspace.id !== pointer.workspace.id) {
-    throw new Error("Workspace path mismatch");
-  }
+  const workspace = res.data as Workspace;
 
   await subscribeToSession();
 
-  if (serverInfo.workspace) {
-    setCurrentWorkspace({
-      type: "local",
-      url: serverWsUrl,
-      workspace: serverInfo.workspace,
-    });
-  } else {
+  if (!workspace) {
+    throw new Error("Workspace not found");
+  }
+
+  setCurrentWorkspace({
+    type: "local",
+    url: serverWsUrl,
+    workspace: workspace,
+  });
+
+
+
+  /*else {
     const newWorkspaceRes = await client.post(apiRoutes.workspace, pointer?.workspace?.path);
 
     if (newWorkspaceRes.error) {
@@ -90,4 +134,5 @@ export async function connectToLocalWorkspace(pointer?: WorkspacePointer): Promi
       workspace: newWorkspaceFromServer,
     });
   }
+  */
 }

@@ -38,6 +38,20 @@ export class ServerInTauri {
     // An endpoint will have to return the workspace it's running on. And it has to match with the app's workspace.
     // There also could be a version and other info to make a decision whether to go with the running server or start a new one.
 
+    // Check if the server is already running on port 6969
+    try {
+      const response = await fetch('http://localhost:6969');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Server is already running. Data:', data);
+        this.port = 6969;
+        return;
+      }
+    } catch (error) {
+      console.log(error);
+      console.log('Server is not running on port 6969. Starting new server.');
+    }
+
     await this.#startServer();
   }
 

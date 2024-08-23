@@ -9,6 +9,7 @@
     type ModalSettings,
   } from "@skeletonlabs/skeleton";
   import { Icon, Trash } from "svelte-hero-icons";
+    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let agent: AppConfig;
   let isVisible: boolean = isAgentVisible();
@@ -23,7 +24,7 @@
     agent.meta = agent.meta || {};
     agent.meta.visible = visible ? "true" : "false";
 
-    client.post(apiRoutes.appConfig(agent.id), agent).then((response) => {});
+    client.post(apiRoutes.appConfig(getCurrentWorkspaceId(), agent.id), agent).then((response) => {});
   }
 
   $: {
@@ -48,7 +49,7 @@
   }
 
   function deleteAgent() {
-    client.delete(apiRoutes.appConfig(agent.id)).then((response) => {
+    client.delete(apiRoutes.appConfig(getCurrentWorkspaceId(), agent.id)).then((response) => {
       agentConfigStore.update((agents) => {
         return agents.filter((a) => a.id !== agent.id);
       });

@@ -4,6 +4,7 @@ import { localStorageStore } from "@skeletonlabs/skeleton";
 import { client } from "$lib/tools/client";
 import type { Profile } from "@shared/models";
 import { apiRoutes } from "@shared/apiRoutes";
+import { getCurrentWorkspaceId } from "./workspaceStore";
 
 export const profileStore: Writable<Profile | null> = localStorageStore(
   "profile",
@@ -17,11 +18,13 @@ export async function updateProfile(profile: Partial<Profile>) {
     ...currentProfile,
     ...profile,
   } as Profile;
-  await client.post(apiRoutes.profile, updProfile);
+  await client.post(apiRoutes.profile(getCurrentWorkspaceId()), updProfile);
 }
 
 export async function loadProfileFromServer() {
-  let profile = await client.get(apiRoutes.profile).then((res) => {
+  console.log("Loading profile from server");
+
+  const profile = await client.get(apiRoutes.profile(getCurrentWorkspaceId())).then((res) => {
     if (!res.data) {
       return null;
     }
@@ -31,7 +34,7 @@ export async function loadProfileFromServer() {
 
   profileStore.set(profile);
 
-  client.on(apiRoutes.profile, (broadcast) => {
+  client.on(apiRoutes.profile(getCurrentWorkspaceId()), (broadcast) => {
     const profile = broadcast.data as Profile;
     profileStore.set(profile);
   });

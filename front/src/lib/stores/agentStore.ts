@@ -1,11 +1,12 @@
-import { get, type Writable, writable } from "svelte/store";
+import { type Writable, writable } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import { client } from "$lib/tools/client";
 import type { AppConfig } from "@shared/models";
 import { apiRoutes } from "@shared/apiRoutes";
+import { getCurrentWorkspaceId } from "./workspaceStore";
 
 export const agentConfigStore: Writable<AppConfig[]> = localStorageStore(
-  apiRoutes.appConfigs,
+  apiRoutes.appConfigs((getCurrentWorkspaceId())),
   [],
 );
 
@@ -22,7 +23,7 @@ agentConfigStore.subscribe((agents) => {
 });
 
 export async function createAgent() {
-  const agent = await client.post(apiRoutes.appConfigs).then((res) => {
+  const agent = await client.post(apiRoutes.appConfigs(getCurrentWorkspaceId())).then((res) => {
     return res.data as AppConfig;
   });
 
@@ -30,7 +31,9 @@ export async function createAgent() {
 }
 
 export async function loadAgentsFromServer() {
-  const agents = await client.get(apiRoutes.appConfigs).then((res) => {
+  console.log("Loading agents from server");
+
+  const agents = await client.get(apiRoutes.appConfigs(getCurrentWorkspaceId())).then((res) => {
     const agents = Array.isArray(res.data) ? res.data as AppConfig[] : [];
     // sort by name
     agents.sort((a, b) => {
@@ -47,7 +50,9 @@ export async function loadAgentsFromServer() {
 
   agentConfigStore.set(agents);
 
-  client.on(apiRoutes.appConfigs, (broadcast) => {
+  console.log("Got agents", agents);
+
+  client.on(apiRoutes.appConfigs(getCurrentWorkspaceId()), (broadcast) => {
     if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
       const config = broadcast.data as AppConfig;
 

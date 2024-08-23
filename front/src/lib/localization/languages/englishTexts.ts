@@ -12,7 +12,7 @@ export const englishTexts: Texts = {
     model: "Model",
   },
 
-  agentsPage: {
+  appPage: {
     title: "Apps",
     buttonNewConfig: "New Chat Config",
   },

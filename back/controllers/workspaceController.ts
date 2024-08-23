@@ -1,8 +1,9 @@
 import { BackServices } from "./backServices.ts";
 import { Profile } from "@shared/models.ts";
 import {
+createWorkspace,
   createWorkspaceInDocuments,
-  getWorkspace,
+  getWorkspaceFromFiles,
   setWorkspacePath,
 } from "../workspace.ts";
 import { fs } from "../tools/fs.ts";
@@ -16,7 +17,7 @@ export function workspaceController(services: BackServices) {
     .onGet(apiRoutes.workspace(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
       ctx.response = db.workspace;
     }))
-    .onPost(apiRoutes.workspaces(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
+    .onPost(apiRoutes.workspaces(), async (ctx) => {
       try {
         const path = ctx.data as string;
 
@@ -25,20 +26,24 @@ export function workspaceController(services: BackServices) {
           return;
         }
 
-        let workspace = await getWorkspace(path);
+        let workspace = services.getWorkspaceByPath(path);
+
         if (!workspace) {
-          //workspace = await createWorkspaceInDocuments();
-          ctx.error = "Couldn't find a workspace";
-          return;
+          workspace = await getWorkspaceFromFiles(path);
         }
 
-        services.setupDatabase(workspace);
+        if (!workspace) {
+          workspace = await createWorkspace(path);
+        }
+
+        services.setupWorkspace(workspace);
+        
         ctx.response = workspace;
       } catch (e) {
         ctx.error = e.message;
         return;
       }
-    }))
+    })
     .onPost(apiRoutes.setup(), (ctx) => services.workspaceEndpoint(ctx, async (ctx, db) => {
       if (!ctx.data) {
         ctx.error = "Data is required";

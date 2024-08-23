@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import CenteredPage from "$lib/comps/CenteredPage.svelte";
-  import AgentConfigEditing from "$lib/comps/agents/AgentConfigEditing.svelte";
+  import AgentConfigEditing from "$lib/comps/apps/AppConfigEditing.svelte";
 
   let configId: string | null = null;
 

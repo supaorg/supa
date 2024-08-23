@@ -7,6 +7,7 @@
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
   import { apiRoutes } from "@shared/apiRoutes";
+    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
@@ -22,7 +23,7 @@
       prevConfigId = configId;
       console.log("configId: " + configId);
       isNewAgent = false;
-      client.get(apiRoutes.appConfig(configId)).then((response) => {
+      client.get(apiRoutes.appConfig(getCurrentWorkspaceId(), configId)).then((response) => {
         agentConfig = response.data as AppConfig;
       });
 
@@ -53,14 +54,14 @@
     }
 
     if (isNewAgent) {
-      client.post(apiRoutes.appConfigs, agentConfig).then((response) => {
+      client.post(apiRoutes.appConfigs(getCurrentWorkspaceId()), agentConfig).then((response) => {
         console.log("new agent: " + response);
       });
 
       goto("/apps");
     } else {
       client
-        .post(apiRoutes.appConfig(agentConfig?.id), agentConfig)
+        .post(apiRoutes.appConfig(getCurrentWorkspaceId(), agentConfig?.id), agentConfig)
         .then((response) => {
           console.log("updated agent: " + response);
         });

@@ -41,6 +41,7 @@
   import { fsPermissionDeniedStore } from "$lib/stores/fsPermissionDeniedStore";
   import SelectModelModal from "./modals/SelectModelModal.svelte";
   import { extendMarked } from "$lib/utils/markdown/extendMarked";
+    import type { Workspace } from "@shared/models";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
@@ -63,7 +64,13 @@
 
   */
 
+  function onWorkspaceSetup(workspace: Workspace) {
+    console.log("Workspace setup", workspace);
+    state = "ready";
+  }
+
   $: {
+    /*
     if (
       state === "ready" &&
       ($profileStore === null || !$profileStore?.setup)
@@ -78,6 +85,7 @@
     ) {
       state = "ready";
     }
+    */
   }
 
   async function loadStoresFromServer() {
@@ -106,7 +114,8 @@
     if (!workspacePointer) {
       state = "needsWorkspace";
     } else {
-      /*
+      await connectToLocalWorkspace(workspacePointer as WorkspacePointer);
+
       await loadStoresFromServer();
 
       if (workspacePointer.workspace.setup === false) {
@@ -114,7 +123,6 @@
       } else {
         state = "ready";
       }
-      */
     }
   });
 
@@ -141,7 +149,7 @@
 {:else if state === "initializing"}
   <Loading />
 {:else if state === "needsWorkspace"}
-  <WorkspaceSetup />
+  <WorkspaceSetup {onWorkspaceSetup} />
 {:else if state === "needsSetup"}
   <SetupWizard />
 {:else if state === "ready"}

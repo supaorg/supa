@@ -10,7 +10,7 @@ export interface Texts {
     model: string;
   }
 
-  agentsPage: {
+  appPage: {
     title: string;
     buttonNewConfig: string;
   }

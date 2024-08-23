@@ -3,19 +3,22 @@ import { localStorageStore } from '@skeletonlabs/skeleton';
 import type { Thread } from '@shared/models';
 import { client } from '$lib/tools/client';
 import { apiRoutes } from '@shared/apiRoutes';
+import { getCurrentWorkspaceId } from './workspaceStore';
 
 export const threadsStore: Writable<Thread[]> = localStorageStore('threads', []);
 
 export async function createThread(agentId: string) {
-  const thread = await client.post(apiRoutes.threads, agentId).then((res) => {
+  const thread = await client.post(apiRoutes.threads(getCurrentWorkspaceId()), agentId).then((res) => {
     return res.data as Thread;
   });
 
   return thread;
 }
 
-export async function loadThreadsFromServer() {    
-  const threads = await client.get(apiRoutes.threads).then((res) => {
+export async function loadThreadsFromServer() {   
+  console.log('Loading threads from server');
+  
+  const threads = await client.get(apiRoutes.threads(getCurrentWorkspaceId())).then((res) => {
     const threads = Array.isArray(res.data) ? res.data : [];
     // sort by createdAt
     threads.sort((a, b) => {
@@ -26,7 +29,7 @@ export async function loadThreadsFromServer() {
 
   threadsStore.set(threads);
 
-  client.on(apiRoutes.threads, (broadcast) => {
+  client.on(apiRoutes.threads(getCurrentWorkspaceId()), (broadcast) => {
     if (broadcast.action === 'POST') {
       const thread = broadcast.data as Thread;
       threadsStore.update((threads) => { 

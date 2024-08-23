@@ -10,9 +10,20 @@ export class BackServices {
     this.router = router;
   }
 
-  setupDatabase(workspace: Workspace) {
+  getWorkspaceByPath(path: string): Workspace | null {
+    for (const workspace of Object.values(this.db)) {
+      if (workspace.workspace.path === path) {
+        return workspace.workspace;
+      }
+    }
+
+    return null;
+  }
+
+  setupWorkspace(workspace: Workspace) {
     if (workspace.id in this.db) {
-      throw new Error(`Database for workspace ${workspace.id} already exists`);
+      //throw new Error(`Database for workspace ${workspace.id} already exists`);
+      return;
     }
 
     this.db[workspace.id] = new WorkspaceDb(workspace);

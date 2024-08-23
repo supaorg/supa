@@ -4,7 +4,6 @@ export const apiRoutes = {
   /* Workspaces */
   workspaces: () => `workspaces`,
   workspace: (workspaceId = ":workspaceId") => `workspaces/${workspaceId}`,
-  newWorkspace: (workspaceId = ":workspaceId") => `new-workspace`,
   setup: (workspaceId = ":workspaceId") => `workspaces/${workspaceId}/setup`,
   profile: (workspaceId = ":workspaceId") =>
     `workspaces/${workspaceId}/profile`,

@@ -11,7 +11,7 @@ export async function setWorkspacePath(path: string) {
   await writeSessionFile();
 }
 
-export async function getWorkspace(path: string): Promise<Workspace | null> {
+export async function getWorkspaceFromFiles(path: string): Promise<Workspace | null> {
   const pathToWorkspace = path + "/_workspace.json";
 
   if (!await fs.fileExists(pathToWorkspace)) {
@@ -27,6 +27,36 @@ export async function getWorkspace(path: string): Promise<Workspace | null> {
 
   // The file doesn't suppose to have the path, so we're adding it here after loading the file
   workspace.path = path;
+
+  return workspace;
+}
+
+export async function createWorkspace(path: string): Promise<Workspace> {
+  // Check if path exists
+  if (!await fs.dirExists(path)) {
+    throw new Error(`Directory ${path} does not exist`);
+  }
+
+  // Check if it's already a workspace
+  const existingWorkspace = await getWorkspaceFromFiles(path);
+  if (existingWorkspace) {
+    return existingWorkspace;
+  }
+
+  // Create a new workspace
+  const workspaceJsonPath = path + "/_workspace.json";
+  const workspace: Workspace = {
+    id: uuidv4(),
+    name: null,
+    createdAt: new Date().getTime(),
+    path: path,
+    setup: true // Adding the missing 'setup' property
+  };
+
+  await fs.writeTextFile(workspaceJsonPath, JSON.stringify(workspace));
+
+  // Set the new workspace path
+  await setWorkspacePath(path);
 
   return workspace;
 }
@@ -61,7 +91,7 @@ async function checkAndCreateWorkspaceDir(rootDir: string): Promise<Workspace> {
     await fs.mkdir(workspacePath, { recursive: true });
     const workspaceJsonPath = workspacePath + "/_workspace.json";
 
-    workspace = { 
+    workspace = {
       id: uuidv4(),
       name: null,
       createdAt: new Date().getTime(),

@@ -3,6 +3,7 @@ import { Router as NeoRouter } from "../shared/neorest/Router.ts";
 import { ProcessPortMsg } from "@shared/serverProcessMessages.ts";
 import { startServer } from "./startServer.ts";
 import { setupControllers } from "./controllers/setupControllers.ts";
+import { ServerInfo } from "@shared/models.ts";
 
 const app = new Application();
 const httpRouter = new Router();
@@ -12,7 +13,11 @@ setupControllers(neoRouter);
 
 httpRouter.get("/", (context) => {
   if (!context.isUpgradable) {
-    context.response.body = "Supamind API is running!";
+    context.response.body = {
+      version: "0.1.0",
+      type: "local",
+      workspaces: [],
+    } as ServerInfo;
     return;
   }
   const socket = context.upgrade();

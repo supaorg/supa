@@ -3,20 +3,43 @@
   import { client } from "$lib/tools/client";
   import { CheckCircle, Icon } from "svelte-hero-icons";
   import CenteredPage from "../CenteredPage.svelte";
-  import { open } from '@tauri-apps/api/dialog';
+  import { open } from "@tauri-apps/api/dialog";
+  import { apiRoutes } from "@shared/apiRoutes";
+  import {
+    connectOrStartServerInTauri,
+    setLocalWorkspace,
+  } from "$lib/stores/workspaceStore";
+  import type { Workspace } from "@shared/models";
+
+  // Expose a function to be called from the parent component
+  export const onWorkspaceSetup: (workspace: Workspace) => void = () => {};
 
   async function createWorkspaceDialog() {
-    const selected = await open({ 
-      title: 'Select a folder for a new workspace',
+    const selected = await open({
+      title: "Select a folder for a new workspace",
       directory: true,
     });
 
-    console.log(selected);
+    console.log("create in " + selected);
+
+    await connectOrStartServerInTauri();
+
+    const res = await client.post(apiRoutes.workspaces(), selected);
+
+    if (res.error) {
+      console.error(res.error);
+      return;
+    }
+
+    const workspace = res.data as Workspace;
+    setLocalWorkspace(workspace);
+
+    onWorkspaceSetup(workspace);
   }
 
   async function openWorkspaceDialog() {
-    const selected = await open({ 
-      title: 'Select a folder for a new workspace',
+    const selected = await open({
+      title: "Select a folder for a new workspace",
       directory: true,
     });
 
@@ -56,7 +79,10 @@
             empty.
           </p>
         </div>
-        <button class="btn variant-ringed-primary" on:click={createWorkspaceDialog}>Create</button>
+        <button
+          class="btn variant-ringed-primary"
+          on:click={createWorkspaceDialog}>Create</button
+        >
       </div>
       <div class="flex items-center justify-between mt-4">
         <div>
@@ -65,7 +91,10 @@
             Open a folder that contains your workspace files.
           </p>
         </div>
-        <button class="btn variant-ringed-primary" on:click={openWorkspaceDialog}>Open</button>
+        <button
+          class="btn variant-ringed-primary"
+          on:click={openWorkspaceDialog}>Open</button
+        >
       </div>
     </div>
   </div>

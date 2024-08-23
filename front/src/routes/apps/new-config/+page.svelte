@@ -1,6 +1,6 @@
 <script>
   import CenteredPage from "$lib/comps/CenteredPage.svelte";
-  import AgentConfigEditing from "$lib/comps/agents/AgentConfigEditing.svelte";
+  import AppConfigEditing from "$lib/comps/apps/AppConfigEditing.svelte";
 </script>
 
 <CenteredPage>
@@ -11,5 +11,5 @@
     <li class="crumb-separator" aria-hidden="true">&rsaquo;</li>
     <li>New Config</li>
   </ol>
-  <AgentConfigEditing />
+  <AppConfigEditing />
 </CenteredPage>
