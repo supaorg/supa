@@ -5,6 +5,7 @@
   import ModelSelectCard from "./ModelSelectCard.svelte";
   import { apiRoutes } from "@shared/apiRoutes";
   import AutoModelSelectCard from "./AutoModelSelectCard.svelte";
+  import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   let providers: ModelProvider[] = [];
   let configs: ModelProviderConfig[] = [];
@@ -22,8 +23,8 @@
 
   onMount(async () => {
     const [providersResponse, configsResponse] = await Promise.all([
-      client.get(apiRoutes.providers),
-      client.get(apiRoutes.providerConfigs),
+      client.get(apiRoutes.providers(getCurrentWorkspaceId())),
+      client.get(apiRoutes.providerConfigs(getCurrentWorkspaceId())),
     ]);
 
     providers = providersResponse.data as ModelProvider[];

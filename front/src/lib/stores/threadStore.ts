@@ -15,9 +15,7 @@ export async function createThread(agentId: string) {
   return thread;
 }
 
-export async function loadThreadsFromServer() {   
-  console.log('Loading threads from server');
-  
+export async function loadThreadsFromServer() {     
   const threads = await client.get(apiRoutes.threads(getCurrentWorkspaceId())).then((res) => {
     const threads = Array.isArray(res.data) ? res.data : [];
     // sort by createdAt

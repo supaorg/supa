@@ -31,8 +31,6 @@ export async function createAgent() {
 }
 
 export async function loadAgentsFromServer() {
-  console.log("Loading agents from server");
-
   const agents = await client.get(apiRoutes.appConfigs(getCurrentWorkspaceId())).then((res) => {
     const agents = Array.isArray(res.data) ? res.data as AppConfig[] : [];
     // sort by name
@@ -49,8 +47,6 @@ export async function loadAgentsFromServer() {
   });
 
   agentConfigStore.set(agents);
-
-  console.log("Got agents", agents);
 
   client.on(apiRoutes.appConfigs(getCurrentWorkspaceId()), (broadcast) => {
     if (broadcast.action === "POST" || broadcast.action === "UPDATE") {

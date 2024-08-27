@@ -315,6 +315,8 @@ export class WorkspaceDb {
   }
 
   async getModelProviders(): Promise<ModelProviderConfig[]> {
+    await fs.ensureDir(this.resolvePath("provider-configs"));
+
     const providerFiles = await fs.readDir(
       this.resolvePath("provider-configs"),
     );

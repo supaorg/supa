@@ -70,7 +70,7 @@ export function appController(services: BackServices) {
             await db.updateAgent(defaultConfigWithUpdTargetLLM);
           }
 
-          router.broadcastPost(apiRoutes.appConfigs(), config);
+          router.broadcastPost(apiRoutes.appConfigs(db.workspace.id), config);
         }),
     )
     .onDelete(
@@ -79,7 +79,7 @@ export function appController(services: BackServices) {
         services.workspaceEndpoint(ctx, async (ctx, db) => {
           const configId = ctx.params.configId;
           await db.deleteAgent(configId);
-          router.broadcastDeletion(apiRoutes.appConfigs(), configId);
+          router.broadcastDeletion(apiRoutes.appConfigs(db.workspace.id), configId);
         }),
     )
     .onPost(
@@ -93,7 +93,7 @@ export function appController(services: BackServices) {
 
           const config = ctx.data as AppConfig;
           await db.insertAgent(config);
-          router.broadcastPost(apiRoutes.appConfigs(), config);
+          router.broadcastPost(apiRoutes.appConfigs(db.workspace.id), config);
         }),
     )
     .onValidateBroadcast(apiRoutes.appConfigs(), (conn, params) => {

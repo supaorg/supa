@@ -8,6 +8,7 @@
   import { createThread } from "$lib/stores/threadStore";
   import { agentConfigStore } from "$lib/stores/agentStore";
   import { apiRoutes } from "@shared/apiRoutes";
+    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   const modalStore = getModalStore();
 
@@ -61,7 +62,7 @@
 
     // Post and don't wait for the response, just go to the new thread
     // to see it live
-    client.post(apiRoutes.threadMessages(newThread.id), msg);
+    client.post(apiRoutes.threadMessages(getCurrentWorkspaceId(), newThread.id), msg);
 
     goto(`/?t=${newThread.id}`);
 

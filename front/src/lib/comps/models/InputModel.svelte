@@ -5,6 +5,7 @@
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
   import { ExclamationCircle, Icon, Sparkles } from "svelte-hero-icons";
+    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let value: string;
   export let required: boolean = false;
@@ -76,7 +77,7 @@
 
     provider = null;
     provider = await client
-      .get(apiRoutes.provider(providerId))
+      .get(apiRoutes.provider(getCurrentWorkspaceId(), providerId))
       .then((res) => res.data as ModelProvider);
 
     validate();

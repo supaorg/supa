@@ -6,6 +6,7 @@
   import type { ModelProvider, Profile } from "@shared/models";
   import ModelProviders from "../models/ModelProviders.svelte";
   import { apiRoutes } from "@shared/apiRoutes";
+    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   let name = "";
 
@@ -13,7 +14,7 @@
 
   function handleComplete() {
     client
-      .post(apiRoutes.setup, {
+      .post(apiRoutes.setup(getCurrentWorkspaceId()), {
         name,
       })
       .then((res) => {

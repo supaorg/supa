@@ -8,6 +8,7 @@
     ModelProviderCloudConfig,
     ModelProviderConfig,
   } from "@shared/models";
+    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let id: string;
   export let onValidKey: (key: string) => void;
@@ -29,7 +30,7 @@
       apiKey,
     } as ModelProviderCloudConfig;
 
-    await client.post(apiRoutes.providerConfigs, config);
+    await client.post(apiRoutes.providerConfigs(getCurrentWorkspaceId()), config);
   }
 
   async function handleApiKeyChange() {
@@ -38,7 +39,7 @@
     timeout = setTimeout(async () => {
       apiKeyIsValid = false;
       apiKeyIsValid = await client
-        .post(apiRoutes.validateProviderKey(id), apiKey)
+        .post(apiRoutes.validateProviderKey(getCurrentWorkspaceId(), id), apiKey)
         .then((res) => res.data as boolean);
       if (apiKeyIsValid) {
         saveCloudProviderWithApiKey(apiKey);

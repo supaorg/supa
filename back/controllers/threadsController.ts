@@ -59,7 +59,7 @@ export function threadsController(services: BackServices) {
           const threadId = ctx.params.threadId;
           try {
             await db.deleteThread(threadId);
-            router.broadcastDeletion(apiRoutes.threads(), threadId);
+            router.broadcastDeletion(apiRoutes.threads(db.workspace.id), threadId);
           } catch (e) {
             ctx.error = e;
           }
@@ -129,7 +129,7 @@ export function threadsController(services: BackServices) {
               // Delete the last message by the AI or an error
               await db.deleteThreadMessage(threadId, replyMessage.id);
               router.broadcastDeletion(
-                apiRoutes.threadMessages(threadId),
+                apiRoutes.threadMessages(db.workspace.id, threadId),
                 replyMessage,
               );
             }
@@ -262,7 +262,7 @@ export function threadsController(services: BackServices) {
         updatedAt: null,
       });
 
-      router.broadcastPost(apiRoutes.threadMessages(threadId), replyMessage);
+      router.broadcastPost(apiRoutes.threadMessages(db.workspace.id, threadId), replyMessage);
 
       config = await db.getAgent(thread.appId) || defaultAgent;
 
@@ -278,7 +278,7 @@ export function threadsController(services: BackServices) {
     try {
       const response = await chatAgent.input(messages, (resp) => {
         replyMessage.text = resp as string;
-        router.broadcastPost(apiRoutes.threadMessages(threadId), replyMessage);
+        router.broadcastPost(apiRoutes.threadMessages(db.workspace.id, threadId), replyMessage);
         // And save the message to the database
         db.updateThreadMessage(threadId, replyMessage);
       });
@@ -293,7 +293,7 @@ export function threadsController(services: BackServices) {
     replyMessage.updatedAt = Date.now();
     replyMessage.inProgress = 0;
     await db.updateThreadMessage(threadId, replyMessage);
-    router.broadcastPost(apiRoutes.threadMessages(threadId), replyMessage);
+    router.broadcastPost(apiRoutes.threadMessages(db.workspace.id, threadId), replyMessage);
 
     if (messages.length >= 1) {
       const titleAgent = new ThreadTitleAgent(agentServices, config);
@@ -305,7 +305,7 @@ export function threadsController(services: BackServices) {
         if (title) {
           thread.title = title;
           await db.updateThread(thread);
-          router.broadcastUpdate(apiRoutes.threads(), thread);
+          router.broadcastUpdate(apiRoutes.threads(db.workspace.id), thread);
         }
       } catch (e) {
         console.error(e);

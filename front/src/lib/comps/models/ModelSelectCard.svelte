@@ -4,6 +4,7 @@
   import { apiRoutes } from "@shared/apiRoutes";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
+    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let provider: ModelProvider;
   export let selected = false;
@@ -15,7 +16,7 @@
   let showModels = false;
 
   onMount(async () => {
-    models = await client.get(apiRoutes.providerModel(provider.id)).then((res) => {
+    models = await client.get(apiRoutes.providerModel(getCurrentWorkspaceId(), provider.id)).then((res) => {
       return res.data as string[];
     });
   });

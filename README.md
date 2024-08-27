@@ -36,7 +36,7 @@ ChatGPT-like chat interface with chat threads, customization of systemp prompt, 
 Download and run.
 
 ### Built with
-Typescript is the main language for the back-end and front-end.
+Typescript is the main language for the backend and frontend.
 Deno is for the backend.
 AIWrapper for working with AI provider APIs
 Svelte is for making UI

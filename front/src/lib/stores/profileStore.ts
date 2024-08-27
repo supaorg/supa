@@ -22,8 +22,6 @@ export async function updateProfile(profile: Partial<Profile>) {
 }
 
 export async function loadProfileFromServer() {
-  console.log("Loading profile from server");
-
   const profile = await client.get(apiRoutes.profile(getCurrentWorkspaceId())).then((res) => {
     if (!res.data) {
       return null;

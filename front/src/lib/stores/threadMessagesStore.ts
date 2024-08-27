@@ -3,6 +3,7 @@ import { localStorageStore } from "@skeletonlabs/skeleton";
 import type { ThreadMessage } from "@shared/models";
 import { client } from "$lib/tools/client";
 import { apiRoutes } from "@shared/apiRoutes";
+import { getCurrentWorkspaceId } from "./workspaceStore";
 
 export interface ThreadMessagesDictionary {
   [key: string]: ThreadMessage[];
@@ -12,7 +13,7 @@ export const threadsMessagesStore: Writable<ThreadMessagesDictionary> =
   localStorageStore<ThreadMessagesDictionary>("threadMessages", {});
 
 export async function listenToMessages(threadId: string) {
-  client.on(apiRoutes.threadMessages(threadId), (broadcast) => {
+  client.on(apiRoutes.threadMessages(getCurrentWorkspaceId(), threadId), (broadcast) => {
     if (broadcast.action === "POST" || broadcast.action === "UPDATE") {
       onPostOrUpdateChatMsg(threadId, broadcast.data as ThreadMessage);
     }
@@ -23,16 +24,16 @@ export async function listenToMessages(threadId: string) {
 }
 
 export async function unlistenMessages(threadId: string) {
-  client.off(apiRoutes.threadMessages(threadId));
+  client.off(apiRoutes.threadMessages(getCurrentWorkspaceId(), threadId));
 }
 
 export async function postNewMessage(threadId: string, msg: ThreadMessage) {
-  client.post(apiRoutes.threadMessages(threadId), msg);
+  client.post(apiRoutes.threadMessages(getCurrentWorkspaceId(), threadId), msg);
   onPostOrUpdateChatMsg(threadId, msg);
 }
 
 export async function stopThread(threadId: string) {
-  client.post(apiRoutes.stopThread(threadId));
+  client.post(apiRoutes.stopThread(getCurrentWorkspaceId(), threadId));
 }
 
 function onDeleteChatMsg(threadId: string, message: ThreadMessage) {
@@ -77,7 +78,7 @@ function onPostOrUpdateChatMsg(threadId: string, message: ThreadMessage) {
 
 export async function fetchThreadMessages(threadId: string): Promise<void> {
   const messages = await client
-    .get(apiRoutes.threadMessages(threadId))
+    .get(apiRoutes.threadMessages(getCurrentWorkspaceId(), threadId))
     .then((res) => {
       if (res.error) {
         console.error(res.error);
