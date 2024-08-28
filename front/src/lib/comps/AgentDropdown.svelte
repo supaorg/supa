@@ -7,7 +7,7 @@
   import { popup } from "@skeletonlabs/skeleton";
   import type { PopupSettings } from "@skeletonlabs/skeleton";
   import { visibleAgentConfigStore } from "$lib/stores/agentStore";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
 
@@ -22,9 +22,11 @@
   $: {
     const thread = $threadsStore.find((t) => t.id === threadId);
     if (thread) {
-      client.get(apiRoutes.appConfig(getCurrentWorkspaceId(), thread.appId)).then((res) => {
-        agent = res.data as AppConfig;
-      });
+      client
+        .get(apiRoutes.appConfig(getCurrentWorkspaceId(), thread.appId))
+        .then((res) => {
+          agent = res.data as AppConfig;
+        });
     }
   }
 

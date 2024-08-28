@@ -41,7 +41,7 @@
   import { fsPermissionDeniedStore } from "$lib/stores/fsPermissionDeniedStore";
   import SelectModelModal from "./modals/SelectModelModal.svelte";
   import { extendMarked } from "$lib/utils/markdown/extendMarked";
-    import type { Workspace } from "@shared/models";
+  import type { Workspace } from "@shared/models";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
@@ -64,7 +64,8 @@
 
   */
 
-  function onWorkspaceSetup(workspace: Workspace) {
+  async function onWorkspaceSetup(workspace: Workspace) {
+    await loadStoresFromServer();
     state = "ready";
   }
 

@@ -119,6 +119,12 @@
     const pageElement = document.getElementById(
       mainScrollableId,
     ) as HTMLElement;
+
+    if (!pageElement) {
+      console.log("Couldn't scroll. An element with id " + mainScrollableId + " not found");
+      return;
+    }
+
     pageElement.scrollTo(0, pageElement.scrollHeight);
 
     clearTimeout(scrollTimeout);
@@ -194,7 +200,7 @@
   <div class="min-h-min px-2">
     <div class="flex flex-1 gap-4 items-center py-2">
       <AgentDropdown {threadId} />
-      {#if thread.title}
+      {#if thread && thread.title}
         <h3 class="text-lg">{thread.title}</h3>
       {/if}
     </div>
