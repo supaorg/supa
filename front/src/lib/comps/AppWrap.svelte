@@ -65,7 +65,6 @@
   */
 
   function onWorkspaceSetup(workspace: Workspace) {
-    console.log("Workspace setup", workspace);
     state = "ready";
   }
 

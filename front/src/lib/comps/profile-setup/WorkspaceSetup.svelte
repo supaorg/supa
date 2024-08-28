@@ -3,7 +3,7 @@
   import { client } from "$lib/tools/client";
   import { CheckCircle, Icon } from "svelte-hero-icons";
   import CenteredPage from "../CenteredPage.svelte";
-  import { open } from "@tauri-apps/api/dialog";
+  import { message, open } from "@tauri-apps/api/dialog";
   import { apiRoutes } from "@shared/apiRoutes";
   import {
     connectOrStartServerInTauri,
@@ -12,22 +12,25 @@
   import type { Workspace } from "@shared/models";
 
   // Expose a function to be called from the parent component
-  export const onWorkspaceSetup: (workspace: Workspace) => void = () => {};
+  export let onWorkspaceSetup: (workspace: Workspace) => void = () => {};
 
   async function createWorkspaceDialog() {
-    const selected = await open({
+    const path = await open({
       title: "Select a folder for a new workspace",
       directory: true,
     });
 
-    console.log("create in " + selected);
+    if (!path) {
+      return;
+    }
 
     await connectOrStartServerInTauri();
 
-    const res = await client.post(apiRoutes.workspaces(), selected);
+    const res = await client.post(apiRoutes.workspaces(), { path, create: true });
 
     if (res.error) {
       console.error(res.error);
+      message(res.error, { type: "error" });
       return;
     }
 
@@ -38,12 +41,29 @@
   }
 
   async function openWorkspaceDialog() {
-    const selected = await open({
+    const path = await open({
       title: "Select a folder for a new workspace",
       directory: true,
     });
 
-    console.log(selected);
+    if (!path) {
+      return;
+    }
+
+    await connectOrStartServerInTauri();
+
+    const res = await client.post(apiRoutes.workspaces(), { path, create: false });
+
+    if (res.error) {
+      console.error(res.error);
+      message(res.error, { type: "error" });
+      return;
+    }
+
+    const workspace = res.data as Workspace;
+    setLocalWorkspace(workspace);
+
+    onWorkspaceSetup(workspace);
   }
 </script>
 

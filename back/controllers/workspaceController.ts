@@ -1,14 +1,11 @@
 import { BackServices } from "./backServices.ts";
 import { Profile } from "@shared/models.ts";
 import {
-createWorkspace,
-  createWorkspaceInDocuments,
+  createWorkspace,
   getWorkspaceFromFiles,
-  setWorkspacePath,
 } from "../workspace.ts";
 import { fs } from "../tools/fs.ts";
 import { apiRoutes } from "@shared/apiRoutes.ts";
-import { Workspace } from "../../shared/models.ts";
 
 export function workspaceController(services: BackServices) {
   const router = services.router;
@@ -19,7 +16,7 @@ export function workspaceController(services: BackServices) {
     }))
     .onPost(apiRoutes.workspaces(), async (ctx) => {
       try {
-        const path = ctx.data as string;
+        const { path, create } = ctx.data as { path: string, create: boolean };
 
         if (!path) {
           ctx.error = "Path to the workspace is required";
@@ -33,11 +30,23 @@ export function workspaceController(services: BackServices) {
         }
 
         if (!workspace) {
+          if (!create) {
+            ctx.error = "A workspace doesn't exist in this directory";
+            return;
+          }
+
+          // Check if the path is empty
+          const entries = await fs.readDir(path);
+          if (entries.length > 0) {
+            ctx.error = "This directory has to be empty to create a workspace";
+            return;
+          }
+          
           workspace = await createWorkspace(path);
         }
 
         services.setupWorkspace(workspace);
-        
+
         ctx.response = workspace;
       } catch (e) {
         ctx.error = e.message;
