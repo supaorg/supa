@@ -1,6 +1,6 @@
-import { AgentConfig } from "@shared/models.ts";
+import { AppConfig } from "@shared/models.ts";
 
-export const defaultAgent: AgentConfig = {
+export const defaultChatAppConfig: AppConfig = {
   id: "default",
   name: "Ask AI",
   button: "New query",

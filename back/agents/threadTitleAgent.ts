@@ -1,8 +1,8 @@
 import { AppConfig, ThreadMessage } from "../../shared/models.ts";
 import { Agent, AgentInput, AgentOutput, AgentResponse } from "./agent.ts";
-import { AgentConfigForChat } from "./simpleChatAgent.ts";
+import { AppConfigForChat } from "./simpleChatAgent.ts";
 
-export class ThreadTitleAgent extends Agent<AgentConfigForChat> {
+export class ThreadTitleAgent extends Agent<AppConfigForChat> {
   // @TODO: decide if I can make input more specific for agents
   async input(
     payload: AgentInput,

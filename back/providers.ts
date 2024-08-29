@@ -15,7 +15,7 @@ export const providers: ModelProvider[] = [
     access: "cloud",
     url: "https://groq.com/",
     logoUrl: "/providers/groq.png",
-    defaultModel: "llama3-70b-8192"
+    defaultModel: "llama-3.1-70b-versatile"
   },
   {
     id: "anthropic",
@@ -23,7 +23,7 @@ export const providers: ModelProvider[] = [
     access: "cloud",
     url: "https://anthropic.com/",
     logoUrl: "/providers/anthropic.png",
-    defaultModel: "claude-3-opus-20240229"
+    defaultModel: "claude-3-5-sonnet-20240620"
   },
   {
     id: "ollama",

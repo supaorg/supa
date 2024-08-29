@@ -4,8 +4,8 @@ import {
   AppConfig,
   ModelProviderConfig,
   Workspace,
-} from "../../shared/models.ts";
-import { defaultAgent } from "../agents/defaultAgent.ts";
+} from "@shared/models.ts";
+import { defaultChatAppConfig } from "../apps/defaultChatAppConfig.ts";
 import { fs } from "../tools/fs.ts";
 import perf from "../tools/perf.ts";
 
@@ -60,7 +60,7 @@ export class WorkspaceDb {
     );
 
     const defaultAgentIndex = configs.findIndex((agent) =>
-      agent.id === defaultAgent.id
+      agent.id === defaultChatAppConfig.id
     );
     if (defaultAgentIndex !== -1) {
       const overrideForDefaultAgent = JSON.parse(
@@ -69,12 +69,12 @@ export class WorkspaceDb {
 
       // Merge the default agent config with the overriding config
       configs[defaultAgentIndex] = {
-        ...defaultAgent,
+        ...defaultChatAppConfig,
         ...overrideForDefaultAgent,
       };
     } else {
       // If there is no overriding config, just use the default agent
-      configs.push(defaultAgent);
+      configs.push(defaultChatAppConfig);
     }
 
     return configs;
@@ -90,7 +90,7 @@ export class WorkspaceDb {
 
       if (appConfigId === "default") {
         return {
-          ...defaultAgent,
+          ...defaultChatAppConfig,
           ...JSON.parse(appStr),
         };
       }
@@ -102,7 +102,7 @@ export class WorkspaceDb {
       return null;
     } catch (_) {
       if (appConfigId === "default") {
-        return defaultAgent;
+        return defaultChatAppConfig;
       }
 
       return null;

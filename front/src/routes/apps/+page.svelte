@@ -11,8 +11,8 @@
     <h3 class="h3">Chats</h3>
     <table class="table-auto w-full">
       <tbody>
-        {#each $appConfigStore as agent (agent.id)}
-          <AppConfigTableCell {agent} />
+        {#each $appConfigStore as config (config.id)}
+          <AppConfigTableCell {config} />
         {/each}
       </tbody>
     </table>

@@ -1,12 +1,12 @@
 import { BackServices } from "./backServices.ts";
 import { v4 as uuidv4 } from "npm:uuid";
 import { ThreadMessage } from "@shared/models.ts";
-import { defaultAgent } from "../agents/defaultAgent.ts";
+import { defaultChatAppConfig } from "../apps/defaultChatAppConfig.ts";
 import { SimpleChatAgent } from "../agents/simpleChatAgent.ts";
 import { AgentServices } from "../agents/agentServices.ts";
 import { apiRoutes } from "@shared/apiRoutes.ts";
-import { Thread } from "../../shared/models.ts";
-import { AppConfig } from "../../shared/models.ts";
+import { Thread } from "@shared/models.ts";
+import { AppConfig } from "@shared/models.ts";
 import { ThreadTitleAgent } from "../agents/threadTitleAgent.ts";
 import { WorkspaceDb } from "../db/workspaceDb.ts";
 
@@ -33,12 +33,13 @@ export function threadsController(services: BackServices) {
       apiRoutes.threads(),
       (ctx) =>
         services.workspaceEndpoint(ctx, async (ctx, db) => {
-          const appId = ctx.data as string;
+          const appConfigId = ctx.data as string;
 
           try {
             const thread = await db.createThread({
+              v: 1,
               id: uuidv4(),
-              appId,
+              appConfigId,
               createdAt: Date.now(),
               updatedAt: null,
               title: "",
@@ -264,7 +265,7 @@ export function threadsController(services: BackServices) {
 
       router.broadcastPost(apiRoutes.threadMessages(db.workspace.id, threadId), replyMessage);
 
-      config = await db.getAppConfig(thread.appId) || defaultAgent;
+      config = await db.getAppConfig(thread.appConfigId) || defaultChatAppConfig;
 
       // Let's run the messages through the agent
       chatAgent = new SimpleChatAgent(agentServices, config);

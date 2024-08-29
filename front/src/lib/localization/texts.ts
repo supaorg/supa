@@ -15,7 +15,7 @@ export interface Texts {
     buttonNewConfig: string;
   }
 
-  agentConfigPage: {
+  appConfigPage: {
     newConfigTitle: string;
     editConfigTitle: string;
     defaultConfigTitle: string;
@@ -28,7 +28,7 @@ export interface Texts {
     buttonPlaceholder: string;
     gotoNewConfig: string;
     errorValidationRequired: string;
-    errorAgentLoadFailure: string;
+    errorAppConfigLoadFailure: string;
   }
 
   settingsPage: {

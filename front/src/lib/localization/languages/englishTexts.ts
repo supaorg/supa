@@ -17,7 +17,7 @@ export const englishTexts: Texts = {
     buttonNewConfig: "New Chat Config",
   },
 
-  agentConfigPage: {
+  appConfigPage: {
     newConfigTitle: "New Chat Config",
     editConfigTitle: "Edit Chat Config",
     defaultConfigTitle: "Default Chat Config",
@@ -31,7 +31,7 @@ export const englishTexts: Texts = {
     buttonPlaceholder: "A short actionable text for a button",
     gotoNewConfig: "Go here if you want to create a new chat config",
     errorValidationRequired: "This field is required",
-    errorAgentLoadFailure: "Failed to load app config",
+    errorAppConfigLoadFailure: "Failed to load app config",
   },
 
   settingsPage: {

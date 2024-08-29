@@ -2,11 +2,11 @@ import { LangResultWithMessages } from "https://deno.land/x/aiwrapper@v0.0.20/sr
 import { AppConfig, ThreadMessage } from "../../shared/models.ts";
 import { Agent, AgentInput, AgentOutput, AgentResponse } from "./agent.ts";
 
-export interface AgentConfigForChat extends AppConfig {
+export interface AppConfigForChat extends AppConfig {
   targetLLM?: string;
 }
 
-export class SimpleChatAgent extends Agent<AgentConfigForChat> {
+export class SimpleChatAgent extends Agent<AppConfigForChat> {
   hasStopped = false;
 
   async input(

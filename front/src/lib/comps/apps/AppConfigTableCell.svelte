@@ -9,70 +9,74 @@
     type ModalSettings,
   } from "@skeletonlabs/skeleton";
   import { Icon, Trash } from "svelte-hero-icons";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
-  export let agent: AppConfig;
-  let isVisible: boolean = isAgentVisible();
-  const isDefault = agent.id === "default";
+  export let config: AppConfig;
+  let isVisible: boolean = isAppConfigVisible();
+  const isDefault = config.id === "default";
   const modalStore = getModalStore();
 
-  function isAgentVisible() {
-    return agent.meta ? agent.meta.visible !== "false" : true;
+  function isAppConfigVisible() {
+    return config.meta ? config.meta.visible !== "false" : true;
   }
 
-  function setAgentVisibility(visible: boolean) {
-    agent.meta = agent.meta || {};
-    agent.meta.visible = visible ? "true" : "false";
+  function setAppConfigVisibility(visible: boolean) {
+    config.meta = config.meta || {};
+    config.meta.visible = visible ? "true" : "false";
 
-    client.post(apiRoutes.appConfig(getCurrentWorkspaceId(), agent.id), agent).then((response) => {});
+    client
+      .post(apiRoutes.appConfig(getCurrentWorkspaceId(), config.id), config)
+      .then((response) => {});
   }
 
   $: {
-    if (isVisible !== isAgentVisible()) {
-      setAgentVisibility(isVisible);
+    if (isVisible !== isAppConfigVisible()) {
+      setAppConfigVisibility(isVisible);
     }
   }
 
   const deletionModal = {
     type: "confirm",
-    title: `Delete the ${agent.name} agent?`,
-    body: "Are you sure you want to delete this agent?",
+    title: `Delete the ${config.name} app config?`,
+    body: "Are you sure you want to delete this app config?",
     response: (r: boolean) => {
       if (r) {
-        deleteAgent();
+        deleteAppConfig();
       }
     },
   } as ModalSettings;
 
-  function requestDeleteAgent() {
+  function requestDeleteAppConfig() {
     modalStore.trigger(deletionModal);
   }
 
-  function deleteAgent() {
-    client.delete(apiRoutes.appConfig(getCurrentWorkspaceId(), agent.id)).then((response) => {
-      appConfigStore.update((agents) => {
-        return agents.filter((a) => a.id !== agent.id);
+  function deleteAppConfig() {
+    client
+      .delete(apiRoutes.appConfig(getCurrentWorkspaceId(), config.id))
+      .then((response) => {
+        appConfigStore.update((appConfigs) => {
+          return appConfigs.filter((a) => a.id !== config.id);
+        });
       });
-    });
   }
 </script>
 
 <tr class="table-row">
   <td class="py-2"
-    ><a href={"/apps/edit-config?id=" + agent.id} class="w-full h-full block"
-      ><strong>{agent.name}</strong><br />{agent.description}</a
+    ><a href={"/apps/edit-config?id=" + config.id} class="w-full h-full block"
+      ><strong>{config.name}</strong><br />{config.description}</a
     ></td
   >
   <td
     ><SlideToggle
-      name={"visible-" + agent.id}
+      name={"visible-" + config.id}
       bind:checked={isVisible}
       size="sm"
     /></td
   >
   <td>
     {#if !isDefault}
-      <button on:click={requestDeleteAgent}
+      <button on:click={requestDeleteAppConfig}
         ><Icon src={Trash} micro class="w-4" /></button
       >
     {:else}

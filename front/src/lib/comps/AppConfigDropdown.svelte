@@ -21,9 +21,9 @@
 
   $: {
     const thread = $threadsStore.find((t) => t.id === threadId);
-    if (thread && thread.appId) {
+    if (thread && thread.appConfigId) {
       client
-        .get(apiRoutes.appConfig(getCurrentWorkspaceId(), thread.appId))
+        .get(apiRoutes.appConfig(getCurrentWorkspaceId(), thread.appConfigId))
         .then((res) => {
           appConfig = res.data as AppConfig;
         });

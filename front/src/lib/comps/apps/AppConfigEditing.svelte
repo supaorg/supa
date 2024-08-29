@@ -11,29 +11,29 @@
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
-  let isNewAgent: boolean = configId === null;
+  let isNewApp: boolean = configId === null;
 
   let formElement: HTMLFormElement;
-  let agentConfig: AppConfig | null = null;
+  let appConfig: AppConfig | null = null;
 
   let disableFields = false;
 
   function init() {
     if (configId !== null) {
       prevConfigId = configId;
-      isNewAgent = false;
+      isNewApp = false;
       client
         .get(apiRoutes.appConfig(getCurrentWorkspaceId(), configId))
         .then((response) => {
-          agentConfig = response.data as AppConfig;
+          appConfig = response.data as AppConfig;
         });
 
       if (configId === "default") {
         disableFields = true;
       }
     } else {
-      isNewAgent = true;
-      agentConfig = {
+      isNewApp = true;
+      appConfig = {
         id: uuidv4(),
         name: "",
         description: "",
@@ -54,54 +54,51 @@
       return;
     }
 
-    if (isNewAgent) {
+    if (isNewApp) {
       client
-        .post(apiRoutes.appConfigs(getCurrentWorkspaceId()), agentConfig)
+        .post(apiRoutes.appConfigs(getCurrentWorkspaceId()), appConfig)
         .then((response) => {
-          console.log("new agent: " + response);
+          console.log("new app config: " + response);
         });
 
       goto("/apps");
     } else {
       client
         .post(
-          apiRoutes.appConfig(getCurrentWorkspaceId(), agentConfig?.id),
-          agentConfig,
+          apiRoutes.appConfig(getCurrentWorkspaceId(), appConfig?.id),
+          appConfig,
         )
         .then((response) => {
-          console.log("updated agent: " + response);
+          console.log("updated app config: " + response);
         });
     }
   }
 </script>
 
-{#if agentConfig}
+{#if appConfig}
   <h2 class="h2 pb-6">
-    {#if isNewAgent}
-      {$txtStore.agentConfigPage.newConfigTitle}
+    {#if isNewApp}
+      {$txtStore.appConfigPage.newConfigTitle}
     {:else if configId !== "default"}
-      {$txtStore.agentConfigPage.editConfigTitle}
+      {$txtStore.appConfigPage.editConfigTitle}
     {:else}
-      {$txtStore.agentConfigPage.defaultConfigTitle}
+      {$txtStore.appConfigPage.defaultConfigTitle}
     {/if}
   </h2>
   <form class="space-y-4" bind:this={formElement} on:submit|preventDefault>
     <!--
     <p class="text-sm">
       You can create you own system prompts (instructions) based on the default
-      chat agent. It will be posssible to create other type of agents with tools
+      chat app. It will be posssible to create other type of apps with tools
       and external APIs in the future versions of Supamind.
     </p>
     -->
-    <!--
-      @TODO: print the description of the agent that describes how the agent works
-    -->
     {#if configId === "default"}
       <p>
-        This is the configuration of the default chat agent. You can only change
+        This is the configuration of the default chat app. You can only change
         the model it uses.<br />
         <a href="/apps/new-config" class="anchor">Go here</a> if you want to create
-        a new agent configuration.
+        a new chat app configuration.
       </p>
     {/if}
     <label class="label">
@@ -110,9 +107,9 @@
         name="name"
         class="input variant-form-material"
         type="text"
-        placeholder={$txtStore.agentConfigPage.namePlaceholder}
+        placeholder={$txtStore.appConfigPage.namePlaceholder}
         required
-        bind:value={agentConfig.name}
+        bind:value={appConfig.name}
         disabled={disableFields}
       />
     </label>
@@ -122,9 +119,9 @@
         name="description"
         class="input variant-form-material"
         type="text"
-        placeholder={$txtStore.agentConfigPage.descriptionPlaceholder}
+        placeholder={$txtStore.appConfigPage.descriptionPlaceholder}
         required
-        bind:value={agentConfig.description}
+        bind:value={appConfig.description}
         disabled={disableFields}
       />
     </label>
@@ -134,21 +131,21 @@
         name="instructions"
         class="input variant-form-material"
         rows="7"
-        placeholder={$txtStore.agentConfigPage.instructionsPlaceholder}
+        placeholder={$txtStore.appConfigPage.instructionsPlaceholder}
         required
-        bind:value={agentConfig.instructions}
+        bind:value={appConfig.instructions}
         disabled={disableFields}
       />
     </label>
     <div class="label">
       <span>{$txtStore.basics.model}</span>
-      <InputModel bind:value={agentConfig.targetLLM} required />
+      <InputModel bind:value={appConfig.targetLLM} required />
     </div>
     <button type="submit" on:click={handleSubmit} class="btn variant-filled">
-      {#if isNewAgent}
-        {$txtStore.agentConfigPage.buttonCreate}
+      {#if isNewApp}
+        {$txtStore.appConfigPage.buttonCreate}
       {:else}
-        {$txtStore.agentConfigPage.buttonSave}
+        {$txtStore.appConfigPage.buttonSave}
       {/if}
     </button>
   </form>

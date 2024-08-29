@@ -22,9 +22,10 @@ export class BackServices {
 
   setupWorkspace(workspace: Workspace) {
     if (workspace.id in this.db) {
-      //throw new Error(`Database for workspace ${workspace.id} already exists`);
       return;
     }
+
+    // TODO: consider to check version here and throw if it's not compatible
 
     this.db[workspace.id] = new WorkspaceDb(workspace);
   }

@@ -4,6 +4,10 @@ export type ServerInfo = {
   workspaces: Workspace[];
 }
 
+export interface DataVersion {
+  v: number;
+}
+
 export type Workspace = {
   id: string;
   name: string | null;
@@ -21,9 +25,9 @@ export type ThreadMessage = {
   updatedAt: number | null;
 }
 
-export type Thread = {
+export type Thread = DataVersion & {
   id: string;
-  appId: string;
+  appConfigId: string;
   createdAt: number;
   updatedAt: number | null;
   title: string | null;
