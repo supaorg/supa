@@ -15,7 +15,7 @@ export class Client {
     string,
     (broadcast: { action: "POST" | "DELETE"; data: Payload }) => void
   > = {};
-  private reconnectTimeout = -1;
+  private reconnectTimeout: number | ReturnType<typeof setTimeout> = -1;
 
   public getURL() {
     return this.url;
@@ -39,6 +39,7 @@ export class Client {
     };
 
     this.conn.onClientConnect = () => {
+      console.log("Connected to a server");
       this.isFullyConnected = true;
     };
 
@@ -123,6 +124,18 @@ export class Client {
     payload?: Payload,
     headers?: Record<string, string>,
   ): Promise<RouteResponse> {
+    // Throw an exception if the route contains invalid characters.
+    // This is because the server uses certain characters for route parameters.
+    if (!/^[a-zA-Z0-9_\/-]+$/.test(route)) {
+      // Be explicit about colons, because users may send them by accident.
+      // This is because the server uses colons for route parameters.
+      if (route.includes(":")) {
+        throw new Error(`Route "${route}" contains colons ':' which is not allowed. Colons are reserved for route parameters.`);
+      }
+
+      throw new Error(`Route "${route}" contains invalid characters. Only alphanumeric characters, forward slashes, dashes and underscores are allowed.`);
+    }
+
     // Here we return a promise that resolves when the server responds.
     // When the server responds, the callback is called from Connection's `handleResponse` method.
     return new Promise((resolve, _) => {
@@ -147,10 +160,10 @@ export class Client {
       }
 
       this.subscribedRoutes[route] = callback;
-      
+
       // Wait until the connection is fully established before subscribing to a route
       // otherwise the server will reject the subscription.
-      while(true) {
+      while (true) {
         if (this.isFullyConnected) {
           break;
         }
@@ -178,7 +191,7 @@ export class Client {
         return;
       }
     });
-    
+
     delete this.subscribedRoutes[route];
   }
 }

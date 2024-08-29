@@ -79,7 +79,7 @@ export class Connection {
     return this.header['secret'] as ConnectionSecret || '';
   }
 
-  closingTimer = -1;
+  closingTimer: number | ReturnType<typeof setTimeout> = -1;
 
   public setSocket(ws: WebSocket) {
     this.socket = ws;

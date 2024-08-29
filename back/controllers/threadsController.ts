@@ -264,7 +264,7 @@ export function threadsController(services: BackServices) {
 
       router.broadcastPost(apiRoutes.threadMessages(db.workspace.id, threadId), replyMessage);
 
-      config = await db.getAgent(thread.appId) || defaultAgent;
+      config = await db.getAppConfig(thread.appId) || defaultAgent;
 
       // Let's run the messages through the agent
       chatAgent = new SimpleChatAgent(agentServices, config);

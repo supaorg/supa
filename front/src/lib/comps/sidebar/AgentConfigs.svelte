@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { Icon, PencilSquare } from "svelte-hero-icons";
-  import { visibleAgentConfigStore } from "$lib/stores/agentStore";
+  import { visibleAppConfigStore } from "$lib/stores/appConfigStore";
 
   const modalStore = getModalStore();
 
@@ -17,7 +17,7 @@
   }
 </script>
 
-{#each $visibleAgentConfigStore as config (config.id)}
+{#each $visibleAppConfigStore as config (config.id)}
   <button
     class="sidebar-btn w-full flex"
     data-agent-id={config.id}

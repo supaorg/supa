@@ -5,7 +5,7 @@
   import type { ThreadMessage as Message, Thread } from "@shared/models";
   import SendMessageForm from "./forms/SendMessageForm.svelte";
   import ThreadMessage from "./ThreadMessage.svelte";
-  import AgentDropdown from "./AgentDropdown.svelte";
+  import AppConfigDropdown from "./AppConfigDropdown.svelte";
   import { threadsStore } from "$lib/stores/threadStore";
   import { ProgressRadial } from "@skeletonlabs/skeleton";
   import {
@@ -121,7 +121,11 @@
     ) as HTMLElement;
 
     if (!pageElement) {
-      console.log("Couldn't scroll. An element with id " + mainScrollableId + " not found");
+      console.log(
+        "Couldn't scroll. An element with id " +
+          mainScrollableId +
+          " not found",
+      );
       return;
     }
 
@@ -199,7 +203,7 @@
 <div class="flex flex-col w-full h-full overflow-hidden">
   <div class="min-h-min px-2">
     <div class="flex flex-1 gap-4 items-center py-2">
-      <AgentDropdown {threadId} />
+      <AppConfigDropdown {threadId} />
       {#if thread && thread.title}
         <h3 class="text-lg">{thread.title}</h3>
       {/if}

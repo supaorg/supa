@@ -7,6 +7,7 @@
   import { goto } from "$app/navigation";
   import { apiRoutes } from "@shared/apiRoutes";
     import { threadsStore } from "$lib/stores/threadStore";
+    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
   export let showOpenButton = true;
@@ -22,7 +23,7 @@
   }
 
   function deleteThread() {
-    client.delete(apiRoutes.thread(threadId)).then(() => {
+    client.delete(apiRoutes.thread(getCurrentWorkspaceId(), threadId)).then(() => {
       console.log("Thread deleted");
     });
     threadsStore.update((threads) => {

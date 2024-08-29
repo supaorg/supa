@@ -6,7 +6,7 @@
   import { v4 as uuidv4 } from "uuid";
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { createThread } from "$lib/stores/threadStore";
-  import { agentConfigStore } from "$lib/stores/agentStore";
+  import { appConfigStore } from "$lib/stores/appConfigStore";
   import { apiRoutes } from "@shared/apiRoutes";
     import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
@@ -19,7 +19,7 @@
   $: {
     let targetAgent: AppConfig | undefined;
 
-    for (const agent of $agentConfigStore) {
+    for (const agent of $appConfigStore) {
       if (agent.id === agentId) {
         targetAgent = agent;
         break;

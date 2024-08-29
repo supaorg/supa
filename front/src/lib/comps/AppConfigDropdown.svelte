@@ -6,52 +6,54 @@
   import { ChevronDown, Icon } from "svelte-hero-icons";
   import { popup } from "@skeletonlabs/skeleton";
   import type { PopupSettings } from "@skeletonlabs/skeleton";
-  import { visibleAgentConfigStore } from "$lib/stores/agentStore";
+  import { visibleAppConfigStore } from "$lib/stores/appConfigStore";
   import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
 
-  let agent: AppConfig;
+  let appConfig: AppConfig | null;
 
   const popupClick: PopupSettings = {
     event: "click",
-    target: "agent-dropdown-popup",
+    target: "app-config-dropdown-popup",
     placement: "top",
   };
 
   $: {
     const thread = $threadsStore.find((t) => t.id === threadId);
-    if (thread) {
+    if (thread && thread.appId) {
       client
         .get(apiRoutes.appConfig(getCurrentWorkspaceId(), thread.appId))
         .then((res) => {
-          agent = res.data as AppConfig;
+          appConfig = res.data as AppConfig;
         });
+    } else {
+      appConfig = null;
     }
   }
 
-  async function changeAgentConfig(agentId: string) {
-    agent = $visibleAgentConfigStore.find((c) => c.id === agentId) as AppConfig;
-    await client.post(apiRoutes.thread(threadId), { agentId });
+  async function changeAppConfig(appConfigId: string) {
+    appConfig = $visibleAppConfigStore.find((c) => c.id === appConfigId) as AppConfig;
+    await client.post(apiRoutes.thread(getCurrentWorkspaceId(), threadId), { agentId: appConfigId });
   }
 </script>
 
-{#if agent}
+{#if appConfig}
   <button class="btn btn-sm variant-ringed" use:popup={popupClick}
-    >{agent.name} <Icon src={ChevronDown} mini class="w-6" /></button
+    >{appConfig.name} <Icon src={ChevronDown} mini class="w-6" /></button
   >
 {:else}
   <button class="btn" disabled>...</button>
 {/if}
 
-<div class="card shadow-xl z-10" data-popup="agent-dropdown-popup">
+<div class="card shadow-xl z-10" data-popup="app-config-dropdown-popup">
   <div class="arrow variant-filled" />
   <div class="btn-group-vertical variant-filled">
-    {#each $visibleAgentConfigStore as config (config.id)}
+    {#each $visibleAppConfigStore as config (config.id)}
       <button
         class="btn"
         data-agent-id={config.id}
-        on:click={() => changeAgentConfig(config.id)}
+        on:click={() => changeAppConfig(config.id)}
       >
         {config.name}
       </button>

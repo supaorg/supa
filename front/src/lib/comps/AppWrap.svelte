@@ -26,7 +26,7 @@
     profileStore,
     loadProfileFromServer,
   } from "$lib/stores/profileStore";
-  import { loadAgentsFromServer } from "$lib/stores/agentStore";
+  import { loadAppConfigsFromServer } from "$lib/stores/appConfigStore";
   import { storeHighlightJs } from "@skeletonlabs/skeleton";
   // For code highlighting in conversations
   import hljs from "highlight.js";
@@ -92,7 +92,7 @@
     return Promise.all([
       loadProfileFromServer(),
       loadThreadsFromServer(),
-      loadAgentsFromServer(),
+      loadAppConfigsFromServer(),
     ]);
   }
 

@@ -2,7 +2,7 @@ import { AppConfig } from "@shared/models.ts";
 import { BackServices } from "./backServices.ts";
 import { apiRoutes } from "@shared/apiRoutes.ts";
 
-export function appController(services: BackServices) {
+export function appConfigController(services: BackServices) {
   const router = services.router;
 
   router
@@ -11,8 +11,8 @@ export function appController(services: BackServices) {
       (ctx) =>
         services.workspaceEndpoint(ctx, async (ctx, db) => {
           try {
-            const agents = await db.getApps();
-            ctx.response = agents;
+            const appConfigs = await db.getAppConfigs();
+            ctx.response = appConfigs;
           } catch (e) {
             ctx.error = e.message;
             return;
@@ -24,14 +24,14 @@ export function appController(services: BackServices) {
       (ctx) =>
         services.workspaceEndpoint(ctx, async (ctx, db) => {
           const configId = ctx.params.configId;
-          const agent = await db.getAgent(configId);
+          const appConfig = await db.getAppConfig(configId);
 
-          if (agent === null) {
-            ctx.error = "Couldn't get agent";
+          if (appConfig === null) {
+            ctx.error = "Couldn't get an app config";
             return;
           }
 
-          ctx.response = agent;
+          ctx.response = appConfig;
         }),
     )
     .onPost(
@@ -44,20 +44,20 @@ export function appController(services: BackServices) {
           }
 
           const configId = ctx.params.configId;
-          const oldConfig = await db.getAgent(configId);
+          const oldConfig = await db.getAppConfig(configId);
 
           if (oldConfig === null) {
-            ctx.error = "Agent doesn't exist";
+            ctx.error = "App config doesn't exist";
             return;
           }
 
           const config = ctx.data as AppConfig;
 
           if (config.id !== "default") {
-            await db.updateAgent(config);
+            await db.updateAppConfig(config);
           } else {
             if (oldConfig === null) {
-              ctx.error = "Couldn't get the default agent config";
+              ctx.error = "Couldn't get the default app config";
               return;
             }
 
@@ -67,7 +67,7 @@ export function appController(services: BackServices) {
               targetLLM: config.targetLLM,
               meta: config.meta,
             } as AppConfig;
-            await db.updateAgent(defaultConfigWithUpdTargetLLM);
+            await db.updateAppConfig(defaultConfigWithUpdTargetLLM);
           }
 
           router.broadcastPost(apiRoutes.appConfigs(db.workspace.id), config);
@@ -78,7 +78,7 @@ export function appController(services: BackServices) {
       (ctx) =>
         services.workspaceEndpoint(ctx, async (ctx, db) => {
           const configId = ctx.params.configId;
-          await db.deleteAgent(configId);
+          await db.deleteAppConfig(configId);
           router.broadcastDeletion(apiRoutes.appConfigs(db.workspace.id), configId);
         }),
     )
@@ -92,7 +92,7 @@ export function appController(services: BackServices) {
           }
 
           const config = ctx.data as AppConfig;
-          await db.insertAgent(config);
+          await db.insertAppConfig(config);
           router.broadcastPost(apiRoutes.appConfigs(db.workspace.id), config);
         }),
     )

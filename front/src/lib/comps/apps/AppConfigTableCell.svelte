@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { agentConfigStore } from "$lib/stores/agentStore";
+  import { appConfigStore } from "$lib/stores/appConfigStore";
   import { client } from "$lib/tools/client";
   import type { AppConfig } from "@shared/models";
   import { apiRoutes } from "@shared/apiRoutes";
@@ -50,7 +50,7 @@
 
   function deleteAgent() {
     client.delete(apiRoutes.appConfig(getCurrentWorkspaceId(), agent.id)).then((response) => {
-      agentConfigStore.update((agents) => {
+      appConfigStore.update((agents) => {
         return agents.filter((a) => a.id !== agent.id);
       });
     });

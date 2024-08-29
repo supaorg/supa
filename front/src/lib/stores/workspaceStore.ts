@@ -1,11 +1,11 @@
 import type { Writable } from "svelte/store";
-import { get, writable } from "svelte/store";
+import { get } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import { client } from "$lib/tools/client";
-import { ServerInTauri, isTauri, setupServerInTauri } from "$lib/tauri/serverInTauri";
+import { isTauri, setupServerInTauri } from "$lib/tauri/serverInTauri";
 import { subscribeToSession } from "./fsPermissionDeniedStore";
 import { apiRoutes } from "@shared/apiRoutes";
-import type { ServerInfo, Workspace } from "@shared/models";
+import type { Workspace } from "@shared/models";
 
 export type WorkspacePointer = {
   type: "local" | "remote";
@@ -46,14 +46,18 @@ export function getWorkspaces(): WorkspacePointer[] {
 export function setCurrentWorkspace(pointer: WorkspacePointer) {
   currentWorkspacePointerStore.set(pointer);
 
-  // Check if the workspace is already in the list
-  const pointers = getWorkspaces();
-  const index = pointers.findIndex((p) => p.workspace.id === pointer.workspace.id);
-  if (index === -1) {
-    workspacePointersStore.update((workspaces) => {
-      return [...workspaces, pointer];
-    });
-  }
+  // Always update or add the workspace to the list
+  workspacePointersStore.update((workspaces) => {
+    const index = workspaces.findIndex((p) => p.workspace.id === pointer.workspace.id);
+    if (index !== -1) {
+      // Update existing workspace
+      workspaces[index] = pointer;
+    } else {
+      // Add new workspace
+      workspaces.push(pointer);
+    }
+    return workspaces;
+  });
 }
 
 export async function connectOrStartServerInTauri(): Promise<void> {

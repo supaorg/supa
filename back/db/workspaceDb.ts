@@ -45,7 +45,7 @@ export class WorkspaceDb {
     return profile;
   }
 
-  async getApps(): Promise<AppConfig[]> {
+  async getAppConfigs(): Promise<AppConfig[]> {
     await fs.ensureDir(this.resolvePath("agent-configs"));
     const agents = await this.getFiles(
       this.resolvePath("agent-configs"),
@@ -80,28 +80,28 @@ export class WorkspaceDb {
     return configs;
   }
 
-  async getAgent(agentId: string): Promise<AppConfig | null> {
+  async getAppConfig(appConfigId: string): Promise<AppConfig | null> {
     await fs.ensureDir(this.resolvePath("agent-configs"));
 
     try {
-      const agentStr = await fs.readTextFile(
-        this.resolvePath("agent-configs", agentId, "_config.json"),
+      const appStr = await fs.readTextFile(
+        this.resolvePath("agent-configs", appConfigId, "_config.json"),
       );
 
-      if (agentId === "default") {
+      if (appConfigId === "default") {
         return {
           ...defaultAgent,
-          ...JSON.parse(agentStr),
+          ...JSON.parse(appStr),
         };
       }
 
-      if (agentStr) {
-        return JSON.parse(agentStr);
+      if (appStr) {
+        return JSON.parse(appStr);
       }
 
       return null;
     } catch (_) {
-      if (agentId === "default") {
+      if (appConfigId === "default") {
         return defaultAgent;
       }
 
@@ -109,7 +109,7 @@ export class WorkspaceDb {
     }
   }
 
-  async deleteAgent(agentId: string): Promise<void> {
+  async deleteAppConfig(agentId: string): Promise<void> {
     try {
       await fs.remove(this.resolvePath("agent-configs", agentId), {
         recursive: true,
@@ -119,7 +119,7 @@ export class WorkspaceDb {
     }
   }
 
-  async insertAgent(agent: AppConfig): Promise<AppConfig> {
+  async insertAppConfig(agent: AppConfig): Promise<AppConfig> {
     await fs.ensureDir(this.resolvePath("agent-configs", agent.id));
 
     await fs.writeTextFile(
@@ -130,7 +130,7 @@ export class WorkspaceDb {
     return agent;
   }
 
-  async updateAgent(agent: AppConfig): Promise<void> {
+  async updateAppConfig(agent: AppConfig): Promise<void> {
     await fs.ensureDir(this.resolvePath("agent-configs", agent.id));
 
     await fs.writeTextFile(

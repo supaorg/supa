@@ -77,6 +77,7 @@
     </p>
 
     <div>
+      <!--
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-lg font-semibold">Create a workspace in iCloud</h3>
@@ -88,6 +89,7 @@
         </div>
         <button class="btn variant-filled-primary">Create</button>
       </div>
+      -->
       <div class="flex items-center justify-between mt-4">
         <div>
           <h3 class="text-lg font-semibold">
