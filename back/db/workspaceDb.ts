@@ -172,7 +172,11 @@ export class WorkspaceDb {
       );
 
       if (threadStr) {
-        return JSON.parse(threadStr);
+        const thread = JSON.parse(threadStr);
+
+        // @TODO: migrate here
+
+        return thread;
       }
 
       return null;

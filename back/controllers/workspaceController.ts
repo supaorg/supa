@@ -27,8 +27,6 @@ export function workspaceController(services: BackServices) {
 
         if (!workspace) {
           workspace = await getWorkspaceFromFiles(path);
-
-          // TODO: check version here and migrate if needed
         }
 
         if (!workspace) {
