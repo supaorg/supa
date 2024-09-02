@@ -8,7 +8,7 @@ export interface AppData {
   v: number;
 }
 
-export type Workspace = {
+export type Workspace = AppData & {
   id: string;
   name: string | null;
   createdAt: number;

@@ -9,6 +9,9 @@ import { defaultChatAppConfig } from "../apps/defaultChatAppConfig.ts";
 import { fs } from "../tools/fs.ts";
 import perf from "../tools/perf.ts";
 import { ThreadMigration } from "../migrations/threadMigration.ts";
+import { migrateWorkspace } from "../migrations/workspaceMigration.ts";
+import { CURRENT_DATA_VERSION } from "@shared/versions/dataVersions.ts";
+import { v4 as uuidv4 } from "npm:uuid";
 
 export async function loadWorkspace(path: string): Promise<Workspace | null> {
   const pathToWorkspace = path + "/_workspace.json";
@@ -18,7 +21,7 @@ export async function loadWorkspace(path: string): Promise<Workspace | null> {
   }
 
   const file = await fs.readTextFile(pathToWorkspace);
-  const workspace = JSON.parse(file) as Workspace;
+  let workspace = JSON.parse(file) as Workspace;
 
   if (!workspace.id || !workspace.createdAt) {
     return null;
@@ -26,6 +29,8 @@ export async function loadWorkspace(path: string): Promise<Workspace | null> {
 
   // The file doesn't suppose to have the path, so we're adding it here after loading the file
   workspace.path = path;
+
+  workspace = await migrateWorkspace(workspace);
 
   return workspace;
 }
@@ -45,6 +50,7 @@ export async function createWorkspace(path: string): Promise<Workspace> {
   // Create a new workspace
   const workspaceJsonPath = path + "/_workspace.json";
   const workspace: Workspace = {
+    v: CURRENT_DATA_VERSION,
     id: uuidv4(),
     name: null,
     createdAt: new Date().getTime(),
@@ -302,6 +308,21 @@ export class WorkspaceDb {
     );
 
     return agent;
+  }
+
+  async updateWorkspace(workspace: Workspace): Promise<Workspace> {
+    const workspaceJsonPath = this.resolvePath("_workspace.json");
+
+    if (!await fs.fileExists(workspaceJsonPath)) {
+      throw new Error(`Workspace at ${this.workspace.path} does not exist`);
+    }
+
+    // We exlude the path from the saved workspace JSON because we add it dynamically when loading the workspace
+    const workspaceWithoutPath = { ...workspace, path: undefined };
+
+    await fs.writeTextFile(workspaceJsonPath, JSON.stringify(workspaceWithoutPath));
+
+    return workspace;
   }
 
   async updateAppConfig(agent: AppConfig): Promise<void> {
