@@ -1,6 +1,6 @@
-import { Workspace } from "../../shared/models.ts";
-import { RequestContext, Router } from "../../shared/neorest/Router.ts";
-import { WorkspaceDb } from "../db/workspaceDb.ts";
+import { Workspace } from "@shared/models.ts";
+import { RequestContext, Router } from "@shared/neorest/Router.ts";
+import { WorkspaceDb, loadWorkspace, createWorkspace } from "../db/workspaceDb.ts";
 
 export class BackServices {
   public router: Router;
@@ -10,14 +10,27 @@ export class BackServices {
     this.router = router;
   }
 
-  getWorkspaceByPath(path: string): Workspace | null {
+  async getWorkspaceByPath(path: string): Promise<Workspace | null> {
     for (const workspace of Object.values(this.db)) {
       if (workspace.workspace.path === path) {
         return workspace.workspace;
       }
     }
 
-    return null;
+    const workspace = await loadWorkspace(path);
+
+    if (!workspace) {
+      return null;
+    }
+
+    this.setupWorkspace(workspace);
+    return workspace;
+  }
+
+  async createWorkspace(path: string): Promise<Workspace> {
+    const workspace = await createWorkspace(path);
+    this.setupWorkspace(workspace);
+    return workspace;
   }
 
   setupWorkspace(workspace: Workspace) {

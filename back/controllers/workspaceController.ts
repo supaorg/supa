@@ -1,9 +1,5 @@
 import { BackServices } from "./backServices.ts";
 import { Profile } from "@shared/models.ts";
-import {
-  createWorkspace,
-  getWorkspaceFromFiles,
-} from "../workspace.ts";
 import { fs } from "../tools/fs.ts";
 import { apiRoutes } from "@shared/apiRoutes.ts";
 
@@ -23,11 +19,7 @@ export function workspaceController(services: BackServices) {
           return;
         }
 
-        let workspace = services.getWorkspaceByPath(path);
-
-        if (!workspace) {
-          workspace = await getWorkspaceFromFiles(path);
-        }
+        let workspace = await services.getWorkspaceByPath(path);
 
         if (!workspace) {
           if (!create) {
@@ -42,10 +34,8 @@ export function workspaceController(services: BackServices) {
             return;
           }
           
-          workspace = await createWorkspace(path);
+          workspace = await services.createWorkspace(path);
         }
-
-        services.setupWorkspace(workspace);
 
         ctx.response = workspace;
       } catch (e) {
