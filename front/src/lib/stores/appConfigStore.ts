@@ -6,7 +6,7 @@ import { apiRoutes } from "@shared/apiRoutes";
 import { getCurrentWorkspaceId } from "./workspaceStore";
 
 export const appConfigStore: Writable<AppConfig[]> = localStorageStore(
-  apiRoutes.appConfigs((getCurrentWorkspaceId())),
+  "app-configs",
   [],
 );
 
