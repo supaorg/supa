@@ -6,6 +6,9 @@ import { isTauri, setupServerInTauri } from "$lib/tauri/serverInTauri";
 import { subscribeToSession } from "./fsPermissionDeniedStore";
 import { apiRoutes } from "@shared/apiRoutes";
 import type { Workspace } from "@shared/models";
+import { threadsStore } from "./threadStore";
+import { appConfigStore } from "./appConfigStore";
+import { threadsMessagesStore } from "./threadMessagesStore";
 
 export type WorkspacePointer = {
   type: "local" | "remote";
@@ -19,7 +22,7 @@ export function getCurrentWorkspaceId(): string {
   return currentWorkspaceId;
 }
 
-const currentWorkspacePointerStore: Writable<WorkspacePointer | null> = localStorageStore(
+export const currentWorkspacePointerStore: Writable<WorkspacePointer | null> = localStorageStore(
   "currentWorkspace",
   null,
 );
@@ -30,7 +33,7 @@ currentWorkspacePointerStore.subscribe((pointer) => {
   }
 });
 
-const workspacePointersStore: Writable<WorkspacePointer[]> = localStorageStore(
+export const workspacePointersStore: Writable<WorkspacePointer[]> = localStorageStore(
   "workspaces",
   [],
 );
@@ -44,6 +47,14 @@ export function getWorkspaces(): WorkspacePointer[] {
 }
 
 export function setCurrentWorkspace(pointer: WorkspacePointer) {
+  // If the current workspace in store is different from the one we are setting - clear stores
+  if (getCurrentWorkspace()?.workspace.id !== pointer.workspace.id) {
+    console.log("Clearing stores");
+    threadsStore.set([]);
+    appConfigStore.set([]);
+    threadsMessagesStore.set({});
+  }
+
   currentWorkspacePointerStore.set(pointer);
 
   // Always update or add the workspace to the list
@@ -100,7 +111,7 @@ export async function connectToLocalWorkspace(pointer?: WorkspacePointer): Promi
     client.setUrl(serverWsUrl);
   }
 
-  const res = await client.post(apiRoutes.workspaces(), pointer?.workspace.path);
+  const res = await client.post(apiRoutes.workspaces(), { path: pointer?.workspace.path, create: false });
 
   if (res.error) {
     console.error(res.error);

@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { ProgressRadial, Step, Stepper } from "@skeletonlabs/skeleton";
+  import { Step, Stepper } from "@skeletonlabs/skeleton";
   import { client } from "$lib/tools/client";
-  import { CheckCircle, Icon } from "svelte-hero-icons";
   import { profileStore } from "$lib/stores/profileStore";
   import type { ModelProvider, Profile } from "@shared/models";
   import ModelProviders from "../models/ModelProviders.svelte";
   import { apiRoutes } from "@shared/apiRoutes";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   let name = "";
 

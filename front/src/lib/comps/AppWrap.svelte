@@ -11,7 +11,6 @@
   import Sidebar from "./sidebar/Sidebar.svelte";
   import { getServerInTauri, isTauri } from "$lib/tauri/serverInTauri";
   import NewThreadModal from "./modals/NewThreadModal.svelte";
-  import { loadThreadsFromServer } from "$lib/stores/threadStore";
   import { storePopup } from "@skeletonlabs/skeleton";
   import {
     computePosition,
@@ -22,11 +21,6 @@
     arrow,
   } from "@floating-ui/dom";
   import SetupWizard from "./profile-setup/SetupWizard.svelte";
-  import {
-    profileStore,
-    loadProfileFromServer,
-  } from "$lib/stores/profileStore";
-  import { loadAppConfigsFromServer } from "$lib/stores/appConfigStore";
   import { storeHighlightJs } from "@skeletonlabs/skeleton";
   // For code highlighting in conversations
   import hljs from "highlight.js";
@@ -42,6 +36,7 @@
   import SelectModelModal from "./modals/SelectModelModal.svelte";
   import { extendMarked } from "$lib/utils/markdown/extendMarked";
   import type { Workspace } from "@shared/models";
+  import loadStoresFromServer from "$lib/stores/loadStoresFromServer";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
@@ -86,14 +81,6 @@
       state = "ready";
     }
     */
-  }
-
-  async function loadStoresFromServer() {
-    return Promise.all([
-      loadProfileFromServer(),
-      loadThreadsFromServer(),
-      loadAppConfigsFromServer(),
-    ]);
   }
 
   onMount(async () => {
