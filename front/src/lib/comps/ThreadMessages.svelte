@@ -19,6 +19,8 @@
     unlistenMessages,
     type ThreadStatus,
   } from "$lib/stores/threadMessagesStore";
+    import { currentWorkspacePointerStore, type WorkspacePointer } from "$lib/stores/workspaceStore";
+    import { goto } from "$app/navigation";
 
   export let threadId: string;
 
@@ -32,6 +34,14 @@
   let stickToBottom = true;
   const mainScrollableId = "chat-messanges-scrollable";
   let scrollableElement: HTMLElement | null = null;
+
+  let currentWorkspace: WorkspacePointer | null = null;
+  currentWorkspacePointerStore.subscribe((pointer) => {
+    if (currentWorkspace && pointer?.workspace.id !== currentWorkspace.workspace.id) {
+      goto('/');
+    }
+    currentWorkspace = pointer;
+  });
 
   threadsMessagesStore.subscribe((dic) => {
     const prevLastMessages =

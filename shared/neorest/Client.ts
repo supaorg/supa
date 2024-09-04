@@ -21,6 +21,10 @@ export class Client {
     return this.url;
   }
 
+  public isConnected() {
+    return this.isFullyConnected;
+  }
+
   constructor(url?: string) {
     if (url) {
       const socket = new WebSocket(url);

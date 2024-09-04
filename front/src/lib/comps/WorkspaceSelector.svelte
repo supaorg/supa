@@ -8,7 +8,6 @@
     type WorkspacePointer,
     setCurrentWorkspace,
   } from "$lib/stores/workspaceStore";
-  import loadStoresFromServer from "$lib/stores/loadStoresFromServer";
 
   const popupClick: PopupSettings = {
     event: "click",
@@ -55,14 +54,13 @@
     return name;
   }
 
-  function switchWorkspace(workspace: WorkspaceInSelector) {
+  async function switchWorkspace(workspace: WorkspaceInSelector) {
     const pointer = $workspacePointersStore.find(
       (p) => p.workspace.id === workspace.id,
     );
 
     if (pointer) {
       setCurrentWorkspace(pointer);
-      loadStoresFromServer();
     }
   }
 </script>
@@ -87,7 +85,10 @@
   <div class="arrow variant-filled" />
   <div class="btn-group-vertical variant-filled">
     {#each workspacesInSelector as workspace (workspace.id)}
-      <button class="btn" on:click={() => switchWorkspace(workspace)}>
+      <button
+        class="btn"
+        on:click={async () => await switchWorkspace(workspace)}
+      >
         {workspace.name}
       </button>
     {/each}

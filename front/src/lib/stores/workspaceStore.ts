@@ -102,6 +102,10 @@ export function setLocalWorkspace(workspace: Workspace) {
 export async function connectToLocalWorkspace(pointer?: WorkspacePointer): Promise<void> {
   let serverWsUrl = pointer ? pointer.url : "ws://localhost:6969";
 
+  if (client.isConnected() && client.getURL() === serverWsUrl) {
+    return;
+  }
+
   if (isTauri()) {
     const tauriIntegration = await setupServerInTauri();
     serverWsUrl = tauriIntegration.getWebSocketUrl();

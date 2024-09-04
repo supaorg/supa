@@ -26,6 +26,7 @@
   import hljs from "highlight.js";
   import {
     connectToLocalWorkspace,
+    currentWorkspacePointerStore,
     getCurrentWorkspace,
     type WorkspacePointer,
   } from "$lib/stores/workspaceStore";
@@ -49,54 +50,24 @@
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
   initializeStores();
 
-  // @TODO: get 'setup' from the _workspace.json file
-  // Perhaps detect if _workspace.json createdAt is not set - meaning it wasn't setup?
-
-  /*
-  Get a list of workspaces stored in the app
-  Connect to the workspaces
-  If no workspace is found, show the workspace setup screen
-
-  */
-
   async function onWorkspaceSetup(workspace: Workspace) {
     await loadStoresFromServer();
     state = "ready";
   }
 
-  $: {
-    /*
-    if (
-      state === "ready" &&
-      ($profileStore === null || !$profileStore?.setup)
-    ) {
-      state = "needsSetup";
+  let currentWorkspace: WorkspacePointer | null = null;
+
+  currentWorkspacePointerStore.subscribe(async (workspacePointer ) => {
+    if (state !== "initializing" && workspacePointer?.workspace.id === currentWorkspace?.workspace.id) {
+      console.log("same workspace");
+      return;
     }
 
-    if (
-      state === "needsSetup" &&
-      $profileStore !== null &&
-      $profileStore.setup
-    ) {
-      state = "ready";
-    }
-    */
-  }
+    console.log("workspacePointer", workspacePointer);
 
-  onMount(async () => {
-    const workspacePointer = getCurrentWorkspace();
+    currentWorkspace = workspacePointer;
 
-    /*
-    if (workspacePointer && workspacePointer.type) {
-      if (workspacePointer.type === "local") {
-        await connectToLocalWorkspace(workspacePointer as WorkspacePointer);
-      } else if (workspacePointer.type === "remote") {
-        throw new Error("Remote workspace is not implemented yet");
-      }
-    } else {
-      await connectToLocalWorkspace();
-    }
-    */
+    state = "initializing";
 
     if (!workspacePointer) {
       state = "needsWorkspace";
