@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { ProgressRadial, Step, Stepper } from "@skeletonlabs/skeleton";
   import { client } from "$lib/tools/client";
-  import { CheckCircle, Icon } from "svelte-hero-icons";
   import CenteredPage from "../CenteredPage.svelte";
   import { message, open } from "@tauri-apps/api/dialog";
   import { apiRoutes } from "@shared/apiRoutes";
