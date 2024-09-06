@@ -1,5 +1,5 @@
 import type { Writable } from "svelte/store";
-import { writable } from "svelte/store";
+import { get, writable } from "svelte/store";
 import { isTauri, setupServerInTauri } from "$lib/tauri/serverInTauri";
 import { subscribeToSession } from "./fsPermissionDeniedStore";
 import { apiRoutes } from "@shared/apiRoutes";
@@ -166,6 +166,15 @@ export class WorkspaceOnClient {
         });
       }
     });
+  }
+
+  async getAppConfigs(threadId: string) {
+    const thread = get(this.threads).find((t) => t.id === threadId);
+    if (thread && thread.appConfigId) {
+      const res = await this.client.get(apiRoutes.appConfig(this.getId(), thread.appConfigId));
+      return res.data as AppConfig;
+    }
+    return null;
   }
 }
 

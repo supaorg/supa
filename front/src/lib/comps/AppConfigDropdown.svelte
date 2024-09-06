@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { threadsStore } from "$lib/stores/threadStore";
-  import { client } from "$lib/tools/client";
   import type { AppConfig } from "@shared/models";
   import { apiRoutes } from "@shared/apiRoutes";
   import { ChevronDown, Icon } from "svelte-hero-icons";
   import { popup } from "@skeletonlabs/skeleton";
   import type { PopupSettings } from "@skeletonlabs/skeleton";
   import { visibleAppConfigStore } from "$lib/stores/appConfigStore";
-  import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { onMount } from "svelte";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { get } from "svelte/store";
 
   export let threadId: string;
 
@@ -19,22 +19,23 @@
     placement: "top",
   };
 
-  $: {
-    const thread = $threadsStore.find((t) => t.id === threadId);
-    if (thread && thread.appConfigId) {
-      client
-        .get(apiRoutes.appConfig(getCurrentWorkspaceId(), thread.appConfigId))
-        .then((res) => {
-          appConfig = res.data as AppConfig;
-        });
-    } else {
-      appConfig = null;
+  onMount(async () => {
+    const workspace = get(currentWorkspaceOnClientStore);
+    if (workspace) {
+      appConfig = await workspace.getAppConfigs(threadId);
     }
+  });
+
+  $: {
+    //
   }
 
   async function changeAppConfig(appConfigId: string) {
-    appConfig = $visibleAppConfigStore.find((c) => c.id === appConfigId) as AppConfig;
-    await client.post(apiRoutes.thread(getCurrentWorkspaceId(), threadId), { agentId: appConfigId });
+    const workspace = get(currentWorkspaceOnClientStore);
+    if (workspace) {
+      // @TODO: change app config
+      await workspace.changeAppConfig(threadId, appConfigId);
+    }
   }
 </script>
 
