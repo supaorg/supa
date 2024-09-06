@@ -24,11 +24,6 @@
   import { storeHighlightJs } from "@skeletonlabs/skeleton";
   // For code highlighting in conversations
   import hljs from "highlight.js";
-  import {
-    currentWorkspacePointerStore,
-    connectToWorkspace,
-    type WorkspacePointer,
-  } from "$lib/stores/workspaceStore";
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
   import TauriWindowSetup from "./TauriWindowSetup.svelte";
   import FsPermissionDenied from "./FsPermissionDenied.svelte";
@@ -36,9 +31,7 @@
   import SelectModelModal from "./modals/SelectModelModal.svelte";
   import { extendMarked } from "$lib/utils/markdown/extendMarked";
   import type { Workspace } from "@shared/models";
-  import loadStoresFromServer from "$lib/stores/loadStoresFromServer";
-    import { get } from "svelte/store";
-    import { loadWorkspacesAndConnect } from "$lib/stores/workspacePointerStore";
+  import { loadWorkspacesAndConnect } from "$lib/stores/workspaceStore";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
@@ -59,36 +52,15 @@
     state = "ready";
   }
 
-  let currentWorkspace: WorkspacePointer | null = null;
-
   onMount(async () => {
-    const workspacePointer = $currentWorkspacePointerStore;
-
-    currentWorkspace = workspacePointer;
-
     state = "initializing";
 
-    if (!workspacePointer) {
-      state = "needsWorkspace";
+    const workspace = await loadWorkspacesAndConnect();
+
+    if (workspace) {
+      state = "ready";
     } else {
-      const workspace = await loadWorkspacesAndConnect();
-
-      if (workspace) {
-        state = "ready";
-      } else {
-        console.error("Could not connect to workspace");
-      }
-
-      /*
-      await connectToLocalWorkspace(workspacePointer as WorkspacePointer);
-      await loadStoresFromServer();
-
-      if (workspacePointer.workspace.setup === false) {
-        state = "needsSetup";
-      } else {
-        state = "ready";
-      }
-      */
+      state = "needsWorkspace";
     }
   });
 
