@@ -1,14 +1,13 @@
-import type { Writable } from "svelte/store";
-import { get } from "svelte/store";
+/**
+ * This is a persistent store of pointers to workspaces.
+ * We use pointers to connect to workspaces.
+ */
+
+import type { Readable, Writable } from "svelte/store";
+import { writable, get, derived } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
-import { client } from "$lib/tools/client";
-import { isTauri, setupServerInTauri } from "$lib/tauri/serverInTauri";
-import { subscribeToSession } from "./fsPermissionDeniedStore";
-import { apiRoutes } from "@shared/apiRoutes";
 import type { Workspace } from "@shared/models";
-import { threadsStore } from "./threadStore";
-import { appConfigStore } from "./appConfigStore";
-import { threadsMessagesStore } from "./threadMessagesStore";
+import { WorkspaceOnClient } from "./workspaceOnClient";
 
 export type WorkspacePointer = {
   type: "local" | "remote";
@@ -16,142 +15,54 @@ export type WorkspacePointer = {
   workspace: Workspace;
 }
 
-let currentWorkspaceId = "";
 
-export function getCurrentWorkspaceId(): string {
-  return currentWorkspaceId;
-}
-
-export const currentWorkspacePointerStore: Writable<WorkspacePointer | null> = localStorageStore(
-  "currentWorkspace",
-  null,
-);
-
-currentWorkspacePointerStore.subscribe((pointer) => {
-  if (pointer) {
-    currentWorkspaceId = pointer.workspace.id;
-  }
-});
-
-export const workspacePointersStore: Writable<WorkspacePointer[]> = localStorageStore(
-  "workspaces",
+const workspacePointersStore: Writable<WorkspacePointer[]> = localStorageStore(
+  "workspacePointers",
   [],
 );
+export const currentWorkspaceIdStore: Writable<string | null> = localStorageStore("currentWorkspaceId", null);
+export const workspacesOnClientStore: Writable<WorkspaceOnClient[]> = writable<WorkspaceOnClient[]>([]);
+export const currentWorkspaceOnClient: Readable<WorkspaceOnClient | null> = derived(
+  [currentWorkspaceIdStore, workspacesOnClientStore],
+  ([$currentWorkspaceId, $workspacesOnClient]) => {
+    return $workspacesOnClient.find(workspace => workspace.pointer.workspace.id === $currentWorkspaceId) || null;
+  }
+);
 
-export function getCurrentWorkspace(): WorkspacePointer | null {
-  return get(currentWorkspacePointerStore);
+export function getCurrentWorkspaceId(): string | null {
+  return get(currentWorkspaceIdStore);
 }
 
-export function getWorkspaces(): WorkspacePointer[] {
-  return get(workspacePointersStore);
-}
-
-export function setCurrentWorkspace(pointer: WorkspacePointer) {
-  // If the current workspace in store is different from the one we are setting - clear stores
-  if (getCurrentWorkspace()?.workspace.id !== pointer.workspace.id) {
-    console.log("Clearing stores");
-    threadsStore.set([]);
-    appConfigStore.set([]);
-    threadsMessagesStore.set({});
+/**
+ * Create workspaces from pointers and connect to the current one.
+ * @returns 
+ */
+export async function loadWorkspacesAndConnect(): Promise<WorkspaceOnClient | null> {
+  if (get(workspacesOnClientStore).length > 0) {
+    throw new Error("Workspaces already loaded. Can do it only once.");
   }
 
-  currentWorkspacePointerStore.set(pointer);
+  const workspacesOnClient: WorkspaceOnClient[] = [];
 
-  // Always update or add the workspace to the list
-  workspacePointersStore.update((workspaces) => {
-    const index = workspaces.findIndex((p) => p.workspace.id === pointer.workspace.id);
-    if (index !== -1) {
-      // Update existing workspace
-      workspaces[index] = pointer;
-    } else {
-      // Add new workspace
-      workspaces.push(pointer);
-    }
-    return workspaces;
-  });
-}
+  let currentWorkspaceOnClient: WorkspaceOnClient | null = null;
 
-export async function connectOrStartServerInTauri(): Promise<void> {
-  if (!isTauri()) {
-    throw new Error("This function is only available in Tauri.");
-  }
+  // First create workspaces on client for all pointers and connect to one if it's the current workspace
+  for (const pointer of get(workspacePointersStore)) {
+    const workspace = new WorkspaceOnClient(pointer);
 
-  const tauriIntegration = await setupServerInTauri();
-  const serverWsUrl = tauriIntegration.getWebSocketUrl();
-
-  if (client.getURL() !== serverWsUrl) {
-    client.setUrl(serverWsUrl);
-  }
-
-  const serverInfoRes = await client.get(apiRoutes.root);
-  if (serverInfoRes.error) {
-    throw new Error(serverInfoRes.error);
-  }
-
-  //await subscribeToSession();
-}
-
-export function setLocalWorkspace(workspace: Workspace) {
-  setCurrentWorkspace({
-    type: "local",
-    url: "http://localhost:6969",
-    workspace: workspace,
-  });
-}
-
-export async function connectToLocalWorkspace(pointer?: WorkspacePointer): Promise<void> {
-  let serverWsUrl = pointer ? pointer.url : "ws://localhost:6969";
-
-  if (client.isConnected() && client.getURL() === serverWsUrl) {
-    return;
-  }
-
-  if (isTauri()) {
-    const tauriIntegration = await setupServerInTauri();
-    serverWsUrl = tauriIntegration.getWebSocketUrl();
-  }
-
-  if (client.getURL() !== serverWsUrl) {
-    client.setUrl(serverWsUrl);
-  }
-
-  const res = await client.post(apiRoutes.workspaces(), { path: pointer?.workspace.path, create: false });
-
-  if (res.error) {
-    console.error(res.error);
-    return;
-  }
-
-  const workspace = res.data as Workspace;
-
-  await subscribeToSession();
-
-  if (!workspace) {
-    throw new Error("Workspace not found");
-  }
-
-  setCurrentWorkspace({
-    type: "local",
-    url: serverWsUrl,
-    workspace: workspace,
-  });
-
-
-
-  /*else {
-    const newWorkspaceRes = await client.post(apiRoutes.workspace, pointer?.workspace?.path);
-
-    if (newWorkspaceRes.error) {
-      throw new Error(newWorkspaceRes.error);
+    if (get(currentWorkspaceIdStore) === pointer.workspace.id) {
+      try {
+        await workspace.connect();
+        currentWorkspaceOnClient = workspace;
+      } catch (error) {
+        console.error("Could not connect to workspace", pointer, error);
+      }
     }
 
-    const newWorkspaceFromServer = newWorkspaceRes.data as Workspace;
+    workspacesOnClient.push(workspace);
+  } 
+  
+  workspacesOnClientStore.set(workspacesOnClient);
 
-    setCurrentWorkspace({
-      type: "local",
-      url: serverWsUrl,
-      workspace: newWorkspaceFromServer,
-    });
-  }
-  */
+  return currentWorkspaceOnClient;
 }

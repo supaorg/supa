@@ -25,9 +25,8 @@
   // For code highlighting in conversations
   import hljs from "highlight.js";
   import {
-    connectToLocalWorkspace,
     currentWorkspacePointerStore,
-    getCurrentWorkspace,
+    connectToWorkspace,
     type WorkspacePointer,
   } from "$lib/stores/workspaceStore";
   import WorkspaceSetup from "./profile-setup/WorkspaceSetup.svelte";
@@ -38,6 +37,8 @@
   import { extendMarked } from "$lib/utils/markdown/extendMarked";
   import type { Workspace } from "@shared/models";
   import loadStoresFromServer from "$lib/stores/loadStoresFromServer";
+    import { get } from "svelte/store";
+    import { loadWorkspacesAndConnect } from "$lib/stores/workspacePointerStore";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
@@ -51,19 +52,17 @@
   initializeStores();
 
   async function onWorkspaceSetup(workspace: Workspace) {
-    await loadStoresFromServer();
+    // TODO: implement connecting
+
+    console.error("Not implemented yet", workspace);
+
     state = "ready";
   }
 
   let currentWorkspace: WorkspacePointer | null = null;
 
-  currentWorkspacePointerStore.subscribe(async (workspacePointer ) => {
-    if (state !== "initializing" && workspacePointer?.workspace.id === currentWorkspace?.workspace.id) {
-      console.log("same workspace");
-      return;
-    }
-
-    console.log("workspacePointer", workspacePointer);
+  onMount(async () => {
+    const workspacePointer = $currentWorkspacePointerStore;
 
     currentWorkspace = workspacePointer;
 
@@ -72,8 +71,16 @@
     if (!workspacePointer) {
       state = "needsWorkspace";
     } else {
-      await connectToLocalWorkspace(workspacePointer as WorkspacePointer);
+      const workspace = await loadWorkspacesAndConnect();
 
+      if (workspace) {
+        state = "ready";
+      } else {
+        console.error("Could not connect to workspace");
+      }
+
+      /*
+      await connectToLocalWorkspace(workspacePointer as WorkspacePointer);
       await loadStoresFromServer();
 
       if (workspacePointer.workspace.setup === false) {
@@ -81,6 +88,7 @@
       } else {
         state = "ready";
       }
+      */
     }
   });
 
