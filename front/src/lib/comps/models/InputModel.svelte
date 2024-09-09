@@ -1,11 +1,9 @@
 <script lang="ts">
-  import { client } from "$lib/tools/client";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
   import type { ModelProvider } from "@shared/models";
-  import { apiRoutes } from "@shared/apiRoutes";
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
   import { ExclamationCircle, Icon, Sparkles } from "svelte-hero-icons";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let value: string;
   export let required: boolean = false;
@@ -76,9 +74,9 @@
     }
 
     provider = null;
-    provider = await client
-      .get(apiRoutes.provider(getCurrentWorkspaceId(), providerId))
-      .then((res) => res.data as ModelProvider);
+    provider =
+      (await $currentWorkspaceOnClientStore?.getModelProvider(providerId)) ??
+      null;
 
     validate();
   }

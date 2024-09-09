@@ -1,10 +1,7 @@
 import type { Writable } from "svelte/store";
 import { get } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
-import { client } from "$lib/tools/client";
 import type { Profile } from "@shared/models";
-import { apiRoutes } from "@shared/apiRoutes";
-import { getCurrentWorkspaceId } from "./workspaceStore";
 
 export const profileStore: Writable<Profile | null> = localStorageStore(
   "profile",
@@ -32,7 +29,11 @@ export async function loadProfileFromServer() {
 
   profileStore.set(profile);
 
+  console.log("profileStore", profile);
+
   client.on(apiRoutes.profile(getCurrentWorkspaceId()), (broadcast) => {
+    console.log("profileStore", broadcast);
+
     const profile = broadcast.data as Profile;
     profileStore.set(profile);
   });

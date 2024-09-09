@@ -1,12 +1,7 @@
 <script lang="ts">
-  import { client } from "$lib/tools/client";
   import CenteredPage from "../CenteredPage.svelte";
   import { message, open } from "@tauri-apps/api/dialog";
   import { apiRoutes } from "@shared/apiRoutes";
-  import {
-    connectOrStartServerInTauri,
-    setLocalWorkspace,
-  } from "$lib/stores/workspaceStore";
   import type { Workspace } from "@shared/models";
 
   // Expose a function to be called from the parent component

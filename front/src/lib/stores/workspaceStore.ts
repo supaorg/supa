@@ -6,7 +6,7 @@
 import type { Readable, Writable } from "svelte/store";
 import { writable, get, derived } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
-import type { Workspace } from "@shared/models";
+import type { AppConfig, Thread, Workspace } from "@shared/models";
 import { WorkspaceOnClient } from "./workspaceOnClient";
 
 export type WorkspacePointer = {
@@ -22,11 +22,21 @@ const workspacePointersStore: Writable<WorkspacePointer[]> = localStorageStore(
 );
 export const currentWorkspaceIdStore: Writable<string | null> = localStorageStore("currentWorkspaceId", null);
 export const workspacesOnClientStore: Writable<WorkspaceOnClient[]> = writable<WorkspaceOnClient[]>([]);
-export const currentWorkspaceOnClient: Readable<WorkspaceOnClient | null> = derived(
+export const currentWorkspaceOnClientStore: Readable<WorkspaceOnClient | null> = derived(
   [currentWorkspaceIdStore, workspacesOnClientStore],
   ([$currentWorkspaceId, $workspacesOnClient]) => {
     return $workspacesOnClient.find(workspace => workspace.pointer.workspace.id === $currentWorkspaceId) || null;
   }
+);
+
+export const currentWorkspaceThreadsStore: Readable<Thread[]> = derived(
+  currentWorkspaceOnClientStore,
+  ($currentWorkspaceOnClient) => $currentWorkspaceOnClient?.threads ? get($currentWorkspaceOnClient.threads) : []
+);
+
+export const currentWorkspaceAppConfigsStore: Readable<AppConfig[]> = derived(
+  currentWorkspaceOnClientStore,
+  ($currentWorkspaceOnClient) => $currentWorkspaceOnClient?.appConfigs ? get($currentWorkspaceOnClient.appConfigs) : []
 );
 
 export function getCurrentWorkspaceId(): string | null {
@@ -37,7 +47,7 @@ export function getCurrentWorkspaceId(): string | null {
  * Create workspaces from pointers and connect to the current one.
  * @returns 
  */
-export async function loadWorkspacesAndConnect(): Promise<WorkspaceOnClient | null> {
+export async function loadWorkspacesAndConnectToCurrent(): Promise<WorkspaceOnClient | null> {
   if (get(workspacesOnClientStore).length > 0) {
     throw new Error("Workspaces already loaded. Can do it only once.");
   }
@@ -60,9 +70,19 @@ export async function loadWorkspacesAndConnect(): Promise<WorkspaceOnClient | nu
     }
 
     workspacesOnClient.push(workspace);
-  } 
-  
+  }
+
   workspacesOnClientStore.set(workspacesOnClient);
 
   return currentWorkspaceOnClient;
+}
+
+export async function connectToWorkspaceId(workspaceId: string): Promise<WorkspaceOnClient | null> {
+  const pointer = get(workspacePointersStore).find((pointer) => pointer.workspace.id === workspaceId);
+  if (!pointer) {
+    throw new Error(`Workspace with id ${workspaceId} not found`);
+  }
+  const workspace = new WorkspaceOnClient(pointer);
+  await workspace.connect();
+  return workspace;
 }

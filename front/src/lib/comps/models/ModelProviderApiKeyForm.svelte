@@ -2,13 +2,12 @@
   import { ProgressRadial } from "@skeletonlabs/skeleton";
   import { CheckCircle, ExclamationCircle, Icon } from "svelte-hero-icons";
   import { onMount } from "svelte";
-  import { client } from "$lib/tools/client";
   import { apiRoutes } from "@shared/apiRoutes";
   import type {
     ModelProviderCloudConfig,
     ModelProviderConfig,
   } from "@shared/models";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+    import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   export let id: string;
   export let onValidKey: (key: string) => void;
@@ -30,7 +29,7 @@
       apiKey,
     } as ModelProviderCloudConfig;
 
-    await client.post(apiRoutes.providerConfigs(getCurrentWorkspaceId()), config);
+    $currentWorkspaceOnClientStore?.saveModelProvider(config);
   }
 
   async function handleApiKeyChange() {
@@ -38,9 +37,7 @@
     clearTimeout(timeout);
     timeout = setTimeout(async () => {
       apiKeyIsValid = false;
-      apiKeyIsValid = await client
-        .post(apiRoutes.validateProviderKey(getCurrentWorkspaceId(), id), apiKey)
-        .then((res) => res.data as boolean);
+      apiKeyIsValid = await $currentWorkspaceOnClientStore?.validateModelProviderKey(id, apiKey) || false;
       if (apiKeyIsValid) {
         saveCloudProviderWithApiKey(apiKey);
         onValidKey(apiKey);

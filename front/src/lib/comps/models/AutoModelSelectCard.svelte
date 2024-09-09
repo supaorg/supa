@@ -1,10 +1,6 @@
 <script lang="ts">
-  import { client } from "$lib/tools/client";
-  import type { ModelProvider } from "@shared/models";
-  import { apiRoutes } from "@shared/apiRoutes";
-  import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
-    import { Icon, Sparkles } from "svelte-hero-icons";
+  import { Icon, Sparkles } from "svelte-hero-icons";
 
   export let selected = false;
   export let onSelect: (providerId: string, model: string) => void;

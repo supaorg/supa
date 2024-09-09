@@ -5,12 +5,7 @@
 
   let configId: string | null = null;
 
-  page.subscribe((val) => {
-    const configIdInParams = val.url.searchParams.get("id");
-    if (configIdInParams) {
-      configId = configIdInParams;
-    }
-  });
+  $: configId = $page.url.searchParams.get("id");
 </script>
 
 <CenteredPage>

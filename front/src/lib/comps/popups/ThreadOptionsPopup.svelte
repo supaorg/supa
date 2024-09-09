@@ -3,11 +3,8 @@
   import type { PopupSettings } from "@skeletonlabs/skeleton";
   import { popup } from "@skeletonlabs/skeleton";
   import Portal from "svelte-portal";
-  import { client } from "$lib/tools/client";
   import { goto } from "$app/navigation";
-  import { apiRoutes } from "@shared/apiRoutes";
-    import { threadsStore } from "$lib/stores/threadStore";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
   export let showOpenButton = true;
@@ -22,13 +19,10 @@
     // @TODO: trigger the parent component to start renaming the thread
   }
 
-  function deleteThread() {
-    client.delete(apiRoutes.thread(getCurrentWorkspaceId(), threadId)).then(() => {
-      console.log("Thread deleted");
-    });
-    threadsStore.update((threads) => {
-      return threads.filter((t) => t.id !== threadId);
-    });
+  async function deleteThread() {
+    if ($currentWorkspaceOnClientStore) {
+      await $currentWorkspaceOnClientStore.deleteThread(threadId);
+    }
     goto("/");
   }
 </script>

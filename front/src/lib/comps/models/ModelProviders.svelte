@@ -2,13 +2,12 @@
   import type { ModelProvider } from "@shared/models";
   import ModelProviderCard from "./ModelProviderCard.svelte";
   import { onMount } from "svelte";
-  import { client } from "$lib/tools/client";
   import { apiRoutes } from "@shared/apiRoutes";
   import { Icon, XCircle } from "svelte-hero-icons";
   import Link from "../Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+    import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   let providers: ModelProvider[] = [];
   let showHowForProvider: ModelProvider | null = null;
@@ -22,9 +21,7 @@
   }
 
   async function fetchProviders() {
-    providers = await client
-      .get(apiRoutes.providers(getCurrentWorkspaceId()))
-      .then((res) => res.data as ModelProvider[]);
+    providers = await $currentWorkspaceOnClientStore?.getModelProviders() ?? [];
   }
 
   onMount(async () => {

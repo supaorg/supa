@@ -1,27 +1,25 @@
 <script lang="ts">
-  import { threadsStore } from "$lib/stores/threadStore";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import ThreadMessages from "$lib/comps/ThreadMessages.svelte";
   import CenteredPage from "$lib/comps/CenteredPage.svelte";
+  import { currentWorkspaceThreadsStore } from "$lib/stores/workspaceStore";
 
   let threadId: string | null = null;
 
-  page.subscribe((val) => {
-    if (val.route.id !== "/") {
-      return;
+  $: {
+    threadId = $page.url.searchParams.get("t");
+    if (
+      $page.route.id === "/" &&
+      !threadId &&
+      $currentWorkspaceThreadsStore.length > 0
+    ) {
+      threadId = $currentWorkspaceThreadsStore[0]?.id;
+      if (threadId) goto(`/?t=${threadId}`);
     }
+  }
 
-    const threadIdInParams = val.url.searchParams.get("t");
-    if (threadIdInParams) {
-      threadId = threadIdInParams;
-    } else {
-      if ($threadsStore.length > 0) {
-        threadId = $threadsStore[0].id;
-        goto(`/?t=${threadId}`);
-      }
-    }
-  });
+  // @TODO: get threads from current workspace
 </script>
 
 {#if threadId}

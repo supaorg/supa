@@ -31,7 +31,7 @@
   import SelectModelModal from "./modals/SelectModelModal.svelte";
   import { extendMarked } from "$lib/utils/markdown/extendMarked";
   import type { Workspace } from "@shared/models";
-  import { loadWorkspacesAndConnect } from "$lib/stores/workspaceStore";
+  import { loadWorkspacesAndConnectToCurrent } from "$lib/stores/workspaceStore";
 
   type AppState = "initializing" | "needsWorkspace" | "needsSetup" | "ready";
 
@@ -55,7 +55,7 @@
   onMount(async () => {
     state = "initializing";
 
-    const workspace = await loadWorkspacesAndConnect();
+    const workspace = await loadWorkspacesAndConnectToCurrent();
 
     if (workspace) {
       state = "ready";

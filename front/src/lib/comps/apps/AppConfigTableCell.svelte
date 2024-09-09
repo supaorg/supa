@@ -1,15 +1,12 @@
 <script lang="ts">
-  import { appConfigStore } from "$lib/stores/appConfigStore";
-  import { client } from "$lib/tools/client";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
   import type { AppConfig } from "@shared/models";
-  import { apiRoutes } from "@shared/apiRoutes";
   import {
     SlideToggle,
     getModalStore,
     type ModalSettings,
   } from "@skeletonlabs/skeleton";
   import { Icon, Trash } from "svelte-hero-icons";
-  import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let config: AppConfig;
   let isVisible: boolean = isAppConfigVisible();
@@ -24,9 +21,7 @@
     config.meta = config.meta || {};
     config.meta.visible = visible ? "true" : "false";
 
-    client
-      .post(apiRoutes.appConfig(getCurrentWorkspaceId(), config.id), config)
-      .then((response) => {});
+    $currentWorkspaceOnClientStore?.updateAppConfig(config);
   }
 
   $: {
@@ -51,13 +46,7 @@
   }
 
   function deleteAppConfig() {
-    client
-      .delete(apiRoutes.appConfig(getCurrentWorkspaceId(), config.id))
-      .then((response) => {
-        appConfigStore.update((appConfigs) => {
-          return appConfigs.filter((a) => a.id !== config.id);
-        });
-      });
+    $currentWorkspaceOnClientStore?.deleteAppConfig(config.id);
   }
 </script>
 

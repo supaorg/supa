@@ -1,13 +1,11 @@
 <script lang="ts">
   import type { AppConfig } from "@shared/models";
   import { onMount } from "svelte";
-  import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
   import InputModel from "../models/InputModel.svelte";
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
-  import { apiRoutes } from "@shared/apiRoutes";
-  import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
@@ -18,16 +16,13 @@
 
   let disableFields = false;
 
-  function init() {
+  async function init() {
     if (configId !== null) {
       prevConfigId = configId;
       isNewApp = false;
-      client
-        .get(apiRoutes.appConfig(getCurrentWorkspaceId(), configId))
-        .then((response) => {
-          appConfig = response.data as AppConfig;
-        });
 
+      appConfig =
+        (await $currentWorkspaceOnClientStore?.getAppConfig(configId)) ?? null;
       if (configId === "default") {
         disableFields = true;
       }
@@ -44,33 +39,26 @@
     }
   }
 
-  onMount(() => {
-    init();
+  onMount(async () => {
+    await init();
   });
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!formElement.checkValidity()) {
       formElement.reportValidity();
       return;
     }
 
-    if (isNewApp) {
-      client
-        .post(apiRoutes.appConfigs(getCurrentWorkspaceId()), appConfig)
-        .then((response) => {
-          console.log("new app config: " + response);
-        });
+    if (!appConfig) {
+      console.error("appConfig is null");
+      return;
+    }
 
+    if (isNewApp) {
+      await $currentWorkspaceOnClientStore?.newAppConfig(appConfig);
       goto("/apps");
     } else {
-      client
-        .post(
-          apiRoutes.appConfig(getCurrentWorkspaceId(), appConfig?.id),
-          appConfig,
-        )
-        .then((response) => {
-          console.log("updated app config: " + response);
-        });
+      await $currentWorkspaceOnClientStore?.updateAppConfig(appConfig);
     }
   }
 </script>

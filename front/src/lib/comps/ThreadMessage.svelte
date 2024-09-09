@@ -6,11 +6,10 @@
     Sparkles,
     UserCircle,
   } from "svelte-hero-icons";
-  import { client } from "$lib/tools/client";
-  import { apiRoutes } from "@shared/apiRoutes";
   import MarkdownMessage from "./markdown/MarkdownMessage.svelte";
   import type { PopupSettings } from "@skeletonlabs/skeleton";
   import { popup } from "@skeletonlabs/skeleton";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   export let message: ThreadMessage;
   export let threadId: string;
@@ -57,13 +56,13 @@
     return date.toLocaleString("en-US", {
       month: "short",
       day: "numeric",
-      year: "numeric"
+      year: "numeric",
     });
   }
 
   async function retry() {
     retrying = true;
-    await client.post(apiRoutes.retryThread(threadId));
+    await $currentWorkspaceOnClientStore?.retryThread(threadId);
     retrying = false;
   }
 
@@ -101,7 +100,8 @@
       {#if message.role === "user"}
         <p class="font-bold">You</p>
         <button class="cursor-default" use:popup={datePopupSettings}
-          ><small class="opacity-50">{formatChatDateToTime(message.createdAt)}</small
+          ><small class="opacity-50"
+            >{formatChatDateToTime(message.createdAt)}</small
           ></button
         >
       {:else if message.role === "assistant"}

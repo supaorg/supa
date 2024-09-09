@@ -1,17 +1,10 @@
 <script lang="ts">
-  import type {
-    ModelProvider,
-    ModelProviderCloudConfig,
-    ModelProviderLocalConfig,
-    ModelProviderConfig,
-  } from "@shared/models";
+  import type { ModelProvider } from "@shared/models";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import { onMount } from "svelte";
-  import { client } from "$lib/tools/client";
   import { ProgressBar } from "@skeletonlabs/skeleton";
-  import { apiRoutes } from "@shared/apiRoutes";
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   type State =
     | "loading"
@@ -31,9 +24,9 @@
   });
 
   async function checkProvider() {
-    const res = await client.get(apiRoutes.providerConfig(provider.id));
-
-    if (res.data) {
+    const providerConfig =
+      await $currentWorkspaceOnClientStore?.getModelProviderConfig(provider.id);
+    if (providerConfig) {
       await checkIfValid();
     } else {
       state = "disconnected";
@@ -43,9 +36,10 @@
   async function checkIfValid() {
     state = "loading";
 
-    const isValid = await client
-      .post(apiRoutes.validateProviderConfig(getCurrentWorkspaceId(), provider.id))
-      .then((res) => res.data as boolean);
+    const isValid =
+      await $currentWorkspaceOnClientStore?.validateModelProviderConfig(
+        provider.id,
+      );
 
     state = isValid ? "connected" : "invalid-key";
 
@@ -59,15 +53,7 @@
   function disconnect() {
     state = "disconnected";
     onDisconnect(provider);
-
-    // @TODO: why did I delete only cloud providers?
-    /*
-    if (provider.access === "cloud") {
-      client.delete(routes.providerConfig(provider.id));
-    }
-    */
-
-    client.delete(apiRoutes.providerConfig(provider.id));
+    $currentWorkspaceOnClientStore?.deleteModelProviderConfig(provider.id);
   }
 </script>
 
@@ -121,16 +107,14 @@
             }
           }}
         />
-      {:else}
-        {#if provider.name === "Ollama"}
-          <ModelProviderOllamaConnector
-            id={provider.id}
-            onConnect={() => {
-              state = "connected";
-              onConnect?.(provider);
-            }}
-          />
-        {/if}
+      {:else if provider.name === "Ollama"}
+        <ModelProviderOllamaConnector
+          id={provider.id}
+          onConnect={() => {
+            state = "connected";
+            onConnect?.(provider);
+          }}
+        />
       {/if}
     {:else if state === "connected"}
       <button class="btn btn-md variant-ringed" on:click={disconnect}

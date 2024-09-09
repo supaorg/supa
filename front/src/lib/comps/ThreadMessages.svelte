@@ -6,121 +6,50 @@
   import SendMessageForm from "./forms/SendMessageForm.svelte";
   import ThreadMessage from "./ThreadMessage.svelte";
   import AppConfigDropdown from "./AppConfigDropdown.svelte";
-  import { threadsStore } from "$lib/stores/threadStore";
   import { ProgressRadial } from "@skeletonlabs/skeleton";
   import {
-    checkIfCanSendMessage,
-    fetchThreadMessages,
-    getThreadStatus,
-    listenToMessages,
-    postNewMessage,
-    stopThread,
-    threadsMessagesStore,
-    unlistenMessages,
-    type ThreadStatus,
-  } from "$lib/stores/threadMessagesStore";
-    import { currentWorkspacePointerStore, type WorkspacePointer } from "$lib/stores/workspaceStore";
-    import { goto } from "$app/navigation";
+    currentWorkspaceOnClientStore,
+    currentWorkspaceThreadsStore,
+  } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
 
   let prevThreadId: string;
   let chatWrapperElement: HTMLElement;
-  let canSendMessage = false;
+  let canSendMessage = true;
   let messages: Message[] | null = null;
-  let thread: Thread;
+  let thread: Thread | undefined;
   let isAutoScrolling = false;
   let scrollTimeout;
   let stickToBottom = true;
   const mainScrollableId = "chat-messanges-scrollable";
   let scrollableElement: HTMLElement | null = null;
 
-  let currentWorkspace: WorkspacePointer | null = null;
-  currentWorkspacePointerStore.subscribe((pointer) => {
-    if (currentWorkspace && pointer?.workspace.id !== currentWorkspace.workspace.id) {
-      goto('/');
-    }
-    currentWorkspace = pointer;
-  });
-
-  threadsMessagesStore.subscribe((dic) => {
-    const prevLastMessages =
-      messages && messages.length > 0 ? messages[messages.length - 1] : null;
-
-    messages = dic[threadId] ? dic[threadId] : null;
-    canSendMessage = checkIfCanSendMessage(threadId);
-
-    if (!messages || messages.length === 0 || !prevLastMessages) {
-      return;
-    }
-
-    // If the last message from the store is different
-    if (prevLastMessages.id !== messages[messages.length - 1].id) {
-      scrollToBottom();
-    }
-    // If the last message is the same, but the text is different
-    else if (prevLastMessages.text !== messages[messages.length - 1].text) {
-      if (stickToBottom) {
-        scrollToBottom();
-      }
-    }
-  });
-
-  threadsStore.subscribe(() => {
-    setThread();
-  });
-
-  function setThread() {
-    const targetThread = $threadsStore.find((t) => t.id === threadId);
-
-    if (targetThread) {
-      thread = targetThread;
-    } else {
-      console.error("Thread not found");
-    }
-  }
-
-  let threadStatus: ThreadStatus;
-
-  function fetchMessagesAndPossiblyJumpToBottom() {
-    let jumpToBottom = !messages || messages.length === 0;
-    let targetThreadId = threadId;
-
-    fetchThreadMessages(targetThreadId).then(() => {
-      canSendMessage = checkIfCanSendMessage(threadId);
-
-      // In case the user navigates to another thread before the messages are fetched
-      if (jumpToBottom && threadId === targetThreadId) {
-        scrollToBottom();
-      }
-    });
-  }
+  $: workspaceOnClient = $currentWorkspaceOnClientStore;
 
   $: {
     if (prevThreadId !== threadId) {
-      messages = $threadsMessagesStore[threadId]
-        ? $threadsMessagesStore[threadId]
-        : null;
-
-      // If we already have messages, scroll to the bottom
-      if (messages) {
-        scrollToBottom();
-      }
-
+      thread = $currentWorkspaceThreadsStore.find((t) => t.id === threadId);
       fetchMessagesAndPossiblyJumpToBottom();
-
-      if (prevThreadId) {
-        unlistenMessages(prevThreadId);
-      }
-
-      listenToMessages(threadId);
-
-      setThread();
-
       prevThreadId = threadId;
     }
+  }
 
-    threadStatus = getThreadStatus(threadId);
+  async function fetchMessagesAndPossiblyJumpToBottom() {
+    if (!workspaceOnClient) return;
+
+    let jumpToBottom = !messages || messages.length === 0;
+    let targetThreadId = threadId;
+
+    try {
+      messages = await workspaceOnClient.getThreadMessages(threadId);
+      if (jumpToBottom && threadId === targetThreadId) {
+        scrollToBottom();
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      messages = null;
+    }
   }
 
   async function scrollToBottom() {
@@ -142,51 +71,35 @@
     pageElement.scrollTo(0, pageElement.scrollHeight);
 
     clearTimeout(scrollTimeout);
-    // We delay setting isAutoScrolling to false so we can detect it in the scroll event handler
     scrollTimeout = setTimeout(() => {
       isAutoScrolling = false;
     }, 100);
   }
 
-  // @TODO: also move to the store
   async function sendMsg(query: string) {
-    if (query === "" || !messages) {
+    if (!workspaceOnClient || query === "" || !messages) {
       return;
     }
 
-    if (!canSendMessage) {
-      return;
-    }
-
-    const msg = {
+    const msg: Message = {
       id: uuidv4(),
-      chatThreadId: threadId,
       role: "user",
       text: query,
       inProgress: null,
       createdAt: Date.now(),
       updatedAt: null,
-    } as Message;
+    };
 
-    postNewMessage(threadId, msg);
-
-    query = "";
+    await workspaceOnClient.postToThread(threadId, msg);
     scrollToBottom();
   }
 
   async function stop() {
-    stopThread(threadId);
+    if (workspaceOnClient) {
+      await workspaceOnClient.stopThread(threadId);
+    }
   }
 
-  onDestroy(async () => {
-    if (threadId) {
-      unlistenMessages(threadId);
-    }
-
-    if (scrollableElement) {
-      scrollableElement.removeEventListener("scroll", handleScroll);
-    }
-  });
   onMount(() => {
     scrollableElement = document.getElementById(mainScrollableId);
     if (scrollableElement) {
@@ -196,6 +109,28 @@
         `Element with id ${mainScrollableId} not found. We need this element to listen to scroll events.`,
       );
     }
+
+    if (workspaceOnClient) {
+      workspaceOnClient.subscribeToThreadMessages(
+        threadId,
+        (newMessage: Message) => {
+          messages = [...(messages || []), newMessage];
+          if (stickToBottom) {
+            scrollToBottom();
+          }
+        },
+      );
+    }
+  });
+
+  onDestroy(() => {
+    if (scrollableElement) {
+      scrollableElement.removeEventListener("scroll", handleScroll);
+    }
+
+    if (workspaceOnClient) {
+      workspaceOnClient.unsubscribeFromThreadMessages(threadId);
+    }
   });
 
   function handleScroll() {
@@ -203,7 +138,6 @@
       return;
     }
 
-    // We set it to true if the user is at the bottom of the page
     stickToBottom =
       scrollableElement.scrollHeight - scrollableElement.scrollTop <=
       scrollableElement.clientHeight;
@@ -238,7 +172,7 @@
   </div>
   <div class="min-h-min">
     <section class="max-w-3xl mx-auto py-2 px-2">
-      <SendMessageForm onSend={sendMsg} onStop={stop} {threadStatus} />
+      <SendMessageForm onSend={sendMsg} onStop={stop} />
     </section>
   </div>
 </div>

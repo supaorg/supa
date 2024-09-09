@@ -1,18 +1,11 @@
 <script lang="ts">
-  import type {
-    ModelProvider,
-    ModelProviderCloudConfig,
-    ModelProviderLocalConfig,
-    ModelProviderConfig,
-  } from "@shared/models";
-
-  import { client } from "$lib/tools/client";
-  import { apiRoutes } from "@shared/apiRoutes";
+  import type { ModelProviderLocalConfig } from "@shared/models";
   import { onMount } from "svelte";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   export let id: string;
   export let onConnect = () => {};
-  
+
   let isNotOnline = false;
 
   async function saveLocalProvider() {
@@ -21,7 +14,7 @@
       type: "local",
     } as ModelProviderLocalConfig;
 
-    await client.post(apiRoutes.providerConfigs, config);
+    await $currentWorkspaceOnClientStore?.saveModelProviderConfig(config);
   }
 
   async function checkIfOnline() {
@@ -48,7 +41,10 @@
 </script>
 
 {#if isNotOnline}
-  <div>Ollama is not running yet. Make sure you start it and it runs at http://localhost:11434/</div>
+  <div>
+    Ollama is not running yet. Make sure you start it and it runs at
+    http://localhost:11434/
+  </div>
 {:else}
   <div>Connecting...</div>
 {/if}

@@ -1,15 +1,24 @@
 <script lang="ts">
   import type { AppConfig } from "@shared/models";
-  import { apiRoutes } from "@shared/apiRoutes";
   import { ChevronDown, Icon } from "svelte-hero-icons";
   import { popup } from "@skeletonlabs/skeleton";
   import type { PopupSettings } from "@skeletonlabs/skeleton";
-  import { visibleAppConfigStore } from "$lib/stores/appConfigStore";
-  import { onMount } from "svelte";
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
   import { get } from "svelte/store";
+  import { onMount } from "svelte";
+  import {
+    currentWorkspaceAppConfigsStore,
+    currentWorkspaceOnClientStore,
+  } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
+
+  let visibleAppConfigs: AppConfig[] = [];
+
+  $: {
+    visibleAppConfigs = $currentWorkspaceAppConfigsStore.filter((config) =>
+      config.meta ? config.meta.visible : false,
+    );
+  }
 
   let appConfig: AppConfig | null;
 
@@ -20,21 +29,30 @@
   };
 
   onMount(async () => {
-    const workspace = get(currentWorkspaceOnClientStore);
-    if (workspace) {
-      appConfig = await workspace.getAppConfigs(threadId);
+    const threadsStore = $currentWorkspaceOnClientStore?.threads;
+
+    if (!threadsStore) {
+      return;
     }
+
+    const thread = get(threadsStore).find((t) => t.id === threadId);
+
+    if (!thread) {
+      return;
+    }
+
+    appConfig = await $currentWorkspaceOnClientStore.getAppConfig(
+      thread.appConfigId,
+    );
   });
 
-  $: {
-    //
-  }
-
   async function changeAppConfig(appConfigId: string) {
-    const workspace = get(currentWorkspaceOnClientStore);
-    if (workspace) {
+    if ($currentWorkspaceOnClientStore) {
       // @TODO: change app config
-      await workspace.changeAppConfig(threadId, appConfigId);
+      await $currentWorkspaceOnClientStore.changeAppConfig(
+        threadId,
+        appConfigId,
+      );
     }
   }
 </script>
@@ -50,7 +68,7 @@
 <div class="card shadow-xl z-10" data-popup="app-config-dropdown-popup">
   <div class="arrow variant-filled" />
   <div class="btn-group-vertical variant-filled">
-    {#each $visibleAppConfigStore as config (config.id)}
+    {#each visibleAppConfigs as config (config.id)}
       <button
         class="btn"
         data-agent-id={config.id}

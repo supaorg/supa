@@ -3,10 +3,9 @@
   import { popup } from "@skeletonlabs/skeleton";
   import { Icon, ChevronUpDown } from "svelte-hero-icons";
   import {
-    workspacePointersStore,
-    currentWorkspacePointerStore,
-    type WorkspacePointer,
-    setCurrentWorkspace,
+    currentWorkspaceIdStore,
+    currentWorkspaceOnClientStore,
+    workspacesOnClientStore,
   } from "$lib/stores/workspaceStore";
 
   const popupClick: PopupSettings = {
@@ -24,44 +23,20 @@
   let workspacesInSelector: WorkspaceInSelector[] = [];
   let currentWorkspace: WorkspaceInSelector | null = null;
 
-  workspacePointersStore.subscribe((pointers) => {
-    workspacesInSelector = pointers.map((pointer) => ({
-      id: pointer.workspace.id,
-      name: getWorkspaceName(pointer),
-    }));
-  });
+  $: workspacesInSelector = $workspacesOnClientStore.map((workspace) => ({
+    id: workspace.pointer.workspace.id,
+    name: workspace.getUIName(),
+  }));
 
-  currentWorkspacePointerStore.subscribe((pointer) => {
-    if (!pointer) {
-      currentWorkspace = null;
-      return;
-    }
-
-    currentWorkspace = {
-      id: pointer.workspace.id,
-      name: getWorkspaceName(pointer),
-    };
-  });
-
-  function getWorkspaceName(pointer: WorkspacePointer) {
-    let name = pointer.workspace.name;
-
-    if (!name) {
-      // Get it from the last folder in the path
-      name = pointer.workspace.path.split("/").pop() || "Workspace";
-    }
-
-    return name;
-  }
+  $: currentWorkspace = $currentWorkspaceOnClientStore
+    ? {
+        id: $currentWorkspaceOnClientStore.pointer.workspace.id,
+        name: $currentWorkspaceOnClientStore.getUIName(),
+      }
+    : null;
 
   async function switchWorkspace(workspace: WorkspaceInSelector) {
-    const pointer = $workspacePointersStore.find(
-      (p) => p.workspace.id === workspace.id,
-    );
-
-    if (pointer) {
-      setCurrentWorkspace(pointer);
-    }
+    currentWorkspaceIdStore.set(workspace.id);
   }
 </script>
 

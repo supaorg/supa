@@ -2,13 +2,11 @@
   import { goto } from "$app/navigation";
   import type { AppConfig, ThreadMessage } from "@shared/models";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
-  import { client } from "$lib/tools/client";
   import { v4 as uuidv4 } from "uuid";
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { createThread } from "$lib/stores/threadStore";
   import { appConfigStore } from "$lib/stores/appConfigStore";
-  import { apiRoutes } from "@shared/apiRoutes";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   const modalStore = getModalStore();
 
@@ -62,7 +60,7 @@
 
     // Post and don't wait for the response, just go to the new thread
     // to see it live
-    client.post(apiRoutes.threadMessages(getCurrentWorkspaceId(), newThread.id), msg);
+    $currentWorkspaceOnClientStore?.postToThread(newThread.id, msg);
 
     goto(`/?t=${newThread.id}`);
 

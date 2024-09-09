@@ -1,11 +1,9 @@
 <script lang="ts">
-  import { client } from "$lib/tools/client";
   import type { ModelProvider, ModelProviderConfig } from "@shared/models";
   import { onMount } from "svelte";
   import ModelSelectCard from "./ModelSelectCard.svelte";
-  import { apiRoutes } from "@shared/apiRoutes";
   import AutoModelSelectCard from "./AutoModelSelectCard.svelte";
-  import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   let providers: ModelProvider[] = [];
   let configs: ModelProviderConfig[] = [];
@@ -22,13 +20,14 @@
   let selectedPair: SelectedPair | null = null;
 
   onMount(async () => {
-    const [providersResponse, configsResponse] = await Promise.all([
-      client.get(apiRoutes.providers(getCurrentWorkspaceId())),
-      client.get(apiRoutes.providerConfigs(getCurrentWorkspaceId())),
+    let [providers, configs] = await Promise.all([
+      $currentWorkspaceOnClientStore?.getModelProviders(),
+      $currentWorkspaceOnClientStore?.getModelProviderConfigs(),
     ]);
 
-    providers = providersResponse.data as ModelProvider[];
-    configs = configsResponse.data as ModelProviderConfig[];
+    if (!providers || !configs) {
+      return;
+    }
 
     // Keep the providers that are setup
     providers = providers.filter((provider) =>

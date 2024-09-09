@@ -1,10 +1,8 @@
 <script lang="ts">
-  import { client } from "$lib/tools/client";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
   import type { ModelProvider } from "@shared/models";
-  import { apiRoutes } from "@shared/apiRoutes";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
-    import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
 
   export let provider: ModelProvider;
   export let selected = false;
@@ -16,9 +14,10 @@
   let showModels = false;
 
   onMount(async () => {
-    models = await client.get(apiRoutes.providerModel(getCurrentWorkspaceId(), provider.id)).then((res) => {
-      return res.data as string[];
-    });
+    models =
+      (await $currentWorkspaceOnClientStore?.getModelsForProvider(
+        provider.id,
+      )) ?? [];
   });
 
   function onProviderClick() {

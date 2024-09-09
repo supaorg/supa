@@ -1,30 +1,22 @@
 <script lang="ts">
   import { Step, Stepper } from "@skeletonlabs/skeleton";
-  import { client } from "$lib/tools/client";
   import { profileStore } from "$lib/stores/profileStore";
-  import type { ModelProvider, Profile } from "@shared/models";
+  import type { ModelProvider } from "@shared/models";
   import ModelProviders from "../models/ModelProviders.svelte";
-  import { apiRoutes } from "@shared/apiRoutes";
-  import { getCurrentWorkspaceId } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
 
   let name = "";
 
   let connectedProviders: ModelProvider[] = [];
 
-  function handleComplete() {
-    client
-      .post(apiRoutes.setup(getCurrentWorkspaceId()), {
-        name,
-      })
-      .then((res) => {
-        if (res.error) {
-          console.error(res.error);
-          return;
-        }
+  async function handleComplete() {
+    const profile = await $currentWorkspaceOnClientStore?.setupWorkspace();
 
-        console.log("Profile setup complete");
-        profileStore.set(res.data as Profile);
-      });
+    if (profile) {
+      console.log("Profile setup complete");
+
+      profileStore.set(profile);
+    }
   }
 
   function onProviderConnect(provider: ModelProvider) {

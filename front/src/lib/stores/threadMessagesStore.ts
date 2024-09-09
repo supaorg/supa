@@ -1,7 +1,6 @@
 import { get, type Writable } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import type { ThreadMessage } from "@shared/models";
-import { client } from "$lib/tools/client";
 import { apiRoutes } from "@shared/apiRoutes";
 import { getCurrentWorkspaceId } from "./workspaceStore";
 

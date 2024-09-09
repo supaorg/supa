@@ -1,14 +1,6 @@
 <script lang="ts">
-  import { client } from "$lib/tools/client";
   import CenteredPage from "$lib/comps/CenteredPage.svelte";
   import { message, open } from "@tauri-apps/api/dialog";
-  import { apiRoutes } from "@shared/apiRoutes";
-  import {
-    connectOrStartServerInTauri,
-    workspacePointersStore,
-    setLocalWorkspace,
-    type WorkspacePointer,
-  } from "$lib/stores/workspaceStore";
   import type { Workspace } from "@shared/models";
 
   // Expose a function to be called from the parent component
@@ -24,6 +16,7 @@
       return;
     }
 
+    /*
     await connectOrStartServerInTauri();
 
     const res = await client.post(apiRoutes.workspaces(), {
@@ -41,6 +34,7 @@
     setLocalWorkspace(workspace);
 
     onWorkspaceSetup(workspace);
+    */
   }
 
   async function openWorkspaceDialog() {
@@ -52,6 +46,8 @@
     if (!path) {
       return;
     }
+
+    /*
 
     await connectOrStartServerInTauri();
 
@@ -70,6 +66,7 @@
     setLocalWorkspace(workspace);
 
     onWorkspaceSetup(workspace);
+    */
   }
 
   import {
@@ -78,10 +75,9 @@
     type PopupSettings,
   } from "@skeletonlabs/skeleton";
   import {
-    currentWorkspacePointerStore,
-    setCurrentWorkspace,
+    currentWorkspaceIdStore,
+    workspacesOnClientStore,
   } from "$lib/stores/workspaceStore";
-  import { CheckCircle, Icon } from "svelte-hero-icons";
 
   const popupClick: PopupSettings = {
     event: "click",
@@ -95,49 +91,15 @@
     name: string;
   };
 
-  let workspacesInSelector: WorkspaceInSelector[] = [];
-  let currentWorkspace: WorkspaceInSelector | null = null;
-  let selectedWorkspaceId: string = "";
-
-  workspacePointersStore.subscribe((pointers) => {
-    workspacesInSelector = pointers.map((pointer) => ({
-      id: pointer.workspace.id,
-      name: getWorkspaceName(pointer),
-    }));
-  });
-
-  currentWorkspacePointerStore.subscribe((pointer) => {
-    if (!pointer) {
-      currentWorkspace = null;
-      return;
-    }
-
-    currentWorkspace = {
-      id: pointer.workspace.id,
-      name: getWorkspaceName(pointer),
-    };
-
-    selectedWorkspaceId = currentWorkspace.id;
-  });
-
-  function getWorkspaceName(pointer: WorkspacePointer) {
-    let name = pointer.workspace.name;
-
-    if (!name) {
-      // Get it from the last folder in the path
-      name = pointer.workspace.path.split("/").pop() || "Workspace";
-    }
-
-    return name;
-  }
-
   function onSwitchWorkspace(event: Event) {
+    /*
     const targetWorkspace = $workspacePointersStore.find(
       (p) => p.workspace.id === selectedWorkspaceId
     );
     if (targetWorkspace) {
       setCurrentWorkspace(targetWorkspace);
     }
+    */
   }
 </script>
 
@@ -151,14 +113,14 @@
     </p>
 
     <ListBox>
-      {#each workspacesInSelector as workspace}
+      {#each $workspacesOnClientStore as workspace (workspace.getId())}
         <ListBoxItem
           on:change={onSwitchWorkspace}
-          bind:group={selectedWorkspaceId}
+          bind:group={$currentWorkspaceIdStore}
           name="workspace"
-          value={workspace.id}
+          value={workspace.getId()}
         >
-          {workspace.name}
+          {workspace.getUIName()}
         </ListBoxItem>
       {/each}
     </ListBox>
