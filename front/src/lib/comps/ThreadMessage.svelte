@@ -9,7 +9,7 @@
   import MarkdownMessage from "./markdown/MarkdownMessage.svelte";
   import type { PopupSettings } from "@skeletonlabs/skeleton";
   import { popup } from "@skeletonlabs/skeleton";
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   export let message: ThreadMessage;
   export let threadId: string;
@@ -62,7 +62,7 @@
 
   async function retry() {
     retrying = true;
-    await $currentWorkspaceOnClientStore?.retryThread(threadId);
+    await $currentWorkspaceStore?.retryThread(threadId);
     retrying = false;
   }
 

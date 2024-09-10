@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { currentWorkspaceThreadsStore } from "$lib/stores/workspaceStore";
+  import { threadsStore } from "$lib/stores/workspaceStore";
   import ThreadButtonInSidebar from "./ThreadButtonInSidebar.svelte";
 
   let currentThreadId: string | null;
@@ -11,7 +11,7 @@
 </script>
 
 <ul>
-  {#each $currentWorkspaceThreadsStore as thread (thread.id)}
+  {#each $threadsStore as thread (thread.id)}
     <li class="relative">
       <ThreadButtonInSidebar {thread} active={thread.id === currentThreadId} />
     </li>

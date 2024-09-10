@@ -8,8 +8,8 @@
   import AppConfigDropdown from "./AppConfigDropdown.svelte";
   import { ProgressRadial } from "@skeletonlabs/skeleton";
   import {
-    currentWorkspaceOnClientStore,
-    currentWorkspaceThreadsStore,
+    currentWorkspaceStore,
+    threadsStore,
   } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
@@ -25,11 +25,11 @@
   const mainScrollableId = "chat-messanges-scrollable";
   let scrollableElement: HTMLElement | null = null;
 
-  $: workspaceOnClient = $currentWorkspaceOnClientStore;
+  $: workspaceOnClient = $currentWorkspaceStore;
 
   $: {
     if (prevThreadId !== threadId) {
-      thread = $currentWorkspaceThreadsStore.find((t) => t.id === threadId);
+      thread = $threadsStore.find((t) => t.id === threadId);
       fetchMessagesAndPossiblyJumpToBottom();
       prevThreadId = threadId;
     }

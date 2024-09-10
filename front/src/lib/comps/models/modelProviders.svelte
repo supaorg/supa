@@ -7,7 +7,7 @@
   import Link from "../Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
-    import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+    import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   let providers: ModelProvider[] = [];
   let showHowForProvider: ModelProvider | null = null;
@@ -21,7 +21,7 @@
   }
 
   async function fetchProviders() {
-    providers = await $currentWorkspaceOnClientStore?.getModelProviders() ?? [];
+    providers = await $currentWorkspaceStore?.getModelProviders() ?? [];
   }
 
   onMount(async () => {

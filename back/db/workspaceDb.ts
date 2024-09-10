@@ -289,9 +289,9 @@ export class WorkspaceDb {
     }
   }
 
-  async deleteAppConfig(agentId: string): Promise<void> {
+  async deleteAppConfig(appConfigId: string): Promise<void> {
     try {
-      await fs.remove(this.resolvePath("agent-configs", agentId), {
+      await fs.remove(this.resolvePath("agent-configs", appConfigId), {
         recursive: true,
       });
     } catch (error) {

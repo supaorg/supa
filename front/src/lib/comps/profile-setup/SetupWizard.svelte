@@ -3,14 +3,14 @@
   import { profileStore } from "$lib/stores/profileStore";
   import type { ModelProvider } from "@shared/models";
   import ModelProviders from "../models/ModelProviders.svelte";
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   let name = "";
 
   let connectedProviders: ModelProvider[] = [];
 
   async function handleComplete() {
-    const profile = await $currentWorkspaceOnClientStore?.setupWorkspace();
+    const profile = await $currentWorkspaceStore?.setupWorkspace();
 
     if (profile) {
       console.log("Profile setup complete");

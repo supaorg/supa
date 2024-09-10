@@ -1,23 +1,23 @@
 <script lang="ts">
+    import { visibleAppConfigsStore } from "$lib/stores/workspaceStore";
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { Icon, PencilSquare } from "svelte-hero-icons";
-  import { visibleAppConfigStore } from "$lib/stores/appConfigStore";
 
   const modalStore = getModalStore();
 
   function openNewThreadModal(event: any) {
-    const agentId = event.currentTarget.getAttribute("data-agent-id");
+    const appConfigId = event.currentTarget.getAttribute("data-agent-id");
     modalStore.trigger({
       type: "component",
       component: "newThread",
       meta: {
-        agentId: agentId,
+        appConfigId: appConfigId,
       },
     });
   }
 </script>
 
-{#each $visibleAppConfigStore as config (config.id)}
+{#each $visibleAppConfigsStore as config (config.id)}
   <button
     class="sidebar-btn w-full flex"
     data-agent-id={config.id}

@@ -3,7 +3,7 @@
   import { page } from "$app/stores";
   import ThreadMessages from "$lib/comps/ThreadMessages.svelte";
   import CenteredPage from "$lib/comps/CenteredPage.svelte";
-  import { currentWorkspaceThreadsStore } from "$lib/stores/workspaceStore";
+  import { threadsStore } from "$lib/stores/workspaceStore";
 
   let threadId: string | null = null;
 
@@ -12,9 +12,9 @@
     if (
       $page.route.id === "/" &&
       !threadId &&
-      $currentWorkspaceThreadsStore.length > 0
+      $threadsStore.length > 0
     ) {
-      threadId = $currentWorkspaceThreadsStore[0]?.id;
+      threadId = $threadsStore[0]?.id;
       if (threadId) goto(`/?t=${threadId}`);
     }
   }

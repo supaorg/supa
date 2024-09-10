@@ -4,33 +4,31 @@
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import { v4 as uuidv4 } from "uuid";
   import { getModalStore } from "@skeletonlabs/skeleton";
-  import { createThread } from "$lib/stores/threadStore";
-  import { appConfigStore } from "$lib/stores/appConfigStore";
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { appConfigsStore, currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   const modalStore = getModalStore();
 
-  const agentId = $modalStore[0].meta.agentId as string;
-  let agent: AppConfig | undefined;
+  const appConfigId = $modalStore[0].meta.appConfigId as string;
+  let appConfig: AppConfig | undefined;
   let placeholder = "Write a message...";
 
   $: {
-    let targetAgent: AppConfig | undefined;
+    let targetAppConfig: AppConfig | undefined;
 
-    for (const agent of $appConfigStore) {
-      if (agent.id === agentId) {
-        targetAgent = agent;
+    for (const appConfig of $appConfigsStore) {
+      if (appConfig.id === appConfigId) {
+        targetAppConfig = appConfig;
         break;
       }
     }
 
-    if (targetAgent) {
-      placeholder = targetAgent.button;
+    if (targetAppConfig) {
+      placeholder = targetAppConfig.button;
     }
 
-    agent = targetAgent;
+    appConfig = targetAppConfig;
 
-    console.log(agent);
+    console.log(appConfig);
   }
 
   let isSending = false;
@@ -46,7 +44,11 @@
   async function newThread(message: string = "") {
     isSending = true;
 
-    const newThread = await createThread(agentId);
+    const newThread = await $currentWorkspaceStore?.createThread(appConfigId);
+
+    if (!newThread) {
+      throw new Error("Failed to create thread");
+    }
 
     const msg = {
       id: uuidv4(),
@@ -60,7 +62,7 @@
 
     // Post and don't wait for the response, just go to the new thread
     // to see it live
-    $currentWorkspaceOnClientStore?.postToThread(newThread.id, msg);
+    $currentWorkspaceStore?.postToThread(newThread.id, msg);
 
     goto(`/?t=${newThread.id}`);
 
@@ -76,8 +78,8 @@
   {#if isSending}
     <div>Loading...</div>
   {:else}
-    {#if agent}
-      <h3 class="h3">{agent.name}</h3>
+    {#if appConfig}
+      <h3 class="h3">{appConfig.name}</h3>
     {/if}
     <SendMessageForm {onSend} {placeholder} />
   {/if}

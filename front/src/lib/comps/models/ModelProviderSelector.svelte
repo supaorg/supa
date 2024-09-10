@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import ModelSelectCard from "./ModelSelectCard.svelte";
   import AutoModelSelectCard from "./AutoModelSelectCard.svelte";
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   let providers: ModelProvider[] = [];
   let configs: ModelProviderConfig[] = [];
@@ -21,8 +21,8 @@
 
   onMount(async () => {
     let [providers, configs] = await Promise.all([
-      $currentWorkspaceOnClientStore?.getModelProviders(),
-      $currentWorkspaceOnClientStore?.getModelProviderConfigs(),
+      $currentWorkspaceStore?.getModelProviders(),
+      $currentWorkspaceStore?.getModelProviderConfigs(),
     ]);
 
     if (!providers || !configs) {

@@ -7,7 +7,7 @@
     ModelProviderCloudConfig,
     ModelProviderConfig,
   } from "@shared/models";
-    import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+    import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   export let id: string;
   export let onValidKey: (key: string) => void;
@@ -29,7 +29,7 @@
       apiKey,
     } as ModelProviderCloudConfig;
 
-    $currentWorkspaceOnClientStore?.saveModelProvider(config);
+    $currentWorkspaceStore?.saveModelProvider(config);
   }
 
   async function handleApiKeyChange() {
@@ -37,7 +37,7 @@
     clearTimeout(timeout);
     timeout = setTimeout(async () => {
       apiKeyIsValid = false;
-      apiKeyIsValid = await $currentWorkspaceOnClientStore?.validateModelProviderKey(id, apiKey) || false;
+      apiKeyIsValid = await $currentWorkspaceStore?.validateModelProviderKey(id, apiKey) || false;
       if (apiKeyIsValid) {
         saveCloudProviderWithApiKey(apiKey);
         onValidKey(apiKey);

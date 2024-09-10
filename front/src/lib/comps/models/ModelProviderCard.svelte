@@ -4,7 +4,7 @@
   import { onMount } from "svelte";
   import { ProgressBar } from "@skeletonlabs/skeleton";
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   type State =
     | "loading"
@@ -25,7 +25,7 @@
 
   async function checkProvider() {
     const providerConfig =
-      await $currentWorkspaceOnClientStore?.getModelProviderConfig(provider.id);
+      await $currentWorkspaceStore?.getModelProviderConfig(provider.id);
     if (providerConfig) {
       await checkIfValid();
     } else {
@@ -37,7 +37,7 @@
     state = "loading";
 
     const isValid =
-      await $currentWorkspaceOnClientStore?.validateModelProviderConfig(
+      await $currentWorkspaceStore?.validateModelProviderConfig(
         provider.id,
       );
 
@@ -53,7 +53,7 @@
   function disconnect() {
     state = "disconnected";
     onDisconnect(provider);
-    $currentWorkspaceOnClientStore?.deleteModelProviderConfig(provider.id);
+    $currentWorkspaceStore?.deleteModelProviderConfig(provider.id);
   }
 </script>
 

@@ -22,21 +22,26 @@ const workspacePointersStore: Writable<WorkspacePointer[]> = localStorageStore(
 );
 export const currentWorkspaceIdStore: Writable<string | null> = localStorageStore("currentWorkspaceId", null);
 export const workspacesOnClientStore: Writable<WorkspaceOnClient[]> = writable<WorkspaceOnClient[]>([]);
-export const currentWorkspaceOnClientStore: Readable<WorkspaceOnClient | null> = derived(
+export const currentWorkspaceStore: Readable<WorkspaceOnClient | null> = derived(
   [currentWorkspaceIdStore, workspacesOnClientStore],
   ([$currentWorkspaceId, $workspacesOnClient]) => {
     return $workspacesOnClient.find(workspace => workspace.pointer.workspace.id === $currentWorkspaceId) || null;
   }
 );
 
-export const currentWorkspaceThreadsStore: Readable<Thread[]> = derived(
-  currentWorkspaceOnClientStore,
-  ($currentWorkspaceOnClient) => $currentWorkspaceOnClient?.threads ? get($currentWorkspaceOnClient.threads) : []
+export const threadsStore: Readable<Thread[]> = derived(
+  currentWorkspaceStore,
+  ($currentWorkspaceStore) => $currentWorkspaceStore?.threads ? get($currentWorkspaceStore.threads) : []
 );
 
-export const currentWorkspaceAppConfigsStore: Readable<AppConfig[]> = derived(
-  currentWorkspaceOnClientStore,
-  ($currentWorkspaceOnClient) => $currentWorkspaceOnClient?.appConfigs ? get($currentWorkspaceOnClient.appConfigs) : []
+export const appConfigsStore: Readable<AppConfig[]> = derived(
+  currentWorkspaceStore,
+  ($currentWorkspaceStore) => $currentWorkspaceStore?.appConfigs ? get($currentWorkspaceStore.appConfigs) : []
+);
+
+export const visibleAppConfigsStore: Readable<AppConfig[]> = derived(
+  appConfigsStore,
+  ($appConfigsStore) => $appConfigsStore.filter((appConfig) => appConfig.meta?.visible)
 );
 
 export function getCurrentWorkspaceId(): string | null {

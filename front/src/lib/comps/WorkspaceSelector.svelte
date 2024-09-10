@@ -4,7 +4,7 @@
   import { Icon, ChevronUpDown } from "svelte-hero-icons";
   import {
     currentWorkspaceIdStore,
-    currentWorkspaceOnClientStore,
+    currentWorkspaceStore,
     workspacesOnClientStore,
   } from "$lib/stores/workspaceStore";
 
@@ -28,10 +28,10 @@
     name: workspace.getUIName(),
   }));
 
-  $: currentWorkspace = $currentWorkspaceOnClientStore
+  $: currentWorkspace = $currentWorkspaceStore
     ? {
-        id: $currentWorkspaceOnClientStore.pointer.workspace.id,
-        name: $currentWorkspaceOnClientStore.getUIName(),
+        id: $currentWorkspaceStore.pointer.workspace.id,
+        name: $currentWorkspaceStore.getUIName(),
       }
     : null;
 

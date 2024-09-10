@@ -6,8 +6,8 @@
   import { get } from "svelte/store";
   import { onMount } from "svelte";
   import {
-    currentWorkspaceAppConfigsStore,
-    currentWorkspaceOnClientStore,
+    appConfigsStore,
+    currentWorkspaceStore,
   } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
@@ -15,7 +15,7 @@
   let visibleAppConfigs: AppConfig[] = [];
 
   $: {
-    visibleAppConfigs = $currentWorkspaceAppConfigsStore.filter((config) =>
+    visibleAppConfigs = $appConfigsStore.filter((config) =>
       config.meta ? config.meta.visible : false,
     );
   }
@@ -29,7 +29,7 @@
   };
 
   onMount(async () => {
-    const threadsStore = $currentWorkspaceOnClientStore?.threads;
+    const threadsStore = $currentWorkspaceStore?.threads;
 
     if (!threadsStore) {
       return;
@@ -41,15 +41,15 @@
       return;
     }
 
-    appConfig = await $currentWorkspaceOnClientStore.getAppConfig(
+    appConfig = await $currentWorkspaceStore.getAppConfig(
       thread.appConfigId,
     );
   });
 
   async function changeAppConfig(appConfigId: string) {
-    if ($currentWorkspaceOnClientStore) {
+    if ($currentWorkspaceStore) {
       // @TODO: change app config
-      await $currentWorkspaceOnClientStore.changeAppConfig(
+      await $currentWorkspaceStore.changeAppConfig(
         threadId,
         appConfigId,
       );

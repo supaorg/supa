@@ -231,7 +231,7 @@ export class WorkspaceOnClient {
 
   async changeAppConfig(threadId: string, appConfigId: string): Promise<void> {
     await this.client.post(apiRoutes.thread(this.getId(), threadId), {
-      agentId: appConfigId,
+      appConfigId: appConfigId,
     });
 
     this.threads.update((threads) => {

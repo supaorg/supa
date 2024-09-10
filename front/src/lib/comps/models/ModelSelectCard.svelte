@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
   import type { ModelProvider } from "@shared/models";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
@@ -15,7 +15,7 @@
 
   onMount(async () => {
     models =
-      (await $currentWorkspaceOnClientStore?.getModelsForProvider(
+      (await $currentWorkspaceStore?.getModelsForProvider(
         provider.id,
       )) ?? [];
   });

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
   import type { AppConfig } from "@shared/models";
   import {
     SlideToggle,
@@ -21,7 +21,7 @@
     config.meta = config.meta || {};
     config.meta.visible = visible ? "true" : "false";
 
-    $currentWorkspaceOnClientStore?.updateAppConfig(config);
+    $currentWorkspaceStore?.updateAppConfig(config);
   }
 
   $: {
@@ -46,7 +46,7 @@
   }
 
   function deleteAppConfig() {
-    $currentWorkspaceOnClientStore?.deleteAppConfig(config.id);
+    $currentWorkspaceStore?.deleteAppConfig(config.id);
   }
 </script>
 

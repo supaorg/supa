@@ -5,7 +5,7 @@
   import InputModel from "../models/InputModel.svelte";
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   export let configId: string | null = null;
   let prevConfigId: string | null = null;
@@ -22,7 +22,7 @@
       isNewApp = false;
 
       appConfig =
-        (await $currentWorkspaceOnClientStore?.getAppConfig(configId)) ?? null;
+        (await $currentWorkspaceStore?.getAppConfig(configId)) ?? null;
       if (configId === "default") {
         disableFields = true;
       }
@@ -55,10 +55,10 @@
     }
 
     if (isNewApp) {
-      await $currentWorkspaceOnClientStore?.newAppConfig(appConfig);
+      await $currentWorkspaceStore?.newAppConfig(appConfig);
       goto("/apps");
     } else {
-      await $currentWorkspaceOnClientStore?.updateAppConfig(appConfig);
+      await $currentWorkspaceStore?.updateAppConfig(appConfig);
     }
   }
 </script>

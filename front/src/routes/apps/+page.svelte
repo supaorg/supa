@@ -1,7 +1,6 @@
 <script lang="ts">
   import CenteredPage from "$lib/comps/CenteredPage.svelte";
   import AppConfigTableCell from "$lib/comps/apps/AppConfigTableCell.svelte";
-  import { appConfigStore } from "$lib/stores/appConfigStore";
   import { txtStore } from "$lib/stores/txtStore";
 </script>
 

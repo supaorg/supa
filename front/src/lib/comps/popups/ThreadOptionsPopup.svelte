@@ -4,7 +4,7 @@
   import { popup } from "@skeletonlabs/skeleton";
   import Portal from "svelte-portal";
   import { goto } from "$app/navigation";
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
   export let showOpenButton = true;
@@ -20,8 +20,8 @@
   }
 
   async function deleteThread() {
-    if ($currentWorkspaceOnClientStore) {
-      await $currentWorkspaceOnClientStore.deleteThread(threadId);
+    if ($currentWorkspaceStore) {
+      await $currentWorkspaceStore.deleteThread(threadId);
     }
     goto("/");
   }

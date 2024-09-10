@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ModelProviderLocalConfig } from "@shared/models";
   import { onMount } from "svelte";
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
 
   export let id: string;
   export let onConnect = () => {};
@@ -14,7 +14,7 @@
       type: "local",
     } as ModelProviderLocalConfig;
 
-    await $currentWorkspaceOnClientStore?.saveModelProviderConfig(config);
+    await $currentWorkspaceStore?.saveModelProviderConfig(config);
   }
 
   async function checkIfOnline() {

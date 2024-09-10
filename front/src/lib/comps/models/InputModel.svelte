@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentWorkspaceOnClientStore } from "$lib/stores/workspaceStore";
+  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
   import type { ModelProvider } from "@shared/models";
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
@@ -75,7 +75,7 @@
 
     provider = null;
     provider =
-      (await $currentWorkspaceOnClientStore?.getModelProvider(providerId)) ??
+      (await $currentWorkspaceStore?.getModelProvider(providerId)) ??
       null;
 
     validate();
