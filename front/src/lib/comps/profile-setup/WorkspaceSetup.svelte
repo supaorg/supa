@@ -3,9 +3,10 @@
   import { message, open } from "@tauri-apps/api/dialog";
   import { apiRoutes } from "@shared/apiRoutes";
   import type { Workspace } from "@shared/models";
+  import { connectToWorkspaceByPath } from "$lib/stores/workspaceStore";
 
   // Expose a function to be called from the parent component
-  export let onWorkspaceSetup: (workspace: Workspace) => void = () => {};
+  export let onWorkspaceSetup: (workspaceId: string) => void = () => {};
 
   async function createWorkspaceDialog() {
     const path = await open({
@@ -17,20 +18,18 @@
       return;
     }
 
-    await connectOrStartServerInTauri();
+    try {
+      const workspace = await connectToWorkspaceByPath(path as string, true);
 
-    const res = await client.post(apiRoutes.workspaces(), { path, create: true });
+      if (!workspace) {
+        throw new Error("Failed to open workspace");
+      }
 
-    if (res.error) {
-      console.error(res.error);
-      message(res.error, { type: "error" });
-      return;
+      onWorkspaceSetup(workspace.getId());
+    } catch (e) {
+      console.error(e);
+      message("Failed to create workspace", { type: "error" });
     }
-
-    const workspace = res.data as Workspace;
-    setLocalWorkspace(workspace);
-
-    onWorkspaceSetup(workspace);
   }
 
   async function openWorkspaceDialog() {
@@ -43,20 +42,17 @@
       return;
     }
 
-    await connectOrStartServerInTauri();
+    try {
+      const workspace = await connectToWorkspaceByPath(path as string);
+      if (!workspace) {
+        throw new Error("Failed to open workspace");
+      }
 
-    const res = await client.post(apiRoutes.workspaces(), { path, create: false });
-
-    if (res.error) {
-      console.error(res.error);
-      message(res.error, { type: "error" });
-      return;
+      onWorkspaceSetup(workspace.getId());
+    } catch (e) {
+      console.error(e);
+      message("Failed to open workspace", { type: "error" });
     }
-
-    const workspace = res.data as Workspace;
-    setLocalWorkspace(workspace);
-
-    onWorkspaceSetup(workspace);
   }
 </script>
 

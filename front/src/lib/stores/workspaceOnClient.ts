@@ -5,20 +5,29 @@ import { isTauri, setupServerInTauri } from "$lib/tauri/serverInTauri";
 import { apiRoutes } from "@shared/apiRoutes";
 import type { AppConfig, ModelProvider, ModelProviderConfig, Profile, Thread, ThreadMessage, Workspace } from "@shared/models";
 import { Client } from "@shared/neorest/Client";
-import { type WorkspacePointer } from "./workspaceStore";
 
 type WorkspaceClientState = "disconnected" | "connecting" | "connected" | "error";
 
+export type WorkspacePointer = Partial<Workspace> & {
+  type: "local" | "remote";
+  url: string;
+}
+
 export class WorkspaceOnClient {
-  client: Client;
-  pointer: WorkspacePointer;
+  private client: Client;
+  private pointer: WorkspacePointer;
+  // @NOTE: consider making these private as well
   profile: Writable<Profile | null>;
   threads: Writable<Thread[]>;
   appConfigs: Writable<AppConfig[]>;
   state: Writable<WorkspaceClientState>;
 
   getId(): string {
-    return this.pointer.workspace.id;
+    if (!this.pointer.id) {
+      throw new Error("Workspace ID is not set");
+    }
+
+    return this.pointer.id;
   }
 
   constructor(pointer: WorkspacePointer) {
@@ -30,10 +39,10 @@ export class WorkspaceOnClient {
     this.state = writable<WorkspaceClientState>("disconnected");
   }
 
-  async connect() {
+  async connect(createIfNotExists: boolean = false) {
     this.state.set("connecting");
 
-    await this.connectToLocalWorkspace();
+    await this.connectToLocalWorkspace(createIfNotExists);
 
     await this.loadProfileFromServer();
     await this.loadThreadsFromServer();
@@ -42,7 +51,7 @@ export class WorkspaceOnClient {
     this.state.set("connected");
   }
 
-  private async connectToLocalWorkspace(): Promise<void> {
+  private async connectToLocalWorkspace(createIfNotExists: boolean = false): Promise<void> {
     let serverWsUrl = this.pointer ? this.pointer.url : "ws://localhost:6969";
 
     if (this.client.isConnected() && this.client.getURL() === serverWsUrl) {
@@ -58,7 +67,7 @@ export class WorkspaceOnClient {
       this.client.setUrl(serverWsUrl);
     }
 
-    const res = await this.client.post(apiRoutes.workspaces(), { path: this.pointer.workspace.path, create: false });
+    const res = await this.client.post(apiRoutes.workspaces(), { path: this.pointer.path, create: createIfNotExists });
 
     if (res.error) {
       console.error(res.error);
@@ -67,19 +76,24 @@ export class WorkspaceOnClient {
 
     const workspace = res.data as Workspace;
 
-    //await subscribeToSession();
-
     if (!workspace) {
       throw new Error("Workspace not found");
     }
+
+    //await subscribeToSession();
+
+    this.pointer = {
+      ...this.pointer,
+      ...workspace,
+    };
   }
 
   getUIName(): string {
-    let name = this.pointer.workspace.name;
+    let name = this.pointer.name;
 
     if (!name) {
       // Get it from the last folder in the path
-      name = this.pointer.workspace.path.split("/").pop() || "Workspace";
+      name = this.pointer.path ? this.pointer.path.split("/").pop() || "Workspace" : "Workspace";
     }
 
     return name;

@@ -8,6 +8,7 @@
   import {
     appConfigsStore,
     currentWorkspaceStore,
+    threadsStore,
   } from "$lib/stores/workspaceStore";
 
   export let threadId: string;
@@ -29,30 +30,25 @@
   };
 
   onMount(async () => {
-    const threadsStore = $currentWorkspaceStore?.threads;
-
-    if (!threadsStore) {
+    if (!$threadsStore || $threadsStore.length === 0) {
       return;
     }
 
-    const thread = get(threadsStore).find((t) => t.id === threadId);
+    const thread = $threadsStore.find((t) => t.id === threadId);
 
     if (!thread) {
       return;
     }
 
-    appConfig = await $currentWorkspaceStore.getAppConfig(
+    appConfig = (await $currentWorkspaceStore?.getAppConfig(
       thread.appConfigId,
-    );
+    )) as AppConfig | null;
   });
 
   async function changeAppConfig(appConfigId: string) {
     if ($currentWorkspaceStore) {
       // @TODO: change app config
-      await $currentWorkspaceStore.changeAppConfig(
-        threadId,
-        appConfigId,
-      );
+      await $currentWorkspaceStore.changeAppConfig(threadId, appConfigId);
     }
   }
 </script>

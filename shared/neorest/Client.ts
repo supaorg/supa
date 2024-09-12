@@ -129,10 +129,9 @@ export class Client {
     headers?: Record<string, string>,
   ): Promise<RouteResponse> {
     // Throw an exception if the route contains invalid characters.
-    // This is because the server uses certain characters for route parameters.
     if (!/^[a-zA-Z0-9_\/-]+$/.test(route)) {
       // Be explicit about colons, because users may send them by accident.
-      // This is because the server uses colons for route parameters.
+      // The server uses colons for route parameters.
       if (route.includes(":")) {
         throw new Error(`Route "${route}" contains colons ':' which is not allowed. Colons are reserved for route parameters.`);
       }

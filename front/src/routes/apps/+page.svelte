@@ -2,6 +2,7 @@
   import CenteredPage from "$lib/comps/CenteredPage.svelte";
   import AppConfigTableCell from "$lib/comps/apps/AppConfigTableCell.svelte";
   import { txtStore } from "$lib/stores/txtStore";
+  import { appConfigsStore } from "$lib/stores/workspaceStore";
 </script>
 
 <CenteredPage>
@@ -10,7 +11,7 @@
     <h3 class="h3">Chats</h3>
     <table class="table-auto w-full">
       <tbody>
-        {#each $appConfigStore as config (config.id)}
+        {#each $appConfigsStore as config (config.id)}
           <AppConfigTableCell {config} />
         {/each}
       </tbody>
@@ -20,5 +21,10 @@
       >{$txtStore.appPage.buttonNewConfig}</a
     >
   </div>
-  <div class="card p-4">An ability to create other types of apps is coming at some point. Write at <a class="anchor" href="mailto:hey@supamind.org">hey@supamind.org</a> if you have ideas or suggestions for an app.</div>
+  <div class="card p-4">
+    An ability to create other types of apps is coming at some point. Write at <a
+      class="anchor"
+      href="mailto:hey@supamind.org">hey@supamind.org</a
+    > if you have ideas or suggestions for an app.
+  </div>
 </CenteredPage>

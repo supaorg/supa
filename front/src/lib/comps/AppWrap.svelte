@@ -44,10 +44,10 @@
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
   initializeStores();
 
-  async function onWorkspaceSetup(workspace: Workspace) {
+  async function onWorkspaceSetup(workspaceId: string) {
     // TODO: implement connecting
 
-    console.error("Not implemented yet", workspace);
+    console.error("Not implemented yet");
 
     state = "ready";
   }
@@ -55,14 +55,24 @@
   onMount(async () => {
     state = "initializing";
 
+    console.log("Loading workspaces");
+
     const workspace = await loadWorkspacesAndConnectToCurrent();
 
+    console.log("Workspace loaded", workspace);
+
     if (workspace) {
+      console.log("Workspace loaded");
+
       state = "ready";
     } else {
+      console.log("No workspace loaded");
+
       state = "needsWorkspace";
     }
   });
+
+  $: console.log("State", state);
 
   onDestroy(async () => {
     await getServerInTauri()?.kill();

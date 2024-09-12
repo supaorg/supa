@@ -6,17 +6,11 @@
 import type { Readable, Writable } from "svelte/store";
 import { writable, get, derived } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
-import type { AppConfig, Thread, Workspace } from "@shared/models";
-import { WorkspaceOnClient } from "./workspaceOnClient";
-
-export type WorkspacePointer = {
-  type: "local" | "remote";
-  url: string;
-  workspace: Workspace;
-}
+import type { AppConfig, Thread } from "@shared/models";
+import { WorkspaceOnClient, type WorkspacePointer } from "./workspaceOnClient";
 
 
-const workspacePointersStore: Writable<WorkspacePointer[]> = localStorageStore(
+const pointersToWorkspacesStore: Writable<WorkspacePointer[]> = localStorageStore(
   "workspacePointers",
   [],
 );
@@ -25,7 +19,7 @@ export const workspacesOnClientStore: Writable<WorkspaceOnClient[]> = writable<W
 export const currentWorkspaceStore: Readable<WorkspaceOnClient | null> = derived(
   [currentWorkspaceIdStore, workspacesOnClientStore],
   ([$currentWorkspaceId, $workspacesOnClient]) => {
-    return $workspacesOnClient.find(workspace => workspace.pointer.workspace.id === $currentWorkspaceId) || null;
+    return $workspacesOnClient.find(workspace => workspace.getId() === $currentWorkspaceId) || null;
   }
 );
 
@@ -50,7 +44,8 @@ export function getCurrentWorkspaceId(): string | null {
 
 /**
  * Create workspaces from pointers and connect to the current one.
- * @returns 
+ * Use it only once on startup.
+ * @returns
  */
 export async function loadWorkspacesAndConnectToCurrent(): Promise<WorkspaceOnClient | null> {
   if (get(workspacesOnClientStore).length > 0) {
@@ -61,20 +56,32 @@ export async function loadWorkspacesAndConnectToCurrent(): Promise<WorkspaceOnCl
 
   let currentWorkspaceOnClient: WorkspaceOnClient | null = null;
 
-  // First create workspaces on client for all pointers and connect to one if it's the current workspace
-  for (const pointer of get(workspacePointersStore)) {
+  // First create workspaceOnClient objects from all the pointers
+  for (const pointer of get(pointersToWorkspacesStore)) {
     const workspace = new WorkspaceOnClient(pointer);
+    workspacesOnClient.push(workspace);
+  }
 
-    if (get(currentWorkspaceIdStore) === pointer.workspace.id) {
+  // And then try to connect to the current workspace, if it's set.
+  if (get(currentWorkspaceIdStore)) {
+    // Check if it matches any of the pointers
+    const pointer = get(pointersToWorkspacesStore).find((pointer) => pointer.id === get(currentWorkspaceIdStore));
+    if (pointer) {
+      currentWorkspaceOnClient = new WorkspaceOnClient(pointer);
+    }
+  }
+  // Or the first one that connects successfully
+  if (!currentWorkspaceOnClient) {
+    // Try to connect to the first one that connects successfully
+    for (const workspace of workspacesOnClient) {
       try {
         await workspace.connect();
         currentWorkspaceOnClient = workspace;
+        break;
       } catch (error) {
-        console.error("Could not connect to workspace", pointer, error);
+        console.error("Could not connect to workspace", workspace, error);
       }
     }
-
-    workspacesOnClient.push(workspace);
   }
 
   workspacesOnClientStore.set(workspacesOnClient);
@@ -82,8 +89,31 @@ export async function loadWorkspacesAndConnectToCurrent(): Promise<WorkspaceOnCl
   return currentWorkspaceOnClient;
 }
 
+export async function connectToWorkspaceByPath(path: string, createIfNotExists: boolean = false): Promise<WorkspaceOnClient | null> {
+  const newPointer: WorkspacePointer = {
+    type: "local",
+    path,
+    url: ""
+  };
+
+  const workspace = new WorkspaceOnClient(newPointer);
+  await workspace.connect(createIfNotExists);
+
+  pointersToWorkspacesStore.update((pointers) => {
+    return [...pointers, newPointer];
+  });
+
+  workspacesOnClientStore.update((workspaces) => {
+    return [...workspaces, workspace];
+  });
+
+  currentWorkspaceIdStore.set(workspace.getId());
+
+  return workspace;
+}
+
 export async function connectToWorkspaceId(workspaceId: string): Promise<WorkspaceOnClient | null> {
-  const pointer = get(workspacePointersStore).find((pointer) => pointer.workspace.id === workspaceId);
+  const pointer = get(pointersToWorkspacesStore).find((pointer) => pointer.id === workspaceId);
   if (!pointer) {
     throw new Error(`Workspace with id ${workspaceId} not found`);
   }

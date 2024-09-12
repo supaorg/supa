@@ -24,13 +24,13 @@
   let currentWorkspace: WorkspaceInSelector | null = null;
 
   $: workspacesInSelector = $workspacesOnClientStore.map((workspace) => ({
-    id: workspace.pointer.workspace.id,
+    id: workspace.getId(),
     name: workspace.getUIName(),
   }));
 
   $: currentWorkspace = $currentWorkspaceStore
     ? {
-        id: $currentWorkspaceStore.pointer.workspace.id,
+        id: $currentWorkspaceStore.getId(),
         name: $currentWorkspaceStore.getUIName(),
       }
     : null;
