@@ -2,7 +2,7 @@
   <img src="front/src-tauri/icons/Square310x310Logo.png" style="width: 25%; height: auto;">
 </p>
 
-> ⚠️ I'm very much a work-in-progress. What you see below is the vision rather than something that works right now. [Jump here](#current-state) to read about my current state.
+> ⚠️ I'm very much a work-in-progress. What you see below is the vision rather than something that works right now.
 
 # Open platform for AI apps
 I’m Supacloud, a free and open-source platform for AI-powered apps: assistants, search, augmented voice notes, image generation, copy editing, programming, and more. I don’t need a server to run; just set me up on your devices and start using me.
