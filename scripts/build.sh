@@ -5,7 +5,7 @@ OS=$(uname -s)
 ARCH=$(uname -m)
 
 # Specify directory and main file for Deno compilation
-BACK_DIR="back"
+BACK_DIR="src/back"
 MAIN_FILE="main.ts"
 BINARIES_DIR="../front/src-tauri/binaries"
 
