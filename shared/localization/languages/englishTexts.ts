@@ -1,5 +1,25 @@
 import type { Texts } from "../texts";
 
+/*
+  We can write procedural translations like this:
+  
+  function pluralize(count: number, one: string, many: string): string {
+    return count === 1 ? one : many;
+  }
+
+  export const russianTexts: Partial<Texts> = {
+    basics: {
+      name: "Имя",
+      // Other translations...
+    },
+    appPage: {
+      title: "Приложения",
+      buttonNewConfig: (count: number) => pluralize(count, "Новая конфигурация чата", "Новые конфигурации чата"),
+    },
+    // Other sections...
+  };  
+*/
+
 export const englishTexts: Texts = {
   basics: {
     name: "Name",
