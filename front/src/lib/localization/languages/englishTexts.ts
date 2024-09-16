@@ -20,7 +20,6 @@ import type { Texts } from "../texts";
   };  
 */
 
-
 export const englishTexts: Texts = {
   basics: {
     name: "Name",
