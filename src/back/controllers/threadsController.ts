@@ -1,5 +1,5 @@
 import { BackServices } from "./backServices.ts";
-import { v4 as uuidv4 } from "npm:uuid";
+import { v4 as uuidv4 } from "uuid";
 import { ThreadMessage } from "@shared/models.ts";
 import { defaultChatAppConfig } from "../apps/defaultChatAppConfig.ts";
 import { SimpleChatAgent } from "../agents/simpleChatAgent.ts";

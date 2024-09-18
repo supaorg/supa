@@ -1,6 +1,7 @@
-# Frontend
-This directory is for the frontend code of Supamind. The frontend can run both as a website and a stanalone Tauri app. It connects to the backend either by http/websocket or a thin non-networked bridge.
+# Tauri + SvelteKit + TypeScript
 
-The main goal of the front is to provide a web-enabled UI and connect to backends (and their workspaces)
+This template should help get you started developing with Tauri, SvelteKit and TypeScript in Vite.
 
-The frontend uses SvelteKit and Tauri. SvelteKit for UI and Tauri to wrap it as an app.
+## Recommended IDE Setup
+
+[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).

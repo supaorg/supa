@@ -69,8 +69,8 @@
 			"configurations": ["backend", "sveltekit", "browser"]
 		},
     {
-			"name": "👉 Launch Backend+Tauri",
-			"configurations": ["backend", "tauri-development-debug"]
+			"name": "👉 Launch Tauri",
+			"configurations": ["tauri-development-debug"]
 		}
 	]
 }

@@ -11,7 +11,7 @@ import perf from "../tools/perf.ts";
 import { ThreadMigration } from "../migrations/threadMigration.ts";
 import { migrateWorkspace } from "../migrations/workspaceMigration.ts";
 import { CURRENT_DATA_VERSION } from "@shared/versions/dataVersions.ts";
-import { v4 as uuidv4 } from "npm:uuid";
+import { v4 as uuidv4 } from "uuid";
 
 export async function loadWorkspace(path: string): Promise<Workspace | null> {
   const pathToWorkspace = path + "/_workspace.json";
