@@ -1,7 +1,7 @@
 {
-  "name": "supacloud",
+  "name": "supacloud-front",
   "version": "0.1.0",
-  "description": "",
+  "description": "Frontend for Supacloud",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "@tauri-apps/api": ">=2.0.0-rc.0",
+    "@tauri-apps/plugin-fs": "^2.0.0-rc",
     "@tauri-apps/plugin-shell": ">=2.0.0-rc.0",
     "uuid": "^10.0.0"
   },

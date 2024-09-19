@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@shared/*": ["../../shared/*"]
+    },
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "checkJs": true,
+    "module": "esnext",
+    "target": "esnext"
+  }
+}

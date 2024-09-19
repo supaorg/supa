@@ -1,13 +1,15 @@
 <script lang="ts">
+  import { neoRouter } from "@back/index";
+  import { readDir, BaseDirectory } from '@tauri-apps/plugin-fs';
 
-//import * as back from "../../../back/index.ts";
-//console.log(back.neoRouter);
-//import { apiRoutes } from "@shared/apiRoutes.ts";
-import { apiRoutes } from "../../../shared/apiRoutes.ts";
-console.log("routes", apiRoutes);
+  console.log(neoRouter);
 
-import { test } from "../../../back/test.ts";
-console.log("testBack", test);
+  //sayHello();
+
+  async function writeToFile() {
+    const entries = await readDir('users', { baseDir: BaseDirectory.AppLocalData });
+    console.log(entries);
+  }
 </script>
 
-Hey here!
+<button on:click={writeToFile}>Write to file</button>
