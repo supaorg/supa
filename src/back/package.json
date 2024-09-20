@@ -1,8 +1,0 @@
-{
-  "name": "supacloud-back",
-  "version": "1.0.0",
-  "description": "Backend for Supacloud",
-  "dependencies": {
-    "aiwrapper": "^0.0.20"
-  }
-}

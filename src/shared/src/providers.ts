@@ -1,4 +1,4 @@
-import { ModelProvider } from "@shared/models.ts";
+import { ModelProvider } from "./models.ts";
 
 export const providers: ModelProvider[] = [
   {

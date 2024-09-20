@@ -1,5 +1,5 @@
-import { ServerInfo } from "@shared/models.ts";
-import { Router } from "@shared/neorest/Router.ts";
+import { ServerInfo } from "../models.ts";
+import { Router } from "../neorest/Router.ts";
 import { BackServices } from "./backServices.ts";
 
 export function rootController(services: BackServices) {

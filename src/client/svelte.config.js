@@ -10,8 +10,7 @@ const config = {
   kit: {
     adapter: adapter(),
     alias: {
-      "@shared": "../shared",
-      "@back": "../back/src",
+      "@shared": "../shared/src",
     },
   },
 };

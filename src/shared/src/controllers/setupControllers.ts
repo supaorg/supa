@@ -1,4 +1,4 @@
-import { Router } from "@shared/neorest/Router.ts";
+import { Router } from "../neorest/Router.ts";
 import { BackServices } from "./backServices.ts";
 
 export function setupControllers(router: Router) {
