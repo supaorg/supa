@@ -1,4 +1,18 @@
 <script lang="ts">
+  import { ReplicatedTree } from "@shared/spaces/replicatedTree";
+
+  const tree = new ReplicatedTree("peer1");
+  tree.new("root");
+  tree.move("node1", "root");
+  tree.setProperty("node1", "name", "Node 1");
+
+  tree.new("node1");
+  tree.setProperty("node2", "name", "Node 2");
+
+  tree.new("node2");
+  tree.setProperty("node3", "name", "Node 3");
+
+  console.log(tree);
   /*
   import { readDir, exists, create, open, BaseDirectory } from '@tauri-apps/plugin-fs';
 
