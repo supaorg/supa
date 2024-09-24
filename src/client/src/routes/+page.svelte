@@ -1,38 +1,30 @@
 <script lang="ts">
   import { ReplicatedTree } from "@shared/spaces/replicatedTree";
+  import { onMount } from "svelte";
 
-  const tree = new ReplicatedTree("peer1");
-  tree.new("root");
-  tree.move("node1", "root");
-  tree.setProperty("node1", "name", "Node 1");
+  let tree: ReplicatedTree;
 
-  tree.new("node1");
-  tree.setProperty("node2", "name", "Node 2");
+  let printedTree: string;
 
-  tree.new("node2");
-  tree.setProperty("node3", "name", "Node 3");
+  onMount(() => {
+    tree = new ReplicatedTree('peer1');
 
-  console.log(tree);
-  /*
-  import { readDir, exists, create, open, BaseDirectory } from '@tauri-apps/plugin-fs';
+    const nodeA = tree.new(tree.rootId);
+    const nodeB = tree.new(tree.rootId);
+    const nodeC = tree.new(tree.rootId);
+    const nodeD = tree.new(nodeC);
 
-  async function writeToFile() {
-    const entries = await readDir('', { baseDir: BaseDirectory.Home });
-    console.log(entries);
+    tree.move(nodeC, nodeA);
+    tree.move(nodeB, nodeD);
+    tree.move(nodeA, nodeD);
 
-    const hasDocs = await exists('Documents', { baseDir: BaseDirectory.Home });
-
-    console.log(hasDocs);
-
-    //const file = await open('Documents/hello-from-tauri.txt', { baseDir: BaseDirectory.Home, create: true });
-    const file = await create('Documents/hello-from-tauri.txt', { baseDir: BaseDirectory.Home });
-
-    const encoder = new TextEncoder();
-    const data = encoder.encode("Hello from Tauri");
-    await file.write(data);
-  }*/
+    const nodeE = tree.new(tree.rootId);
+    
+    printedTree = tree.printTree();
+  });
 </script>
 
-<!--<button on:click={writeToFile}>Write to file</button>-->
+{#if printedTree}
+  <pre>{printedTree}</pre>
+{/if}
 
-Hello from SupaCloud client

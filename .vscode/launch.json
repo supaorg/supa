@@ -5,8 +5,8 @@
       "name": "backend",
       "request": "launch",
       "type": "node",
-      "program": "${workspaceFolder}/back/main.ts",
-      "cwd": "${workspaceFolder}/back",
+      "program": "${workspaceFolder}/src/server/main.ts",
+      "cwd": "${workspaceFolder}/src/server",
       "runtimeExecutable": "deno",
       "runtimeArgs": [
         "run",
@@ -24,14 +24,14 @@
 			"skipFiles": ["<node_internals>/**"],
 			"type": "node",
 			"console": "integratedTerminal",
-      "cwd": "${workspaceFolder}/front"
+      "cwd": "${workspaceFolder}/src/client"
 		},
     {
 			"type": "chrome",
 			"request": "launch",
 			"name": "browser",
-			"url": "http://localhost:5173",
-			"webRoot": "${workspaceFolder}/front/"
+			"url": "http://localhost:1420",
+			"webRoot": "${workspaceFolder}/src/client/"
 		},
     {
       "name": "Attach to Deno (when runs outside VS Code)",
@@ -47,7 +47,7 @@
       "cargo": {
         "args": [
           "build",
-          "--manifest-path=./front/src-tauri/Cargo.toml",
+          "--manifest-path=./src/client/src-tauri/Cargo.toml",
           "--no-default-features"
         ]
       },
@@ -58,12 +58,16 @@
       "request": "launch",
       "name": "tauri-production-debug",
       "cargo": {
-        "args": ["build", "--release", "--manifest-path=./front/src-tauri/Cargo.toml"]
+        "args": ["build", "--release", "--manifest-path=./src/client/src-tauri/Cargo.toml"]
       },
       "preLaunchTask": "ui:build"
     }
   ],
   "compounds": [
+    {
+			"name": "👉 Launch Frontend+Browser",
+			"configurations": ["sveltekit", "browser"]
+		},
 		{
 			"name": "👉 Launch Backend+Frontend+Browser",
 			"configurations": ["backend", "sveltekit", "browser"]

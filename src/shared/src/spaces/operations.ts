@@ -1,11 +1,13 @@
-import { OpId } from "./opId";
-import { NodePropertyType } from "./replicatedTree";
+import { OpId } from "./OpId";
 
-interface MoveNode {
+export interface MoveNode {
   id: OpId;
   targetId: string;
   parentId: string | null;
+  prevParentId: string | null;
 }
+
+export type NodePropertyType = string | number | boolean | string[] | number[] | boolean[];
 
 interface SetNodeProperty {
   id: OpId;
@@ -24,12 +26,12 @@ export function isSetProperty(op: NodeOperation): op is SetNodeProperty {
   return 'key' in op;
 }
 
-export function moveNode(id: OpId, targetId: string, parentId: string | null): MoveNode {
-  return { id, targetId, parentId };
+export function moveNode(clock: number, peerId: string, targetId: string, parentId: string | null, oldParentId: string | null): MoveNode {
+  return { id: new OpId(clock, peerId), targetId, parentId, prevParentId: oldParentId };
 }
 
-export function setNodeProperty(id: OpId, targetId: string, key: string, value: NodePropertyType): SetNodeProperty {
-  return { id, targetId, key, value };
+export function setNodeProperty(clock: number, peerId: string, targetId: string, key: string, value: NodePropertyType): SetNodeProperty {
+  return { id: new OpId(clock, peerId), targetId, key, value };
 }
 
 /*
