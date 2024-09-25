@@ -45,6 +45,16 @@ class SimpleTreeNodeStore {
     this.children = new Map();
   }
 
+  getRoot(): TreeNode | undefined {
+    for (const node of this.nodes.values()) {
+      if (node.parentId === null) {
+        return node;
+      }
+    }
+
+    return undefined;
+  }
+
   get(nodeId: string): TreeNode | undefined {
     const node = this.nodes.get(nodeId);
     // Returning a copy so that the caller can't modify the node
@@ -83,25 +93,9 @@ class SimpleTreeNodeStore {
     }
   }
 
-  /*
-  printTree(nodeId: string = this.nodes.keys().next().value, indent: string = ""): void {
-    const node = this.get(nodeId);
-    if (!node) return;
-
-    console.log(`${indent}${node.id}`);
-    const children = this.getChildrenIds(nodeId);
-    for (const childId of children) {
-      this.printTree(childId, indent + "  ");
-    }
-  }
-  */
-
-  printTree(nodeId: string = this.nodes.keys().next().value, indent: string = "", isLast: boolean = true): string {
-    const node = this.get(nodeId);
-    if (!node) return "";
-
+  printTree(nodeId: string, indent: string = "", isLast: boolean = true): string {
     const prefix = indent + (isLast ? "└── " : "├── ");
-    let result = prefix + node.id + "\n";
+    let result = prefix + nodeId + "\n";
 
     const children = this.getChildrenIds(nodeId);
     for (let i = 0; i < children.length; i++) {
@@ -118,19 +112,34 @@ export class ReplicatedTree {
   readonly rootId: string;
   readonly peerId: string;
 
-  // https://en.wikipedia.org/wiki/Lamport_timestamp
   private lamportClock = 0;
   private nodes: SimpleTreeNodeStore;
-  private moveOps: MoveNode[];
+  private moveOps: MoveNode[] = [];
+  private localMoveOps: MoveNode[] = [];
+  private pendingMovesByParent: Map<string, MoveNode[]> = new Map();
+  private appliedMoveOps: Set<string> = new Set();
 
-  constructor(peerId: string) {
-    this.rootId = uuidv4();
+  constructor(peerId: string, ops: MoveNode[] | null = null) {
     this.peerId = peerId;
     this.nodes = new SimpleTreeNodeStore();
-    this.moveOps = [];
 
-    const rootNodeOp = moveNode(this.lamportClock++, this.peerId, this.rootId, null, null);
-    this.applyMove(rootNodeOp);
+    if (ops != null && ops.length > 0) {
+      this.applyMoves(ops);
+
+      const root = this.nodes.getRoot();
+
+      if (!root) {
+        throw new Error("Root node not found. We have to have a root node when starting with a set of operations");
+      }
+
+      this.rootId = root.id;
+    } else {
+      this.rootId = this.newIn();
+    }
+  }
+
+  getMoveOps(): MoveNode[] {
+    return this.moveOps;
   }
 
   get(nodeId: string): TreeNode | undefined {
@@ -146,11 +155,19 @@ export class ReplicatedTree {
     return this.nodes.getChildren(nodeId);
   }
 
-  new(parentId: string): string {
+  popLocalMoveOps(): MoveNode[] {
+    const ops = this.localMoveOps;
+    this.localMoveOps = [];
+    return ops;
+  }
+
+  newIn(parentId: string | null = null): string {
     const nodeId = uuidv4();
+
     // Yep, to create a node - we move a fresh node under the parent.
     // No need to have a separate "create node" operation.
     const op = moveNode(this.lamportClock++, this.peerId, nodeId, parentId, null);
+    this.localMoveOps.push(op);
     this.applyMove(op);
 
     return nodeId;
@@ -159,6 +176,7 @@ export class ReplicatedTree {
   move(nodeId: string, parentId: string | null) {
     const node = this.nodes.get(nodeId);
     const op = moveNode(this.lamportClock++, this.peerId, nodeId, parentId, node?.parentId ?? null);
+    this.localMoveOps.push(op);
     this.applyMove(op);
   }
 
@@ -167,7 +185,66 @@ export class ReplicatedTree {
     // TODO: use property execution
   }
 
-  applyMove(op: MoveNode) {
+  printTree() {
+    return this.nodes.printTree(this.rootId);
+  }
+
+  merge(ops: MoveNode[]) {
+    // NOTE: should we keep a set of applied ops and not apply them again?
+
+    this.applyMoves(ops);
+  }
+
+  public compareStructure(other: ReplicatedTree): boolean {
+    return this.compareNodes(this.rootId, other.rootId, other);
+  }
+
+  private compareNodes(nodeId1: string, nodeId2: string, other: ReplicatedTree): boolean {
+    const node1 = this.nodes.get(nodeId1);
+    const node2 = other.nodes.get(nodeId2);
+
+    if (!node1 || !node2) {
+      return !node1 && !node2; // Both should be null or both should exist
+    }
+
+    if (node1.id !== node2.id) {
+      return false;
+    }
+
+    const children1 = new Set(this.nodes.getChildrenIds(nodeId1));
+    const children2 = new Set(other.nodes.getChildrenIds(nodeId2));
+
+    if (children1.size !== children2.size) {
+      return false;
+    }
+
+    for (const childId of children1) {
+      if (!children2.has(childId)) {
+        return false;
+      }
+      if (!this.compareNodes(childId, childId, other)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private applyMove(op: MoveNode) {
+    if (op.parentId !== null && !this.nodes.get(op.parentId)) {
+      // Parent doesn't exist yet, stash the move op for later
+      if (!this.pendingMovesByParent.has(op.parentId)) {
+        this.pendingMovesByParent.set(op.parentId, []);
+      }
+      this.pendingMovesByParent.get(op.parentId)!.push(op);
+      return;
+    }
+
+    // This is how Lamport clock updates with a foreign operation that has a greater counter value.
+    if (op.id.counter > this.lamportClock) {
+      this.lamportClock = op.id.counter;
+    }
+
     if (this.moveOps.length === 0) {
       this.moveOps.push(op);
       this.tryToMove(op);
@@ -205,24 +282,39 @@ export class ReplicatedTree {
         this.tryToMove(moveOp);
       }
     }
+
+    // After applying the move, check if it unblocks any pending moves
+    // We use targetId here because this node might now be a parent for pending operations
+    this.applyPendingMovesForParent(op.targetId);
   }
 
-  /** Checks if the given `ancestorId` is an ancestor of `childId` in the tree */
-  isAncestor(childId: string, ancestorId: string | null): boolean {
-    let targetId = childId;
-    let node: TreeNode | undefined;
+  private applyMoves(ops: MoveNode[]) {
+    for (const op of ops) {
+      if (this.appliedMoveOps.has(op.id.toString())) {
+        continue;
+      }
 
-    while ((node = this.nodes.get(targetId))) {
-      if (node.parentId === ancestorId) return true;
-      if (node.parentId === null) return false;
+      this.applyMove(op);
+    }
+  }
 
-      targetId = node.parentId;
+  private applyPendingMovesForParent(parentId: string) {
+    if (!this.nodes.get(parentId)) {
+      // Parent still doesn't exist, so we can't apply these moves yet
+      return;
     }
 
-    return false;
+    const pendingMoves = this.pendingMovesByParent.get(parentId) || [];
+    this.pendingMovesByParent.delete(parentId);
+
+    for (const pendingOp of pendingMoves) {
+      this.applyMove(pendingOp);
+    }
   }
 
-  tryToMove(op: MoveNode) {
+  private tryToMove(op: MoveNode) {
+    this.appliedMoveOps.add(op.id.toString());
+
     // If trying to move the target node under itself - do nothing
     if (op.targetId === op.parentId) return;
 
@@ -241,17 +333,29 @@ export class ReplicatedTree {
 
   }
 
-  undoMove(op: MoveNode) {
+  /** Checks if the given `ancestorId` is an ancestor of `childId` in the tree */
+  isAncestor(childId: string, ancestorId: string | null): boolean {
+    let targetId = childId;
+    let node: TreeNode | undefined;
+
+    while ((node = this.nodes.get(targetId))) {
+      if (node.parentId === ancestorId) return true;
+      if (node.parentId === null) return false;
+
+      targetId = node.parentId;
+    }
+
+    return false;
+  }
+
+  private undoMove(op: MoveNode) {
     const targetNode = this.nodes.get(op.targetId);
     if (!targetNode) {
-      throw new Error(`targetNode ${op.targetId} not found`);
+      //throw new Error(`targetNode ${op.targetId} not found`);
+      return;
     }
 
     targetNode.parentId = op.prevParentId;
-  }
-
-  printTree() {
-    return this.nodes.printTree(this.rootId);
   }
 }
 
