@@ -356,6 +356,7 @@ export class ReplicatedTree {
     }
 
     targetNode.parentId = op.prevParentId;
+    this.nodes.set(op.targetId, targetNode);
   }
 }
 
