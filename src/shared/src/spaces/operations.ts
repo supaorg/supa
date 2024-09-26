@@ -7,6 +7,10 @@ export interface MoveNode {
   prevParentId: string | null;
 }
 
+export function printMoveOps(ops: MoveNode[]): string {
+  return ops.map(op => `(${op.prevParentId}, ${op.targetId}) → (${op.parentId}, ${op.targetId})   ${op.id.toString()}`).join('\n');
+}
+
 export type NodePropertyType = string | number | boolean | string[] | number[] | boolean[];
 
 interface SetNodeProperty {

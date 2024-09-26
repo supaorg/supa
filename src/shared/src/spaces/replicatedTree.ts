@@ -10,7 +10,7 @@ On the client, UI will subscribe to ReplicatedTree and ask it to add/remove/upda
 
 import { OpId } from "./OpId";
 import { v4 as uuidv4 } from "uuid";
-import { moveNode, type MoveNode, setNodeProperty, isMoveNode, isSetProperty, type NodeOperation, type NodePropertyType } from "./operations";
+import { moveNode, type MoveNode, setNodeProperty, isMoveNode, isSetProperty, type NodeOperation, type NodePropertyType, MoveNode } from "./operations";
 
 export type TreeNodeType = {
   id: string;
@@ -77,19 +77,23 @@ class SimpleTreeNodeStore {
 
   set(nodeId: string, node: TreeNode) {
     // Store the old parent ID before updating
-    const oldParentId = this.nodes.get(nodeId)?.parentId;
+    const prevParentId = this.nodes.get(nodeId)?.parentId;
+    const parentId = node.parentId;
 
     this.nodes.set(nodeId, node);
 
+    if (prevParentId === parentId) {
+      return;
+    }
+
     // Add to new parent
-    const parentId = node.parentId;
     if (parentId) {
       this.children.set(parentId, [...this.getChildrenIds(parentId), nodeId]);
     }
 
     // Remove from previous parent
-    if (oldParentId) {
-      this.children.set(oldParentId, this.getChildrenIds(oldParentId).filter(id => id !== nodeId));
+    if (prevParentId) {
+      this.children.set(prevParentId, this.getChildrenIds(prevParentId).filter(id => id !== nodeId));
     }
   }
 
@@ -248,6 +252,7 @@ export class ReplicatedTree {
     if (this.moveOps.length === 0) {
       this.moveOps.push(op);
       this.tryToMove(op);
+      this.applyPendingMovesForParent(op.targetId);
       return;
     }
 
@@ -264,20 +269,23 @@ export class ReplicatedTree {
       // So if a conflict or a cycle is introduced by some of the peers - the algorithm will resolve it.
       // tryToMove function has the logic to detect cycles and will ignore the move if it's a cycle.
       const opsToRedo: MoveNode[] = [];
-
-      for (let i = 0; i < this.moveOps.length; i++) {
+      let insertIndex = this.moveOps.length;
+      for (let i = this.moveOps.length - 1; i >= 0; i--) {
         const moveOp = this.moveOps[i];
         if (op.id.isGreaterThan(moveOp.id)) {
-          // Insert the op at the current position
-          this.moveOps.splice(i, 0, op);
-          this.tryToMove(op);
+          insertIndex = i + 1;
           break;
         } else {
           this.undoMove(moveOp);
-          opsToRedo.push(moveOp);
+          opsToRedo.unshift(moveOp);
         }
       }
 
+      // Insert the op at the correct position
+      this.moveOps.splice(insertIndex, 0, op);
+      this.tryToMove(op);
+
+      // Redo the operations
       for (const moveOp of opsToRedo) {
         this.tryToMove(moveOp);
       }
@@ -330,7 +338,17 @@ export class ReplicatedTree {
     targetNode.parentId = op.parentId;
 
     this.nodes.set(op.targetId, targetNode);
+  }
 
+  private undoMove(op: MoveNode) {
+    const targetNode = this.nodes.get(op.targetId);
+    if (!targetNode) {
+      //throw new Error(`targetNode ${op.targetId} not found`);
+      return;
+    }
+
+    targetNode.parentId = op.prevParentId;
+    this.nodes.set(op.targetId, targetNode);
   }
 
   /** Checks if the given `ancestorId` is an ancestor of `childId` in the tree */
@@ -346,17 +364,6 @@ export class ReplicatedTree {
     }
 
     return false;
-  }
-
-  private undoMove(op: MoveNode) {
-    const targetNode = this.nodes.get(op.targetId);
-    if (!targetNode) {
-      //throw new Error(`targetNode ${op.targetId} not found`);
-      return;
-    }
-
-    targetNode.parentId = op.prevParentId;
-    this.nodes.set(op.targetId, targetNode);
   }
 }
 
