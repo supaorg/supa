@@ -46,7 +46,7 @@
   
     printedTree1 = tree1.printTree();
     printedTree2 = tree2.printTree();
-    printedTree3 = tree3.printTree(); // new ReplicatedTree('peer4', tree3.getMoveOps()).printTree(); - but this works ok!
+    printedTree3 = tree3.printTree();
 
     console.log(printMoveOps(randomShuffle));
 

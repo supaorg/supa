@@ -20,7 +20,6 @@
     tree.move(nodeB, nodeD);
     tree.move(nodeA, nodeD);
     const nodeE = tree.newIn(rootId);
-    
 
     const ops1 = tree.popLocalMoveOps();
 

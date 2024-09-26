@@ -8,27 +8,17 @@ with peers. Otherwise, the server will deal with it.
 On the client, UI will subscribe to ReplicatedTree and ask it to add/remove/update nodes.
 */
 
-import { OpId } from "./OpId";
 import { v4 as uuidv4 } from "uuid";
-import { moveNode, type MoveNode, setNodeProperty, isMoveNode, isSetProperty, type NodeOperation, type NodePropertyType, MoveNode } from "./operations";
+import { moveNode, type MoveNode, setNodeProperty, isMoveNode, isSetProperty, type NodeOperation, type NodePropertyType } from "./operations";
 
 export type TreeNodeType = {
   id: string;
   parentId: string | null;
 }
 
-class TreeNode {
+export class TreeNode {
   readonly id: string;
   parentId: string | null;
-  /*
-  childrenIds: string[];
-  props: Map<string, {
-    value: NodePropertyType;
-    // We store the previous opId to resolve conflicts when multiple clients try to update the same node.
-    // Writer with the latest OpId wins.
-    prevOpId: OpId;
-  }>;
-  */
 
   constructor(id: string, parentId: string | null) {
     this.id = id;
@@ -38,11 +28,14 @@ class TreeNode {
 
 class SimpleTreeNodeStore {
   private nodes: Map<string, TreeNode>;
-  private children: Map<string, string[]>;
+  /**
+   * Caching children ids (the source of truth is in the 'nodes')
+   */
+  private childrenCache: Map<string, string[]>;
 
   constructor() {
     this.nodes = new Map();
-    this.children = new Map();
+    this.childrenCache = new Map();
   }
 
   getRoot(): TreeNode | undefined {
@@ -62,7 +55,7 @@ class SimpleTreeNodeStore {
   }
 
   getChildrenIds(nodeId: string): string[] {
-    return this.children.get(nodeId) ?? [];
+    return this.childrenCache.get(nodeId) ?? [];
   }
 
   getChildren(nodeId: string): TreeNode[] {
@@ -86,14 +79,16 @@ class SimpleTreeNodeStore {
       return;
     }
 
+    // Here we update the cache of children ids. The source of truth is the nodes map.
+
     // Add to new parent
     if (parentId) {
-      this.children.set(parentId, [...this.getChildrenIds(parentId), nodeId]);
+      this.childrenCache.set(parentId, [...this.getChildrenIds(parentId), nodeId]);
     }
 
     // Remove from previous parent
     if (prevParentId) {
-      this.children.set(prevParentId, this.getChildrenIds(prevParentId).filter(id => id !== nodeId));
+      this.childrenCache.set(prevParentId, this.getChildrenIds(prevParentId).filter(id => id !== nodeId));
     }
   }
 
@@ -157,6 +152,23 @@ export class ReplicatedTree {
 
   getChildren(nodeId: string): TreeNode[] {
     return this.nodes.getChildren(nodeId);
+  }
+
+  getAncestors(nodeId: string): TreeNode[] {
+    const ancestors: TreeNode[] = [];
+    let currentNode = this.nodes.get(nodeId);
+
+    while (currentNode && currentNode.parentId) {
+      const parentNode = this.nodes.get(currentNode.parentId);
+      if (parentNode) {
+        ancestors.push(parentNode);
+        currentNode = parentNode;
+      } else {
+        break;
+      }
+    }
+
+    return ancestors;
   }
 
   popLocalMoveOps(): MoveNode[] {
