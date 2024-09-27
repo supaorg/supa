@@ -1,58 +1,104 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { writable, type Writable, get } from "svelte/store";
   import type { ReplicatedTree, TreeNode } from "@shared/spaces/ReplicatedTree";
 
   export let tree: ReplicatedTree;
   export let nodeId: string;
+  export let treeStores: {
+    dragStartNodeIdStore: Writable<string | null>;
+    dragOverNodeIdStore: Writable<string | null>;
+  };
 
   let children: TreeNode[] = [];
   let isRoot: boolean;
   let isExpanded = false;
+  let highlightAsDragOver = false;
+
+  // TODO: detect illigal moves and show it (or at least don't higlight the node when it's not allowed to move a node in)
+
+  $: {
+    isRoot = nodeId === tree.rootId;
+    highlightAsDragOver = nodeId === get(treeStores.dragOverNodeIdStore);
+  }
 
   onMount(() => {
+    // TODO: make it possible to subscribe to changes in children and update them
     children = tree.getChildren(nodeId);
-    isRoot = nodeId === tree.rootId;
   });
 
   function toggleExpand() {
     isExpanded = !isExpanded;
   }
 
-  function handleDragStart(event: DragEvent) {
-    console.log(event.target);
-
-    event.dataTransfer?.setData("text/plain", nodeId);
+  function handleDragStart(event: DragEvent, id: string) {
+    event.stopPropagation();
+    treeStores.dragStartNodeIdStore.set(id);
+    console.log(
+      `Started dragging node: ${get(treeStores.dragStartNodeIdStore)}`,
+    );
   }
 
-  function handleDragOver(event: DragEvent) {
+  function handleDragOver(event: DragEvent, id: string) {
     event.preventDefault();
-    event.dataTransfer!.dropEffect = "move";
-
-    console.log("Dropped on ", event.currentTarget);
+    treeStores.dragOverNodeIdStore.set(id);
   }
 
-  function handleDrop(event: DragEvent) {
+  function handleDragLeave() {
+    treeStores.dragOverNodeIdStore.set(null);
+  }
+
+  function handleDrop(event: DragEvent, targetId: string) {
     event.preventDefault();
-    const draggedNodeId = event.dataTransfer?.getData("text/plain");
-    if (draggedNodeId && draggedNodeId !== nodeId) {
-      console.log("Dropped node:", draggedNodeId, "on", nodeId);
-      //tree.move(draggedNodeId, nodeId);
-      // Refresh the children list
-      //children = tree.getChildren(nodeId);
+    event.stopPropagation();
+
+    let draggedNodeId = get(treeStores.dragStartNodeIdStore);
+
+    console.log(
+      `Drop event triggered. draggedNodeId: ${draggedNodeId}, targetId: ${targetId}`,
+    );
+
+    if (!draggedNodeId) {
+      console.log("Drop action invalid: draggedNodeId is null");
+    } else if (draggedNodeId === targetId) {
+      console.log(
+        `Dropped node ${draggedNodeId} onto itself - no action taken`,
+      );
+    } else {
+      console.log(`Attempting to move node ${draggedNodeId} to ${targetId}`);
+      try {
+        tree.move(draggedNodeId, targetId);
+        console.log("Move successful");
+
+        // Refresh the children list
+        children = tree.getChildren(nodeId);
+
+        // If the current node is the target, expand it to show the new child
+        if (nodeId === targetId) {
+          isExpanded = true;
+        }
+      } catch (error) {
+        console.error("Error during tree.move:", error);
+      }
     }
+
+    treeStores.dragStartNodeIdStore.set(null);
+    treeStores.dragOverNodeIdStore.set(null);
   }
 </script>
 
 <div
   class="tree-item"
   class:ml-4={!isRoot}
+  class:drag-over={highlightAsDragOver}
   draggable="true"
   role="treeitem"
   tabindex="0"
   aria-selected="false"
-  on:dragstart={handleDragStart}
-  on:dragover={handleDragOver}
-  on:drop={handleDrop}
+  on:dragstart={(e) => handleDragStart(e, nodeId)}
+  on:dragover={(e) => handleDragOver(e, nodeId)}
+  on:dragleave={handleDragLeave}
+  on:drop={(e) => handleDrop(e, nodeId)}
 >
   <button
     class="tree-item-summary w-full text-left list-none flex items-center cursor-pointer space-x-4 rounded-container-token py-4 px-4 hover:variant-soft"
@@ -88,8 +134,15 @@
   {#if isExpanded && children.length > 0}
     <div class="tree-item-children ml-4" role="group">
       {#each children as child (child.id)}
-        <svelte:self {tree} nodeId={child.id} />
+        <svelte:self {tree} nodeId={child.id} {treeStores} />
       {/each}
     </div>
   {/if}
 </div>
+
+<style>
+  .drag-over {
+    background-color: rgba(0, 0, 255, 0.1);
+    outline: 2px solid blue;
+  }
+</style>
