@@ -9,8 +9,6 @@
     dragStartNodeIdStore: writable<string | null>(null),
     dragOverNodeIdStore: writable<string | null>(null),
   }
-
-  // TODO: create a store wrapper for dragging, expanded nodes, ...
 </script>
 
 <div style="margin-bottom: 20px;">

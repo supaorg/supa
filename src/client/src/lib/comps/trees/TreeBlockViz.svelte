@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { writable, type Writable, get } from "svelte/store";
   import type { ReplicatedTree, TreeNode } from "@shared/spaces/ReplicatedTree";
 
@@ -17,14 +17,29 @@
 
   // TODO: detect illigal moves and show it (or at least don't higlight the node when it's not allowed to move a node in)
 
-  $: {
-    isRoot = nodeId === tree.rootId;
-    highlightAsDragOver = nodeId === get(treeStores.dragOverNodeIdStore);
+  treeStores.dragOverNodeIdStore.subscribe((id) => {
+    highlightAsDragOver = nodeId === id;
+  });
+
+  function updateChildren() {
+    children = tree.getChildren(nodeId);
+  }
+
+  function handleTreeChange(oldNode: TreeNode | undefined, newNode: TreeNode) {
+    // Update the children if the node has updated or one of its children has updated
+    if (newNode.parentId === nodeId || oldNode?.parentId === nodeId) {
+      updateChildren();
+    }
   }
 
   onMount(() => {
-    // TODO: make it possible to subscribe to changes in children and update them
-    children = tree.getChildren(nodeId);
+    isRoot = nodeId === tree.rootId;
+    updateChildren();
+    tree.subscribe(handleTreeChange);
+  });
+
+  onDestroy(() => {
+    tree.unsubscribe(handleTreeChange);
   });
 
   function toggleExpand() {
@@ -41,6 +56,7 @@
 
   function handleDragOver(event: DragEvent, id: string) {
     event.preventDefault();
+    event.stopPropagation();
     treeStores.dragOverNodeIdStore.set(id);
   }
 
@@ -69,9 +85,6 @@
       try {
         tree.move(draggedNodeId, targetId);
         console.log("Move successful");
-
-        // Refresh the children list
-        children = tree.getChildren(nodeId);
 
         // If the current node is the target, expand it to show the new child
         if (nodeId === targetId) {

@@ -32,6 +32,7 @@ class SimpleTreeNodeStore {
    * Caching children ids (the source of truth is in the 'nodes')
    */
   private childrenCache: Map<string, string[]>;
+  private changeListeners: Set<(oldNode: TreeNode | undefined, newNode: TreeNode) => void> = new Set();
 
   constructor() {
     this.nodes = new Map();
@@ -70,12 +71,14 @@ class SimpleTreeNodeStore {
 
   set(nodeId: string, node: TreeNode) {
     // Store the old parent ID before updating
-    const prevParentId = this.nodes.get(nodeId)?.parentId;
+    const oldNode = this.nodes.get(nodeId);
+    const prevParentId = oldNode?.parentId;
     const parentId = node.parentId;
 
     this.nodes.set(nodeId, node);
 
     if (prevParentId === parentId) {
+      this.notifyChange(oldNode, node);
       return;
     }
 
@@ -89,6 +92,22 @@ class SimpleTreeNodeStore {
     // Remove from previous parent
     if (prevParentId) {
       this.childrenCache.set(prevParentId, this.getChildrenIds(prevParentId).filter(id => id !== nodeId));
+    }
+
+    this.notifyChange(oldNode, node);
+  }
+
+  addChangeListener(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
+    this.changeListeners.add(listener);
+  }
+
+  removeChangeListener(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
+    this.changeListeners.delete(listener);
+  }
+
+  private notifyChange(oldNode: TreeNode | undefined, newNode: TreeNode) {
+    for (const listener of this.changeListeners) {
+      listener(oldNode, newNode);
     }
   }
 
@@ -117,6 +136,7 @@ export class ReplicatedTree {
   private localMoveOps: MoveNode[] = [];
   private pendingMovesByParent: Map<string, MoveNode[]> = new Map();
   private appliedMoveOps: Set<string> = new Set();
+  private changeListeners: Set<(oldNode: TreeNode | undefined, newNode: TreeNode) => void> = new Set();
 
   constructor(peerId: string, ops: MoveNode[] | null = null) {
     this.peerId = peerId;
@@ -135,6 +155,8 @@ export class ReplicatedTree {
     } else {
       this.rootId = this.newIn();
     }
+
+    this.nodes.addChangeListener(this.handleNodeChange);
   }
 
   getMoveOps(): MoveNode[] {
@@ -376,6 +398,20 @@ export class ReplicatedTree {
     }
 
     return false;
+  }
+
+  private handleNodeChange = (oldNode: TreeNode | undefined, newNode: TreeNode) => {
+    for (const listener of this.changeListeners) {
+      listener(oldNode, newNode);
+    }
+  }
+
+  subscribe(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
+    this.changeListeners.add(listener);
+  }
+
+  unsubscribe(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
+    this.changeListeners.delete(listener);
   }
 }
 
