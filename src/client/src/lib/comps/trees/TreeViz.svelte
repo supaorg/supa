@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { writable, type Writable } from "svelte/store";
+  import { writable } from "svelte/store";
   import type { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
   import TreeBlockViz from "./TreeBlockViz.svelte";
 

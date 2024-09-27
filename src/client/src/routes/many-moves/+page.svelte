@@ -1,9 +1,8 @@
 <script lang="ts">
   import { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
   import { type MoveNode, printMoveOps } from "@shared/spaces/operations";
-  import { OpId } from "@shared/spaces/OpId";
   import { onMount } from "svelte";
-  import TreeViz from "$lib/comps/trees/TreeViz.svelte";
+  import TreeTestSyncWrapper from "$lib/comps/test-sync/TreeTestSyncWrapper.svelte";
 
   let tree1: ReplicatedTree;
   let tree2: ReplicatedTree;
@@ -63,6 +62,4 @@
   });
 </script>
 
-{#each trees as tree}
-  <TreeViz {tree} />
-{/each}
+<TreeTestSyncWrapper {trees} />
