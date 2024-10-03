@@ -11,15 +11,14 @@
   onMount(() => {
     tree = new ReplicatedTree("peer1");
 
-    const rootId = tree.rootId;
-    const nodeA = tree.newIn(rootId);
-    const nodeB = tree.newIn(rootId);
-    const nodeC = tree.newIn(rootId);
+    const nodeA = tree.newIn(null);
+    const nodeB = tree.newIn(null);
+    const nodeC = tree.newIn(null);
     const nodeD = tree.newIn(nodeC);
     tree.move(nodeC, nodeA);
     tree.move(nodeB, nodeD);
     tree.move(nodeA, nodeD);
-    const nodeE = tree.newIn(rootId);
+    const nodeE = tree.newIn(null);
 
     const ops1 = tree.popLocalMoveOps();
 

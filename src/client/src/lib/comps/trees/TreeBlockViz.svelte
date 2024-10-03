@@ -4,10 +4,10 @@
   import type { ReplicatedTree, TreeNode } from "@shared/spaces/ReplicatedTree";
 
   export let tree: ReplicatedTree;
-  export let nodeId: string;
+  export let nodeId: string | null;
   export let treeStores: {
-    dragStartNodeIdStore: Writable<string | null>;
-    dragOverNodeIdStore: Writable<string | null>;
+    dragStartNodeIdStore: Writable<string | undefined>;
+    dragOverNodeIdStore: Writable<string | null | undefined>;
   };
 
   let children: TreeNode[] = [];
@@ -33,7 +33,7 @@
   }
 
   onMount(() => {
-    isRoot = nodeId === tree.rootId;
+    isRoot = nodeId === null;
     updateChildren();
     tree.subscribe(handleTreeChange);
   });
@@ -46,57 +46,57 @@
     isExpanded = !isExpanded;
   }
 
-  function handleDragStart(event: DragEvent, id: string) {
+  function handleDragStart(event: DragEvent) {
+    if (!nodeId) {
+      return;
+    }
+
     event.stopPropagation();
-    treeStores.dragStartNodeIdStore.set(id);
+    treeStores.dragStartNodeIdStore.set(nodeId);
     console.log(
       `Started dragging node: ${get(treeStores.dragStartNodeIdStore)}`,
     );
   }
 
-  function handleDragOver(event: DragEvent, id: string) {
+  function handleDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    treeStores.dragOverNodeIdStore.set(id);
+    treeStores.dragOverNodeIdStore.set(nodeId);
   }
 
   function handleDragLeave() {
     treeStores.dragOverNodeIdStore.set(null);
   }
 
-  function handleDrop(event: DragEvent, targetId: string) {
+  function handleDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
 
     let draggedNodeId = get(treeStores.dragStartNodeIdStore);
 
     console.log(
-      `Drop event triggered. draggedNodeId: ${draggedNodeId}, targetId: ${targetId}`,
+      `Drop event triggered. draggedNodeId: ${draggedNodeId}, targetId: ${nodeId}`,
     );
 
     if (!draggedNodeId) {
       console.log("Drop action invalid: draggedNodeId is null");
-    } else if (draggedNodeId === targetId) {
+    } else if (draggedNodeId === nodeId) {
       console.log(
         `Dropped node ${draggedNodeId} onto itself - no action taken`,
       );
     } else {
-      console.log(`Attempting to move node ${draggedNodeId} to ${targetId}`);
+      console.log(`Attempting to move node ${draggedNodeId} to ${nodeId}`);
       try {
-        tree.move(draggedNodeId, targetId);
+        tree.move(draggedNodeId, nodeId);
         console.log("Move successful");
-
-        // If the current node is the target, expand it to show the new child
-        if (nodeId === targetId) {
-          isExpanded = true;
-        }
+        isExpanded = true;
       } catch (error) {
         console.error("Error during tree.move:", error);
       }
     }
 
-    treeStores.dragStartNodeIdStore.set(null);
-    treeStores.dragOverNodeIdStore.set(null);
+    treeStores.dragStartNodeIdStore.set(undefined);
+    treeStores.dragOverNodeIdStore.set(undefined);
   }
 </script>
 
@@ -108,10 +108,10 @@
   role="treeitem"
   tabindex="0"
   aria-selected="false"
-  on:dragstart={(e) => handleDragStart(e, nodeId)}
-  on:dragover={(e) => handleDragOver(e, nodeId)}
+  on:dragstart={(e) => handleDragStart(e)}
+  on:dragover={(e) => handleDragOver(e)}
   on:dragleave={handleDragLeave}
-  on:drop={(e) => handleDrop(e, nodeId)}
+  on:drop={(e) => handleDrop(e)}
 >
   <button
     class="tree-item-summary w-full text-left list-none flex items-center cursor-pointer space-x-4 rounded-container-token py-4 px-4 hover:variant-soft"

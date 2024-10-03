@@ -9,18 +9,18 @@
   let trees: ReplicatedTree[] = [];
 
   function createTree1(tree: ReplicatedTree) {
-    const nodeA = tree.newIn(tree.rootId);
+    const nodeA = tree.newIn(null);
     const nodeB = tree.newIn(nodeA);
     const nodeC = tree.newIn(nodeB);
     const nodeD = tree.newIn(nodeA);
     const nodeE = tree.newIn(nodeD);
-    const nodeF = tree.newIn(tree.rootId);
+    const nodeF = tree.newIn(null);
     return { nodeA, nodeB, nodeC, nodeD, nodeE, nodeF };
   }
 
   function createTree2(tree: ReplicatedTree) {
-    const nodeX = tree.newIn(tree.rootId);
-    const nodeY = tree.newIn(tree.rootId);
+    const nodeX = tree.newIn(null);
+    const nodeY = tree.newIn(null);
     const nodeZ = tree.newIn(nodeX);
     const nodeW = tree.newIn(nodeY);
     const nodeV = tree.newIn(nodeW);
@@ -29,7 +29,7 @@
 
   onMount(() => {
     tree1 = new ReplicatedTree("peer1");
-    tree2 = new ReplicatedTree("peer2", tree1.getMoveOps());
+    tree2 = new ReplicatedTree("peer2");
 
     // Create different tree structures
     const nodes1 = createTree1(tree1);
@@ -45,7 +45,7 @@
     // Tree 1: Move nodeC under nodeF (changing its parent)
     tree1.move(nodes1.nodeC, nodes1.nodeF);
     // Tree 1: Move nodeE to root
-    tree1.move(nodes1.nodeE, tree1.rootId);
+    tree1.move(nodes1.nodeE, null);
 
     // Tree 2: Move nodeZ under nodeV (potential conflict if merged with tree1)
     tree2.move(nodes2.nodeZ, nodes2.nodeV);

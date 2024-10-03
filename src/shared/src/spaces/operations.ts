@@ -4,7 +4,7 @@ export interface MoveNode {
   id: OpId;
   targetId: string;
   parentId: string | null;
-  prevParentId: string | null;
+  prevParentId: string | null | undefined;
 }
 
 export function printMoveOps(ops: MoveNode[]): string {

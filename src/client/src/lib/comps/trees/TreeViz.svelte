@@ -6,11 +6,11 @@
   export let tree: ReplicatedTree;
 
   const treeStores = {
-    dragStartNodeIdStore: writable<string | null>(null),
-    dragOverNodeIdStore: writable<string | null>(null),
+    dragStartNodeIdStore: writable<string | undefined>(undefined),
+    dragOverNodeIdStore: writable<string | null | undefined>(undefined),
   }
 </script>
 
 <div style="margin-bottom: 20px;">
-  <TreeBlockViz {tree} nodeId={tree.rootId} {treeStores} />
+  <TreeBlockViz {tree} nodeId={null} {treeStores} />
 </div>

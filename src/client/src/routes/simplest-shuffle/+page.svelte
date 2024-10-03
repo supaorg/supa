@@ -9,7 +9,7 @@
 
   onMount(() => {
     const ops = [
-      { id: new OpId(0, 'peer1'), targetId: 'R', parentId: null, prevParentId: null } as MoveNode,
+      { id: new OpId(0, 'peer1'), targetId: 'R', parentId: null, prevParentId: undefined } as MoveNode,
       { id: new OpId(1, 'peer1'), targetId: 'A', parentId: 'R', prevParentId: null } as MoveNode,
       { id: new OpId(2, 'peer1'), targetId: 'B', parentId: 'A', prevParentId: null } as MoveNode,
     ];
@@ -20,12 +20,17 @@
     const ops2 = [
       { id: new OpId(2, 'peer1'), targetId: 'B', parentId: 'A', prevParentId: null } as MoveNode,
       { id: new OpId(1, 'peer1'), targetId: 'A', parentId: 'R', prevParentId: null } as MoveNode,
-      { id: new OpId(0, 'peer1'), targetId: 'R', parentId: null, prevParentId: null } as MoveNode,
+      { id: new OpId(0, 'peer1'), targetId: 'R', parentId: null, prevParentId: undefined } as MoveNode,
     ];
 
     const t2 = new ReplicatedTree("peer2", ops2);
 
     trees = [t1, t2];
+
+    console.log(t1.compareStructure(t2));
+
+    console.log(t1.printTree());
+    console.log(t2.printTree());
   });
 </script>
 

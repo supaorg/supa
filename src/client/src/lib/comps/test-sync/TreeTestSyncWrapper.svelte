@@ -22,6 +22,9 @@
     } else {
       console.log("✅ Trees are equal!");
     }
+
+    console.log(firstTree.printTree());
+    console.log(trees[1].printTree());
   }
 </script>
 
