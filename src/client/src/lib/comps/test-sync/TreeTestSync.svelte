@@ -1,10 +1,15 @@
 <script lang="ts">
   import { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
-    import TreeViz from "../trees/TreeViz.svelte";
+  import TreeViz from "../trees/TreeViz.svelte";
 
   export let tree: ReplicatedTree;
+
+  function createNode() {
+    tree.newIn();
+  }
 </script>
 
-<div>
+<div class="card p-4">
   <TreeViz {tree} />
+  <button class="btn variant-filled" on:click={createNode}>Create a node</button>
 </div>

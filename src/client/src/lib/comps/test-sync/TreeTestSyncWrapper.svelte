@@ -28,9 +28,11 @@
   }
 </script>
 
-<div>
+<div class="flex flex-col gap-4">
   {#each trees as tree}
     <TreeTestSync {tree} />
   {/each}
+  <button on:click={syncTrees} type="button" class="btn variant-filled-primary"
+    >Sync Trees</button
+  >
 </div>
-<button on:click={syncTrees} type="button" class="btn preset-filled">Sync Trees</button>
