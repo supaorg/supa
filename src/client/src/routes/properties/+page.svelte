@@ -1,0 +1,1 @@
+Let's add props to our tree

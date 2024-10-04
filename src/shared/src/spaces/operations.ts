@@ -1,4 +1,5 @@
 import { OpId } from "./OpId";
+import { type NodePropertyType } from "./spaceTypes";
 
 export interface MoveNode {
   id: OpId;
@@ -11,9 +12,7 @@ export function printMoveOps(ops: MoveNode[]): string {
   return ops.map(op => `(${op.prevParentId}, ${op.targetId}) → (${op.parentId}, ${op.targetId})   ${op.id.toString()}`).join('\n');
 }
 
-export type NodePropertyType = string | number | boolean | string[] | number[] | boolean[];
-
-interface SetNodeProperty {
+export interface SetNodeProperty {
   id: OpId;
   targetId: string;
   key: string;

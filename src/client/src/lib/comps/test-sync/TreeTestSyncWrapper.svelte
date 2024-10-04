@@ -6,7 +6,7 @@
 
   function syncTrees() {
     trees.forEach((tree) => {
-      const ops = tree.popLocalMoveOps();
+      const ops = tree.popLocalOps();
 
       trees.forEach((t) => {
         if (t.peerId !== tree.peerId) {

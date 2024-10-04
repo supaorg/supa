@@ -9,115 +9,9 @@ On the client, UI will subscribe to ReplicatedTree and ask it to add/remove/upda
 */
 
 import { v4 as uuidv4 } from "uuid";
-import { moveNode, type MoveNode, setNodeProperty, isMoveNode, isSetProperty, type NodeOperation, type NodePropertyType } from "./operations";
-
-export type TreeNodeId = string | null | undefined;
-
-export type TreeNodeType = {
-  id: string;
-  parentId: string | null;
-}
-
-export class TreeNode {
-  readonly id: string;
-  parentId: TreeNodeId;
-
-  constructor(id: string, parentId: TreeNodeId) {
-    this.id = id;
-    this.parentId = parentId;
-  }
-}
-
-class SimpleTreeNodeStore {
-  private nodes: Map<string, TreeNode>;
-  /**
-   * Caching children ids (the source of truth is in the 'nodes')
-   */
-  private childrenCache: Map<TreeNodeId, string[]>;
-  private changeListeners: Set<(oldNode: TreeNode | undefined, newNode: TreeNode) => void> = new Set();
-
-  constructor() {
-    this.nodes = new Map();
-    this.childrenCache = new Map();
-  }
-
-  get(nodeId: string): TreeNode | undefined {
-    const node = this.nodes.get(nodeId);
-    // Returning a copy so that the caller can't modify the node
-    return node ? { ...node } : undefined;
-  }
-
-  getChildrenIds(nodeId: TreeNodeId): string[] {
-    return this.childrenCache.get(nodeId) ?? [];
-  }
-
-  getChildren(nodeId: TreeNodeId): TreeNode[] {
-    return this.getChildrenIds(nodeId)
-      .map(id => {
-        // Returning a copy so that the caller can't modify the node
-        const node = this.nodes.get(id);
-        return node ? { ...node } : undefined;
-      })
-      .filter(node => node !== undefined) as TreeNode[];
-  }
-
-  set(nodeId: string, node: TreeNode) {
-    // Store the old parent ID before updating
-    const oldNode = this.nodes.get(nodeId);
-    // When we create a new node, oldNode is undefined, 
-    // therefore prevParentId is undefined (importantly, not null, because we reseve null for the root of the tree)
-    const prevParentId = oldNode === undefined ? undefined : oldNode.parentId;
-    const parentId = node.parentId;
-
-    this.nodes.set(nodeId, node);
-
-    // Nothing has changed.
-    if (prevParentId === parentId) {
-      this.notifyChange(oldNode, node);
-      return;
-    }
-
-    // Here we update the cache of children ids. The source of truth is the nodes map.
-
-    // Add to new parent
-    this.childrenCache.set(parentId, [...this.getChildrenIds(parentId), nodeId]);
-
-    // Remove from previous parent
-    if (prevParentId !== parentId && prevParentId !== undefined) {
-      this.childrenCache.set(prevParentId, this.getChildrenIds(prevParentId).filter(id => id !== nodeId));
-    }
-
-    this.notifyChange(oldNode, node);
-  }
-
-  addChangeListener(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
-    this.changeListeners.add(listener);
-  }
-
-  removeChangeListener(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
-    this.changeListeners.delete(listener);
-  }
-
-  private notifyChange(oldNode: TreeNode | undefined, newNode: TreeNode) {
-    for (const listener of this.changeListeners) {
-      listener(oldNode, newNode);
-    }
-  }
-
-  printTree(nodeId: TreeNodeId = null, indent: string = "", isLast: boolean = true): string {
-    const prefix = indent + (isLast ? "└── " : "├── ");
-    let result = prefix + (nodeId === null ? "root" : nodeId) + "\n";
-
-    const children = this.getChildrenIds(nodeId);
-    for (let i = 0; i < children.length; i++) {
-      const childId = children[i];
-      const isLastChild = i === children.length - 1;
-      result += this.printTree(childId, indent + (isLast ? "    " : "│   "), isLastChild);
-    }
-
-    return result;
-  }
-}
+import { moveNode, type MoveNode, type SetNodeProperty, isMoveNode, isSetProperty, type NodeOperation, setNodeProperty } from "./operations";
+import { NodePropertyType, TreeNode, TreeNodeProperty } from "./spaceTypes";
+import { SimpleTreeNodeStore } from "./SimpleTreeNodeStore";
 
 export class ReplicatedTree {
   readonly peerId: string;
@@ -125,17 +19,18 @@ export class ReplicatedTree {
   private lamportClock = 0;
   private nodes: SimpleTreeNodeStore;
   private moveOps: MoveNode[] = [];
-  private localMoveOps: MoveNode[] = [];
+  private localOps: NodeOperation[] = [];
   private pendingMovesByParent: Map<string, MoveNode[]> = new Map();
-  private appliedMoveOps: Set<string> = new Set();
+  private pendingPropertiesByNode: Map<string, SetNodeProperty[]> = new Map();
+  private appliedOps: Set<string> = new Set();
   private changeListeners: Set<(oldNode: TreeNode | undefined, newNode: TreeNode) => void> = new Set();
 
-  constructor(peerId: string, ops: MoveNode[] | null = null) {
+  constructor(peerId: string, ops: NodeOperation[] | null = null) {
     this.peerId = peerId;
     this.nodes = new SimpleTreeNodeStore();
 
     if (ops != null && ops.length > 0) {
-      this.applyMoves(ops);
+      this.applyOps(ops);
     }
 
     this.nodes.addChangeListener(this.handleNodeChange);
@@ -175,19 +70,28 @@ export class ReplicatedTree {
     return ancestors;
   }
 
-  popLocalMoveOps(): MoveNode[] {
-    const ops = this.localMoveOps;
-    this.localMoveOps = [];
+  getProperty(nodeId: string, key: string): TreeNodeProperty | undefined {
+    const node = this.nodes.get(nodeId);
+    
+    if (!node) {
+      return undefined;
+    }
+
+    return node.getProperty(key);
+  }
+
+  popLocalOps(): NodeOperation[] {
+    const ops = this.localOps;
+    this.localOps = [];
     return ops;
   }
 
-  newIn(parentId: string | null = null): string {
-    const nodeId = uuidv4();
-
-    // Yep, to create a node - we move a fresh node under the parent.
+  newNode(parentId: string | null = null): string {
+    // To create a node - we move a node with a fresh id under the parent.
     // No need to have a separate "create node" operation.
+    const nodeId = uuidv4();
     const op = moveNode(this.lamportClock++, this.peerId, nodeId, parentId, null);
-    this.localMoveOps.push(op);
+    this.localOps.push(op);
     this.applyMove(op);
 
     return nodeId;
@@ -196,30 +100,28 @@ export class ReplicatedTree {
   move(nodeId: string, parentId: string | null) {
     const node = this.nodes.get(nodeId);
     const op = moveNode(this.lamportClock++, this.peerId, nodeId, parentId, node?.parentId ?? null);
-    this.localMoveOps.push(op);
+    this.localOps.push(op);
     this.applyMove(op);
   }
 
   setProperty(nodeId: string, key: string, value: NodePropertyType) {
     const op = setNodeProperty(this.lamportClock++, this.peerId, nodeId, key, value);
-    // TODO: use property execution
+    this.applyProperty(op);
   }
 
   printTree() {
     return this.nodes.printTree(null);
   }
 
-  merge(ops: MoveNode[]) {
-    // NOTE: should we keep a set of applied ops and not apply them again?
-
-    this.applyMoves(ops);
+  merge(ops: NodeOperation[]) {
+    this.applyOps(ops);
   }
 
-  public compareStructure(other: ReplicatedTree): boolean {
+  compareStructure(other: ReplicatedTree): boolean {
     return ReplicatedTree.compareNodes(null, this, other);
   }
 
-  public static compareNodes(nodeId: string | null, treeA: ReplicatedTree, treeB: ReplicatedTree): boolean {
+  static compareNodes(nodeId: string | null, treeA: ReplicatedTree, treeB: ReplicatedTree): boolean {
     const childrenA = treeA.nodes.getChildrenIds(nodeId);
     const childrenB = treeB.nodes.getChildrenIds(nodeId);
 
@@ -240,8 +142,15 @@ export class ReplicatedTree {
     return true;
   }
 
+  private updateLamportClock(operation: NodeOperation): void {
+    // This is how Lamport clock updates with a foreign operation that has a greater counter value.
+    if (operation.id.counter > this.lamportClock) {
+      this.lamportClock = operation.id.counter;
+    }
+  }
+
   private applyMove(op: MoveNode) {
-    // @TODO: describe what is going on here
+    // Check if a parent (unless it's the root - 'null') exists for the move operation.
     if (op.parentId !== null && !this.nodes.get(op.parentId)) {
       // Parent doesn't exist yet, stash the move op for later
       if (!this.pendingMovesByParent.has(op.parentId)) {
@@ -251,10 +160,7 @@ export class ReplicatedTree {
       return;
     }
 
-    // This is how Lamport clock updates with a foreign operation that has a greater counter value.
-    if (op.id.counter > this.lamportClock) {
-      this.lamportClock = op.id.counter;
-    }
+    this.updateLamportClock(op);
 
     if (this.moveOps.length === 0) {
       this.moveOps.push(op);
@@ -304,13 +210,17 @@ export class ReplicatedTree {
     this.applyPendingMovesForParent(op.targetId);
   }
 
-  private applyMoves(ops: MoveNode[]) {
+  private applyOps(ops: NodeOperation[]) {
     for (const op of ops) {
-      if (this.appliedMoveOps.has(op.id.toString())) {
+      if (this.appliedOps.has(op.id.toString())) {
         continue;
       }
 
-      this.applyMove(op);
+      if (isMoveNode(op)) {
+        this.applyMove(op);
+      } else if (isSetProperty(op)) {
+        this.applyProperty(op);
+      }
     }
   }
 
@@ -329,7 +239,7 @@ export class ReplicatedTree {
   }
 
   private tryToMove(op: MoveNode) {
-    this.appliedMoveOps.add(op.id.toString());
+    this.appliedOps.add(op.id.toString());
 
     // If trying to move the target node under itself - do nothing
     if (op.targetId === op.parentId) return;
@@ -341,9 +251,9 @@ export class ReplicatedTree {
 
     if (!targetNode) {
       targetNode = new TreeNode(op.targetId, op.parentId);
+    } else {
+      targetNode = targetNode.clone(op.parentId);
     }
-
-    targetNode.parentId = op.parentId;
 
     this.nodes.set(op.targetId, targetNode);
   }
@@ -355,8 +265,8 @@ export class ReplicatedTree {
       return;
     }
 
-    targetNode.parentId = op.prevParentId;
-    this.nodes.set(op.targetId, targetNode);
+    const nodeWithPrevParent = targetNode.clone(op.prevParentId);
+    this.nodes.set(op.targetId, nodeWithPrevParent);
   }
 
   /** Checks if the given `ancestorId` is an ancestor of `childId` in the tree */
@@ -372,6 +282,31 @@ export class ReplicatedTree {
     }
 
     return false;
+  }
+
+  private applyProperty(op: SetNodeProperty) {
+    // Check if the node exists and if not - put into 'pending'
+
+    const targetNode = this.nodes.get(op.targetId);
+    if (!targetNode) {
+      if (!this.pendingPropertiesByNode.has(op.targetId)) {
+        this.pendingPropertiesByNode.set(op.targetId, []);
+      }
+      this.pendingPropertiesByNode.get(op.targetId)!.push(op);
+      return;
+    }
+
+    this.updateLamportClock(op);
+
+    const prevProp = targetNode.getProperty(op.key);
+
+    if (prevProp) {
+      if (op.id.isGreaterThan(prevProp.prevOpId)) {
+        targetNode.setProperty(op.key, op.value, op.id);
+      }
+    } else {
+      targetNode.setProperty(op.key, op.value, op.id);
+    }
   }
 
   private handleNodeChange = (oldNode: TreeNode | undefined, newNode: TreeNode) => {

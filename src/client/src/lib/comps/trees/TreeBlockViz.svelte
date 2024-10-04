@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import { writable, type Writable, get } from "svelte/store";
-  import type { ReplicatedTree, TreeNode } from "@shared/spaces/ReplicatedTree";
+  import { type Writable, get } from "svelte/store";
+  import type { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
+  import { TreeNode } from "@shared/spaces/spaceTypes";
 
   export let tree: ReplicatedTree;
   export let nodeId: string | null;
