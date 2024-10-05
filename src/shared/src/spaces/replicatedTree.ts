@@ -90,7 +90,8 @@ export class ReplicatedTree {
     // To create a node - we move a node with a fresh id under the parent.
     // No need to have a separate "create node" operation.
     const nodeId = uuidv4();
-    const op = moveNode(this.lamportClock++, this.peerId, nodeId, parentId, null);
+    this.lamportClock++;
+    const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId, null);
     this.localOps.push(op);
     this.applyMove(op);
 
@@ -99,13 +100,15 @@ export class ReplicatedTree {
 
   move(nodeId: string, parentId: string | null) {
     const node = this.nodes.get(nodeId);
-    const op = moveNode(this.lamportClock++, this.peerId, nodeId, parentId, node?.parentId ?? null);
+    this.lamportClock++;
+    const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId, node?.parentId ?? null);
     this.localOps.push(op);
     this.applyMove(op);
   }
 
   setProperty(nodeId: string, key: string, value: NodePropertyType) {
-    const op = setNodeProperty(this.lamportClock++, this.peerId, nodeId, key, value);
+    this.lamportClock++;
+    const op = setNodeProperty(this.lamportClock, this.peerId, nodeId, key, value);
     this.applyProperty(op);
   }
 
