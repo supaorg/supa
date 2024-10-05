@@ -40,7 +40,7 @@ export class ReplicatedTree {
     return this.moveOps;
   }
 
-  get(nodeId: string): TreeNode | undefined {
+  getNode(nodeId: string): TreeNode | undefined {
     return this.nodes.get(nodeId);
   }
 
@@ -70,7 +70,7 @@ export class ReplicatedTree {
     return ancestors;
   }
 
-  getProperty(nodeId: string, key: string): TreeNodeProperty | undefined {
+  getNodeProperty(nodeId: string, key: string): TreeNodeProperty | undefined {
     const node = this.nodes.get(nodeId);
     
     if (!node) {
@@ -78,6 +78,16 @@ export class ReplicatedTree {
     }
 
     return node.getProperty(key);
+  }
+
+  getNodeProperties(nodeId: string): Readonly<TreeNodeProperty[]> {
+    const node = this.nodes.get(nodeId);
+    
+    if (!node) {
+      return [];
+    }
+
+    return node.getAllProperties();
   }
 
   popLocalOps(): NodeOperation[] {
@@ -106,9 +116,10 @@ export class ReplicatedTree {
     this.applyMove(op);
   }
 
-  setProperty(nodeId: string, key: string, value: NodePropertyType) {
+  setNodeProperty(nodeId: string, key: string, value: NodePropertyType) {
     this.lamportClock++;
     const op = setNodeProperty(this.lamportClock, this.peerId, nodeId, key, value);
+    this.localOps.push(op);
     this.applyProperty(op);
   }
 
