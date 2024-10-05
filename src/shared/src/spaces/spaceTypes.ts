@@ -50,8 +50,8 @@ export class TreeNode {
     this.properties = this.properties.filter(p => p.key !== key);
   }
 
-  clone(newParentId?: TreeNodeId): TreeNode {
-    const clonedNode = new TreeNode(this.id, newParentId ?? this.parentId);
+  cloneWithNewParent(newParentId: TreeNodeId): TreeNode {
+    const clonedNode = new TreeNode(this.id, newParentId);
     this.properties.forEach(prop => {
       clonedNode.setProperty(prop.key, prop.value, prop.prevOpId);
     });

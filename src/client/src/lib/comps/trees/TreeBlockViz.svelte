@@ -142,7 +142,7 @@
         </svg>
       {/if}
     </div>
-    <span class="tree-item-content">{nodeId}</span>
+    <span class="tree-item-content">{nodeId ?? "root"}</span>
   </button>
 
   {#if isExpanded && children.length > 0}

@@ -262,7 +262,7 @@ export class ReplicatedTree {
         targetNode.setProperty(prop.key, prop.value, prop.id);
       }
     } else {
-      targetNode = targetNode.clone(op.parentId);
+      targetNode = targetNode.cloneWithNewParent(op.parentId);
     }
 
     this.nodes.set(op.targetId, targetNode);
@@ -275,7 +275,7 @@ export class ReplicatedTree {
       return;
     }
 
-    const nodeWithPrevParent = targetNode.clone(op.prevParentId);
+    const nodeWithPrevParent = targetNode.cloneWithNewParent(op.prevParentId);
     this.nodes.set(op.targetId, nodeWithPrevParent);
   }
 
