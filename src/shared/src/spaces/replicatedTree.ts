@@ -250,7 +250,14 @@ export class ReplicatedTree {
     let targetNode = this.nodes.get(op.targetId);
 
     if (!targetNode) {
+      // Create a new node
       targetNode = new TreeNode(op.targetId, op.parentId);
+
+      // Apply pending properties for this node
+      const pendingProperties = this.pendingPropertiesByNode.get(op.targetId) || [];
+      for (const prop of pendingProperties) {
+        targetNode.setProperty(prop.key, prop.value, prop.id);
+      }
     } else {
       targetNode = targetNode.clone(op.parentId);
     }
@@ -285,9 +292,8 @@ export class ReplicatedTree {
   }
 
   private applyProperty(op: SetNodeProperty) {
-    // Check if the node exists and if not - put into 'pending'
-
     const targetNode = this.nodes.get(op.targetId);
+    // If the node doesn't exist yet - put the operation into the pending set.
     if (!targetNode) {
       if (!this.pendingPropertiesByNode.has(op.targetId)) {
         this.pendingPropertiesByNode.set(op.targetId, []);
@@ -299,8 +305,9 @@ export class ReplicatedTree {
     this.updateLamportClock(op);
 
     const prevProp = targetNode.getProperty(op.key);
-
     if (prevProp) {
+      // Here's is the core of the map CRDT algorithm.
+      // As simple as that - we only apply the operation if it's newer than the previous operation on this node.
       if (op.id.isGreaterThan(prevProp.prevOpId)) {
         targetNode.setProperty(op.key, op.value, op.id);
       }

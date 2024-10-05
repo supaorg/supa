@@ -35,7 +35,7 @@ export class SimpleTreeNodeStore {
     // Store the old parent ID before updating
     const oldNode = this.nodes.get(nodeId);
     // When we create a new node, oldNode is undefined, 
-    // therefore prevParentId is undefined (importantly, not null, because we reseve null for the root of the tree)
+    // therefore prevParentId is undefined (not null, because we reseve null for the root of the tree)
     const prevParentId = oldNode === undefined ? undefined : oldNode.parentId;
     const parentId = node.parentId;
 

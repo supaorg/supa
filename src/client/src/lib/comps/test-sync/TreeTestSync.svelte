@@ -5,7 +5,7 @@
   export let tree: ReplicatedTree;
 
   function createNode() {
-    tree.newIn();
+    tree.newNode();
   }
 </script>
 
