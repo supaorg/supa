@@ -10,7 +10,7 @@ On the client, UI will subscribe to ReplicatedTree and ask it to add/remove/upda
 
 import { v4 as uuidv4 } from "uuid";
 import { moveNode, type MoveNode, type SetNodeProperty, isMoveNode, isSetProperty, type NodeOperation, setNodeProperty } from "./operations";
-import { NodePropertyType, TreeNode, TreeNodeProperty } from "./spaceTypes";
+import { NodePropertyType, TreeNode, TreeNodeProperty, NodeChangeEvent } from "./spaceTypes";
 import { SimpleTreeNodeStore } from "./SimpleTreeNodeStore";
 
 export class ReplicatedTree {
@@ -23,7 +23,6 @@ export class ReplicatedTree {
   private pendingMovesWithMissingParent: Map<string, MoveNode[]> = new Map();
   private pendingPropertiesWithMissingNode: Map<string, SetNodeProperty[]> = new Map();
   private appliedOps: Set<string> = new Set();
-  private changeListeners: Set<(oldNode: TreeNode | undefined, newNode: TreeNode) => void> = new Set();
 
   constructor(peerId: string, ops: NodeOperation[] | null = null) {
     this.peerId = peerId;
@@ -32,8 +31,6 @@ export class ReplicatedTree {
     if (ops != null && ops.length > 0) {
       this.applyOps(ops);
     }
-
-    this.store.addChangeListener(this.handleNodeChange);
   }
 
   getMoveOps(): MoveNode[] {
@@ -325,7 +322,6 @@ export class ReplicatedTree {
 
   private applyProperty(op: SetNodeProperty) {
     const targetNode = this.store.get(op.targetId);
-    // If the node doesn't exist yet - put the operation into the pending set.
     if (!targetNode) {
       if (!this.pendingPropertiesWithMissingNode.has(op.targetId)) {
         this.pendingPropertiesWithMissingNode.set(op.targetId, []);
@@ -337,28 +333,19 @@ export class ReplicatedTree {
     this.updateLamportClock(op);
 
     const prevProp = targetNode.getProperty(op.key);
-    if (prevProp) {
-      // Here's is the core of the map CRDT algorithm.
-      // As simple as that - we only apply the operation if it's newer than the previous operation on this node.
-      if (op.id.isGreaterThan(prevProp.prevOpId)) {
-        targetNode.setProperty(op.key, op.value, op.id);
-      }
-    } else {
-      targetNode.setProperty(op.key, op.value, op.id);
+
+    // Apply the property if it's not already applied or if the current op is newer
+    if (!prevProp || op.id.isGreaterThan(prevProp.prevOpId)) {
+      this.store.setProperty(op.targetId, op.key, op.value, op.id);
     }
   }
 
-  private handleNodeChange = (oldNode: TreeNode | undefined, newNode: TreeNode) => {
-    for (const listener of this.changeListeners) {
-      listener(oldNode, newNode);
-    }
+  subscribe(nodeId: string | null, listener: (event: NodeChangeEvent) => void) {
+    console.log("subscribing to", nodeId);
+    this.store.addChangeListener(nodeId, listener);
   }
 
-  subscribe(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
-    this.changeListeners.add(listener);
-  }
-
-  unsubscribe(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
-    this.changeListeners.delete(listener);
+  unsubscribe(nodeId: string | null, listener: (event: NodeChangeEvent) => void) {
+    this.store.removeChangeListener(nodeId, listener);
   }
 }

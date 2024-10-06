@@ -15,6 +15,30 @@ export type TreeNodeProperty = {
   readonly prevOpId: OpId;
 }
 
+type NodeChangeEventType = 'move' | 'property' | 'children';
+
+export interface NodeChangeEvent {
+  type: NodeChangeEventType;
+  nodeId: TreeNodeId;
+}
+
+export type NodePropertyChangeEvent = NodeChangeEvent & {
+  type: 'property';
+  key: string;
+  value: NodePropertyType | undefined;
+}
+
+export type NodeMoveEvent = NodeChangeEvent & {
+  type: 'move';
+  oldParentId: TreeNodeId;
+  newParentId: TreeNodeId;
+}
+
+export type NodeChildrenChangeEvent = NodeChangeEvent & {
+  type: 'children';
+  children: TreeNode[];
+}
+
 export class TreeNode {
   readonly id: string;
   readonly parentId: TreeNodeId;

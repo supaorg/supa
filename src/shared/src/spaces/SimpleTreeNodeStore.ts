@@ -1,12 +1,11 @@
-import { TreeNode, type TreeNodeId } from "./spaceTypes";
+import { OpId } from "./OpId";
+import { TreeNode, TreeNodeId, NodeChangeEvent, NodeMoveEvent, NodePropertyChangeEvent, NodeChildrenChangeEvent } from "./spaceTypes";
 
 export class SimpleTreeNodeStore {
   private nodes: Map<string, TreeNode>;
-  /**
-   * Caching children ids (the source of truth is in the 'nodes')
-   */
   private childrenCache: Map<TreeNodeId, string[]>;
-  private changeListeners: Set<(oldNode: TreeNode | undefined, newNode: TreeNode) => void> = new Set();
+  private changeListeners: Map<TreeNodeId, Set<(event: NodeChangeEvent) => void>> = new Map();
+  private globalChangeListeners: Set<(event: NodeChangeEvent) => void> = new Set();
 
   constructor() {
     this.nodes = new Map();
@@ -32,46 +31,110 @@ export class SimpleTreeNodeStore {
   }
 
   set(nodeId: string, node: TreeNode) {
-    // Store the old parent ID before updating
     const oldNode = this.nodes.get(nodeId);
-    // When we create a new node, oldNode is undefined, 
-    // therefore prevParentId is undefined (not null, because we reseve null for the root of the tree)
-    const prevParentId = oldNode === undefined ? undefined : oldNode.parentId;
-    const parentId = node.parentId;
+    const prevParentId = oldNode?.parentId;
+    const newParentId = node.parentId;
 
     this.nodes.set(nodeId, node);
 
-    // Nothing has changed.
-    if (prevParentId === parentId) {
-      this.notifyChange(oldNode, node);
-      return;
+    if (prevParentId !== newParentId) {
+      this.notifyChange({
+        type: 'move',
+        nodeId,
+        oldParentId: prevParentId,
+        newParentId,
+      } as NodeMoveEvent);
+
+      // Update childrenCache
+      if (newParentId !== undefined) {
+        const newChildren = [...this.getChildrenIds(newParentId), nodeId];
+        this.childrenCache.set(newParentId, newChildren);
+        this.notifyChange({
+          type: 'children',
+          nodeId: newParentId,
+          children: newChildren.map(id => this.nodes.get(id)!),
+        } as NodeChildrenChangeEvent);
+      }
+
+      if (prevParentId !== undefined) {
+        const newChildren = this.getChildrenIds(prevParentId).filter(id => id !== nodeId);
+        this.childrenCache.set(prevParentId, newChildren);
+        this.notifyChange({
+          type: 'children',
+          nodeId: prevParentId,
+          children: newChildren.map(id => this.nodes.get(id)!),
+        } as NodeChildrenChangeEvent);
+      }
     }
 
-    // Here we update the cache of children ids. The source of truth is the nodes map.
+    /*
+    // Check for property changes
+    if (oldNode) {
+      const oldProps = oldNode.getAllProperties();
+      const newProps = node.getAllProperties();
+      for (const newProp of newProps) {
+        const oldProp = oldProps.find(p => p.key === newProp.key);
+        if (!oldProp || oldProp.value !== newProp.value) {
+          this.notifyChange({
+            type: 'property',
+            nodeId,
+            key: newProp.key,
+            value: newProp.value,
+          } as NodePropertyChangeEvent);
+        }
+      }
+      // Check for removed properties
+      for (const oldProp of oldProps) {
+        if (!newProps.some(p => p.key === oldProp.key)) {
+          this.notifyChange({
+            type: 'property',
+            nodeId,
+            key: oldProp.key,
+            value: undefined,
+          } as NodePropertyChangeEvent);
+        }
+      }
+    }
+    */
+  }
 
-    // Add to new parent
-    this.childrenCache.set(parentId, [...this.getChildrenIds(parentId), nodeId]);
-
-    // Remove from previous parent
-    if (prevParentId !== parentId && prevParentId !== undefined) {
-      this.childrenCache.set(prevParentId, this.getChildrenIds(prevParentId).filter(id => id !== nodeId));
+  setProperty(nodeId: string, key: string, value: any, opId: OpId) {
+    const node = this.get(nodeId);
+    if (node) {
+      node.setProperty(key, value, opId);
     }
 
-    this.notifyChange(oldNode, node);
+    this.notifyChange({
+      type: 'property',
+      nodeId,
+      key,
+      value,
+      opId,
+    } as NodePropertyChangeEvent);
   }
 
-  addChangeListener(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
-    this.changeListeners.add(listener);
-  }
-
-  removeChangeListener(listener: (oldNode: TreeNode | undefined, newNode: TreeNode) => void) {
-    this.changeListeners.delete(listener);
-  }
-
-  private notifyChange(oldNode: TreeNode | undefined, newNode: TreeNode) {
-    for (const listener of this.changeListeners) {
-      listener(oldNode, newNode);
+  addChangeListener(nodeId: TreeNodeId | null, listener: (event: NodeChangeEvent) => void) {
+    if (nodeId === null) {
+      this.globalChangeListeners.add(listener);
+    } else {
+      if (!this.changeListeners.has(nodeId)) {
+        this.changeListeners.set(nodeId, new Set());
+      }
+      this.changeListeners.get(nodeId)!.add(listener);
     }
+  }
+
+  removeChangeListener(nodeId: TreeNodeId | null, listener: (event: NodeChangeEvent) => void) {
+    if (nodeId === null) {
+      this.globalChangeListeners.delete(listener);
+    } else {
+      this.changeListeners.get(nodeId)?.delete(listener);
+    }
+  }
+
+  private notifyChange(event: NodeChangeEvent) {
+    this.globalChangeListeners.forEach(listener => listener(event));
+    this.changeListeners.get(event.nodeId)?.forEach(listener => listener(event));
   }
 
   printTree(nodeId: TreeNodeId = null, indent: string = "", isLast: boolean = true): string {

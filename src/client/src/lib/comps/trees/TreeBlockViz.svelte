@@ -2,7 +2,11 @@
   import { onMount, onDestroy } from "svelte";
   import { type Writable, get } from "svelte/store";
   import type { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
-  import { TreeNode } from "@shared/spaces/spaceTypes";
+  import {
+    TreeNode,
+    type NodeChangeEvent,
+    type TreeNodeProperty,
+  } from "@shared/spaces/spaceTypes";
 
   export let tree: ReplicatedTree;
   export let nodeId: string | null;
@@ -12,6 +16,8 @@
   };
 
   let children: TreeNode[] = [];
+  let properties: ReadonlyArray<TreeNodeProperty> = [];
+  let nodeName: string | null = null;
   let isRoot: boolean;
   let isExpanded = false;
   let highlightAsDragOver = false;
@@ -24,23 +30,42 @@
 
   function updateChildren() {
     children = tree.getChildren(nodeId);
+
+    if (nodeId) {
+      properties = tree.getNodeProperties(nodeId);
+      nodeName = properties.find((p) => p.key === "_n")?.value as string | null;
+    }
   }
 
-  function handleTreeChange(oldNode: TreeNode | undefined, newNode: TreeNode) {
+  function handleTreeChange(event: NodeChangeEvent) {
+    console.log("peerId", tree.peerId);
+
+    if (event.type === 'property') {
+      console.log("property change", event);
+    } else if (event.type === 'children') {
+      console.log("children change", event);
+    } else if (event.type === 'move') {
+      console.log("move change", event);
+    }
+
+    /*
     // Update the children if the node has updated or one of its children has updated
-    if (newNode.parentId === nodeId || oldNode?.parentId === nodeId) {
+    if (event.nodeId === nodeId) {
       updateChildren();
     }
+      */
+
+    updateChildren();
   }
 
   onMount(() => {
     isRoot = nodeId === null;
     updateChildren();
-    tree.subscribe(handleTreeChange);
+    tree.subscribe(nodeId, handleTreeChange);
   });
 
   onDestroy(() => {
-    tree.unsubscribe(handleTreeChange);
+    tree.unsubscribe(nodeId,handleTreeChange);
   });
 
   function toggleExpand() {
@@ -142,7 +167,15 @@
         </svg>
       {/if}
     </div>
-    <span class="tree-item-content">{nodeId ?? "root"}</span>
+    <div class="tree-item-content">
+      <span>
+        {#if nodeName}
+          {nodeName}
+        {:else}
+          {nodeId ?? "root"}
+        {/if}
+      </span>
+    </div>
   </button>
 
   {#if isExpanded && children.length > 0}

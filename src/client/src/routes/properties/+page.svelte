@@ -11,15 +11,11 @@
     const t1 = new ReplicatedTree("peer1");
 
     const node = t1.newNode();
-    t1.setNodeProperty(node, "name", "Node A");
-    console.log(t1.getNodeProperty(node, "name"));
-    console.log(t1.getNodeProperties(node));
+    t1.setNodeProperty(node, "_n", "Node A");
 
     const t2 = new ReplicatedTree("peer2", t1.popLocalOps());
 
-    t2.setNodeProperty(node, "name", "Node B");
-    console.log(t2.getNodeProperty(node, "name"));
-    console.log(t2.getNodeProperties(node));
+    t2.setNodeProperty(node, "_n", "Node B");
 
     trees = [t1, t2];
 
