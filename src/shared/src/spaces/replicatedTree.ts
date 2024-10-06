@@ -17,23 +17,23 @@ export class ReplicatedTree {
   readonly peerId: string;
 
   private lamportClock = 0;
-  private nodes: SimpleTreeNodeStore;
+  private store: SimpleTreeNodeStore;
   private moveOps: MoveNode[] = [];
   private localOps: NodeOperation[] = [];
-  private pendingMovesByParent: Map<string, MoveNode[]> = new Map();
-  private pendingPropertiesByNode: Map<string, SetNodeProperty[]> = new Map();
+  private pendingMovesWithMissingParent: Map<string, MoveNode[]> = new Map();
+  private pendingPropertiesWithMissingNode: Map<string, SetNodeProperty[]> = new Map();
   private appliedOps: Set<string> = new Set();
   private changeListeners: Set<(oldNode: TreeNode | undefined, newNode: TreeNode) => void> = new Set();
 
   constructor(peerId: string, ops: NodeOperation[] | null = null) {
     this.peerId = peerId;
-    this.nodes = new SimpleTreeNodeStore();
+    this.store = new SimpleTreeNodeStore();
 
     if (ops != null && ops.length > 0) {
       this.applyOps(ops);
     }
 
-    this.nodes.addChangeListener(this.handleNodeChange);
+    this.store.addChangeListener(this.handleNodeChange);
   }
 
   getMoveOps(): MoveNode[] {
@@ -41,24 +41,24 @@ export class ReplicatedTree {
   }
 
   getNode(nodeId: string): TreeNode | undefined {
-    return this.nodes.get(nodeId);
+    return this.store.get(nodeId);
   }
 
   getParent(nodeId: string): TreeNode | undefined {
-    const parentId = this.nodes.get(nodeId)?.parentId;
-    return parentId ? this.nodes.get(parentId) : undefined;
+    const parentId = this.store.get(nodeId)?.parentId;
+    return parentId ? this.store.get(parentId) : undefined;
   }
 
   getChildren(nodeId: string | null): TreeNode[] {
-    return this.nodes.getChildren(nodeId);
+    return this.store.getChildren(nodeId);
   }
 
   getAncestors(nodeId: string): TreeNode[] {
     const ancestors: TreeNode[] = [];
-    let currentNode = this.nodes.get(nodeId);
+    let currentNode = this.store.get(nodeId);
 
     while (currentNode && currentNode.parentId) {
-      const parentNode = this.nodes.get(currentNode.parentId);
+      const parentNode = this.store.get(currentNode.parentId);
       if (parentNode) {
         ancestors.push(parentNode);
         currentNode = parentNode;
@@ -71,8 +71,8 @@ export class ReplicatedTree {
   }
 
   getNodeProperty(nodeId: string, key: string): TreeNodeProperty | undefined {
-    const node = this.nodes.get(nodeId);
-    
+    const node = this.store.get(nodeId);
+
     if (!node) {
       return undefined;
     }
@@ -81,8 +81,8 @@ export class ReplicatedTree {
   }
 
   getNodeProperties(nodeId: string): Readonly<TreeNodeProperty[]> {
-    const node = this.nodes.get(nodeId);
-    
+    const node = this.store.get(nodeId);
+
     if (!node) {
       return [];
     }
@@ -109,7 +109,7 @@ export class ReplicatedTree {
   }
 
   move(nodeId: string, parentId: string | null) {
-    const node = this.nodes.get(nodeId);
+    const node = this.store.get(nodeId);
     this.lamportClock++;
     const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId, node?.parentId ?? null);
     this.localOps.push(op);
@@ -124,7 +124,7 @@ export class ReplicatedTree {
   }
 
   printTree() {
-    return this.nodes.printTree(null);
+    return this.store.printTree(null);
   }
 
   merge(ops: NodeOperation[]) {
@@ -136,13 +136,31 @@ export class ReplicatedTree {
   }
 
   static compareNodes(nodeId: string | null, treeA: ReplicatedTree, treeB: ReplicatedTree): boolean {
-    const childrenA = treeA.nodes.getChildrenIds(nodeId);
-    const childrenB = treeB.nodes.getChildrenIds(nodeId);
+    const childrenA = treeA.store.getChildrenIds(nodeId);
+    const childrenB = treeB.store.getChildrenIds(nodeId);
 
     if (childrenA.length !== childrenB.length) {
       return false;
     }
 
+    // Compare properties of the current node
+    if (nodeId !== null) {
+      const propertiesA = treeA.getNodeProperties(nodeId);
+      const propertiesB = treeB.getNodeProperties(nodeId);
+
+      if (propertiesA.length !== propertiesB.length) {
+        return false;
+      }
+
+      for (const propA of propertiesA) {
+        const propB = propertiesB.find(p => p.key === propA.key);
+        if (!propB || propA.value !== propB.value) {
+          return false;
+        }
+      }
+    }
+
+    // Compare children and their properties recursively
     for (const childId of childrenA) {
       if (!childrenB.includes(childId)) {
         return false;
@@ -165,12 +183,12 @@ export class ReplicatedTree {
 
   private applyMove(op: MoveNode) {
     // Check if a parent (unless it's the root - 'null') exists for the move operation.
-    if (op.parentId !== null && !this.nodes.get(op.parentId)) {
-      // Parent doesn't exist yet, stash the move op for later
-      if (!this.pendingMovesByParent.has(op.parentId)) {
-        this.pendingMovesByParent.set(op.parentId, []);
+    // If it doesn't exist, stash the move op for later
+    if (op.parentId !== null && !this.store.get(op.parentId)) {
+      if (!this.pendingMovesWithMissingParent.has(op.parentId)) {
+        this.pendingMovesWithMissingParent.set(op.parentId, []);
       }
-      this.pendingMovesByParent.get(op.parentId)!.push(op);
+      this.pendingMovesWithMissingParent.get(op.parentId)!.push(op);
       return;
     }
 
@@ -239,13 +257,13 @@ export class ReplicatedTree {
   }
 
   private applyPendingMovesForParent(parentId: string) {
-    if (!this.nodes.get(parentId)) {
+    if (!this.store.get(parentId)) {
       // Parent still doesn't exist, so we can't apply these moves yet
       return;
     }
 
-    const pendingMoves = this.pendingMovesByParent.get(parentId) || [];
-    this.pendingMovesByParent.delete(parentId);
+    const pendingMoves = this.pendingMovesWithMissingParent.get(parentId) || [];
+    this.pendingMovesWithMissingParent.delete(parentId);
 
     for (const pendingOp of pendingMoves) {
       this.applyMove(pendingOp);
@@ -261,14 +279,14 @@ export class ReplicatedTree {
     // If the target node is an ancestor of the parent node (cycle) - do nothing
     if (op.parentId && this.isAncestor(op.parentId, op.targetId)) return;
 
-    let targetNode = this.nodes.get(op.targetId);
+    let targetNode = this.store.get(op.targetId);
 
     if (!targetNode) {
       // Create a new node
       targetNode = new TreeNode(op.targetId, op.parentId);
 
       // Apply pending properties for this node
-      const pendingProperties = this.pendingPropertiesByNode.get(op.targetId) || [];
+      const pendingProperties = this.pendingPropertiesWithMissingNode.get(op.targetId) || [];
       for (const prop of pendingProperties) {
         targetNode.setProperty(prop.key, prop.value, prop.id);
       }
@@ -276,18 +294,18 @@ export class ReplicatedTree {
       targetNode = targetNode.cloneWithNewParent(op.parentId);
     }
 
-    this.nodes.set(op.targetId, targetNode);
+    this.store.set(op.targetId, targetNode);
   }
 
   private undoMove(op: MoveNode) {
-    const targetNode = this.nodes.get(op.targetId);
+    const targetNode = this.store.get(op.targetId);
     if (!targetNode) {
       //throw new Error(`targetNode ${op.targetId} not found`);
       return;
     }
 
     const nodeWithPrevParent = targetNode.cloneWithNewParent(op.prevParentId);
-    this.nodes.set(op.targetId, nodeWithPrevParent);
+    this.store.set(op.targetId, nodeWithPrevParent);
   }
 
   /** Checks if the given `ancestorId` is an ancestor of `childId` in the tree */
@@ -295,7 +313,7 @@ export class ReplicatedTree {
     let targetId = childId;
     let node: TreeNode | undefined;
 
-    while ((node = this.nodes.get(targetId))) {
+    while ((node = this.store.get(targetId))) {
       if (node.parentId === ancestorId) return true;
       if (node.parentId === null || node.parentId === undefined) return false;
 
@@ -306,13 +324,13 @@ export class ReplicatedTree {
   }
 
   private applyProperty(op: SetNodeProperty) {
-    const targetNode = this.nodes.get(op.targetId);
+    const targetNode = this.store.get(op.targetId);
     // If the node doesn't exist yet - put the operation into the pending set.
     if (!targetNode) {
-      if (!this.pendingPropertiesByNode.has(op.targetId)) {
-        this.pendingPropertiesByNode.set(op.targetId, []);
+      if (!this.pendingPropertiesWithMissingNode.has(op.targetId)) {
+        this.pendingPropertiesWithMissingNode.set(op.targetId, []);
       }
-      this.pendingPropertiesByNode.get(op.targetId)!.push(op);
+      this.pendingPropertiesWithMissingNode.get(op.targetId)!.push(op);
       return;
     }
 
