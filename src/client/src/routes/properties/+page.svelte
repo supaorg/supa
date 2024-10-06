@@ -16,6 +16,12 @@
     const t2 = new ReplicatedTree("peer2", t1.popLocalOps());
 
     t2.setNodeProperty(node, "_n", "Node B");
+    t2.setNodeProperty(node, "test_num", 10.5);
+
+    t1.setNodeProperty(node, "test_str", "yo, i'm a string");
+    t1.setNodeProperty(node, "test_num", "yo not a number");
+
+    t2.setNodeProperty(node, "test_num", 99);
 
     trees = [t1, t2];
 

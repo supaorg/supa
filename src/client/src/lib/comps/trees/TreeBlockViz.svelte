@@ -175,6 +175,11 @@
           {nodeId ?? "root"}
         {/if}
       </span>
+      <ul class="text-xs">
+        {#each properties as property}
+          <li>{property.key}: {property.value}</li>
+        {/each}
+      </ul>
     </div>
   </button>
 
