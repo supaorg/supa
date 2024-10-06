@@ -78,6 +78,23 @@ export class SimpleTreeNodeStore {
     const prefix = indent + (isLast ? "└── " : "├── ");
     let result = prefix + (nodeId === null ? "root" : nodeId) + "\n";
 
+    let nodeName: string | null = null;
+
+    if (nodeId !== null) {
+      const node = this.get(nodeId);
+      if (node) {
+        for (const prop of node.getAllProperties()) {
+          if (prop.key === "_n") {
+            nodeName = prop.value as string;
+            //continue;
+          }
+
+          const propPrefix = indent + (isLast ? "    " : "│   ") + "• ";
+          result += `${propPrefix}${prop.key}: ${JSON.stringify(prop.value)}\n`;
+        }
+      }
+    }
+
     const children = this.getChildrenIds(nodeId);
     for (let i = 0; i < children.length; i++) {
       const childId = children[i];
