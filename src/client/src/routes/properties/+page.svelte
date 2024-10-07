@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
-  import { type MoveNode } from "@shared/spaces/operations";
-  import { OpId } from "@shared/spaces/OpId";
+  import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import { onMount } from "svelte";
   import TreeTestSyncWrapper from "$lib/comps/test-sync/TreeTestSyncWrapper.svelte";
 

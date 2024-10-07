@@ -10,7 +10,7 @@ On the client, UI will subscribe to ReplicatedTree and ask it to add/remove/upda
 
 import { v4 as uuidv4 } from "uuid";
 import { moveNode, type MoveNode, type SetNodeProperty, isMoveNode, isSetProperty, type NodeOperation, setNodeProperty } from "./operations";
-import { NodePropertyType, TreeNode, TreeNodeProperty, NodeChangeEvent } from "./spaceTypes";
+import { NodePropertyType, TreeNode, TreeNodeProperty, NodeChangeEvent } from "./treeTypes";
 import { SimpleTreeNodeStore } from "./SimpleTreeNodeStore";
 
 export class ReplicatedTree {

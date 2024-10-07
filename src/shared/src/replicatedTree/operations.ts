@@ -1,10 +1,11 @@
 import { OpId } from "./OpId";
-import { type NodePropertyType } from "./spaceTypes";
+import { type NodePropertyType } from "./treeTypes";
 
 export interface MoveNode {
   id: OpId;
   targetId: string;
   parentId: string | null;
+  // We accept undefined for prevParentId because when a new node is created, the previous parent is not defined.
   prevParentId: string | null | undefined;
 }
 

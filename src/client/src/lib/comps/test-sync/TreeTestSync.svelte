@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
+  import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import TreeViz from "../trees/TreeViz.svelte";
 
   export let tree: ReplicatedTree;

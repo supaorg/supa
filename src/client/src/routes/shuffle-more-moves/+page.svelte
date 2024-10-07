@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
-  import { type MoveNode, printMoveOps } from "@shared/spaces/operations";
-  import { OpId } from "@shared/spaces/OpId";
+  import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
+  import { type MoveNode, printMoveOps } from "@shared/replicatedTree/operations";
+  import { OpId } from "@shared/replicatedTree/OpId";
   import { onMount } from "svelte";
 
   let tree1: ReplicatedTree;

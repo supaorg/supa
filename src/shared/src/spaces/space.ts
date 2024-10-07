@@ -1,10 +1,10 @@
-
+import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 
 class Space {
-	private nodes: Map<string, any>;
+	private mainTree: ReplicatedTree;
 
 	constructor() {
-		this.nodes = new Map();
+		
 	}
 
 	async createNode(): Promise<void> {

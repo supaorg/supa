@@ -1,6 +1,6 @@
 <script lang="ts">
   import { writable } from "svelte/store";
-  import type { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
+  import type { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import TreeBlockViz from "./TreeBlockViz.svelte";
 
   export let tree: ReplicatedTree;

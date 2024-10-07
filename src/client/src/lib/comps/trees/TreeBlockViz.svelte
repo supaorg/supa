@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { type Writable, get } from "svelte/store";
-  import type { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
+  import type { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import {
     TreeNode,
     type NodeChangeEvent,
     type TreeNodeProperty,
-  } from "@shared/spaces/spaceTypes";
+  } from "@shared/replicatedTree/treeTypes";
 
   export let tree: ReplicatedTree;
   export let nodeId: string | null;

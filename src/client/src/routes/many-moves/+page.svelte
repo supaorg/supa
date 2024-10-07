@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { ReplicatedTree } from "@shared/spaces/ReplicatedTree";
-  import { type MoveNode, printMoveOps } from "@shared/spaces/operations";
+  import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import { onMount } from "svelte";
   import TreeTestSyncWrapper from "$lib/comps/test-sync/TreeTestSyncWrapper.svelte";
 
@@ -9,21 +8,21 @@
   let trees: ReplicatedTree[] = [];
 
   function createTree1(tree: ReplicatedTree) {
-    const nodeA = tree.newIn(null);
-    const nodeB = tree.newIn(nodeA);
-    const nodeC = tree.newIn(nodeB);
-    const nodeD = tree.newIn(nodeA);
-    const nodeE = tree.newIn(nodeD);
-    const nodeF = tree.newIn(null);
+    const nodeA = tree.newNode(null);
+    const nodeB = tree.newNode(nodeA);
+    const nodeC = tree.newNode(nodeB);
+    const nodeD = tree.newNode(nodeA);
+    const nodeE = tree.newNode(nodeD);
+    const nodeF = tree.newNode(null);
     return { nodeA, nodeB, nodeC, nodeD, nodeE, nodeF };
   }
 
   function createTree2(tree: ReplicatedTree) {
-    const nodeX = tree.newIn(null);
-    const nodeY = tree.newIn(null);
-    const nodeZ = tree.newIn(nodeX);
-    const nodeW = tree.newIn(nodeY);
-    const nodeV = tree.newIn(nodeW);
+    const nodeX = tree.newNode(null);
+    const nodeY = tree.newNode(null);
+    const nodeZ = tree.newNode(nodeX);
+    const nodeW = tree.newNode(nodeY);
+    const nodeV = tree.newNode(nodeW);
     return { nodeX, nodeY, nodeZ, nodeW, nodeV };
   }
 

@@ -1,5 +1,5 @@
 import { OpId } from "./OpId";
-import { TreeNode, TreeNodeId, NodeChangeEvent, NodeMoveEvent, NodePropertyChangeEvent, NodeChildrenChangeEvent } from "./spaceTypes";
+import { TreeNode, TreeNodeId, NodeChangeEvent, NodeMoveEvent, NodePropertyChangeEvent, NodeChildrenChangeEvent } from "./treeTypes";
 
 export class SimpleTreeNodeStore {
   private nodes: Map<string, TreeNode>;
@@ -66,36 +66,6 @@ export class SimpleTreeNodeStore {
         } as NodeChildrenChangeEvent);
       }
     }
-
-    /*
-    // Check for property changes
-    if (oldNode) {
-      const oldProps = oldNode.getAllProperties();
-      const newProps = node.getAllProperties();
-      for (const newProp of newProps) {
-        const oldProp = oldProps.find(p => p.key === newProp.key);
-        if (!oldProp || oldProp.value !== newProp.value) {
-          this.notifyChange({
-            type: 'property',
-            nodeId,
-            key: newProp.key,
-            value: newProp.value,
-          } as NodePropertyChangeEvent);
-        }
-      }
-      // Check for removed properties
-      for (const oldProp of oldProps) {
-        if (!newProps.some(p => p.key === oldProp.key)) {
-          this.notifyChange({
-            type: 'property',
-            nodeId,
-            key: oldProp.key,
-            value: undefined,
-          } as NodePropertyChangeEvent);
-        }
-      }
-    }
-    */
   }
 
   setProperty(nodeId: string, key: string, value: any, opId: OpId) {
