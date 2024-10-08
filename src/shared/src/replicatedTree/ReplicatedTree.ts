@@ -114,6 +114,35 @@ export class ReplicatedTree {
     this.applyProperty(op);
   }
 
+  getNodeByPath(path: string): TreeNode | undefined {
+    // Let's remove '/' at the start and at the end of the path
+    path = path.replace(/^\/+/, '');
+    path = path.replace(/\/+$/, '');
+
+    const pathParts = path.split('/');
+
+    return this.getNodeByPathArray(null, pathParts);
+  }
+
+  getNodeByPathArray(currentNode: TreeNode | null, path: string[]): TreeNode | undefined {
+    if (path.length === 0) {
+      return currentNode ?? undefined;
+    }
+
+    const firstName = path[0];
+    const rest = path.slice(1);
+
+    // Now, search recursively by name '_n' in children until the path is empty or not found.
+    const children = this.getChildren(currentNode ? currentNode.id : null);
+    for (const child of children) {
+      if (child.getProperty('_n')?.value === firstName) {
+        return this.getNodeByPathArray(child, rest);
+      }
+    }
+
+    return undefined;
+  }
+
   printTree() {
     return this.store.printTree(null);
   }
@@ -335,7 +364,6 @@ export class ReplicatedTree {
   }
 
   subscribe(nodeId: string | null, listener: (event: NodeChangeEvent) => void) {
-    console.log("subscribing to", nodeId);
     this.store.addChangeListener(nodeId, listener);
   }
 

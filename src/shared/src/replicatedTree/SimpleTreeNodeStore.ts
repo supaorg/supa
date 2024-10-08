@@ -25,7 +25,7 @@ export class SimpleTreeNodeStore {
       .map(id => {
         // Returning a copy so that the caller can't modify the node
         const node = this.nodes.get(id);
-        return node ? { ...node } : undefined;
+        return node ? node : undefined;
       })
       .filter(node => node !== undefined) as TreeNode[];
   }
