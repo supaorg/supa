@@ -1,18 +1,12 @@
-// # Replicated Tree with Properties - that is what Space is underneath 
-
-/* Notes
-ReplicatedTree can run both on the client and the server. 
-When running locally, the client will deal with saving ops and syncing
-with peers. Otherwise, the server will deal with it.
-
-On the client, UI will subscribe to ReplicatedTree and ask it to add/remove/update nodes.
-*/
-
 import { v4 as uuidv4 } from "uuid";
 import { moveNode, type MoveNode, type SetNodeProperty, isMoveNode, isSetProperty, type NodeOperation, setNodeProperty } from "./operations";
 import { NodePropertyType, TreeNode, TreeNodeProperty, NodeChangeEvent } from "./treeTypes";
 import { SimpleTreeNodeStore } from "./SimpleTreeNodeStore";
 
+/**
+ * ReplicatedTree is a tree data structure that allows to replicate it between peers.
+ * It uses CRDTs to manage sync between nodes and properties.
+ */
 export class ReplicatedTree {
   readonly peerId: string;
 
