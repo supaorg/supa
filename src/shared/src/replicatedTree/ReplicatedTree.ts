@@ -237,6 +237,7 @@ export class ReplicatedTree {
 
     if (this.moveOps.length === 0) {
       this.moveOps.push(op);
+      this.reportOpAsApplied(op);
       this.tryToMove(op);
       this.applyPendingMovesForParent(op.targetId);
       return;
