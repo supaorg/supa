@@ -17,6 +17,7 @@ export class ReplicatedTree {
   private pendingMovesWithMissingParent: Map<string, MoveNode[]> = new Map();
   private pendingPropertiesWithMissingNode: Map<string, SetNodeProperty[]> = new Map();
   private appliedOps: Set<string> = new Set();
+  private opAppliedListeners: ((op: NodeOperation) => void)[] = [];
 
   constructor(peerId: string, ops: NodeOperation[] | null = null) {
     this.peerId = peerId;
@@ -225,6 +226,7 @@ export class ReplicatedTree {
 
     if (op.id.isGreaterThan(lastOp.id)) {
       this.moveOps.push(op);
+      this.reportOpAsApplied(op);
       this.tryToMove(op);
     } else {
       // Here comes the core of the 'THE REPLICATED TREE ALGORITHM'.
@@ -249,6 +251,7 @@ export class ReplicatedTree {
 
       // Insert the op at the correct position
       this.moveOps.splice(insertIndex, 0, op);
+      this.reportOpAsApplied(op);
       this.tryToMove(op);
 
       // Redo the operations
@@ -260,6 +263,13 @@ export class ReplicatedTree {
     // After applying the move, check if it unblocks any pending moves
     // We use targetId here because this node might now be a parent for pending operations
     this.applyPendingMovesForParent(op.targetId);
+  }
+
+  private reportOpAsApplied(op: NodeOperation) {
+    this.appliedOps.add(op.id.toString());
+    for (const listener of this.opAppliedListeners) {
+      listener(op);
+    }
   }
 
   private applyOps(ops: NodeOperation[]) {
@@ -291,8 +301,6 @@ export class ReplicatedTree {
   }
 
   private tryToMove(op: MoveNode) {
-    this.appliedOps.add(op.id.toString());
-
     // If trying to move the target node under itself - do nothing
     if (op.targetId === op.parentId) return;
 
@@ -360,6 +368,7 @@ export class ReplicatedTree {
     // Apply the property if it's not already applied or if the current op is newer
     if (!prevProp || op.id.isGreaterThan(prevProp.prevOpId)) {
       this.store.setProperty(op.targetId, op.key, op.value, op.id);
+      this.reportOpAsApplied(op);
     }
   }
 
@@ -369,5 +378,13 @@ export class ReplicatedTree {
 
   unsubscribe(nodeId: string | null, listener: (event: NodeChangeEvent) => void) {
     this.store.removeChangeListener(nodeId, listener);
+  }
+
+  subscribeToOpApplied(listener: (op: NodeOperation) => void) {
+    this.opAppliedListeners.push(listener);
+  }
+
+  unsubscribeFromOpApplied(listener: (op: NodeOperation) => void) {
+    this.opAppliedListeners = this.opAppliedListeners.filter(l => l !== listener);
   }
 }

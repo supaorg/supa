@@ -5,6 +5,11 @@
   export let trees: ReplicatedTree[];
 
   function syncTrees() {
+    if (trees.length < 2) {
+      console.error("⛔️ Need at least 2 trees to sync!");
+      return;
+    }
+
     trees.forEach((tree) => {
       const ops = tree.popLocalOps();
 
