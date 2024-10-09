@@ -37,19 +37,3 @@ export function moveNode(clock: number, peerId: string, targetId: string, parent
 export function setNodeProperty(clock: number, peerId: string, targetId: string, key: string, value: NodePropertyType): SetNodeProperty {
   return { id: new OpId(clock, peerId), targetId, key, value };
 }
-
-/*
-
-function handleOperation(op: NodeOperation) {
-  if (isMoveNode(op)) {
-    console.log(`Moving node ${op.id} to parent ${op.parentId}`);
-  } else if (isSetProperty(op)) {
-    console.log(`Setting property ${op.key} of node ${op.id} to ${op.value}`);
-  }
-}
-
-// Example of creating operations
-const moveOp: MoveNode = { id: new OpId(1, "peer1"), targetId: "target1", parentId: "parent1" };
-const setProp: SetProperty = { id: new OpId(1, "peer2"), key: "color", value: "red" };
-
-*/

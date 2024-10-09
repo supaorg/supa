@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { moveNode, type MoveNode, type SetNodeProperty, isMoveNode, isSetProperty, type NodeOperation, setNodeProperty } from "./operations";
 import { NodePropertyType, TreeNode, TreeNodeProperty, NodeChangeEvent } from "./treeTypes";
 import { SimpleTreeNodeStore } from "./SimpleTreeNodeStore";
+import { OpId } from "./OpId";
 
 /**
  * ReplicatedTree is a tree data structure that allows to replicate it between peers.
@@ -155,6 +156,25 @@ export class ReplicatedTree {
   compareStructure(other: ReplicatedTree): boolean {
     return ReplicatedTree.compareNodes(null, this, other);
   }
+
+  compareMoveOps(other: ReplicatedTree): boolean {
+    const movesA = this.moveOps;
+    const movesB = other.getMoveOps();
+
+    if (movesA.length !== movesB.length) {
+      return false;
+    }
+
+    for (let i = 0; i < movesA.length; i++) {
+      if (!OpId.equals(movesA[i].id, movesB[i].id)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+
 
   static compareNodes(nodeId: string | null, treeA: ReplicatedTree, treeB: ReplicatedTree): boolean {
     const childrenA = treeA.store.getChildrenIds(nodeId);
