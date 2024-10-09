@@ -21,8 +21,17 @@
     });
 
     const firstTree = trees[0];
-    const allAreEqual = trees.every((tree) => firstTree.compareStructure(tree));
-    if (!allAreEqual) {
+
+
+    const haveEqualMoveOps = trees.every((tree) => firstTree.compareMoveOps(tree));
+    if (!haveEqualMoveOps) {
+      console.error("❌ Trees have different move ops!");
+    } else {
+      console.log("✅ Trees have equal move ops!");
+    }
+
+    const haveEqualStructure = trees.every((tree) => firstTree.compareStructure(tree));
+    if (!haveEqualStructure) {
       console.error("❌ Trees are not equal!");
     } else {
       console.log("✅ Trees are equal!");

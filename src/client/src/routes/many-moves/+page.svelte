@@ -58,7 +58,77 @@
     console.log("Compare trees after merging 2", tree1.compareStructure(tree2));
 
     trees = [tree1, tree2];
+
+
+    console.log("🚀 Starting random moves...");
+    randomMoves(trees, 100);
   });
+
+  function randomMoves(trees: ReplicatedTree[], numMoves: number = 1000) {
+    // Find a random node in the tree to move
+    // Find a random new parent for that node
+    // Move the node. We test both for legal and illegal moves
+
+    for (let i = 0; i < numMoves; i++) {
+      const tree = randomTree(trees);
+      const targetChild = randomNotNullNode(tree);
+      const newParent = randomNode(tree);
+      tree.move(targetChild, newParent);
+    }
+
+    // Sync trees
+    trees.forEach((tree) => {
+      const ops = tree.popLocalOps();
+      trees.forEach((t) => {
+        if (t.peerId !== tree.peerId) {
+          t.merge(ops);
+        }
+      });
+    });
+
+    // Compare trees
+    const firstTree = trees[0];
+
+    const haveEqualMoveOps = trees.every((tree) => firstTree.compareMoveOps(tree));
+    if (!haveEqualMoveOps) {
+      console.error("❌ Trees have different move ops!");
+    } else {
+      console.log("✅ Trees have equal move ops!");
+    }
+
+    const haveEqualStructure = trees.every((tree) => firstTree.compareStructure(tree));
+    if (!haveEqualStructure) {
+      console.error("❌ Trees are not equal!");
+    } else {
+      console.log("✅ Trees are equal!");
+    }
+  }
+
+  function randomNode(tree: ReplicatedTree) {
+    const moves = tree.getMoveOps();
+    const move = moves[Math.floor(Math.random() * moves.length)];
+    
+    // Get randomly targetId or parentId
+    if (Math.random() < 0.5) {
+      return move.targetId;
+    } else {
+      return move.parentId;
+    }
+  }
+
+  function randomNotNullNode(tree: ReplicatedTree) {
+    while (true) {
+      const node = randomNode(tree);
+      if (node !== null) {
+        return node;
+      }
+    }
+  }
+
+  function randomTree(trees: ReplicatedTree[]) {
+    return trees[Math.floor(Math.random() * trees.length)];
+  }
+  
 </script>
 
 <TreeTestSyncWrapper {trees} />
