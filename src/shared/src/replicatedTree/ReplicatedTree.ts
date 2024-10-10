@@ -264,9 +264,14 @@ export class ReplicatedTree {
         if (op.id.isGreaterThan(moveOp.id)) {
           insertIndex = i + 1;
           break;
-        } else {
+        }
+        else {
           this.undoMove(moveOp);
           opsToRedo.unshift(moveOp);
+
+          if (i === 0) {
+            insertIndex = 0;
+          }
         }
       }
 
@@ -325,7 +330,7 @@ export class ReplicatedTree {
     // If trying to move the target node under itself - do nothing
     if (op.targetId === op.parentId) return;
 
-    // If the target node is an ancestor of the parent node (cycle) - do nothing
+    // If we try to move the node (op.targetId) under one of its descendants (op.parentId) - do nothing
     if (op.parentId && this.isAncestor(op.parentId, op.targetId)) return;
 
     let targetNode = this.store.get(op.targetId);
@@ -362,11 +367,20 @@ export class ReplicatedTree {
     let targetId = childId;
     let node: TreeNode | undefined;
 
+    const maxDepth = 1000;
+    let depth = 0;
+
     while ((node = this.store.get(targetId))) {
       if (node.parentId === ancestorId) return true;
-      if (node.parentId === null || node.parentId === undefined) return false;
+      if (!node.parentId) return false;
+
+      if (depth > maxDepth) {
+        console.error(`isAncestor: max depth of ${maxDepth} reached. Perhaps, we have an infinite loop here.`);
+        return true;
+      }
 
       targetId = node.parentId;
+      depth++;
     }
 
     return false;
