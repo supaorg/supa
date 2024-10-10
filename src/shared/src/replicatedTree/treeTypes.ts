@@ -1,6 +1,6 @@
 import { OpId } from "./OpId";
 
-export type TreeNodeId = string | null | undefined;
+export type TreeNodeId = string;
 
 export type TreeNodeType = {
   id: string;
@@ -41,10 +41,10 @@ export type NodeChildrenChangeEvent = NodeChangeEvent & {
 
 export class TreeNode {
   readonly id: string;
-  readonly parentId: TreeNodeId;
+  readonly parentId: TreeNodeId | null;
   private properties: TreeNodeProperty[];
 
-  constructor(id: string, parentId: TreeNodeId) {
+  constructor(id: string, parentId: TreeNodeId | null) {
     this.id = id;
     this.parentId = parentId;
     this.properties = [];
@@ -74,7 +74,7 @@ export class TreeNode {
     this.properties = this.properties.filter(p => p.key !== key);
   }
 
-  cloneWithNewParent(newParentId: TreeNodeId): TreeNode {
+  cloneWithNewParent(newParentId: TreeNodeId | null): TreeNode {
     const clonedNode = new TreeNode(this.id, newParentId);
     this.properties.forEach(prop => {
       clonedNode.setProperty(prop.key, prop.value, prop.prevOpId);

@@ -5,8 +5,7 @@ export interface MoveNode {
   id: OpId;
   targetId: string;
   parentId: string | null;
-  // We accept undefined for prevParentId because when a new node is created, the previous parent is not defined.
-  prevParentId: string | null | undefined;
+  prevParentId: string | null;
 }
 
 export function printMoveOps(ops: MoveNode[]): string {

@@ -7,7 +7,7 @@
   export let onDelete: (tree: ReplicatedTree) => void;
 
   function createNode() {
-    tree.newNode();
+    tree.newNode(tree.rootNodeId);
   }
 
   function duplicateTree() {

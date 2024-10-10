@@ -5,11 +5,12 @@ import { SimpleTreeNodeStore } from "./SimpleTreeNodeStore";
 import { OpId } from "./OpId";
 
 /**
- * ReplicatedTree is a tree data structure that allows to replicate it between peers.
- * It uses CRDTs to manage sync between nodes and properties.
+ * ReplicatedTree is a tree data structure for storing nodes with properties.
+ * It uses CRDTs to manage seamless replication between peers.
  */
 export class ReplicatedTree {
   readonly peerId: string;
+  readonly rootNodeId: string;
 
   private lamportClock = 0;
   private store: SimpleTreeNodeStore;
@@ -25,7 +26,23 @@ export class ReplicatedTree {
     this.store = new SimpleTreeNodeStore();
 
     if (ops != null && ops.length > 0) {
+      // Find a move op that has a parentId as null
+      let rootMoveOp;
+      for (let i = 0; i < ops.length; i++) {
+        if (isMoveNode(ops[i]) && (ops[i] as MoveNode).parentId === null) {
+          rootMoveOp = ops[i];
+          break;
+        }
+      }
+      if (rootMoveOp) {
+        this.rootNodeId = rootMoveOp.targetId;
+      } else {
+        throw new Error('The operations has to contain a move operation with a parentId as null to set the root node');
+      }
+
       this.applyOps(ops);
+    } else {
+      this.rootNodeId = this.createRootNode();
     }
   }
 
@@ -42,7 +59,7 @@ export class ReplicatedTree {
     return parentId ? this.store.get(parentId) : undefined;
   }
 
-  getChildren(nodeId: string | null): TreeNode[] {
+  getChildren(nodeId: string): TreeNode[] {
     return this.store.getChildren(nodeId);
   }
 
@@ -89,11 +106,15 @@ export class ReplicatedTree {
     return ops;
   }
 
-  newNode(parentId: string | null = null): string {
-    // To create a node - we move a node with a fresh id under the parent.
-    // No need to have a separate "create node" operation.
+  private createRootNode(): string {
+    return this.createNode(null);
+  }
+
+  private createNode(parentId: string | null): string {
     const nodeId = uuidv4();
     this.lamportClock++;
+    // To create a node - we move a node with a fresh id under the parent.
+    // No need to have a separate "create node" operation.
     const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId, null);
     this.localOps.push(op);
     this.applyMove(op);
@@ -101,12 +122,20 @@ export class ReplicatedTree {
     return nodeId;
   }
 
-  move(nodeId: string, parentId: string | null) {
+  newNode(parentId: string): string {
+    return this.createNode(parentId);
+  }
+
+  move(nodeId: string, parentId: string) {
     const node = this.store.get(nodeId);
     this.lamportClock++;
     const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId, node?.parentId ?? null);
     this.localOps.push(op);
     this.applyMove(op);
+  }
+
+  deleteNode(nodeId: string) {
+    // @TODO: Implement moving a note to a trash node
   }
 
   setNodeProperty(nodeId: string, key: string, value: NodePropertyType) {
@@ -123,10 +152,15 @@ export class ReplicatedTree {
 
     const pathParts = path.split('/');
 
-    return this.getNodeByPathArray(null, pathParts);
+    const rootNode = this.store.get(this.rootNodeId);
+    if (!rootNode) {
+      throw new Error('The root node is not found');
+    }
+
+    return this.getNodeByPathArray(rootNode, pathParts);
   }
 
-  getNodeByPathArray(currentNode: TreeNode | null, path: string[]): TreeNode | undefined {
+  getNodeByPathArray(currentNode: TreeNode, path: string[]): TreeNode | undefined {
     if (path.length === 0) {
       return currentNode ?? undefined;
     }
@@ -135,7 +169,7 @@ export class ReplicatedTree {
     const rest = path.slice(1);
 
     // Now, search recursively by name '_n' in children until the path is empty or not found.
-    const children = this.getChildren(currentNode ? currentNode.id : null);
+    const children = this.getChildren(currentNode.id);
     for (const child of children) {
       if (child.getProperty('_n')?.value === firstName) {
         return this.getNodeByPathArray(child, rest);
@@ -146,7 +180,7 @@ export class ReplicatedTree {
   }
 
   printTree() {
-    return this.store.printTree(null);
+    return this.store.printTree(this.rootNodeId);
   }
 
   merge(ops: NodeOperation[]) {
@@ -154,7 +188,7 @@ export class ReplicatedTree {
   }
 
   compareStructure(other: ReplicatedTree): boolean {
-    return ReplicatedTree.compareNodes(null, this, other);
+    return ReplicatedTree.compareNodes(this.rootNodeId, this, other);
   }
 
   compareMoveOps(other: ReplicatedTree): boolean {
@@ -174,9 +208,7 @@ export class ReplicatedTree {
     return true;
   }
 
-
-
-  static compareNodes(nodeId: string | null, treeA: ReplicatedTree, treeB: ReplicatedTree): boolean {
+  static compareNodes(nodeId: string, treeA: ReplicatedTree, treeB: ReplicatedTree): boolean {
     const childrenA = treeA.store.getChildrenIds(nodeId);
     const childrenB = treeB.store.getChildrenIds(nodeId);
 

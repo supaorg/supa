@@ -12,5 +12,5 @@
 </script>
 
 <div style="margin-bottom: 20px;">
-  <TreeBlockViz {tree} nodeId={null} {treeStores} />
+  <TreeBlockViz {tree} nodeId={tree.rootNodeId} {treeStores} />
 </div>

@@ -8,18 +8,18 @@
   let trees: ReplicatedTree[] = [];
 
   function createTree1(tree: ReplicatedTree) {
-    const nodeA = tree.newNode(null);
+    const nodeA = tree.newNode(tree.rootNodeId);
     const nodeB = tree.newNode(nodeA);
     const nodeC = tree.newNode(nodeB);
     const nodeD = tree.newNode(nodeA);
     const nodeE = tree.newNode(nodeD);
-    const nodeF = tree.newNode(null);
+    const nodeF = tree.newNode(tree.rootNodeId);
     return { nodeA, nodeB, nodeC, nodeD, nodeE, nodeF };
   }
 
   function createTree2(tree: ReplicatedTree) {
-    const nodeX = tree.newNode(null);
-    const nodeY = tree.newNode(null);
+    const nodeX = tree.newNode(tree.rootNodeId);
+    const nodeY = tree.newNode(tree.rootNodeId);
     const nodeZ = tree.newNode(nodeX);
     const nodeW = tree.newNode(nodeY);
     const nodeV = tree.newNode(nodeW);
@@ -28,7 +28,7 @@
 
   onMount(() => {
     tree1 = new ReplicatedTree("peer1");
-    tree2 = new ReplicatedTree("peer2");
+    tree2 = new ReplicatedTree("peer2", tree1.getMoveOps());
 
     // Create different tree structures
     const nodes1 = createTree1(tree1);
@@ -44,7 +44,7 @@
     // Tree 1: Move nodeC under nodeF (changing its parent)
     tree1.move(nodes1.nodeC, nodes1.nodeF);
     // Tree 1: Move nodeE to root
-    tree1.move(nodes1.nodeE, null);
+    tree1.move(nodes1.nodeE, tree1.rootNodeId);
 
     // Tree 2: Move nodeZ under nodeV (potential conflict if merged with tree1)
     tree2.move(nodes2.nodeZ, nodes2.nodeV);
@@ -59,18 +59,19 @@
 
     trees = [tree1, tree2];
 
-    console.log("🚀 Starting random moves...");
-    randomMoves(trees, 100);
+    //randomMoves(trees, 100);
   });
 
   function randomMoves(trees: ReplicatedTree[], numMoves: number = 1000) {
+    console.log(`🚀 Starting ${numMoves} random moves...`);
+
     // Find a random node in the tree to move
     // Find a random new parent for that node
     // Move the node. We test both for legal and illegal moves
 
     for (let i = 0; i < numMoves; i++) {
       const tree = randomTree(trees);
-      const targetChild = randomNotNullNode(tree);
+      const targetChild = randomNode(tree);
       const newParent = randomNode(tree);
       tree.move(targetChild, newParent);
     }
@@ -111,21 +112,16 @@
   function randomNode(tree: ReplicatedTree) {
     const moves = tree.getMoveOps();
     const move = moves[Math.floor(Math.random() * moves.length)];
+
+    if (move.parentId === null) {
+      return move.targetId;
+    }
     
     // Get randomly targetId or parentId
     if (Math.random() < 0.5) {
       return move.targetId;
     } else {
       return move.parentId;
-    }
-  }
-
-  function randomNotNullNode(tree: ReplicatedTree) {
-    while (true) {
-      const node = randomNode(tree);
-      if (node !== null) {
-        return node;
-      }
     }
   }
 

@@ -9,7 +9,7 @@
   } from "@shared/replicatedTree/treeTypes";
 
   export let tree: ReplicatedTree;
-  export let nodeId: string | null;
+  export let nodeId: string;
   export let treeStores: {
     dragStartNodeIdStore: Writable<string | undefined>;
     dragOverNodeIdStore: Writable<string | null | undefined>;
@@ -59,7 +59,7 @@
   }
 
   onMount(() => {
-    isRoot = nodeId === null;
+    isRoot = nodeId === tree.rootNodeId;
     updateChildren();
     tree.subscribe(nodeId, handleTreeChange);
   });
