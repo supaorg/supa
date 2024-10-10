@@ -38,7 +38,7 @@
     tree1.merge(tree2.getMoveOps());
     tree2.merge(tree1.getMoveOps());
 
-    console.log("Compare trees after merging 1", tree1.compareStructure(tree2));
+    compareTrees([tree1, tree2]);
 
     // Manipulate trees independently
     // Tree 1: Move nodeC under nodeF (changing its parent)
@@ -55,10 +55,9 @@
     tree1.merge(tree2.getMoveOps());
     tree2.merge(tree1.getMoveOps());
 
-    console.log("Compare trees after merging 2", tree1.compareStructure(tree2));
+    compareTrees([tree1, tree2]);
 
     trees = [tree1, tree2];
-
 
     console.log("🚀 Starting random moves...");
     randomMoves(trees, 100);
@@ -86,8 +85,13 @@
       });
     });
 
-    // Compare trees
+    compareTrees(trees);
+  }
+
+  function compareTrees(trees: ReplicatedTree[]) {
     const firstTree = trees[0];
+
+    console.log(`🚀 Comparing ${trees.length} trees...`);
 
     const haveEqualMoveOps = trees.every((tree) => firstTree.compareMoveOps(tree));
     if (!haveEqualMoveOps) {
