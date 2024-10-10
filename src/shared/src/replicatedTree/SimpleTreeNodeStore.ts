@@ -32,40 +32,43 @@ export class SimpleTreeNodeStore {
 
   set(nodeId: string, node: TreeNode) {
     const oldNode = this.nodes.get(nodeId);
-    const prevParentId = oldNode?.parentId;
+    const prevParentId = oldNode ? oldNode.parentId : null;
     const newParentId = node.parentId;
 
     this.nodes.set(nodeId, node);
 
-    if (prevParentId !== newParentId) {
-      this.notifyChange({
-        type: 'move',
-        nodeId,
-        oldParentId: prevParentId,
-        newParentId,
-      } as NodeMoveEvent);
-
-      // Update childrenCache
-      if (newParentId !== undefined) {
-        const newChildren = [...this.getChildrenIds(newParentId), nodeId];
-        this.childrenCache.set(newParentId, newChildren);
-        this.notifyChange({
-          type: 'children',
-          nodeId: newParentId,
-          children: newChildren.map(id => this.nodes.get(id)!),
-        } as NodeChildrenChangeEvent);
-      }
-
-      if (prevParentId !== undefined) {
-        const newChildren = this.getChildrenIds(prevParentId).filter(id => id !== nodeId);
-        this.childrenCache.set(prevParentId, newChildren);
-        this.notifyChange({
-          type: 'children',
-          nodeId: prevParentId,
-          children: newChildren.map(id => this.nodes.get(id)!),
-        } as NodeChildrenChangeEvent);
-      }
+    if (prevParentId === newParentId) {
+      return;
     }
+
+    this.notifyChange({
+      type: 'move',
+      nodeId,
+      oldParentId: prevParentId,
+      newParentId,
+    } as NodeMoveEvent);
+
+    // Update childrenCache
+    if (newParentId !== null) {
+      const newChildren = [...this.getChildrenIds(newParentId), nodeId];
+      this.childrenCache.set(newParentId, newChildren);
+      this.notifyChange({
+        type: 'children',
+        nodeId: newParentId,
+        children: newChildren.map(id => this.nodes.get(id)!),
+      } as NodeChildrenChangeEvent);
+    }
+
+    if (prevParentId !== null) {
+      const newChildren = this.getChildrenIds(prevParentId).filter(id => id !== nodeId);
+      this.childrenCache.set(prevParentId, newChildren);
+      this.notifyChange({
+        type: 'children',
+        nodeId: prevParentId,
+        children: newChildren.map(id => this.nodes.get(id)!),
+      } as NodeChildrenChangeEvent);
+    }
+
   }
 
   setProperty(nodeId: string, key: string, value: any, opId: OpId) {
@@ -107,9 +110,9 @@ export class SimpleTreeNodeStore {
     this.changeListeners.get(event.nodeId)?.forEach(listener => listener(event));
   }
 
-  printTree(nodeId: TreeNodeId = null, indent: string = "", isLast: boolean = true): string {
+  printTree(nodeId: TreeNodeId, indent: string = "", isLast: boolean = true): string {
     const prefix = indent + (isLast ? "└── " : "├── ");
-    let result = prefix + (nodeId === null ? "root" : nodeId) + "\n";
+    let result = prefix + nodeId + "\n";
 
     let nodeName: string | null = null;
 

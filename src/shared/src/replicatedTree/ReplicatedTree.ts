@@ -21,7 +21,7 @@ export class ReplicatedTree {
   private appliedOps: Set<string> = new Set();
   private opAppliedListeners: ((op: NodeOperation) => void)[] = [];
 
-  constructor(peerId: string, ops: NodeOperation[] | null = null) {
+  constructor(peerId: string, ops: ReadonlyArray<NodeOperation> | null = null) {
     this.peerId = peerId;
     this.store = new SimpleTreeNodeStore();
 
