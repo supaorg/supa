@@ -46,7 +46,7 @@ export class ReplicatedTree {
     }
   }
 
-  getMoveOps(): MoveNode[] {
+  getMoveOps(): ReadonlyArray<MoveNode> {
     return this.moveOps;
   }
 
@@ -183,7 +183,7 @@ export class ReplicatedTree {
     return this.store.printTree(this.rootNodeId);
   }
 
-  merge(ops: NodeOperation[]) {
+  merge(ops: ReadonlyArray<NodeOperation>) {
     this.applyOps(ops);
   }
 
@@ -255,7 +255,7 @@ export class ReplicatedTree {
   }
 
   private applyMove(op: MoveNode) {
-    // Check if a parent (unless it's the root - 'null') exists for the move operation.
+    // Check if a parent (unless we're dealing with the root node) exists for the move operation.
     // If it doesn't exist, stash the move op for later
     if (op.parentId !== null && !this.store.get(op.parentId)) {
       if (!this.pendingMovesWithMissingParent.has(op.parentId)) {
@@ -289,32 +289,26 @@ export class ReplicatedTree {
       // The replicas are basically forced to apply the moves in the same order (by undo-do-redo).
       // So if a conflict or a cycle is introduced by some of the peers - the algorithm will resolve it.
       // tryToMove function has the logic to detect cycles and will ignore the move if it creates a cycle.
-      const opsToRedo: MoveNode[] = [];
-      let insertIndex = this.moveOps.length;
+      let newOpIndex = this.moveOps.length;
       for (let i = this.moveOps.length - 1; i >= 0; i--) {
         const moveOp = this.moveOps[i];
+        newOpIndex = i;
         if (op.id.isGreaterThan(moveOp.id)) {
-          insertIndex = i + 1;
           break;
         }
         else {
           this.undoMove(moveOp);
-          opsToRedo.unshift(moveOp);
-
-          if (i === 0) {
-            insertIndex = 0;
-          }
         }
       }
 
       // Insert the op at the correct position
-      this.moveOps.splice(insertIndex, 0, op);
+      this.moveOps.splice(newOpIndex + 1, 0, op);
       this.reportOpAsApplied(op);
       this.tryToMove(op);
 
       // Redo the operations
-      for (const moveOp of opsToRedo) {
-        this.tryToMove(moveOp);
+      for (let i = newOpIndex + 2; i < this.moveOps.length; i++) {
+        this.tryToMove(this.moveOps[i]);
       }
     }
 
@@ -330,7 +324,7 @@ export class ReplicatedTree {
     }
   }
 
-  private applyOps(ops: NodeOperation[]) {
+  private applyOps(ops: ReadonlyArray<NodeOperation>) {
     for (const op of ops) {
       if (this.appliedOps.has(op.id.toString())) {
         continue;

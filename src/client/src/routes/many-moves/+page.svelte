@@ -55,11 +55,14 @@
     tree1.merge(tree2.getMoveOps());
     tree2.merge(tree1.getMoveOps());
 
-    compareTrees([tree1, tree2]);
+    const shuffledMoveOps = [...tree1.getMoveOps()].sort(() => Math.random() - 0.5);
+    const tree3 = new ReplicatedTree("peer3", shuffledMoveOps);
 
-    trees = [tree1, tree2];
+    compareTrees([tree1, tree2, tree3]);
 
-    //randomMoves(trees, 100);
+    trees = [tree1, tree2, tree3];
+
+    randomMoves(trees, 100);
   });
 
   function randomMoves(trees: ReplicatedTree[], numMoves: number = 1000) {
