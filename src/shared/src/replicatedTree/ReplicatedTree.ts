@@ -19,6 +19,7 @@ export class ReplicatedTree {
   private pendingMovesWithMissingParent: Map<string, MoveNode[]> = new Map();
   private pendingPropertiesWithMissingNode: Map<string, SetNodeProperty[]> = new Map();
   private appliedOps: Set<string> = new Set();
+  private parentIdBeforeMove: Map<OpId, string | null | undefined> = new Map();
   private opAppliedListeners: ((op: NodeOperation) => void)[] = [];
 
   constructor(peerId: string, ops: ReadonlyArray<NodeOperation> | null = null) {
@@ -115,7 +116,7 @@ export class ReplicatedTree {
     this.lamportClock++;
     // To create a node - we move a node with a fresh id under the parent.
     // No need to have a separate "create node" operation.
-    const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId, null);
+    const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId);
     this.localOps.push(op);
     this.applyMove(op);
 
@@ -129,7 +130,7 @@ export class ReplicatedTree {
   move(nodeId: string, parentId: string) {
     const node = this.store.get(nodeId);
     this.lamportClock++;
-    const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId, node?.parentId ?? null);
+    const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId);
     this.localOps.push(op);
     this.applyMove(op);
   }
@@ -184,6 +185,14 @@ export class ReplicatedTree {
   }
 
   merge(ops: ReadonlyArray<NodeOperation>) {
+    /*
+    if (ops.length > 100) {
+      this.applyOpsOptimizedForLotsOfMoves(ops);
+    } else {
+      this.applyOps(ops);
+    }
+    */
+
     this.applyOps(ops);
   }
 
@@ -247,6 +256,7 @@ export class ReplicatedTree {
     return true;
   }
 
+  /** Updates the lamport clock with the counter value of the operation */
   private updateLamportClock(operation: NodeOperation): void {
     // This is how Lamport clock updates with a foreign operation that has a greater counter value.
     if (operation.id.counter > this.lamportClock) {
@@ -267,17 +277,9 @@ export class ReplicatedTree {
 
     this.updateLamportClock(op);
 
-    if (this.moveOps.length === 0) {
-      this.moveOps.push(op);
-      this.reportOpAsApplied(op);
-      this.tryToMove(op);
-      this.applyPendingMovesForParent(op.targetId);
-      return;
-    }
+    const lastOp = this.moveOps.length > 0 ? this.moveOps[this.moveOps.length - 1] : null;
 
-    const lastOp = this.moveOps[this.moveOps.length - 1];
-
-    if (op.id.isGreaterThan(lastOp.id)) {
+    if (lastOp === null || op.id.isGreaterThan(lastOp.id)) {
       this.moveOps.push(op);
       this.reportOpAsApplied(op);
       this.tryToMove(op);
@@ -289,10 +291,10 @@ export class ReplicatedTree {
       // The replicas are basically forced to apply the moves in the same order (by undo-do-redo).
       // So if a conflict or a cycle is introduced by some of the peers - the algorithm will resolve it.
       // tryToMove function has the logic to detect cycles and will ignore the move if it creates a cycle.
-      let newOpIndex = this.moveOps.length;
+      let targetIndex = this.moveOps.length;
       for (let i = this.moveOps.length - 1; i >= 0; i--) {
         const moveOp = this.moveOps[i];
-        newOpIndex = i;
+        targetIndex = i;
         if (op.id.isGreaterThan(moveOp.id)) {
           break;
         }
@@ -302,12 +304,12 @@ export class ReplicatedTree {
       }
 
       // Insert the op at the correct position
-      this.moveOps.splice(newOpIndex + 1, 0, op);
+      this.moveOps.splice(targetIndex + 1, 0, op);
       this.reportOpAsApplied(op);
       this.tryToMove(op);
 
-      // Redo the operations
-      for (let i = newOpIndex + 2; i < this.moveOps.length; i++) {
+      // Redo all of the operations after the operation that we applied
+      for (let i = targetIndex + 2; i < this.moveOps.length; i++) {
         this.tryToMove(this.moveOps[i]);
       }
     }
@@ -338,6 +340,30 @@ export class ReplicatedTree {
     }
   }
 
+  /** Applies operations in an optimized way, sorting move ops by OpId to avoid undo-do-redo cycles */
+  private applyOpsOptimizedForLotsOfMoves(ops: ReadonlyArray<NodeOperation>) {
+    const newMoveOps = ops.filter(op => isMoveNode(op) && !this.appliedOps.has(op.id.toString()));
+    if (newMoveOps.length > 0) {
+      // Clear the nodes
+
+      // Get an array of all move ops (without already applied ones)
+      const allMoveOps = [...this.moveOps, ...newMoveOps] as MoveNode[];
+      // Important to sort them by OpId, so there's no undo-do-redo cycles (the conflict resolution algorithm)
+      allMoveOps.sort((a, b) => OpId.compare(a.id, b.id));
+      for (let i = 0, len = allMoveOps.length; i < len; i++) {
+        const op = allMoveOps[i];
+        this.applyMove(op);
+      }
+    }
+
+    // Get an array of all property ops (without already applied ones)
+    const propertyOps = ops.filter(op => isSetProperty(op) && !this.appliedOps.has(op.id.toString())) as SetNodeProperty[];
+    for (let i = 0, len = propertyOps.length; i < len; i++) {
+      const op = propertyOps[i];
+      this.applyProperty(op);
+    }
+  }
+
   private applyPendingMovesForParent(parentId: string) {
     if (!this.store.get(parentId)) {
       // Parent still doesn't exist, so we can't apply these moves yet
@@ -353,13 +379,17 @@ export class ReplicatedTree {
   }
 
   private tryToMove(op: MoveNode) {
+    let targetNode = this.store.get(op.targetId);
+
+    if (targetNode) {
+      this.parentIdBeforeMove.set(op.id, targetNode.parentId);
+    }
+
     // If trying to move the target node under itself - do nothing
     if (op.targetId === op.parentId) return;
 
     // If we try to move the node (op.targetId) under one of its descendants (op.parentId) - do nothing
     if (op.parentId && this.isAncestor(op.parentId, op.targetId)) return;
-
-    let targetNode = this.store.get(op.targetId);
 
     if (!targetNode) {
       // Create a new node
@@ -380,11 +410,18 @@ export class ReplicatedTree {
   private undoMove(op: MoveNode) {
     const targetNode = this.store.get(op.targetId);
     if (!targetNode) {
+      // @TODO: should I be worried if this ever happens?
       //throw new Error(`targetNode ${op.targetId} not found`);
       return;
     }
 
-    const nodeWithPrevParent = targetNode.cloneWithNewParent(op.prevParentId);
+    const prevParentId = this.parentIdBeforeMove.get(op.id);
+    if (prevParentId === undefined) {
+      // @TODO: delete the node?
+      return;
+    }
+
+    const nodeWithPrevParent = targetNode.cloneWithNewParent(prevParentId);
     this.store.set(op.targetId, nodeWithPrevParent);
   }
 
@@ -427,6 +464,7 @@ export class ReplicatedTree {
     const prevProp = targetNode.getProperty(op.key);
 
     // Apply the property if it's not already applied or if the current op is newer
+    // This is the last writer wins approach that ensures the same state between replicas.
     if (!prevProp || op.id.isGreaterThan(prevProp.prevOpId)) {
       this.store.setProperty(op.targetId, op.key, op.value, op.id);
       this.reportOpAsApplied(op);

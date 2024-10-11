@@ -2,7 +2,7 @@ import { OpId } from "./OpId";
 import { TreeNode, TreeNodeId, NodeChangeEvent, NodeMoveEvent, NodePropertyChangeEvent, NodeChildrenChangeEvent } from "./treeTypes";
 
 export class SimpleTreeNodeStore {
-  private nodes: Map<string, TreeNode>;
+  private nodes: Map<TreeNodeId, TreeNode>;
   private childrenCache: Map<TreeNodeId, string[]>;
   private changeListeners: Map<TreeNodeId, Set<(event: NodeChangeEvent) => void>> = new Map();
   private globalChangeListeners: Set<(event: NodeChangeEvent) => void> = new Set();
@@ -80,7 +80,6 @@ export class SimpleTreeNodeStore {
         children: childrenInOldParent.map(id => this.nodes.get(id)!),
       } as NodeChildrenChangeEvent);
     }
-
   }
 
   setProperty(nodeId: string, key: string, value: any, opId: OpId) {

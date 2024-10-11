@@ -76,9 +76,7 @@ export class TreeNode {
 
   cloneWithNewParent(newParentId: TreeNodeId | null): TreeNode {
     const clonedNode = new TreeNode(this.id, newParentId);
-    this.properties.forEach(prop => {
-      clonedNode.setProperty(prop.key, prop.value, prop.prevOpId);
-    });
+    clonedNode.properties = [...this.properties];
     return clonedNode;
   }
 }

@@ -5,11 +5,6 @@ export interface MoveNode {
   id: OpId;
   targetId: string;
   parentId: string | null;
-  prevParentId: string | null;
-}
-
-export function printMoveOps(ops: MoveNode[]): string {
-  return ops.map(op => `(${op.prevParentId}, ${op.targetId}) → (${op.parentId}, ${op.targetId})   ${op.id.toString()}`).join('\n');
 }
 
 export interface SetNodeProperty {
@@ -29,8 +24,8 @@ export function isSetProperty(op: NodeOperation): op is SetNodeProperty {
   return 'key' in op;
 }
 
-export function moveNode(clock: number, peerId: string, targetId: string, parentId: string | null, oldParentId: string | null): MoveNode {
-  return { id: new OpId(clock, peerId), targetId, parentId, prevParentId: oldParentId };
+export function moveNode(clock: number, peerId: string, targetId: string, parentId: string | null): MoveNode {
+  return { id: new OpId(clock, peerId), targetId, parentId };
 }
 
 export function setNodeProperty(clock: number, peerId: string, targetId: string, key: string, value: NodePropertyType): SetNodeProperty {
