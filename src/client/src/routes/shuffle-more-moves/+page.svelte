@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
-  import { type MoveNode, printMoveOps } from "@shared/replicatedTree/operations";
+  import { type MoveNode } from "@shared/replicatedTree/operations";
   import { OpId } from "@shared/replicatedTree/OpId";
   import { onMount } from "svelte";
 
@@ -12,22 +12,22 @@
 
   onMount(() => {
     const ops = [
-      { id: new OpId(0, 'peer1'), targetId: 'R', parentId: null, prevParentId: null } as MoveNode,
-      { id: new OpId(1, 'peer1'), targetId: 'A', parentId: 'R', prevParentId: null } as MoveNode,
-      { id: new OpId(2, 'peer1'), targetId: 'B', parentId: 'R', prevParentId: null } as MoveNode,
-      { id: new OpId(3, 'peer1'), targetId: 'B', parentId: 'A', prevParentId: 'R' } as MoveNode,
-      { id: new OpId(3, 'peer2'), targetId: 'A', parentId: 'B', prevParentId: 'R' } as MoveNode,
+      { id: new OpId(0, 'peer1'), targetId: 'R', parentId: null } as MoveNode,
+      { id: new OpId(1, 'peer1'), targetId: 'A', parentId: 'R' } as MoveNode,
+      { id: new OpId(2, 'peer1'), targetId: 'B', parentId: 'R' } as MoveNode,
+      { id: new OpId(3, 'peer1'), targetId: 'B', parentId: 'A' } as MoveNode,
+      { id: new OpId(3, 'peer2'), targetId: 'A', parentId: 'B' } as MoveNode,
     ];
     
     tree1 = new ReplicatedTree("peer1", ops);
 
     const ops2 = [
-      { id: new OpId(0, 'peer1'), targetId: 'R', parentId: null, prevParentId: null } as MoveNode,
-      { id: new OpId(1, 'peer1'), targetId: 'A', parentId: 'R', prevParentId: null } as MoveNode,
-      { id: new OpId(2, 'peer1'), targetId: 'B', parentId: 'R', prevParentId: null } as MoveNode,
+      { id: new OpId(0, 'peer1'), targetId: 'R', parentId: null } as MoveNode,
+      { id: new OpId(1, 'peer1'), targetId: 'A', parentId: 'R' } as MoveNode,
+      { id: new OpId(2, 'peer1'), targetId: 'B', parentId: 'R' } as MoveNode,
       // Here our cycle but in a different order
-      { id: new OpId(3, 'peer2'), targetId: 'A', parentId: 'B', prevParentId: 'R' } as MoveNode,
-      { id: new OpId(3, 'peer1'), targetId: 'B', parentId: 'A', prevParentId: 'R' } as MoveNode,
+      { id: new OpId(3, 'peer2'), targetId: 'A', parentId: 'B' } as MoveNode,
+      { id: new OpId(3, 'peer1'), targetId: 'B', parentId: 'A' } as MoveNode,
     ];
 
     const tree2 = new ReplicatedTree("peer2", ops2);
@@ -47,8 +47,6 @@
     printedTree1 = tree1.printTree();
     printedTree2 = tree2.printTree();
     printedTree3 = tree3.printTree();
-
-    console.log(printMoveOps(randomShuffle));
 
     console.log('Trees are equal:', tree1.compareStructure(tree3));
   });

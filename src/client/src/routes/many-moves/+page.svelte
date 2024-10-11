@@ -2,10 +2,12 @@
   import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import { onMount } from "svelte";
   import TreeTestSyncWrapper from "$lib/comps/test-sync/TreeTestSyncWrapper.svelte";
-
+ 
   let tree1: ReplicatedTree;
   let tree2: ReplicatedTree;
   let trees: ReplicatedTree[] = [];
+
+  let treesForViz: ReplicatedTree[] = [];
 
   function createTree1(tree: ReplicatedTree) {
     const nodeA = tree.newNode(tree.rootNodeId);
@@ -27,6 +29,18 @@
   }
 
   onMount(() => {
+    /*
+    tree1 = new ReplicatedTree("peer1");
+    tree1.newNode(tree1.rootNodeId);
+    tree1.newNode(tree1.rootNodeId);
+
+    tree2 = new ReplicatedTree("peer2", tree1.getMoveOps());
+    tree2.newNode(tree2.rootNodeId);
+    tree2.newNode(tree2.rootNodeId);
+
+    trees = [tree1, tree2];
+    */
+
     tree1 = new ReplicatedTree("peer1");
     tree2 = new ReplicatedTree("peer2", tree1.getMoveOps());
 
@@ -62,8 +76,10 @@
 
     trees = [tree1, tree2, tree3];
 
-    randomMoves(trees, 100);
+    randomMoves(trees, 10000);
   });
+
+  type RandomAction = 'move' | 'create';
 
   function randomMoves(trees: ReplicatedTree[], numMoves: number = 1000) {
     console.log(`🚀 Starting ${numMoves} random moves...`);
@@ -72,11 +88,28 @@
     // Find a random new parent for that node
     // Move the node. We test both for legal and illegal moves
 
+    const chanceOfCreate = 0.01;
+    const chanceOfMoveInANonExistingParent = 0.05;
+
     for (let i = 0; i < numMoves; i++) {
-      const tree = randomTree(trees);
-      const targetChild = randomNode(tree);
-      const newParent = randomNode(tree);
-      tree.move(targetChild, newParent);
+      const action: RandomAction = Math.random() < chanceOfCreate ? 'create' : 'move';
+
+      if (action === 'create') {
+        const tree = randomTree(trees);
+        tree.newNode(randomNode(tree));
+      } else {
+        const tree = randomTree(trees);
+        const targetChild = randomNode(tree);
+
+        let newParent: string;
+        if (Math.random() < chanceOfMoveInANonExistingParent) {
+          newParent = randomNode(tree);
+        } else {
+          newParent = Math.random().toString(36).substring(2, 8);
+        }
+
+        tree.move(targetChild, newParent);
+      }
     }
 
     // Sync trees
@@ -90,6 +123,8 @@
     });
 
     compareTrees(trees);
+
+    treesForViz = [...trees];
   }
 
   function compareTrees(trees: ReplicatedTree[]) {
@@ -134,4 +169,4 @@
   
 </script>
 
-<TreeTestSyncWrapper {trees} />
+<TreeTestSyncWrapper trees={treesForViz} />

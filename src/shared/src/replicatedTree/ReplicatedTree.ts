@@ -43,7 +43,8 @@ export class ReplicatedTree {
 
       this.applyOps(ops);
     } else {
-      this.rootNodeId = this.createRootNode();
+      // The root is our only node that will have a null parentId
+      this.rootNodeId = this.newNodeInternal(null);
     }
   }
 
@@ -107,11 +108,7 @@ export class ReplicatedTree {
     return ops;
   }
 
-  private createRootNode(): string {
-    return this.createNode(null);
-  }
-
-  private createNode(parentId: string | null): string {
+  private newNodeInternal(parentId: string | null): string {
     const nodeId = uuidv4();
     this.lamportClock++;
     // To create a node - we move a node with a fresh id under the parent.
@@ -124,19 +121,14 @@ export class ReplicatedTree {
   }
 
   newNode(parentId: string): string {
-    return this.createNode(parentId);
+    return this.newNodeInternal(parentId);
   }
 
   move(nodeId: string, parentId: string) {
-    const node = this.store.get(nodeId);
     this.lamportClock++;
     const op = moveNode(this.lamportClock, this.peerId, nodeId, parentId);
     this.localOps.push(op);
     this.applyMove(op);
-  }
-
-  deleteNode(nodeId: string) {
-    // @TODO: Implement moving a note to a trash node
   }
 
   setNodeProperty(nodeId: string, key: string, value: NodePropertyType) {

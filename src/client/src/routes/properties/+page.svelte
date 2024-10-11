@@ -8,7 +8,7 @@
   onMount(() => {
     const t1 = new ReplicatedTree("peer1");
 
-    const node = t1.newNode();
+    const node = t1.newNode(t1.rootNodeId);
     t1.setNodeProperty(node, "_n", "Node A");
 
     const t2 = new ReplicatedTree("peer2", t1.popLocalOps());
