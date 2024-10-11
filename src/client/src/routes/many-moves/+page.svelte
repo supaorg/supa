@@ -76,7 +76,7 @@
 
     trees = [tree1, tree2, tree3];
 
-    randomMoves(trees, 10000);
+    randomMoves(trees, 1000);
   });
 
   type RandomAction = 'move' | 'create';
@@ -88,7 +88,7 @@
     // Find a random new parent for that node
     // Move the node. We test both for legal and illegal moves
 
-    const chanceOfCreate = 0.01;
+    const chanceOfCreate = 0.05;
     const chanceOfMoveInANonExistingParent = 0.05;
 
     for (let i = 0; i < numMoves; i++) {
@@ -103,9 +103,9 @@
 
         let newParent: string;
         if (Math.random() < chanceOfMoveInANonExistingParent) {
-          newParent = randomNode(tree);
-        } else {
           newParent = Math.random().toString(36).substring(2, 8);
+        } else {
+          newParent = randomNode(tree);
         }
 
         tree.move(targetChild, newParent);
