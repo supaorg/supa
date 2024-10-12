@@ -2,45 +2,18 @@
   import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import { onMount } from "svelte";
   import TreeTestSyncWrapper from "$lib/comps/test-sync/TreeTestSyncWrapper.svelte";
- 
-  let tree1: ReplicatedTree;
-  let tree2: ReplicatedTree;
+  import { fuzzyTest } from "@shared/replicatedTree/fuzzyTests";
+
   let trees: ReplicatedTree[] = [];
 
-  let treesForViz: ReplicatedTree[] = [];
-
-  function createTree1(tree: ReplicatedTree) {
-    const nodeA = tree.newNode(tree.rootNodeId);
-    const nodeB = tree.newNode(nodeA);
-    const nodeC = tree.newNode(nodeB);
-    const nodeD = tree.newNode(nodeA);
-    const nodeE = tree.newNode(nodeD);
-    const nodeF = tree.newNode(tree.rootNodeId);
-    return { nodeA, nodeB, nodeC, nodeD, nodeE, nodeF };
-  }
-
-  function createTree2(tree: ReplicatedTree) {
-    const nodeX = tree.newNode(tree.rootNodeId);
-    const nodeY = tree.newNode(tree.rootNodeId);
-    const nodeZ = tree.newNode(nodeX);
-    const nodeW = tree.newNode(nodeY);
-    const nodeV = tree.newNode(nodeW);
-    return { nodeX, nodeY, nodeZ, nodeW, nodeV };
-  }
-
   onMount(() => {
+    try {
+      trees = fuzzyTest(3, 100, 100);
+    } catch (error) {
+      console.error(error);
+    }
+
     /*
-    tree1 = new ReplicatedTree("peer1");
-    tree1.newNode(tree1.rootNodeId);
-    tree1.newNode(tree1.rootNodeId);
-
-    tree2 = new ReplicatedTree("peer2", tree1.getMoveOps());
-    tree2.newNode(tree2.rootNodeId);
-    tree2.newNode(tree2.rootNodeId);
-
-    trees = [tree1, tree2];
-    */
-
     tree1 = new ReplicatedTree("peer1");
     tree2 = new ReplicatedTree("peer2", tree1.getMoveOps());
 
@@ -69,7 +42,9 @@
     tree1.merge(tree2.getMoveOps());
     tree2.merge(tree1.getMoveOps());
 
-    const shuffledMoveOps = [...tree1.getMoveOps()].sort(() => Math.random() - 0.5);
+    const shuffledMoveOps = [...tree1.getMoveOps()].sort(
+      () => Math.random() - 0.5,
+    );
     const tree3 = new ReplicatedTree("peer3", shuffledMoveOps);
 
     compareTrees([tree1, tree2, tree3]);
@@ -82,9 +57,10 @@
       console.log(`🚀 Running ${i + 1} of ${tries}...`);
       randomMoves(trees, 1000);
     }
+      */
   });
 
-  type RandomAction = 'move' | 'create';
+  type RandomAction = "move" | "create";
 
   function randomMoves(trees: ReplicatedTree[], numMoves: number = 1000) {
     console.log(`🧪 Starting ${numMoves} random moves...`);
@@ -97,9 +73,10 @@
     const chanceOfMoveInANonExistingParent = 0.01;
 
     for (let i = 0; i < numMoves; i++) {
-      const action: RandomAction = Math.random() < chanceOfCreate ? 'create' : 'move';
+      const action: RandomAction =
+        Math.random() < chanceOfCreate ? "create" : "move";
 
-      if (action === 'create') {
+      if (action === "create") {
         const tree = randomTree(trees);
         tree.newNode(randomNode(tree));
       } else {
@@ -129,7 +106,7 @@
 
     compareTrees(trees);
 
-    treesForViz = [...trees];
+    //treesForViz = [...trees];
   }
 
   function compareTrees(trees: ReplicatedTree[]) {
@@ -137,21 +114,24 @@
 
     console.log(`🚀 Comparing ${trees.length} trees...`);
 
-    const haveEqualMoveOps = trees.every((tree) => firstTree.compareMoveOps(tree));
+    const haveEqualMoveOps = trees.every((tree) =>
+      firstTree.compareMoveOps(tree),
+    );
     if (!haveEqualMoveOps) {
       console.error("❌ Trees have different move ops!");
     } else {
       console.log("✅ Trees have equal move ops!");
     }
 
-    const haveEqualStructure = trees.every((tree) => firstTree.compareStructure(tree));
+    const haveEqualStructure = trees.every((tree) =>
+      firstTree.compareStructure(tree),
+    );
     if (!haveEqualStructure) {
       console.error("❌ Trees are not equal!");
     } else {
       console.log("✅ Trees are equal!");
     }
   }
-  
 
   function randomNode(tree: ReplicatedTree) {
     const nodes = tree.getAllNodes(); // Assuming you add this method to ReplicatedTree
@@ -162,7 +142,6 @@
   function randomTree(trees: ReplicatedTree[]) {
     return trees[Math.floor(Math.random() * trees.length)];
   }
-  
 </script>
 
-<TreeTestSyncWrapper trees={treesForViz} />
+<TreeTestSyncWrapper {trees} />
