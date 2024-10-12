@@ -1,6 +1,6 @@
 import { ReplicatedTree } from "./ReplicatedTree";
 
-type RandomAction = 'move' | 'create';
+type RandomAction = 'move' | 'create' | 'setProperty';
 
 export function fuzzyTest(treesCount: number = 3, tries: number = 10, movesPerTry: number = 1000): ReplicatedTree[] {
   if (treesCount < 2) {
@@ -17,7 +17,7 @@ export function fuzzyTest(treesCount: number = 3, tries: number = 10, movesPerTr
   for (let i = 0; i < tries; i++) {
     console.log(`🧪 Starting try ${i + 1}...`);
 
-    randomMoves(trees, movesPerTry);
+    randomMovesAndProps(trees, movesPerTry);
 
     // Sync trees
     trees.forEach((tree) => {
@@ -39,34 +39,47 @@ export function fuzzyTest(treesCount: number = 3, tries: number = 10, movesPerTr
   return trees;
 }
 
-function randomMoves(trees: ReplicatedTree[], numMoves: number = 1000) {
+function randomMovesAndProps(trees: ReplicatedTree[], numMoves: number = 1000) {
   console.log(`Doing ${numMoves} random moves...`);
 
   // Find a random node in the tree to move
   // Find a random new parent for that node
   // Move the node. We test both for legal and illegal moves
 
-  const chanceOfCreate = 0.025;
-  const chanceOfMoveInANonExistingParent = 0.01;
+  const actions: Array<{ action: RandomAction; weight: number }> = [
+    { action: 'create', weight: 0.025 },
+    { action: 'move', weight: 0.925 },
+    { action: 'setProperty', weight: 0.05 }
+  ];
+  const totalWeight = actions.reduce((sum, { weight }) => sum + weight, 0);
 
   for (let i = 0; i < numMoves; i++) {
-    const action: RandomAction = Math.random() < chanceOfCreate ? 'create' : 'move';
+    const randomValue = Math.random() * totalWeight;
+    let cumulativeWeight = 0;
 
-    if (action === 'create') {
-      const tree = randomTree(trees);
-      tree.newNode(randomNode(tree));
-    } else {
-      const tree = randomTree(trees);
-      const targetChild = randomNode(tree);
+    const selectedAction = actions.find(({ weight }) => {
+      cumulativeWeight += weight;
+      return randomValue < cumulativeWeight;
+    })?.action || 'move'; // Default to 'move' if nothing is selected
 
-      let newParent: string;
-      if (Math.random() < chanceOfMoveInANonExistingParent) {
-        newParent = Math.random().toString(36).substring(2, 8);
-      } else {
-        newParent = randomNode(tree);
-      }
+    const tree = randomTree(trees);
 
-      tree.move(targetChild, newParent);
+    switch (selectedAction) {
+      case 'create':
+        tree.newNode(randomNode(tree));
+        break;
+      case 'move':
+        const targetChild = randomNode(tree);
+        const chanceOfMoveInANonExistingParent = 0.01;
+        const newParent = Math.random() < chanceOfMoveInANonExistingParent ? Math.random().toString(36).substring(2, 8) : randomNode(tree);
+        tree.move(targetChild, newParent);
+        break;
+      case 'setProperty':
+        // Implement setProperty logic here
+        const node = randomNode(tree);
+        const randomNum = Math.floor(Math.random() * 100);
+        tree.setNodeProperty(node, "test", randomNum);
+        break;
     }
   }
 }

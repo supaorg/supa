@@ -12,52 +12,6 @@
     } catch (error) {
       console.error(error);
     }
-
-    /*
-    tree1 = new ReplicatedTree("peer1");
-    tree2 = new ReplicatedTree("peer2", tree1.getMoveOps());
-
-    // Create different tree structures
-    const nodes1 = createTree1(tree1);
-    const nodes2 = createTree2(tree2);
-
-    // Merge results
-    tree1.merge(tree2.getMoveOps());
-    tree2.merge(tree1.getMoveOps());
-
-    compareTrees([tree1, tree2]);
-
-    // Manipulate trees independently
-    // Tree 1: Move nodeC under nodeF (changing its parent)
-    tree1.move(nodes1.nodeC, nodes1.nodeF);
-    // Tree 1: Move nodeE to root
-    tree1.move(nodes1.nodeE, tree1.rootNodeId);
-
-    // Tree 2: Move nodeZ under nodeV (potential conflict if merged with tree1)
-    tree2.move(nodes2.nodeZ, nodes2.nodeV);
-    // Tree 2: Move nodeX under nodeW (creating a cycle)
-    tree2.move(nodes2.nodeX, nodes2.nodeW);
-
-    // Merge again
-    tree1.merge(tree2.getMoveOps());
-    tree2.merge(tree1.getMoveOps());
-
-    const shuffledMoveOps = [...tree1.getMoveOps()].sort(
-      () => Math.random() - 0.5,
-    );
-    const tree3 = new ReplicatedTree("peer3", shuffledMoveOps);
-
-    compareTrees([tree1, tree2, tree3]);
-
-    trees = [tree1, tree2, tree3];
-
-    const tries = 10;
-
-    for (let i = 0; i < tries; i++) {
-      console.log(`🚀 Running ${i + 1} of ${tries}...`);
-      randomMoves(trees, 1000);
-    }
-      */
   });
 
   type RandomAction = "move" | "create";
