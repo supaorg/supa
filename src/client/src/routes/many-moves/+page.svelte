@@ -76,20 +76,25 @@
 
     trees = [tree1, tree2, tree3];
 
-    randomMoves(trees, 1000);
+    const tries = 10;
+
+    for (let i = 0; i < tries; i++) {
+      console.log(`🚀 Running ${i + 1} of ${tries}...`);
+      randomMoves(trees, 1000);
+    }
   });
 
   type RandomAction = 'move' | 'create';
 
   function randomMoves(trees: ReplicatedTree[], numMoves: number = 1000) {
-    console.log(`🚀 Starting ${numMoves} random moves...`);
+    console.log(`🧪 Starting ${numMoves} random moves...`);
 
     // Find a random node in the tree to move
     // Find a random new parent for that node
     // Move the node. We test both for legal and illegal moves
 
-    const chanceOfCreate = 0.05;
-    const chanceOfMoveInANonExistingParent = 0.05;
+    const chanceOfCreate = 0.025;
+    const chanceOfMoveInANonExistingParent = 0.01;
 
     for (let i = 0; i < numMoves; i++) {
       const action: RandomAction = Math.random() < chanceOfCreate ? 'create' : 'move';
@@ -146,21 +151,12 @@
       console.log("✅ Trees are equal!");
     }
   }
+  
 
   function randomNode(tree: ReplicatedTree) {
-    const moves = tree.getMoveOps();
-    const move = moves[Math.floor(Math.random() * moves.length)];
-
-    if (move.parentId === null) {
-      return move.targetId;
-    }
-    
-    // Get randomly targetId or parentId
-    if (Math.random() < 0.5) {
-      return move.targetId;
-    } else {
-      return move.parentId;
-    }
+    const nodes = tree.getAllNodes(); // Assuming you add this method to ReplicatedTree
+    const randomIndex = Math.floor(Math.random() * nodes.length);
+    return nodes[randomIndex].id;
   }
 
   function randomTree(trees: ReplicatedTree[]) {

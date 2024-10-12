@@ -56,6 +56,10 @@ export class ReplicatedTree {
     return this.store.get(nodeId);
   }
 
+  getAllNodes(): ReadonlyArray<TreeNode> {
+    return this.store.getAllNodes();
+  }
+
   getParent(nodeId: string): TreeNode | undefined {
     const parentId = this.store.get(nodeId)?.parentId;
     return parentId ? this.store.get(parentId) : undefined;
@@ -404,6 +408,7 @@ export class ReplicatedTree {
     if (!targetNode) {
       // @TODO: should I be worried if this ever happens?
       //throw new Error(`targetNode ${op.targetId} not found`);
+      console.error(`targetNode ${op.targetId} not found`);
       return;
     }
 

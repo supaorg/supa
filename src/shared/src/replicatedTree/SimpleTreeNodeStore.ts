@@ -12,6 +12,10 @@ export class SimpleTreeNodeStore {
     this.childrenCache = new Map();
   }
 
+  getAllNodes(): ReadonlyArray<TreeNode> {
+    return Array.from(this.nodes.values());
+  }
+
   get(nodeId: string): TreeNode | undefined {
     return this.nodes.get(nodeId);
   }
