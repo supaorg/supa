@@ -3,7 +3,6 @@
   import { type Writable, get } from "svelte/store";
   import type { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import {
-    TreeNode,
     type NodeChangeEvent,
     type TreeNodeProperty,
   } from "@shared/replicatedTree/treeTypes";
@@ -15,7 +14,7 @@
     dragOverNodeIdStore: Writable<string | null | undefined>;
   };
 
-  let children: TreeNode[] = [];
+  let children: string[] = [];
   let properties: ReadonlyArray<TreeNodeProperty> = [];
   let nodeName: string | null = null;
   let isRoot: boolean;
@@ -29,7 +28,7 @@
   });
 
   function updateChildren() {
-    children = tree.getChildren(nodeId);
+    children = tree.getChildrenIds(nodeId);
 
     if (nodeId) {
       properties = tree.getNodeProperties(nodeId);
@@ -185,8 +184,8 @@
 
   {#if isExpanded && children.length > 0}
     <div class="tree-item-children ml-4" role="group">
-      {#each children as child (child.id)}
-        <svelte:self {tree} nodeId={child.id} {treeStores} />
+      {#each children as child}
+        <svelte:self {tree} nodeId={child} {treeStores} />
       {/each}
     </div>
   {/if}

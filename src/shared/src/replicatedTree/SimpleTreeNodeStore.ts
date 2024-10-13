@@ -1,9 +1,8 @@
-import { OpId } from "./OpId";
-import { TreeNode, TreeNodeId, NodeChangeEvent, NodeMoveEvent, NodePropertyChangeEvent, NodeChildrenChangeEvent } from "./treeTypes";
+import { TreeNodeId, NodeChangeEvent, NodeMoveEvent, NodePropertyChangeEvent, NodeChildrenChangeEvent } from "./treeTypes";
+import { TreeNode } from "./TreeNode";
 
 export class SimpleTreeNodeStore {
   private nodes: Map<TreeNodeId, TreeNode>;
-  private childrenCache: Map<TreeNodeId, string[]>;
   private changeListeners: Map<TreeNodeId, Set<(event: NodeChangeEvent) => void>> = new Map();
   private globalChangeListeners: Set<(event: NodeChangeEvent) => void> = new Set();
 
@@ -21,7 +20,7 @@ export class SimpleTreeNodeStore {
   }
 
   getChildrenIds(nodeId: TreeNodeId): string[] {
-    return this.childrenCache.get(nodeId) ?? [];
+    return this.get(nodeId)?.children ?? [];
   }
 
   getChildren(nodeId: TreeNodeId): TreeNode[] {
@@ -34,15 +33,42 @@ export class SimpleTreeNodeStore {
       .filter(node => node !== undefined) as TreeNode[];
   }
 
-  set(nodeId: string, node: TreeNode) {
-    const oldNode = this.nodes.get(nodeId);
-    const prevParentId = oldNode ? oldNode.parentId : null;
-    const newParentId = node.parentId;
-
-    this.nodes.set(nodeId, node);
+  moveNode(nodeId: TreeNodeId, newParentId: TreeNodeId | null): TreeNode {
+    let node = this.get(nodeId);
+    const prevParentId = node ? node.parentId : undefined;
+    if (!node) {
+      node = new TreeNode(nodeId, newParentId);
+      this.nodes.set(nodeId, node);
+    }
 
     if (prevParentId === newParentId) {
-      return;
+      return node;
+    }
+
+    node.parentId = newParentId;
+
+    let childrenInNewParent: string[] | null = null;
+    let childrenInOldParent: string[] | null = null;
+
+    // Update children arrays in nodes
+    if (prevParentId) {
+      const oldParentNode = this.get(prevParentId);
+      if (oldParentNode) {
+        oldParentNode.children = oldParentNode.children.filter(child => child !== nodeId);
+        childrenInOldParent = oldParentNode.children;
+      } else {
+        console.error(`Old parent node not found for ${prevParentId}`);
+      }
+    }
+
+    if (newParentId !== null) {
+      const newParentNode = this.nodes.get(newParentId);
+      if (newParentNode) {
+        newParentNode.children.push(nodeId);
+        childrenInNewParent = newParentNode.children;
+      } else {
+        console.error(`New parent node not found for ${newParentId}`);
+      }
     }
 
     this.notifyChange({
@@ -51,21 +77,6 @@ export class SimpleTreeNodeStore {
       oldParentId: prevParentId,
       newParentId,
     } as NodeMoveEvent);
-
-    // Update children caches and notify listeners
-
-    let childrenInNewParent: string[] | null = null;
-    let childrenInOldParent: string[] | null = null;
-
-    if (newParentId !== null) {
-      childrenInNewParent = [...this.getChildrenIds(newParentId), nodeId];
-      this.childrenCache.set(newParentId, childrenInNewParent);
-    }
-
-    if (prevParentId !== null) {
-      childrenInOldParent = this.getChildrenIds(prevParentId).filter(id => id !== nodeId);
-      this.childrenCache.set(prevParentId, childrenInOldParent);
-    }
 
     // We notify the listeners in the end so that they can get the full state of the tree
 
@@ -84,6 +95,8 @@ export class SimpleTreeNodeStore {
         children: childrenInOldParent.map(id => this.nodes.get(id)!),
       } as NodeChildrenChangeEvent);
     }
+
+    return node;
   }
 
   setProperty(nodeId: string, key: string, value: any) {

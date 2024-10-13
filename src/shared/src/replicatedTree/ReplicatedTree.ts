@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { moveNode, type MoveNode, type SetNodeProperty, isMoveNode, isSetProperty, type NodeOperation, setNodeProperty } from "./operations";
-import { NodePropertyType, TreeNode, TreeNodeProperty, NodeChangeEvent, TreeNodeId } from "./treeTypes";
+import { NodePropertyType, TreeNodeProperty, NodeChangeEvent, TreeNodeId } from "./treeTypes";
+import { TreeNode } from "./TreeNode";
 import { SimpleTreeNodeStore } from "./SimpleTreeNodeStore";
 import { OpId } from "./OpId";
 
@@ -31,10 +32,10 @@ export class ReplicatedTree {
 
     if (ops != null && ops.length > 0) {
       // Find a move op that has a parentId as null
-      let rootMoveOp;
+      let rootMoveOp: MoveNode | undefined;
       for (let i = 0; i < ops.length; i++) {
         if (isMoveNode(ops[i]) && (ops[i] as MoveNode).parentId === null) {
-          rootMoveOp = ops[i];
+          rootMoveOp = ops[i] as MoveNode;
           break;
         }
       }
@@ -70,6 +71,10 @@ export class ReplicatedTree {
 
   getChildren(nodeId: string): TreeNode[] {
     return this.state.getChildren(nodeId);
+  }
+
+  getChildrenIds(nodeId: string): string[] {
+    return this.state.getChildrenIds(nodeId);
   }
 
   getAncestors(nodeId: string): TreeNode[] {
@@ -402,30 +407,22 @@ export class ReplicatedTree {
     // If we try to move the node (op.targetId) under one of its descendants (op.parentId) - do nothing
     if (op.parentId && this.isAncestor(op.parentId, op.targetId)) return;
 
-    // @TODO: consider to do node creation inside the state
-    if (!targetNode) {
-      // Create a new node
-      targetNode = new TreeNode(op.targetId, op.parentId);
+    this.state.moveNode(op.targetId, op.parentId);
 
-      // Apply pending properties for this node
+    // If the node didn't exist before the move - see if it has pending properties
+    // and apply them.
+    if (!targetNode) {
       const pendingProperties = this.pendingPropertiesWithMissingNode.get(op.targetId) || [];
       for (const prop of pendingProperties) {
         this.setPropertyAndItsOpId(prop);
       }
-    } else {
-      targetNode = targetNode.cloneWithNewParent(op.parentId);
-    }
-
-    this.state.set(op.targetId, targetNode);
+    } 
   }
 
   private undoMove(op: MoveNode) {
-    // @TODO: consider to remove this check.
     const targetNode = this.state.get(op.targetId);
     if (!targetNode) {
-      // @TODO: should I be worried if this ever happens?
-      //throw new Error(`targetNode ${op.targetId} not found`);
-      console.error(`targetNode ${op.targetId} not found`);
+      console.error(`An attempt to undo move operation ${op.id.toString()} failed because the target node ${op.targetId} not found`);
       return;
     }
 
@@ -434,8 +431,7 @@ export class ReplicatedTree {
       return;
     }
 
-    const nodeWithPrevParent = targetNode.cloneWithNewParent(prevParentId);
-    this.state.set(op.targetId, nodeWithPrevParent);
+    this.state.moveNode(op.targetId, prevParentId);
   }
 
   /** Checks if the given `ancestorId` is an ancestor of `childId` in the tree */

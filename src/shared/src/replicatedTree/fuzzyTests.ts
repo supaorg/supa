@@ -107,7 +107,7 @@ function compareTrees(trees: ReplicatedTree[]): boolean {
 }
 
 function randomNode(tree: ReplicatedTree) {
-  const nodes = tree.getAllNodes(); // Assuming you add this method to ReplicatedTree
+  const nodes = tree.getAllNodes();
   const randomIndex = Math.floor(Math.random() * nodes.length);
   return nodes[randomIndex].id;
 }
