@@ -12,7 +12,6 @@ export type NodePropertyType = string | number | boolean | string[] | number[] |
 export type TreeNodeProperty = {
   readonly key: string;
   readonly value: NodePropertyType;
-  readonly prevOpId: OpId;
 }
 
 type NodeChangeEventType = 'move' | 'property' | 'children';
@@ -43,6 +42,7 @@ export class TreeNode {
   readonly id: string;
   readonly parentId: TreeNodeId | null;
   private properties: TreeNodeProperty[];
+  //@TODO: store cache of children here?
 
   constructor(id: string, parentId: TreeNodeId | null) {
     this.id = id;
@@ -50,15 +50,14 @@ export class TreeNode {
     this.properties = [];
   }
 
-  setProperty(key: string, value: any, opId: OpId): void {
+  setProperty(key: string, value: any): void {
     const existingPropIndex = this.properties.findIndex(p => p.key === key);
     if (existingPropIndex !== -1) {
       // Update existing property
-      const prevOpId = this.properties[existingPropIndex].prevOpId;
-      this.properties[existingPropIndex] = { key, value, prevOpId: opId };
+      this.properties[existingPropIndex] = { key, value };
     } else {
       // Add new property
-      this.properties.push({ key, value, prevOpId: opId });
+      this.properties.push({ key, value });
     }
   }
 

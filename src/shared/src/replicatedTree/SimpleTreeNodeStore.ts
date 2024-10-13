@@ -86,10 +86,10 @@ export class SimpleTreeNodeStore {
     }
   }
 
-  setProperty(nodeId: string, key: string, value: any, opId: OpId) {
+  setProperty(nodeId: string, key: string, value: any) {
     const node = this.get(nodeId);
     if (node) {
-      node.setProperty(key, value, opId);
+      node.setProperty(key, value);
     }
 
     this.notifyChange({
@@ -97,7 +97,6 @@ export class SimpleTreeNodeStore {
       nodeId,
       key,
       value,
-      opId,
     } as NodePropertyChangeEvent);
   }
 
