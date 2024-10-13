@@ -4,7 +4,6 @@ export class Space {
 	readonly tree: ReplicatedTree;
 
   static isValidSpaceTree(tree: ReplicatedTree): boolean {
-    
     const spaceNode = tree.getNodeByPath('/space');
     if (!spaceNode) {
       return false;
@@ -26,7 +25,7 @@ export class Space {
   static newSpace(peerId: string): Space {
     const tree = new ReplicatedTree(peerId);
 
-    const rootId = tree.newNode();
+    const rootId = tree.rootNodeId;
 
     tree.setNodeProperty(rootId, '_n', 'space');
     tree.setNodeProperty(rootId, 'name', 'New Space');

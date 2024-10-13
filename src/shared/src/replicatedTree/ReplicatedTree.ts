@@ -154,7 +154,12 @@ export class ReplicatedTree {
       throw new Error('The root node is not found');
     }
 
-    return this.getNodeByPathArray(rootNode, pathParts);
+    // First check the root node's property '_n'
+    if (rootNode.getProperty('_n')?.value === pathParts[0]) {
+      return this.getNodeByPathArray(rootNode, pathParts.slice(1));
+    }
+
+    return undefined;
   }
 
   getNodeByPathArray(currentNode: TreeNode, path: string[]): TreeNode | undefined {
