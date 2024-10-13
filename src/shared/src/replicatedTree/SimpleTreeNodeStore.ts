@@ -8,7 +8,6 @@ export class SimpleTreeNodeStore {
 
   constructor() {
     this.nodes = new Map();
-    this.childrenCache = new Map();
   }
 
   getAllNodes(): ReadonlyArray<TreeNode> {
