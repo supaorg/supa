@@ -1,5 +1,7 @@
 # Attributions
 
+## Open Source
+
 SupaCloud is possible because of other open source projects.
 
 Languages:
@@ -18,3 +20,11 @@ JS libraries and frameworks:
 - AIWrapper for interacting with AI models
 - Neorest for real-time API routes
 - uuid for generaiton of globally unique IDs
+
+## Knowledge and ideas
+
+- Move nodes
+- Map CRDT
+- Lectures
+- Attention is all you need
+- Local-first
