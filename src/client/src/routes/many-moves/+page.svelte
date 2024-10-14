@@ -8,7 +8,7 @@
 
   onMount(() => {
     try {
-      trees = fuzzyTest(5, 500, 100);
+      trees = fuzzyTest(5, 100, 500, true);
     } catch (error) {
       console.error(error);
     }

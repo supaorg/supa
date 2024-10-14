@@ -2,7 +2,7 @@ import { ReplicatedTree } from "./ReplicatedTree";
 
 type RandomAction = 'move' | 'create' | 'setProperty';
 
-export function fuzzyTest(treesCount: number = 3, tries: number = 10, movesPerTry: number = 1000): ReplicatedTree[] {
+export function fuzzyTest(treesCount: number = 3, tries: number = 10, movesPerTry: number = 1000, randomShuffle: boolean = false): ReplicatedTree[] {
   if (treesCount < 2) {
     throw new Error("treesCount must be at least 2");
   }
@@ -22,6 +22,11 @@ export function fuzzyTest(treesCount: number = 3, tries: number = 10, movesPerTr
     // Sync trees
     trees.forEach((tree) => {
       const ops = tree.popLocalOps();
+
+      if (randomShuffle) {
+        ops.sort(() => Math.random() - 0.5);
+      }
+
       trees.forEach((t) => {
         if (t.peerId !== tree.peerId) {
           t.merge(ops);
