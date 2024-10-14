@@ -6,7 +6,7 @@
   export let trees: ReplicatedTree[];
 
   function handleDuplicate(tree: ReplicatedTree) {
-    const newTree = new ReplicatedTree(uuidv4() + '_duplicate', tree.getMoveOps());
+    const newTree = new ReplicatedTree(uuidv4() + '_duplicate', tree.getAllOps());
     
     // Insert the new tree after the target tree
     const index = trees.findIndex((t) => t.peerId === tree.peerId);

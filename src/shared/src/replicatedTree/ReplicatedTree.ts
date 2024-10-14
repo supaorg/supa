@@ -18,6 +18,7 @@ export class ReplicatedTree {
   private lamportClock = 0;
   private state: SimpleTreeNodeStore;
   private moveOps: MoveNode[] = [];
+  private setPropertyOps: SetNodeProperty[] = [];
   private propertiesAndTheirOpIds: Map<PropertyKeyAtNodeId, OpId> = new Map();
   private localOps: NodeOperation[] = [];
   private pendingMovesWithMissingParent: Map<string, MoveNode[]> = new Map();
@@ -54,6 +55,10 @@ export class ReplicatedTree {
 
   getMoveOps(): ReadonlyArray<MoveNode> {
     return this.moveOps;
+  }
+
+  getAllOps(): ReadonlyArray<NodeOperation> {
+    return [...this.moveOps, ...this.setPropertyOps];
   }
 
   getNode(nodeId: string): TreeNode | undefined {
@@ -479,6 +484,8 @@ export class ReplicatedTree {
     const prevProp = targetNode.getProperty(op.key);
 
     const prevOpId = this.propertiesAndTheirOpIds.get(`${op.key}@${op.targetId}`);
+
+    this.setPropertyOps.push(op);
 
     // Apply the property if it's not already applied or if the current op is newer
     // This is the last writer wins approach that ensures the same state between replicas.
