@@ -1,5 +1,5 @@
 {
-  "name": "supacloud-front",
+  "name": "supa-client",
   "version": "0.1.0",
   "description": "Frontend for Supacloud",
   "type": "module",

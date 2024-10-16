@@ -1,4 +1,4 @@
-import { TreeNodeId, NodeChangeEvent, NodeMoveEvent, NodePropertyChangeEvent, NodeChildrenChangeEvent } from "./treeTypes";
+import type { TreeNodeId, NodeChangeEvent, NodePropertyChangeEvent, NodeChildrenChangeEvent, NodeMoveEvent } from "./treeTypes";
 import { TreeNode } from "./TreeNode";
 
 export class SimpleTreeNodeStore {

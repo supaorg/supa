@@ -1,9 +1,9 @@
-import { v4 as uuidv4 } from "uuid";
 import { moveNode, type MoveNode, type SetNodeProperty, isMoveNode, isSetProperty, type NodeOperation, setNodeProperty } from "./operations";
-import { NodePropertyType, TreeNodeProperty, NodeChangeEvent, TreeNodeId } from "./treeTypes";
+import type { NodePropertyType, TreeNodeProperty, NodeChangeEvent, TreeNodeId } from "./treeTypes";
 import { TreeNode } from "./TreeNode";
 import { SimpleTreeNodeStore } from "./SimpleTreeNodeStore";
 import { OpId } from "./OpId";
+import { v4 as uuidv4 } from "uuid";
 
 type PropertyKeyAtNodeId = `${string}@${TreeNodeId}`;
 

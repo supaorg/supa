@@ -1,5 +1,5 @@
 [package]
-name = "SupaCloud"
+name = "supa"
 version = "0.1.0"
 description = "SupaCloud"
 authors = ["Dmitry Kury"]
@@ -9,7 +9,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "supacloud_lib"
+name = "supa_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

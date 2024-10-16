@@ -1,5 +1,5 @@
 {
-  "name": "supacloud-shared",
+  "name": "supa-shared",
   "version": "1.0.0",
   "description": "Shared code between client and server",
   "dependencies": {

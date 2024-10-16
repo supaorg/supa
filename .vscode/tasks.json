@@ -14,7 +14,7 @@
       "command": "npm",
       "args": ["run", "dev"],
       "options": {
-        "cwd": "${workspaceFolder}/front/src-tauri"
+        "cwd": "${workspaceFolder}/src/client/src-tauri"
       }
     },
     {
@@ -24,7 +24,7 @@
       "command": "npm",
       "args": ["run", "build"],
       "options": {
-        "cwd": "${workspaceFolder}/front/src-tauri"
+        "cwd": "${workspaceFolder}/src/client/src-tauri"
       }
     }
   ]
