@@ -1,33 +1,33 @@
 import { OpId } from "./OpId";
-import { type NodePropertyType } from "./treeTypes";
+import { type VertexPropertyType } from "./treeTypes";
 
-export interface MoveNode {
+export interface MoveVertex {
   id: OpId;
   targetId: string;
   parentId: string | null;
 }
 
-export interface SetNodeProperty {
+export interface SetVertexProperty {
   id: OpId;
   targetId: string;
   key: string;
-  value: NodePropertyType;
+  value: VertexPropertyType;
 }
 
-export type NodeOperation = MoveNode | SetNodeProperty;
+export type VertexOperation = MoveVertex | SetVertexProperty;
 
-export function isMoveNode(op: NodeOperation): op is MoveNode {
+export function isMoveVertexOp(op: VertexOperation): op is MoveVertex {
   return 'parentId' in op;
 }
 
-export function isSetProperty(op: NodeOperation): op is SetNodeProperty {
+export function isSetProperty(op: VertexOperation): op is SetVertexProperty {
   return 'key' in op;
 }
 
-export function moveNode(clock: number, peerId: string, targetId: string, parentId: string | null): MoveNode {
+export function newMoveVertexOp(clock: number, peerId: string, targetId: string, parentId: string | null): MoveVertex {
   return { id: new OpId(clock, peerId), targetId, parentId };
 }
 
-export function setNodeProperty(clock: number, peerId: string, targetId: string, key: string, value: NodePropertyType): SetNodeProperty {
+export function newSetVertexPropertyOp(clock: number, peerId: string, targetId: string, key: string, value: VertexPropertyType): SetVertexProperty {
   return { id: new OpId(clock, peerId), targetId, key, value };
 }

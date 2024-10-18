@@ -5,19 +5,19 @@ import { ReplicatedTree } from "./ReplicatedTree";
  */
 export class TreeBranch {
   private tree: ReplicatedTree;
-  readonly rootNodeId: string;
+  readonly rootVertexId: string;
 
-  constructor(tree: ReplicatedTree, rootNodeId: string) {
+  constructor(tree: ReplicatedTree, rootVertexId: string) {
     this.tree = tree;
-    this.rootNodeId = rootNodeId;
+    this.rootVertexId = rootVertexId;
   }
 
-  getBranch(nodeId: string): TreeBranch {
-    return new TreeBranch(this.tree, nodeId);
+  getBranchFromTree(vertexId: string): TreeBranch {
+    return new TreeBranch(this.tree, vertexId);
   }
 
   newBranch(): TreeBranch {
-    const nodeId = this.tree.newNode();
-    return new TreeBranch(this.tree, nodeId);
+    const vertexId = this.tree.newVertex(this.rootVertexId);
+    return new TreeBranch(this.tree, vertexId);
   }
 }

@@ -3,40 +3,40 @@
   import { type Writable, get } from "svelte/store";
   import type { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import {
-    type NodeChangeEvent,
-    type TreeNodeProperty,
+    type VertexChangeEvent,
+    type TreeVertexProperty,
   } from "@shared/replicatedTree/treeTypes";
 
   export let tree: ReplicatedTree;
-  export let nodeId: string;
+  export let vertexId: string;
   export let treeStores: {
-    dragStartNodeIdStore: Writable<string | undefined>;
-    dragOverNodeIdStore: Writable<string | null | undefined>;
+    dragStartVertexIdStore: Writable<string | undefined>;
+    dragOverVertexIdStore: Writable<string | null | undefined>;
   };
 
   let children: string[] = [];
-  let properties: ReadonlyArray<TreeNodeProperty> = [];
-  let nodeName: string | null = null;
+  let properties: ReadonlyArray<TreeVertexProperty> = [];
+  let vertexName: string | null = null;
   let isRoot: boolean;
   let isExpanded = false;
   let highlightAsDragOver = false;
 
-  // TODO: detect illigal moves and show it (or at least don't higlight the node when it's not allowed to move a node in)
+  // TODO: detect illigal moves and show it (or at least don't higlight the vertex when it's not allowed to move a vertex in)
 
-  treeStores.dragOverNodeIdStore.subscribe((id) => {
-    highlightAsDragOver = nodeId === id;
+  treeStores.dragOverVertexIdStore.subscribe((id) => {
+    highlightAsDragOver = vertexId === id;
   });
 
   function updateChildren() {
-    children = tree.getChildrenIds(nodeId);
+    children = tree.getChildrenIds(vertexId);
 
-    if (nodeId) {
-      properties = tree.getNodeProperties(nodeId);
-      nodeName = properties.find((p) => p.key === "_n")?.value as string | null;
+    if (vertexId) {
+      properties = tree.getVertexProperties(vertexId);
+      vertexName = properties.find((p) => p.key === "_n")?.value as string | null;
     }
   }
 
-  function handleTreeChange(event: NodeChangeEvent) {
+  function handleTreeChange(event: VertexChangeEvent) {
     console.log("peerId", tree.peerId);
 
     if (event.type === 'property') {
@@ -48,8 +48,8 @@
     }
 
     /*
-    // Update the children if the node has updated or one of its children has updated
-    if (event.nodeId === nodeId) {
+    // Update the children if the vertex has updated or one of its children has updated
+    if (event.vertexId === vertexId) {
       updateChildren();
     }
       */
@@ -58,13 +58,13 @@
   }
 
   onMount(() => {
-    isRoot = nodeId === tree.rootNodeId;
+    isRoot = vertexId === tree.rootVertexId;
     updateChildren();
-    tree.subscribe(nodeId, handleTreeChange);
+    tree.subscribe(vertexId, handleTreeChange);
   });
 
   onDestroy(() => {
-    tree.unsubscribe(nodeId,handleTreeChange);
+    tree.unsubscribe(vertexId,handleTreeChange);
   });
 
   function toggleExpand() {
@@ -72,47 +72,47 @@
   }
 
   function handleDragStart(event: DragEvent) {
-    if (!nodeId) {
+    if (!vertexId) {
       return;
     }
 
     event.stopPropagation();
-    treeStores.dragStartNodeIdStore.set(nodeId);
+    treeStores.dragStartVertexIdStore.set(vertexId);
     console.log(
-      `Started dragging node: ${get(treeStores.dragStartNodeIdStore)}`,
+      `Started dragging vertex: ${get(treeStores.dragStartVertexIdStore)}`,
     );
   }
 
   function handleDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    treeStores.dragOverNodeIdStore.set(nodeId);
+    treeStores.dragOverVertexIdStore.set(vertexId);
   }
 
   function handleDragLeave() {
-    treeStores.dragOverNodeIdStore.set(null);
+    treeStores.dragOverVertexIdStore.set(null);
   }
 
   function handleDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
 
-    let draggedNodeId = get(treeStores.dragStartNodeIdStore);
+    let draggedVertexId = get(treeStores.dragStartVertexIdStore);
 
     console.log(
-      `Drop event triggered. draggedNodeId: ${draggedNodeId}, targetId: ${nodeId}`,
+      `Drop event triggered. draggedVertexId: ${draggedVertexId}, targetId: ${vertexId}`,
     );
 
-    if (!draggedNodeId) {
-      console.log("Drop action invalid: draggedNodeId is null");
-    } else if (draggedNodeId === nodeId) {
+    if (!draggedVertexId) {
+      console.log("Drop action invalid: draggedVertexId is null");
+    } else if (draggedVertexId === vertexId) {
       console.log(
-        `Dropped node ${draggedNodeId} onto itself - no action taken`,
+        `Dropped vertex ${draggedVertexId} onto itself - no action taken`,
       );
     } else {
-      console.log(`Attempting to move node ${draggedNodeId} to ${nodeId}`);
+      console.log(`Attempting to move vertex ${draggedVertexId} to ${vertexId}`);
       try {
-        tree.move(draggedNodeId, nodeId);
+        tree.moveVertex(draggedVertexId, vertexId);
         console.log("Move successful");
         isExpanded = true;
       } catch (error) {
@@ -120,8 +120,8 @@
       }
     }
 
-    treeStores.dragStartNodeIdStore.set(undefined);
-    treeStores.dragOverNodeIdStore.set(undefined);
+    treeStores.dragStartVertexIdStore.set(undefined);
+    treeStores.dragOverVertexIdStore.set(undefined);
   }
 </script>
 
@@ -168,10 +168,10 @@
     </div>
     <div class="tree-item-content">
       <span>
-        {#if nodeName}
-          {nodeName}
+        {#if vertexName}
+          {vertexName}
         {:else}
-          {nodeId ?? "root"}
+          {vertexId ?? "root"}
         {/if}
       </span>
       <ul class="text-xs">
@@ -185,7 +185,7 @@
   {#if isExpanded && children.length > 0}
     <div class="tree-item-children ml-4" role="group">
       {#each children as child}
-        <svelte:self {tree} nodeId={child} {treeStores} />
+        <svelte:self {tree} vertexId={child} {treeStores} />
       {/each}
     </div>
   {/if}

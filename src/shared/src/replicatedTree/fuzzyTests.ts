@@ -47,9 +47,9 @@ export function fuzzyTest(treesCount: number = 3, tries: number = 10, movesPerTr
 function randomMovesAndProps(trees: ReplicatedTree[], numMoves: number = 1000) {
   console.log(`Doing ${numMoves} random moves...`);
 
-  // Find a random node in the tree to move
-  // Find a random new parent for that node
-  // Move the node. We test both for legal and illegal moves
+  // Find a random vertex in the tree to move
+  // Find a random new parent for that vertex
+  // Move the vertex. We test both for legal and illegal moves
 
   const actions: Array<{ action: RandomAction; weight: number }> = [
     { action: 'create', weight: 0.025 },
@@ -71,19 +71,19 @@ function randomMovesAndProps(trees: ReplicatedTree[], numMoves: number = 1000) {
 
     switch (selectedAction) {
       case 'create':
-        tree.newNode(randomNode(tree));
+        tree.newVertex(randomVertex(tree));
         break;
       case 'move':
-        const targetChild = randomNode(tree);
+        const targetChild = randomVertex(tree);
         const chanceOfMoveInANonExistingParent = 0.01;
-        const newParent = Math.random() < chanceOfMoveInANonExistingParent ? Math.random().toString(36).substring(2, 8) : randomNode(tree);
-        tree.move(targetChild, newParent);
+        const newParent = Math.random() < chanceOfMoveInANonExistingParent ? Math.random().toString(36).substring(2, 8) : randomVertex(tree);
+        tree.moveVertex(targetChild, newParent);
         break;
       case 'setProperty':
         // Implement setProperty logic here
-        const node = randomNode(tree);
+        const vertex = randomVertex(tree);
         const randomNum = Math.floor(Math.random() * 100);
-        tree.setNodeProperty(node, "test", randomNum);
+        tree.setVertexProperty(vertex, "test", randomNum);
         break;
     }
   }
@@ -111,10 +111,10 @@ function compareTrees(trees: ReplicatedTree[]): boolean {
   return allGood;
 }
 
-function randomNode(tree: ReplicatedTree) {
-  const nodes = tree.getAllNodes();
-  const randomIndex = Math.floor(Math.random() * nodes.length);
-  return nodes[randomIndex].id;
+function randomVertex(tree: ReplicatedTree) {
+  const vertices = tree.getAllVertices();
+  const randomIndex = Math.floor(Math.random() * vertices.length);
+  return vertices[randomIndex].id;
 }
 
 function randomTree(trees: ReplicatedTree[]) {

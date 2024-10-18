@@ -1,34 +1,34 @@
-import { TreeNode } from "./TreeNode";
+import { TreeVertex } from "./TreeVertex";
 
-export type TreeNodeId = string;
+export type TreeVertexId = string;
 
-export type NodePropertyType = string | number | boolean | string[] | number[] | boolean[];
+export type VertexPropertyType = string | number | boolean | string[] | number[] | boolean[];
 
-export type TreeNodeProperty = {
+export type TreeVertexProperty = {
   readonly key: string;
-  readonly value: NodePropertyType;
+  readonly value: VertexPropertyType;
 }
 
-type NodeChangeEventType = 'move' | 'property' | 'children';
+type VertexChangeEventType = 'move' | 'property' | 'children';
 
-export interface NodeChangeEvent {
-  type: NodeChangeEventType;
-  nodeId: TreeNodeId;
+export interface VertexChangeEvent {
+  type: VertexChangeEventType;
+  vertexId: TreeVertexId;
 }
 
-export type NodePropertyChangeEvent = NodeChangeEvent & {
+export type VertexPropertyChangeEvent = VertexChangeEvent & {
   type: 'property';
   key: string;
-  value: NodePropertyType | undefined;
+  value: VertexPropertyType | undefined;
 }
 
-export type NodeMoveEvent = NodeChangeEvent & {
+export type VertexMoveEvent = VertexChangeEvent & {
   type: 'move';
-  oldParentId: TreeNodeId;
-  newParentId: TreeNodeId;
+  oldParentId: TreeVertexId;
+  newParentId: TreeVertexId;
 }
 
-export type NodeChildrenChangeEvent = NodeChangeEvent & {
+export type VertexChildrenChangeEvent = VertexChangeEvent & {
   type: 'children';
-  children: TreeNode[];
+  children: TreeVertex[];
 }

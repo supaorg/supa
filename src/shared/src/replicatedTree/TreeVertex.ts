@@ -1,12 +1,12 @@
-import { TreeNodeId, TreeNodeProperty } from "./treeTypes";
+import type { TreeVertexId, TreeVertexProperty } from "./treeTypes";
 
-export class TreeNode {
+export class TreeVertex {
   readonly id: string;
-  parentId: TreeNodeId | null;
-  private properties: TreeNodeProperty[];
+  parentId: TreeVertexId | null;
+  private properties: TreeVertexProperty[];
   children: string[];
 
-  constructor(id: string, parentId: TreeNodeId | null) {
+  constructor(id: string, parentId: TreeVertexId | null) {
     this.id = id;
     this.parentId = parentId;
     this.properties = [];
@@ -24,21 +24,15 @@ export class TreeNode {
     }
   }
 
-  getProperty(key: string): TreeNodeProperty | undefined {
+  getProperty(key: string): TreeVertexProperty | undefined {
     return this.properties.find(p => p.key === key);
   }
 
-  getAllProperties(): ReadonlyArray<TreeNodeProperty> {
+  getAllProperties(): ReadonlyArray<TreeVertexProperty> {
     return this.properties;
   }
 
   removeProperty(key: string): void {
     this.properties = this.properties.filter(p => p.key !== key);
-  }
-
-  cloneWithNewParent(newParentId: TreeNodeId | null): TreeNode {
-    const clonedNode = new TreeNode(this.id, newParentId);
-    clonedNode.properties = [...this.properties];
-    return clonedNode;
   }
 }

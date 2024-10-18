@@ -8,18 +8,18 @@
   onMount(() => {
     const t1 = new ReplicatedTree("peer1");
 
-    const node = t1.newNode(t1.rootNodeId);
-    t1.setNodeProperty(node, "_n", "Node A");
+    const vertex = t1.newVertex(t1.rootVertexId);
+    t1.setVertexProperty(vertex, "_n", "Vertex A");
 
     const t2 = new ReplicatedTree("peer2", t1.popLocalOps());
 
-    t2.setNodeProperty(node, "_n", "Node B");
-    t2.setNodeProperty(node, "test_num", 10.5);
+    t2.setVertexProperty(vertex, "_n", "Vertex B");
+    t2.setVertexProperty(vertex, "test_num", 10.5);
 
-    t1.setNodeProperty(node, "test_str", "yo, i'm a string");
-    t1.setNodeProperty(node, "test_num", "yo not a number");
+    t1.setVertexProperty(vertex, "test_str", "yo, i'm a string");
+    t1.setVertexProperty(vertex, "test_num", "yo not a number");
 
-    t2.setNodeProperty(node, "test_num", 99);
+    t2.setVertexProperty(vertex, "test_num", 99);
 
     trees = [t1, t2];
 

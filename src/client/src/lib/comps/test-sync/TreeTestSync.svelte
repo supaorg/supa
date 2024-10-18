@@ -6,8 +6,8 @@
   export let onDuplicate: (tree: ReplicatedTree) => void;
   export let onDelete: (tree: ReplicatedTree) => void;
 
-  function createNode() {
-    tree.newNode(tree.rootNodeId);
+  function createVertex() {
+    tree.newVertex(tree.rootVertexId);
   }
 
   function duplicateTree() {
@@ -24,7 +24,7 @@
   <button class="btn-sm variant-filled absolute top-0 right-0" on:click={deleteTree}>╳</button>
   <TreeViz {tree} />
   <div class="flex flex-col gap-2">
-    <button class="btn variant-filled" on:click={createNode}>Create a node</button>
+    <button class="btn variant-filled" on:click={createVertex}>Create a vertex</button>
     <button class="btn variant-filled" on:click={duplicateTree}>Duplicate Tree</button>
   </div>
 </div>
