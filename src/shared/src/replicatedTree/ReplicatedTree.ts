@@ -401,6 +401,8 @@ export class ReplicatedTree {
     let targetVertex = this.state.getVertex(op.targetId);
 
     if (targetVertex) {
+      // We cache the parentId before the move operation.
+      // We will use it to undo the move according to the move op algorithm.
       this.parentIdBeforeMove.set(op.id, targetVertex.parentId);
     }
 

@@ -16,14 +16,25 @@
   import Loading from "./basic/Loading.svelte";
   import TauriWindowSetup from "./tauri/TauriWindowSetup.svelte";
   import { isTauri } from "$lib/tauri/isTauri";
+  import { loadSpacesAndConnectToCurrent } from "$lib/spaces/workspaceStore";
 
-  type State = "initializing" | "needsSpace" | "needsSetup" | "ready";
+  type State = "initializing" | "needsSpace" | "ready";
   let state: State = "initializing";
 
-  onMount(() => {
-    // @TODO:
-    // 1) check if we have space ref try to load it
-    // 2) if no space ref - propose to create one or create automatically
+  onMount(async () => {
+    if (!isTauri()) {
+      throw new Error(
+        "We don't support regular browsers yet. We have to run this from Tauri",
+      );
+    }
+
+    const space = await loadSpacesAndConnectToCurrent();
+
+    if (space) {
+      state = "ready";
+    } else {
+      state = "needsSpace";
+    }
   });
 </script>
 
@@ -31,8 +42,6 @@
   <Loading />
 {:else if state === "needsSpace"}
   Needs Space
-{:else if state === "needsSetup"}
-  Needs Setup
 {:else if state === "ready"}
   <slot />
 {/if}

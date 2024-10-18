@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { isTauri } from "$lib/tauri/isTauri";
-  import { invoke } from "@tauri-apps/api/core";
   import {
     getCurrentWindow,
     currentMonitor,

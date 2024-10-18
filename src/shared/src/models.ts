@@ -1,14 +1,14 @@
 export type ServerInfo = {
   version: string;
-  type: 'local' | 'remote';
-  workspaces: Workspace[];
+  type: "local" | "remote";
+  spaces: Space[];
 }
 
 export interface AppData {
   v: number;
 }
 
-export type Workspace = AppData & {
+export type Space = AppData & {
   id: string;
   name: string | null;
   createdAt: number;
@@ -56,17 +56,17 @@ export type ModelProvider = {
   defaultModel?: string;
 };
 
-export type ModelProviderAccessType = 'cloud' | 'local';
+export type ModelProviderAccessType = "cloud" | "local";
 
 export type ModelProviderCloudConfig = {
   id: string;
-  type: 'cloud';
+  type: "cloud";
   apiKey: string;
 }
 
 export type ModelProviderLocalConfig = {
   id: string;
-  type: 'local';
+  type: "local";
   apiUrl: string;
 }
 

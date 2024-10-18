@@ -1,20 +1,20 @@
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 
-export class Space {
+export default class Space {
 	readonly tree: ReplicatedTree;
 
   static isValidSpaceTree(tree: ReplicatedTree): boolean {
-    const spaceNode = tree.getNodeByPath('/space');
-    if (!spaceNode) {
+    const root = tree.getVertexByPath('/space');
+    if (!root) {
       return false;
     }
 
-    const apps = tree.getNodeByPath('/space/apps');
+    const apps = tree.getVertexByPath('/space/apps');
     if (!apps) {
       return false;
     }
 
-    const chats = tree.getNodeByPath('/space/app-branches');
+    const chats = tree.getVertexByPath('/space/app-branches');
     if (!chats) { 
       return false;
     }
@@ -25,20 +25,21 @@ export class Space {
   static newSpace(peerId: string): Space {
     const tree = new ReplicatedTree(peerId);
 
-    const rootId = tree.rootNodeId;
+    const rootId = tree.rootVertexId;
 
-    tree.setNodeProperty(rootId, '_n', 'space');
-    tree.setNodeProperty(rootId, 'name', 'New Space');
-    tree.setNodeProperty(rootId, 'version', '0');
+    tree.setVertexProperty(rootId, '_n', 'space');
+    tree.setVertexProperty(rootId, 'name', 'New Space');
+    tree.setVertexProperty(rootId, 'version', '0');
+    tree.setVertexProperty(rootId, 'needsSetup', true);
 
-    const apps = tree.newNode(rootId);
-    tree.setNodeProperty(apps, '_n', 'apps');
+    const apps = tree.newVertex(rootId);
+    tree.setVertexProperty(apps, '_n', 'apps');
 
-    const chats = tree.newNode(rootId);
-    tree.setNodeProperty(chats, '_n', 'app-branches');
+    const chats = tree.newVertex(rootId);
+    tree.setVertexProperty(chats, '_n', 'app-branches');
 
-    const settings = tree.newNode(rootId);
-    tree.setNodeProperty(settings, '_n', 'settings');
+    const settings = tree.newVertex(rootId);
+    tree.setVertexProperty(settings, '_n', 'settings');
     
     return new Space(tree);
   }
@@ -52,18 +53,19 @@ export class Space {
     }
 	}
 
-	async createNode(): Promise<void> {
+  getId(): string {
+    return this.tree.rootVertexId;
+  }
+
+	createVertex() {
 		
 	}
 
-	async deleteNode(): Promise<void> {
+	deleteVertex() {
 		
 	}
 
-	async setProps(): Promise<void> {
+	setProps() {
 		
 	}
 }
-
-export default Space;
-

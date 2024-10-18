@@ -1,0 +1,133 @@
+import type { Readable, Writable } from "svelte/store";
+import { writable, get, derived } from "svelte/store";
+import { localStorageStore } from "@skeletonlabs/skeleton";
+import type { SpacePointer } from "./SpacePointer";
+import type Space from "@shared/spaces/Space";
+import { TauriSpaceSync } from "./TauriSpaceSync";
+
+/**
+ * A persistent store of pointers to spaces.
+ * We use pointers to connect to spaces.
+ */
+const spacePointersStore: Writable<SpacePointer[]> = localStorageStore(
+  "spacePointers",
+  [],
+);
+
+/**
+ * The current space id. It's used in pair with spacesStore.
+ */
+export const currentSpaceIdStore: Writable<string | null> = localStorageStore("currentSpaceId", null);
+
+/**
+ * A store of actual connected spaces constructed from space pointers.
+ */
+export const spaceStore: Writable<Space[]> = writable<Space[]>([]);
+
+/**
+ * A derived store of the current space.
+ * It's used to get the current space from the spacesStore.
+ * @returns The current space or null.
+ */
+export const currentSpaceStore: Readable<Space | null> = derived(
+  [currentSpaceIdStore, spaceStore],
+  ([$currentSpaceId, $space]) => {
+    return $space.find(space => space.getId() === $currentSpaceId) || null;
+  }
+);
+
+/**
+ * A shortcut to get the current space id.
+ * @returns The current space id or null.
+ */
+export function getCurrentSpaceId(): string | null {
+  return get(currentSpaceIdStore);
+}
+
+/**
+ * Create spaces from pointers and return the current one.
+ * Use it only once on startup.
+ * @returns The current space or null.
+ */
+export async function loadSpacesAndConnectToCurrent(): Promise<Space | null> {
+  if (get(spaceStore).length > 0) {
+    throw new Error("Spaces already loaded. Can do it only once.");
+  }
+
+  const spaces: Space[] = [];
+  let currentSpace: Space | null = null;
+
+  // Try loading spaces from pointers
+  for (const pointer of get(spacePointersStore)) {
+    try {
+      const space = await loadAndConnectToSpace(pointer);
+      spaces.push(space);
+
+      if (space.getId() === get(currentSpaceIdStore)) {
+        currentSpace = space;
+      }
+    } catch (error) {
+      console.error("Could not load space", pointer, error);
+    }
+  }
+
+  // If we couldn't connect to the current space in the previous loop, 
+  // use the first one as the current space.
+  if (!currentSpace && spaces.length > 0) {
+    currentSpace = spaces[0];
+    currentSpaceIdStore.set(currentSpace.getId());
+  }
+
+  spaceStore.set(spaces);
+
+  return currentSpace;
+}
+
+async function loadAndConnectToSpace(pointer: SpacePointer): Promise<Space> {
+  // @TODO: try to load a tree from the pointer
+
+  const uri = pointer.uri;
+
+  if (uri.startsWith("http")) {
+    throw new Error("Remote spaces are not implemented yet");
+  }
+
+  // @TODO: load peer id from the local storage or generate new
+  const spaceSync = new TauriSpaceSync(pointer, 'peer1');
+  return spaceSync.connect();
+}
+
+/*
+export async function connectToWorkspaceByPath(path: string, createIfNotExists: boolean = false): Promise<WorkspaceOnClient | null> {
+  const newPointer: WorkspacePointer = {
+    type: "local",
+    path,
+    url: ""
+  };
+
+  const workspace = new WorkspaceOnClient(newPointer);
+  await workspace.connect(createIfNotExists);
+
+  spacePointersStore.update((pointers) => {
+    return [...pointers, newPointer];
+  });
+
+  spacesStore.update((workspaces) => {
+    return [...workspaces, workspace];
+  });
+
+  currentSpaceIdStore.set(workspace.getId());
+
+  return workspace;
+}
+
+export async function connectToWorkspaceId(workspaceId: string): Promise<WorkspaceOnClient | null> {
+  const pointer = get(spacePointersStore).find((pointer) => pointer.id === workspaceId);
+  if (!pointer) {
+    throw new Error(`Workspace with id ${workspaceId} not found`);
+  }
+  const workspace = new WorkspaceOnClient(pointer);
+  await workspace.connect();
+  return workspace;
+}
+*/
