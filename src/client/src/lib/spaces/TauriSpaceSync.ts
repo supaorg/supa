@@ -31,10 +31,13 @@ export class TauriSpaceSync {
 
   private async loadSpaceTreeFromPath(path: string): Promise<ReplicatedTree> {
 
+
+    console.log('loadSpaceTreeFromPath', path);
+
     // check if space.json at path + /v1/space.json exists
     // then go to /v1/ops/ and load all op files
     // subscribe to changes in that folder and load new ops
-    // subscribe to changes in space tree and save ops in the folder
+    // subscribe to changes in space tree and save ops in the folder    
 
     //const path = uri.replace("file://", "");
 

@@ -4,6 +4,7 @@ import { localStorageStore } from "@skeletonlabs/skeleton";
 import type { SpacePointer } from "./SpacePointer";
 import type Space from "@shared/spaces/Space";
 import { TauriSpaceSync } from "./TauriSpaceSync";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * A persistent store of pointers to spaces.
@@ -92,8 +93,7 @@ async function loadAndConnectToSpace(pointer: SpacePointer): Promise<Space> {
     throw new Error("Remote spaces are not implemented yet");
   }
 
-  // @TODO: load peer id from the local storage or generate new
-  const spaceSync = new TauriSpaceSync(pointer, 'peer1');
+  const spaceSync = new TauriSpaceSync(pointer, uuidv4());
   return spaceSync.connect();
 }
 

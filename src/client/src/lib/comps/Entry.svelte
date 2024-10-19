@@ -13,10 +13,11 @@
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
   import { onMount } from "svelte";
-  import Loading from "./basic/Loading.svelte";
-  import TauriWindowSetup from "./tauri/TauriWindowSetup.svelte";
+  import Loading from "$lib/comps/basic/Loading.svelte";
+  import TauriWindowSetup from "$lib/comps/tauri/TauriWindowSetup.svelte";
   import { isTauri } from "$lib/tauri/isTauri";
   import { loadSpacesAndConnectToCurrent } from "$lib/spaces/workspaceStore";
+  import SpaceSetup from "$lib/comps/setup/SpaceSetup.svelte";
 
   type State = "initializing" | "needsSpace" | "ready";
   let state: State = "initializing";
@@ -36,12 +37,20 @@
       state = "needsSpace";
     }
   });
+
+  async function onSpaceSetup(spaceId: string) {
+    // TODO: implement connecting
+
+    console.error("Not implemented yet");
+
+    state = "ready";
+  }
 </script>
 
 {#if state === "initializing"}
   <Loading />
 {:else if state === "needsSpace"}
-  Needs Space
+  <SpaceSetup onSpaceSetup={onSpaceSetup} />
 {:else if state === "ready"}
   <slot />
 {/if}

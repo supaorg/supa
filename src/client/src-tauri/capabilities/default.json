@@ -16,7 +16,12 @@
     "core:window:allow-set-position",
     {
       "identifier": "fs:allow-home-write",
-      "allow": [{ "path": "$HOME/*" }]
-    }
+      "allow": [
+        {
+          "path": "$HOME/*"
+        }
+      ]
+    },
+    "dialog:default"
   ]
 }
