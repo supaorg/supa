@@ -84,8 +84,6 @@ export async function loadSpacesAndConnectToCurrent(): Promise<Space | null> {
 }
 
 async function loadAndConnectToSpace(pointer: SpacePointer): Promise<Space> {
-  // @TODO: try to load a tree from the pointer
-
   const uri = pointer.uri;
 
   if (uri.startsWith("http")) {
@@ -103,7 +101,7 @@ export function addLocalSpace(space: Space, path: string) {
 
   const pointer: SpacePointer = {
     id: space.getId(),
-    uri: `file://${path}`,
+    uri: path,
     name: space.getName(),
     createdAt: space.getCreatedAt(),
   }
@@ -112,38 +110,3 @@ export function addLocalSpace(space: Space, path: string) {
     return [...pointers, pointer];
   });
 }
-
-/*
-export async function connectToWorkspaceByPath(path: string, createIfNotExists: boolean = false): Promise<WorkspaceOnClient | null> {
-  const newPointer: WorkspacePointer = {
-    type: "local",
-    path,
-    url: ""
-  };
-
-  const workspace = new WorkspaceOnClient(newPointer);
-  await workspace.connect(createIfNotExists);
-
-  spacePointersStore.update((pointers) => {
-    return [...pointers, newPointer];
-  });
-
-  spacesStore.update((workspaces) => {
-    return [...workspaces, workspace];
-  });
-
-  currentSpaceIdStore.set(workspace.getId());
-
-  return workspace;
-}
-
-export async function connectToWorkspaceId(workspaceId: string): Promise<WorkspaceOnClient | null> {
-  const pointer = get(spacePointersStore).find((pointer) => pointer.id === workspaceId);
-  if (!pointer) {
-    throw new Error(`Workspace with id ${workspaceId} not found`);
-  }
-  const workspace = new WorkspaceOnClient(pointer);
-  await workspace.connect();
-  return workspace;
-}
-*/

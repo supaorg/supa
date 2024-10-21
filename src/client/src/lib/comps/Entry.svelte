@@ -33,6 +33,8 @@
 
     if (space) {
       state = "ready";
+
+      console.log('loaded space', space);
     } else {
       state = "needsSpace";
     }

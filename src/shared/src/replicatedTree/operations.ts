@@ -20,7 +20,7 @@ export function isMoveVertexOp(op: VertexOperation): op is MoveVertex {
   return 'parentId' in op;
 }
 
-export function isSetProperty(op: VertexOperation): op is SetVertexProperty {
+export function isSetPropertyOp(op: VertexOperation): op is SetVertexProperty {
   return 'key' in op;
 }
 

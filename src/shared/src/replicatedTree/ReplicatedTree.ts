@@ -1,4 +1,4 @@
-import { newMoveVertexOp, type MoveVertex, type SetVertexProperty, isMoveVertexOp, isSetProperty, type VertexOperation, newSetVertexPropertyOp } from "./operations";
+import { newMoveVertexOp, type MoveVertex, type SetVertexProperty, isMoveVertexOp, isSetPropertyOp, type VertexOperation, newSetVertexPropertyOp } from "./operations";
 import type { VertexPropertyType, TreeVertexProperty, VertexChangeEvent, TreeVertexId } from "./treeTypes";
 import { TreeVertex } from "./TreeVertex";
 import { TreeState } from "./TreeState";
@@ -348,7 +348,7 @@ export class ReplicatedTree {
 
       if (isMoveVertexOp(op)) {
         this.applyMove(op);
-      } else if (isSetProperty(op)) {
+      } else if (isSetPropertyOp(op)) {
         this.applyProperty(op);
       }
     }
@@ -372,7 +372,7 @@ export class ReplicatedTree {
     }
 
     // Get an array of all property ops (without already applied ones)
-    const propertyOps = ops.filter(op => isSetProperty(op) && !this.appliedOps.has(op.id.toString())) as SetVertexProperty[];
+    const propertyOps = ops.filter(op => isSetPropertyOp(op) && !this.appliedOps.has(op.id.toString())) as SetVertexProperty[];
     for (let i = 0, len = propertyOps.length; i < len; i++) {
       const op = propertyOps[i];
       this.applyProperty(op);
