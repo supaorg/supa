@@ -1,9 +1,15 @@
 <script lang="ts">
   import { message, open } from "@tauri-apps/plugin-dialog";
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
-  //import { connectTospaceByPath } from "$lib/stores/spaceStore";
+  import {
+    addLocalSpace,
+    currentSpaceIdStore,
+  } from "$lib/spaces/workspaceStore";
+  import {
+    createNewLocalSpaceAndConnect,
+    loadLocalSpaceAndConnect,
+  } from "$lib/spaces/LocalSpaceSync";
 
-  // Expose a function to be called from the parent component
   export let onSpaceSetup: (spaceId: string) => void = () => {};
 
   async function createSpaceDialog() {
@@ -17,16 +23,11 @@
     }
 
     try {
-      // @TODO: create a function that checks if the folder is empty and then creates a new pointer and space
-      /*
-      const space = await connectTospaceByPath(path as string, true);
-
-      if (!space) {
-        throw new Error("Failed to open space");
-      }
-
-      onspaceSetup(space.getId());
-      */
+      const spaceSync = await createNewLocalSpaceAndConnect(path as string);
+      const space = spaceSync.space;
+      addLocalSpace(space, path as string);
+      currentSpaceIdStore.set(space.getId());
+      onSpaceSetup(space.getId());
     } catch (e) {
       console.error(e);
       message("Failed to create space", { kind: "error" });
@@ -35,7 +36,7 @@
 
   async function openSpaceDialog() {
     const path = await open({
-      title: "Select a folder for a new space",
+      title: "Select a folder with a space",
       directory: true,
     });
 
@@ -44,14 +45,11 @@
     }
 
     try {
-      /*
-      const space = await connectTospaceByPath(path as string);
-      if (!space) {
-        throw new Error("Failed to open space");
-      }
-
-      onspaceSetup(space.getId());
-      */
+      const spaceSync = await loadLocalSpaceAndConnect(path as string);
+      const space = spaceSync.space;
+      currentSpaceIdStore.set(space.getId());
+      addLocalSpace(space, path as string);
+      onSpaceSetup(space.getId());
     } catch (e) {
       console.error(e);
       message("Failed to open space", { kind: "error" });

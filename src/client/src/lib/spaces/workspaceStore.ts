@@ -3,8 +3,7 @@ import { writable, get, derived } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import type { SpacePointer } from "./SpacePointer";
 import type Space from "@shared/spaces/Space";
-import { TauriSpaceSync } from "./TauriSpaceSync";
-import { v4 as uuidv4 } from "uuid";
+import { loadSpaceFromPointer, LocalSpaceSync } from "./LocalSpaceSync";
 
 /**
  * A persistent store of pointers to spaces.
@@ -93,8 +92,25 @@ async function loadAndConnectToSpace(pointer: SpacePointer): Promise<Space> {
     throw new Error("Remote spaces are not implemented yet");
   }
 
-  const spaceSync = new TauriSpaceSync(pointer, uuidv4());
+  const spaceSync = await loadSpaceFromPointer(pointer);
   return spaceSync.connect();
+}
+
+export function addLocalSpace(space: Space, path: string) {
+  spaceStore.update((spaces) => {
+    return [...spaces, space];
+  });
+
+  const pointer: SpacePointer = {
+    id: space.getId(),
+    uri: `file://${path}`,
+    name: space.getName(),
+    createdAt: space.getCreatedAt(),
+  }
+
+  spacePointersStore.update((pointers) => {
+    return [...pointers, pointer];
+  });
 }
 
 /*

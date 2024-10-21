@@ -31,6 +31,7 @@ export default class Space {
     tree.setVertexProperty(rootId, 'name', 'New Space');
     tree.setVertexProperty(rootId, 'version', '0');
     tree.setVertexProperty(rootId, 'needsSetup', true);
+    tree.setVertexProperty(rootId, 'createdAt', new Date().toISOString());
 
     const apps = tree.newVertex(rootId);
     tree.setVertexProperty(apps, '_n', 'apps');
@@ -55,6 +56,24 @@ export default class Space {
 
   getId(): string {
     return this.tree.rootVertexId;
+  }
+
+  getName(): string {
+    const name = this.tree.getVertexProperty(this.tree.rootVertexId, 'name');
+    if (!name) {
+      throw new Error("Space name is not set");
+    }
+
+    return name.value as string;
+  }
+
+  getCreatedAt(): Date {
+    const createdAt = this.tree.getVertexProperty(this.tree.rootVertexId, 'createdAt');
+    if (!createdAt) {
+      throw new Error("Space createdAt is not set");
+    }
+
+    return new Date(createdAt.value as string);
   }
 
 	createVertex() {

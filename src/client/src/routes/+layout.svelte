@@ -4,7 +4,7 @@
 </script>
 
 <svelte:head>
-  <title>Supamind</title>
+  <title>SupaCloud</title>
   <meta name="description" content="SupaCloud" />
 </svelte:head>
 

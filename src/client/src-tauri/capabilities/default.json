@@ -9,13 +9,15 @@
     "core:default",
     "shell:allow-open",
     "fs:default",
+    "fs:allow-app-write-recursive",
+    "fs:allow-app-read-recursive",
     "core:window:default",
     "core:window:allow-set-fullscreen",
     "core:window:allow-set-size",
     "core:window:allow-set-visible-on-all-workspaces",
     "core:window:allow-set-position",
     {
-      "identifier": "fs:allow-home-write",
+      "identifier": "fs:allow-home-write-recursive",
       "allow": [
         {
           "path": "$HOME/*"
