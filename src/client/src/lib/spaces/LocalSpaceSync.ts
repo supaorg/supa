@@ -8,7 +8,9 @@ import {
   open,
   BaseDirectory,
   mkdir,
-  readTextFile
+  readTextFile,
+  watch,
+  type WatchEvent
 } from "@tauri-apps/plugin-fs";
 import { v4 as uuidv4 } from 'uuid';
 import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "@shared/replicatedTree/operations";
@@ -26,10 +28,20 @@ export class LocalSpaceSync {
   }
 
   async connect(): Promise<Space> {
+
+    watch(this.uri, (event) => {
+      this.handleWatchEvent(event);
+    }, { recursive: true });
+
     //const ops = await this.loadSpaceTreeFromPath(this.uri);
     //this.space = new Space(ops);
 
     return this.space;
+  }
+
+  handleWatchEvent(event: WatchEvent) {
+    console.log("handleWatchEvent", event); 
+    // kind: data | folder | file
   }
 
   private async loadSpaceTreeFromPath(path: string): Promise<ReplicatedTree> {
