@@ -16,7 +16,7 @@
   import Loading from "$lib/comps/basic/Loading.svelte";
   import TauriWindowSetup from "$lib/comps/tauri/TauriWindowSetup.svelte";
   import { isTauri } from "$lib/tauri/isTauri";
-  import { loadSpacesAndConnectToCurrent } from "$lib/spaces/workspaceStore";
+  import { loadSpacesAndConnectToCurrent } from "$lib/spaces/spaceStore";
   import SpaceSetup from "$lib/comps/setup/SpaceSetup.svelte";
 
   type State = "initializing" | "needsSpace" | "ready";

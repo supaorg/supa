@@ -4,7 +4,7 @@
   import {
     addLocalSpace,
     currentSpaceIdStore,
-  } from "$lib/spaces/workspaceStore";
+  } from "$lib/spaces/spaceStore";
   import {
     createNewLocalSpaceAndConnect,
     loadLocalSpaceAndConnect,

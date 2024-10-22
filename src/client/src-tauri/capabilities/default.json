@@ -16,6 +16,7 @@
     "core:window:allow-set-size",
     "core:window:allow-set-visible-on-all-workspaces",
     "core:window:allow-set-position",
+    "dialog:default",
     {
       "identifier": "fs:allow-home-write-recursive",
       "allow": [
@@ -23,7 +24,6 @@
           "path": "$HOME/*"
         }
       ]
-    },
-    "dialog:default"
+    }
   ]
 }

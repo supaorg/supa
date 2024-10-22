@@ -70,14 +70,14 @@ export class TreeState {
       }
     }
 
+    // We notify the listeners in the end so that they have the final state of the tree
+
     this.notifyChange({
       type: 'move',
       vertexId: vertexId,
       oldParentId: prevParentId,
       newParentId,
     } as VertexMoveEvent);
-
-    // We notify the listeners in the end so that they can get the full state of the tree
 
     if (childrenInNewParent !== null && newParentId !== null) {
       this.notifyChange({

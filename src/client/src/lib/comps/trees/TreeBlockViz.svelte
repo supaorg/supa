@@ -32,18 +32,18 @@
 
     if (vertexId) {
       properties = tree.getVertexProperties(vertexId);
-      vertexName = properties.find((p) => p.key === "_n")?.value as string | null;
+      vertexName = properties.find((p) => p.key === "_n")?.value as
+        | string
+        | null;
     }
   }
 
   function handleTreeChange(event: VertexChangeEvent) {
-    console.log("peerId", tree.peerId);
-
-    if (event.type === 'property') {
+    if (event.type === "property") {
       console.log("property change", event);
-    } else if (event.type === 'children') {
+    } else if (event.type === "children") {
       console.log("children change", event);
-    } else if (event.type === 'move') {
+    } else if (event.type === "move") {
       console.log("move change", event);
     }
 
@@ -52,7 +52,9 @@
     if (event.vertexId === vertexId) {
       updateChildren();
     }
-      */
+    */
+
+    console.log("handleTreeChange", event);
 
     updateChildren();
   }
@@ -64,7 +66,7 @@
   });
 
   onDestroy(() => {
-    tree.unsubscribe(vertexId,handleTreeChange);
+    tree.unsubscribe(vertexId, handleTreeChange);
   });
 
   function toggleExpand() {
@@ -99,21 +101,28 @@
 
     let draggedVertexId = get(treeStores.dragStartVertexIdStore);
 
+    /*
     console.log(
       `Drop event triggered. draggedVertexId: ${draggedVertexId}, targetId: ${vertexId}`,
     );
+    */
 
     if (!draggedVertexId) {
-      console.log("Drop action invalid: draggedVertexId is null");
+      //console.log("Drop action invalid: draggedVertexId is null");
     } else if (draggedVertexId === vertexId) {
+      /*
       console.log(
         `Dropped vertex ${draggedVertexId} onto itself - no action taken`,
       );
+      */
     } else {
-      console.log(`Attempting to move vertex ${draggedVertexId} to ${vertexId}`);
+      /*
+      console.log(
+        `Attempting to move vertex ${draggedVertexId} to ${vertexId}`,
+      );
+      */
       try {
         tree.moveVertex(draggedVertexId, vertexId);
-        console.log("Move successful");
         isExpanded = true;
       } catch (error) {
         console.error("Error during tree.move:", error);
@@ -175,7 +184,7 @@
         {/if}
       </span>
       <ul class="text-xs">
-        {#each properties as property}
+        {#each properties as property (property.key)}
           <li>{property.key}: {property.value}</li>
         {/each}
       </ul>
@@ -184,7 +193,7 @@
 
   {#if isExpanded && children.length > 0}
     <div class="tree-item-children ml-4" role="group">
-      {#each children as child}
+      {#each children as child (child)}
         <svelte:self {tree} vertexId={child} {treeStores} />
       {/each}
     </div>
