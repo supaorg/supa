@@ -3,45 +3,99 @@ import Space from "@shared/spaces/Space";
 import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
 import {
   readDir,
-  exists,
   create,
   open,
-  BaseDirectory,
   mkdir,
   readTextFile,
   watch,
-  type WatchEvent
+  type WatchEvent,
+  type UnwatchFn,
+  exists,
+  FileHandle
 } from "@tauri-apps/plugin-fs";
 import { v4 as uuidv4 } from 'uuid';
 import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "@shared/replicatedTree/operations";
 import { OpId } from "@shared/replicatedTree/OpId";
 
 export class LocalSpaceSync {
-  constructor(readonly space: Space, private uri: string) { }
+  private unwatchSpaceFsChanges: UnwatchFn | null = null;
+  private connected = false;
+  private saveOpsTimer: NodeJS.Timeout | null = null;
+  private savingOpsToFile = false;
+  private opsToSave: VertexOperation[] = [];
+  private saveOpsIntervalMs = 500;
 
-  getSpace(): Space {
-    if (!this.space) {
-      throw new Error("Space not loaded. Call connect() first.");
-    }
-
-    return this.space;
+  constructor(readonly space: Space, private uri: string) {
+    space.tree.subscribeToOpApplied(this.handleOpApplied.bind(this));
   }
 
-  async connect(): Promise<Space> {
+  async connect(): Promise<void> {
+    if (this.connected) {
+      return;
+    }
 
-    watch(this.uri, (event) => {
+    this.unwatchSpaceFsChanges = await watch(this.uri, (event) => {
       this.handleWatchEvent(event);
     }, { recursive: true });
 
-    //const ops = await this.loadSpaceTreeFromPath(this.uri);
-    //this.space = new Space(ops);
+    // Save pending ops every n milliseconds
+    this.saveOpsTimer = setInterval(() => {
+      this.saveOps();
+    }, this.saveOpsIntervalMs);
 
-    return this.space;
+    this.connected = true;
   }
 
-  handleWatchEvent(event: WatchEvent) {
-    console.log("handleWatchEvent", event); 
+  disconnect() {
+    if (!this.connected) {
+      return;
+    }
+
+    if (this.unwatchSpaceFsChanges) {
+      this.unwatchSpaceFsChanges();
+      this.unwatchSpaceFsChanges = null;
+    }
+
+    if (this.saveOpsTimer) {
+      clearInterval(this.saveOpsTimer);
+      this.saveOpsTimer = null;
+    }
+
+    this.connected = false;
+  }
+
+  private async saveOps() {
+    if (this.opsToSave.length === 0 || this.savingOpsToFile) {
+      return;
+    }
+
+    console.log("Saving ops to file", this.opsToSave.length);
+
+    this.savingOpsToFile = true;
+
+    try {
+      const opsJSONLines = turnOpsIntoJSONLines(this.opsToSave);
+      const opsFile = await openFileToCurrentTreeOpsJSONLFile(this.uri, this.space.tree.rootVertexId, this.space.tree.peerId);
+      await opsFile.write(new TextEncoder().encode(opsJSONLines));
+      await opsFile.close();
+      this.opsToSave = [];
+      this.savingOpsToFile = false;
+      console.log("Saved ops to file", this.opsToSave.length);
+    } catch (error) {
+      this.savingOpsToFile = false;
+      console.error("Error saving ops to file", error);
+    }   
+  }
+
+  private handleWatchEvent(event: WatchEvent) {
+    console.log("handleWatchEvent", event);
     // kind: data | folder | file
+  }
+
+  private handleOpApplied(op: VertexOperation) {
+    if (op.id.peerId === this.space.tree.peerId) {
+      this.opsToSave.push(op);
+    }
   }
 
   private async loadSpaceTreeFromPath(path: string): Promise<ReplicatedTree> {
@@ -77,14 +131,16 @@ export async function createNewLocalSpaceAndConnect(path: string): Promise<Local
   // Create ops that created the space
   await saveTreeOpsFromScratch(space.tree, path);
 
-  // @TODO: subscribe to changes in the ops folder
-
-  return new LocalSpaceSync(space, path);
+  const sync = new LocalSpaceSync(space, path);
+  await sync.connect();
+  return sync;
 }
 
 export async function loadLocalSpaceAndConnect(path: string): Promise<LocalSpaceSync> {
   const space = await loadLocalSpace(path);
-  return new LocalSpaceSync(space, path);
+  const sync = new LocalSpaceSync(space, path);
+  await sync.connect();
+  return sync;
 }
 
 export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<LocalSpaceSync> {
@@ -97,13 +153,12 @@ export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<Local
     throw new Error("Space ID mismatch. Expected " + pointer.id + " but got " + space.getId());
   }
 
-  return new LocalSpaceSync(space, pointer.uri);
+  const sync = new LocalSpaceSync(space, pointer.uri);
+  await sync.connect();
+  return sync;
 }
 
 async function saveTreeOpsFromScratch(tree: ReplicatedTree, spacePath: string) {
-  // Current date in YYYY-MM-DD format
-  const date = new Date().toISOString().split('T')[0];
-
   const opsPath = makePathForOpsBasedOnDate(spacePath, tree.rootVertexId, new Date());
   await mkdir(opsPath, { recursive: true });
 
@@ -113,6 +168,16 @@ async function saveTreeOpsFromScratch(tree: ReplicatedTree, spacePath: string) {
   const opsFile = await create(opsPath + '/' + tree.peerId + '.jsonl');
   await opsFile.write(new TextEncoder().encode(opsJSONLines));
   await opsFile.close();
+
+  /*
+  // @TODO: will 'create' fail if no directory exists?
+  const opsJSONLines = turnOpsIntoJSONLines(tree.popLocalOps());
+
+  const opsFilePath = makePathToCurrentTreeOpsJSONLFile(spacePath, tree.rootVertexId, tree.peerId);
+  const opsFile = await create(opsFilePath);
+  await opsFile.write(new TextEncoder().encode(opsJSONLines));
+  await opsFile.close();
+  */
 }
 
 function makePathForTree(spacePath: string, treeId: string): string {
@@ -127,6 +192,18 @@ function makePathForTree(spacePath: string, treeId: string): string {
 function makePathForOpsBasedOnDate(spacePath: string, treeId: string, date: Date): string {
   const treePath = makePathForTree(spacePath, treeId);
   return treePath + '/' + date.toISOString().split('T')[0];
+}
+
+async function openFileToCurrentTreeOpsJSONLFile(spacePath: string, treeId: string, peerId: string): Promise<FileHandle> {
+  const opsPath = makePathForOpsBasedOnDate(spacePath, treeId, new Date());
+  await mkdir(opsPath, { recursive: true });
+  const filePath = opsPath + '/' + peerId + '.jsonl';
+
+  if (await exists(filePath)) {
+    return await open(filePath, { append: true });
+  }
+
+  return await create(filePath);
 }
 
 async function loadLocalSpace(path: string): Promise<Space> {
@@ -154,6 +231,8 @@ async function loadLocalSpace(path: string): Promise<Space> {
   if (ops.length === 0) {
     throw new Error("No operations found for space");
   }
+
+  console.log("Loaded ops", ops.length);
 
   return new Space(new ReplicatedTree(uuidv4(), ops));
 }
