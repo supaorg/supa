@@ -87,9 +87,48 @@ export class LocalSpaceSync {
     }
   }
 
+  private async readOps(path: string) {
+    let peerId: string | null = null;
+    try {
+      peerId = path.split('/').pop()!.split('.')[0];
+
+      if (!peerId) {
+        throw new Error("Peer ID not found in the path");
+      }
+    } catch (e) {
+      console.error("Error getting peerId from", path);
+      return;
+    }
+
+    if (peerId === this.space.tree.peerId) {
+      return;
+    }
+
+    const ops = turnJSONLinesIntoOps(await readTextFile(path), peerId);
+
+    if (ops.length === 0) {
+      return;
+    }
+
+    this.space.tree.merge(ops);
+  }
+
   private handleWatchEvent(event: WatchEvent) {
     console.log("handleWatchEvent", event);
-    // kind: data | folder | file
+
+    if (typeof event.type === 'object' && 'create' in event.type) {
+      const createEvent = event.type.create;
+      if (createEvent.kind === 'file') {
+        const path = event.paths[0];
+        this.readOps(path);
+      }
+    } else if (typeof event.type === 'object' && 'modify' in event.type) {
+      const modifyEvent = event.type.modify;
+      if (modifyEvent.kind === 'data' && (modifyEvent.mode === 'any' || modifyEvent.mode === 'content')) {
+        const path = event.paths[0];
+        this.readOps(path);
+      }
+    }
   }
 
   private handleOpApplied(op: VertexOperation) {
@@ -168,16 +207,6 @@ async function saveTreeOpsFromScratch(tree: ReplicatedTree, spacePath: string) {
   const opsFile = await create(opsPath + '/' + tree.peerId + '.jsonl');
   await opsFile.write(new TextEncoder().encode(opsJSONLines));
   await opsFile.close();
-
-  /*
-  // @TODO: will 'create' fail if no directory exists?
-  const opsJSONLines = turnOpsIntoJSONLines(tree.popLocalOps());
-
-  const opsFilePath = makePathToCurrentTreeOpsJSONLFile(spacePath, tree.rootVertexId, tree.peerId);
-  const opsFile = await create(opsFilePath);
-  await opsFile.write(new TextEncoder().encode(opsJSONLines));
-  await opsFile.close();
-  */
 }
 
 function makePathForTree(spacePath: string, treeId: string): string {
