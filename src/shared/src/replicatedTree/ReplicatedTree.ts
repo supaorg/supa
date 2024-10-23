@@ -3,7 +3,7 @@ import type { VertexPropertyType, TreeVertexProperty, VertexChangeEvent, TreeVer
 import { TreeVertex } from "./TreeVertex";
 import { TreeState } from "./TreeState";
 import { OpId } from "./OpId";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "@shared/uuid/uuid";
 
 type PropertyKeyAtVertexId = `${string}@${TreeVertexId}`;
 
@@ -124,7 +124,7 @@ export class ReplicatedTree {
   }
 
   private newVertexInternal(parentId: string | null): string {
-    const vertexId = uuidv4();
+    const vertexId = uuid();
     this.lamportClock++;
     // To create a vertex - we move a vertex with a fresh id under the parent.
     // No need to have a separate "create vertex" operation.

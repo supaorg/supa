@@ -1,12 +1,12 @@
 <script lang="ts">
   import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import TreeTestSync from "./TreeTestSync.svelte";
-  import { v4 as uuidv4 } from "uuid";
+  import uuid from "@shared/uuid/uuid";
 
   export let trees: ReplicatedTree[];
 
   function handleDuplicate(tree: ReplicatedTree) {
-    const newTree = new ReplicatedTree(uuidv4() + '_duplicate', tree.getAllOps());
+    const newTree = new ReplicatedTree(uuid() + '_duplicate', tree.getAllOps());
     
     // Insert the new tree after the target tree
     const index = trees.findIndex((t) => t.peerId === tree.peerId);

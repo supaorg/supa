@@ -13,7 +13,7 @@ import {
   exists,
   FileHandle
 } from "@tauri-apps/plugin-fs";
-import { v4 as uuidv4 } from 'uuid';
+import uuid from "@shared/uuid/uuid";
 import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "@shared/replicatedTree/operations";
 import { OpId } from "@shared/replicatedTree/OpId";
 
@@ -84,7 +84,7 @@ export class LocalSpaceSync {
     } catch (error) {
       this.savingOpsToFile = false;
       console.error("Error saving ops to file", error);
-    }   
+    }
   }
 
   private handleWatchEvent(event: WatchEvent) {
@@ -119,7 +119,7 @@ export async function createNewLocalSpaceAndConnect(path: string): Promise<Local
     throw new Error("Directory is not empty");
   }
 
-  const space = Space.newSpace(uuidv4());
+  const space = Space.newSpace(uuid());
 
   // Create space.json
   const pathToSpaceJson = path + '/space.json';
@@ -234,7 +234,7 @@ async function loadLocalSpace(path: string): Promise<Space> {
 
   console.log("Loaded ops", ops.length);
 
-  return new Space(new ReplicatedTree(uuidv4(), ops));
+  return new Space(new ReplicatedTree(uuid(), ops));
 }
 
 async function loadAllTreeOps(spacePath: string, treeId: string): Promise<VertexOperation[]> {
@@ -242,15 +242,23 @@ async function loadAllTreeOps(spacePath: string, treeId: string): Promise<Vertex
 
   // Read all directories and get .jsonl files
   const dirEntries = await readDir(treeOpsPath);
+  const datePaths: string[] = [];
   const jsonlFiles: string[] = [];
   for (const entry of dirEntries) {
     // Read all dirs that match YYYY-MM-DD
     if (entry.isDirectory && entry.name.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      const jsonlFilesInDir = await readDir(treeOpsPath + '/' + entry.name);
-      for (const file of jsonlFilesInDir) {
-        if (file.isFile && file.name.endsWith('.jsonl')) {
-          jsonlFiles.push(treeOpsPath + '/' + entry.name + '/' + file.name);
-        }
+      datePaths.push(treeOpsPath + '/' + entry.name);
+    }
+  }
+
+  // Sort datePaths so we will read the files from older to newer
+  datePaths.sort();
+
+  for (const datePath of datePaths) {
+    const jsonlFilesInDir = await readDir(datePath);
+    for (const file of jsonlFilesInDir) {
+      if (file.isFile && file.name.endsWith('.jsonl')) {
+        jsonlFiles.push(datePath + '/' + file.name);
       }
     }
   }
@@ -259,7 +267,8 @@ async function loadAllTreeOps(spacePath: string, treeId: string): Promise<Vertex
   for (const file of jsonlFiles) {
     const fileContent = await readTextFile(file);
     // Peer ID is the file name without the .jsonl extension and path
-    const ops = turnJSONLinesIntoOps(fileContent, treeId);
+    const peerId = file.split('/').pop()!.split('.')[0];
+    const ops = turnJSONLinesIntoOps(fileContent, peerId);
     allOps.push(...ops);
   }
 
