@@ -1,17 +1,14 @@
 <script lang="ts">
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
-  import type { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
-  import TreeTestSyncWrapper from "../test-sync/TreeTestSyncWrapper.svelte";
-
-  let tree: ReplicatedTree | null = null;
-
-  currentSpaceStore.subscribe((space) => {
-    if (space) {
-      tree = space.tree;
-    }
-  });
+  import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
 </script>
 
-{#if tree}
-  <TreeTestSyncWrapper trees={[tree]} />
-{/if}
+<div class="flex h-screen overflow-hidden">
+  <aside
+    class="relative w-[260px] flex-shrink-0 overflow-y-auto border-r border-surface-300-600-token"
+  >
+    <Sidebar />
+  </aside>
+  <main class="relative flex-grow h-full overflow-y-auto page-bg">
+    <slot />
+  </main>
+</div>

@@ -1,5 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
+const removeDashes = (guid: string) => guid.replace(/-/g, '');
 
 export default function uuid(): string {
-  return uuidv4();
+  return removeDashes(crypto.randomUUID());
 }
