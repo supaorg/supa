@@ -1,9 +1,11 @@
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
+import AppTree from "./AppTree";
 
 export default class Space {
 	readonly tree: ReplicatedTree;
+  private appTrees: Map<string, AppTree> = new Map();
 
-  static isValidSpaceTree(tree: ReplicatedTree): boolean {
+  static isValid(tree: ReplicatedTree): boolean {
     const root = tree.getVertexByPath('/space');
     if (!root) {
       return false;
@@ -49,7 +51,7 @@ export default class Space {
 		this.tree = tree;
   
     // @TODO: or perhaps a migration should be here
-    if (!Space.isValidSpaceTree(tree)) {
+    if (!Space.isValid(tree)) {
       throw new Error("Invalid tree structure");
     }
 	}
@@ -74,6 +76,27 @@ export default class Space {
     }
 
     return new Date(createdAt.value as string);
+  }
+
+  newAppTree(appId: string): AppTree {
+    const appTree = AppTree.newAppTree(this.tree.peerId, appId);
+
+    const appsTrees = this.tree.getVertexByPath('/space/app-branches');
+
+    if (!appsTrees) {
+      throw new Error("Apps trees vertex not found");
+    }
+
+    const newAppTree = this.tree.newVertex(appsTrees.id);
+
+    this.tree.setVertexProperty(newAppTree, 'app-tree-id', appTree.getId());
+    this.appTrees.set(appTree.getId(), appTree);
+
+    return appTree;
+  }
+
+  getAppTree(appTreeId: string): AppTree | undefined {
+    return this.appTrees.get(appTreeId);
   }
 
 	createVertex() {

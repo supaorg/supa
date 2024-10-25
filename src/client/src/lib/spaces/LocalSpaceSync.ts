@@ -78,13 +78,39 @@ export class LocalSpaceSync {
       const opsFile = await openFileToCurrentTreeOpsJSONLFile(this.uri, this.space.tree.rootVertexId, this.space.tree.peerId);
       await opsFile.write(new TextEncoder().encode(opsJSONLines));
       await opsFile.close();
-      this.opsToSave = [];
       this.savingOpsToFile = false;
-      console.log("Saved ops to file", this.opsToSave.length);
     } catch (error) {
       this.savingOpsToFile = false;
       console.error("Error saving ops to file", error);
     }
+
+    for (const op of this.opsToSave) {
+      console.log("Check for app tree", op);
+      if (isSetPropertyOp(op) && op.key === 'app-tree-id') {
+        console.log("Saving app tree", op.value);
+
+        const appTreeId = op.value as string;
+        const appTree = this.space.getAppTree(appTreeId);
+        if (!appTree) {
+          console.error("App tree not found", appTreeId);
+          continue;
+        }
+
+        // Check if app tree has been already saved
+        const appTreePath = makePathForTree(this.uri, appTreeId);
+        if (await exists(appTreePath)) {
+          return;
+        }
+
+        // Save app tree
+        await saveTreeOpsFromScratch(appTree.tree, this.uri);
+
+        console.log("Saved app tree", appTreeId);
+      }
+    }
+
+    // @TODO: call it only if all ops have been saved/processed
+    this.opsToSave = [];
   }
 
   private async readOps(path: string) {

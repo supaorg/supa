@@ -3,7 +3,7 @@ import type { VertexPropertyType, TreeVertexProperty, VertexChangeEvent, TreeVer
 import { TreeVertex } from "./TreeVertex";
 import { TreeState } from "./TreeState";
 import { OpId } from "./OpId";
-import uuid from "@shared/uuid/uuid";
+import uuid from "../uuid/uuid";
 
 type PropertyKeyAtVertexId = `${string}@${TreeVertexId}`;
 
