@@ -105,6 +105,8 @@ export class LocalSpaceSync {
         // Save app tree
         await saveTreeOpsFromScratch(appTree.tree, this.uri);
 
+        // @TODO: subscribe to changes in app tree
+
         console.log("Saved app tree", appTreeId);
       }
     }
@@ -161,17 +163,6 @@ export class LocalSpaceSync {
     if (op.id.peerId === this.space.tree.peerId) {
       this.opsToSave.push(op);
     }
-  }
-
-  private async loadSpaceTreeFromPath(path: string): Promise<ReplicatedTree> {
-    // check if space.json at path + /v1/space.json exists
-    // then go to /v1/ops/ and load all op files
-    // subscribe to changes in that folder and load new ops
-    // subscribe to changes in space tree and save ops in the folder    
-
-    //const path = uri.replace("file://", "");
-
-    return new ReplicatedTree(this.space.getId());
   }
 }
 

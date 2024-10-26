@@ -1,7 +1,7 @@
 {
   "name": "supa-client",
   "version": "1.0.0",
-  "description": "The client for SupaCloud",
+  "description": "The client for Supa",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
