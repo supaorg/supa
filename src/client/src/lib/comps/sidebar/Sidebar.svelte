@@ -2,6 +2,7 @@
   import Settings from "lucide-svelte/icons/settings";
   import AppButtons from "./AppButtons.svelte";
   import LayoutGrid from "lucide-svelte/icons/layout-grid";
+    import AppTrees from "./AppTrees.svelte";
 </script>
 
 <div class="flex flex-col h-screen">
@@ -17,7 +18,7 @@
     </a>
   </div>
   <div class="flex-grow overflow-y-auto px-2">
-    
+    <AppTrees />
   </div>
   <div class="min-h-min px-2 pt-2">
     <div class="flex items-center">

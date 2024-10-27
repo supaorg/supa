@@ -1,9 +1,13 @@
+import type { TreeVertex } from "@shared/replicatedTree/TreeVertex";
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import AppTree from "./AppTree";
 
 export default class Space {
 	readonly tree: ReplicatedTree;
   private appTrees: Map<string, AppTree> = new Map();
+  private newTreeListeners: ((treeId: string) => void)[] = [];
+  private treeLoader: ((treeId: string) => Promise<AppTree>) | undefined;
+  private appTreesVertex: TreeVertex;
 
   static isValid(tree: ReplicatedTree): boolean {
     const root = tree.getVertexByPath('/space');
@@ -16,7 +20,7 @@ export default class Space {
       return false;
     }
 
-    const chats = tree.getVertexByPath('/space/app-branches');
+    const chats = tree.getVertexByPath('/space/app-trees');
     if (!chats) { 
       return false;
     }
@@ -38,8 +42,8 @@ export default class Space {
     const apps = tree.newVertex(rootId);
     tree.setVertexProperty(apps, '_n', 'apps');
 
-    const chats = tree.newVertex(rootId);
-    tree.setVertexProperty(chats, '_n', 'app-branches');
+    const appTrees = tree.newVertex(rootId);
+    tree.setVertexProperty(appTrees, '_n', 'app-trees');
 
     const settings = tree.newVertex(rootId);
     tree.setVertexProperty(settings, '_n', 'settings');
@@ -54,6 +58,8 @@ export default class Space {
     if (!Space.isValid(tree)) {
       throw new Error("Invalid tree structure");
     }
+
+    this.appTreesVertex = tree.getVertexByPath('/space/app-trees') as TreeVertex;
 	}
 
   getId(): string {
@@ -81,7 +87,7 @@ export default class Space {
   newAppTree(appId: string): AppTree {
     const appTree = AppTree.newAppTree(this.tree.peerId, appId);
 
-    const appsTrees = this.tree.getVertexByPath('/space/app-branches');
+    const appsTrees = this.tree.getVertexByPath('/space/app-trees');
 
     if (!appsTrees) {
       throw new Error("Apps trees vertex not found");
@@ -89,14 +95,49 @@ export default class Space {
 
     const newAppTree = this.tree.newVertex(appsTrees.id);
 
-    this.tree.setVertexProperty(newAppTree, 'app-tree-id', appTree.getId());
+    this.tree.setVertexProperty(newAppTree, 'tree-id', appTree.getId());
     this.appTrees.set(appTree.getId(), appTree);
+
+    for (const listener of this.newTreeListeners) {
+      listener(appTree.getId());
+    }
 
     return appTree;
   }
 
+  async loadAppTree(appTreeId: string): Promise<AppTree> {
+    let appTree = this.appTrees.get(appTreeId);
+    if (appTree) {
+      return appTree;
+    }
+
+    if (!this.treeLoader) {
+      throw new Error("No tree loader registered");
+    }
+
+    return this.treeLoader(appTreeId);
+  }
+
+  observeNewAppTree(listener: (appTreeId: string) => void) {
+    this.newTreeListeners.push(listener);
+  }
+
+  unobserveNewAppTree(listener: (appTreeId: string) => void) {
+    this.newTreeListeners = this.newTreeListeners.filter(l => l !== listener);
+  }
+
+  registerTreeLoader(loader: (appTreeId: string) => Promise<AppTree>) {
+    this.treeLoader = loader;
+  }
+
   getAppTree(appTreeId: string): AppTree | undefined {
     return this.appTrees.get(appTreeId);
+  }
+
+  getAppTreeIds(): ReadonlyArray<string> {
+    console.log('appTreesVertex', this.appTreesVertex);
+
+    return this.appTreesVertex.children;
   }
 
 	createVertex() {

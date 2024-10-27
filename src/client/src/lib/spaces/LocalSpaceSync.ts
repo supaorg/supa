@@ -16,17 +16,37 @@ import {
 import uuid from "@shared/uuid/uuid";
 import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "@shared/replicatedTree/operations";
 import { OpId } from "@shared/replicatedTree/OpId";
+import AppTree from "@shared/spaces/AppTree";
 
 export class LocalSpaceSync {
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
   private connected = false;
-  private saveOpsTimer: NodeJS.Timeout | null = null;
+  private saveOpsTimer: ReturnType<typeof setInterval> | null = null;
   private savingOpsToFile = false;
-  private opsToSave: VertexOperation[] = [];
+  private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
   private saveOpsIntervalMs = 500;
 
   constructor(readonly space: Space, private uri: string) {
-    space.tree.subscribeToOpApplied(this.handleOpApplied.bind(this));
+    space.tree.subscribeToOpApplied(
+      (op) => {
+        this.handleOpApplied(space.getId(), op);
+      }
+    );
+
+    space.observeNewAppTree((appTreeId) => {
+      this.handleNewAppTree(appTreeId);
+    });
+
+    space.registerTreeLoader(async (appTreeId) => {
+      const ops = await loadAllTreeOps(this.uri, appTreeId);
+
+      if (ops.length === 0) {
+        throw new Error("No operations found for space");
+      }
+    
+      const tree = new ReplicatedTree(appTreeId, ops);
+      return new AppTree(tree);
+    });
   }
 
   async connect(): Promise<void> {
@@ -65,64 +85,64 @@ export class LocalSpaceSync {
   }
 
   private async saveOps() {
-    if (this.opsToSave.length === 0 || this.savingOpsToFile) {
+    if (this.savingOpsToFile) {
       return;
     }
 
-    console.log("Saving ops to file", this.opsToSave.length);
-
     this.savingOpsToFile = true;
 
-    try {
-      const opsJSONLines = turnOpsIntoJSONLines(this.opsToSave);
-      const opsFile = await openFileToCurrentTreeOpsJSONLFile(this.uri, this.space.tree.rootVertexId, this.space.tree.peerId);
-      await opsFile.write(new TextEncoder().encode(opsJSONLines));
-      await opsFile.close();
-      this.savingOpsToFile = false;
-    } catch (error) {
-      this.savingOpsToFile = false;
-      console.error("Error saving ops to file", error);
-    }
+    for (const [treeId, ops] of this.treeOpsToSave.entries()) {
+      if (ops.length === 0) {
+        continue;
+      }
 
-    for (const op of this.opsToSave) {
-      console.log("Check for app tree", op);
-      if (isSetPropertyOp(op) && op.key === 'app-tree-id') {
-        console.log("Saving app tree", op.value);
-
-        const appTreeId = op.value as string;
-        const appTree = this.space.getAppTree(appTreeId);
-        if (!appTree) {
-          console.error("App tree not found", appTreeId);
-          continue;
-        }
-
-        // Check if app tree has been already saved
-        const appTreePath = makePathForTree(this.uri, appTreeId);
-        if (await exists(appTreePath)) {
-          return;
-        }
-
-        // Save app tree
-        await saveTreeOpsFromScratch(appTree.tree, this.uri);
-
-        // @TODO: subscribe to changes in app tree
-
-        console.log("Saved app tree", appTreeId);
+      try {
+        const opsJSONLines = turnOpsIntoJSONLines(ops);
+        const opsFile = await openFileToCurrentTreeOpsJSONLFile(this.uri, treeId, this.space.tree.peerId);
+        await opsFile.write(new TextEncoder().encode(opsJSONLines));
+        this.treeOpsToSave.set(treeId, []);
+        await opsFile.close();
+      } catch (error) {
+        console.error("Error saving ops to file", error);
       }
     }
 
-    // @TODO: call it only if all ops have been saved/processed
-    this.opsToSave = [];
+    this.savingOpsToFile = false;
   }
 
-  private async readOps(path: string) {
+  addOpsToSave(treeId: string, ops: ReadonlyArray<VertexOperation>) {
+    let opsToSave = this.treeOpsToSave.get(treeId);
+    if (!opsToSave) {
+      opsToSave = [];
+      this.treeOpsToSave.set(treeId, opsToSave);
+    }
+    opsToSave.push(...ops);
+  }
+
+  private async tryReadOpsFromPeer(path: string) {
     let peerId: string | null = null;
+    let treeId: string | null = null;
     try {
-      peerId = path.split('/').pop()!.split('.')[0];
+      const splitPath = path.split('/');
+
+      peerId = splitPath.pop()!.split('.')[0];
 
       if (!peerId) {
         throw new Error("Peer ID not found in the path");
       }
+
+      const treeIdEndPart = splitPath.pop();
+      if (!treeIdEndPart) {
+        throw new Error("Tree ID part 1 not found in the path");
+      }
+
+      const treeIdStartPart = splitPath.pop();
+      if (!treeIdStartPart) {
+        throw new Error("Tree ID part 2 not found in the path");
+      }
+
+      treeId = treeIdStartPart + treeIdEndPart;
+
     } catch (e) {
       console.error("Error getting peerId from", path);
       return;
@@ -138,7 +158,19 @@ export class LocalSpaceSync {
       return;
     }
 
-    this.space.tree.merge(ops);
+    if (treeId === this.space.tree.rootVertexId) {
+      this.space.tree.merge(ops);
+    } else {
+      const appTree = this.space.getAppTree(treeId);
+
+      if (!appTree) {
+        console.log("App tree not found", treeId);
+        return;
+      }
+
+      appTree.tree.merge(ops);
+    }
+
   }
 
   private handleWatchEvent(event: WatchEvent) {
@@ -148,21 +180,43 @@ export class LocalSpaceSync {
       const createEvent = event.type.create;
       if (createEvent.kind === 'file') {
         const path = event.paths[0];
-        this.readOps(path);
+        this.tryReadOpsFromPeer(path);
       }
     } else if (typeof event.type === 'object' && 'modify' in event.type) {
       const modifyEvent = event.type.modify;
       if (modifyEvent.kind === 'data' && (modifyEvent.mode === 'any' || modifyEvent.mode === 'content')) {
         const path = event.paths[0];
-        this.readOps(path);
+        this.tryReadOpsFromPeer(path);
       }
     }
   }
 
-  private handleOpApplied(op: VertexOperation) {
-    if (op.id.peerId === this.space.tree.peerId) {
-      this.opsToSave.push(op);
+  private handleOpApplied(treeId: string, op: VertexOperation) {
+    if (op.id.peerId !== this.space.tree.peerId) {
+      return;
     }
+
+    let ops = this.treeOpsToSave.get(treeId);
+    if (!ops) {
+      ops = [];
+      this.treeOpsToSave.set(treeId, ops);
+    }
+    ops.push(op);
+  }
+
+  private handleNewAppTree(appTreeId: string) {
+    // Add all ops from app tree into the sync
+    const appTree = this.space.getAppTree(appTreeId);
+
+    if (!appTree) {
+      console.error("App tree not found", appTreeId);
+      return;
+    }
+
+    const ops = appTree.tree.popLocalOps();
+    this.treeOpsToSave.set(appTreeId, ops);
+
+    console.log("!!! Added ops for new app tree", appTreeId, ops.length);
   }
 }
 
@@ -184,10 +238,10 @@ export async function createNewLocalSpaceAndConnect(path: string): Promise<Local
     id: space.getId(),
   })));
 
-  // Create ops that created the space
-  await saveTreeOpsFromScratch(space.tree, path);
-
   const sync = new LocalSpaceSync(space, path);
+  const ops = space.tree.getAllOps();
+  // Add ops that created the space tree
+  sync.addOpsToSave(space.tree.rootVertexId, ops);
   await sync.connect();
   return sync;
 }
@@ -253,9 +307,6 @@ async function openFileToCurrentTreeOpsJSONLFile(spacePath: string, treeId: stri
 }
 
 async function loadLocalSpace(path: string): Promise<Space> {
-  // Check if the path exists
-  // Check if the path is a directory and it has space.json file
-
   const spacePath = path + '/space.json';
   const spaceJson = await readTextFile(spacePath);
 
