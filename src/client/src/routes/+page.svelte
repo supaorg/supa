@@ -1,20 +1,15 @@
 <script lang="ts">
-  import App from "$lib/comps/apps/App.svelte";
   import { page } from "$app/stores";
-
-  let treeId: string | null = null;
-
-  $: {
-    treeId = $page.url.searchParams.get("t");
-    /*
-    if ($page.route.id === "/" && !threadId && $threadsStore.length > 0) {
-      threadId = $threadsStore[0]?.id;
-      if (threadId) goto(`/?t=${threadId}`);
-    }
-    */
-
-    console.log('treeId', treeId);
-  }
+  import App from "$lib/comps/apps/App.svelte";
+  import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
+  
+  let treeId: string | null = $derived.by(() => {
+    return $page.url.searchParams.get("t");
+  });
 </script>
 
-<App {treeId} />
+{#if treeId}
+  <App>
+    <ChatAppLoader {treeId} />
+  </App>
+{/if}

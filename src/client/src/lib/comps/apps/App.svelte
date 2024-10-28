@@ -1,7 +1,8 @@
 <script lang="ts">
   import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
+  import type { Snippet } from "svelte";
 
-  let { treeId } = $props();
+  let { children }: { children: Snippet } = $props();
 </script>
 
 <div class="flex h-screen overflow-hidden">
@@ -11,6 +12,6 @@
     <Sidebar />
   </aside>
   <main class="relative flex-grow h-full overflow-y-auto page-bg">
-    Tree: {treeId}
+    {@render children()}
   </main>
 </div>

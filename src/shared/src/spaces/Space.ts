@@ -1,12 +1,12 @@
-import type { TreeVertex } from "@shared/replicatedTree/TreeVertex";
+import type { TreeVertex } from "../replicatedTree/TreeVertex";
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import AppTree from "./AppTree";
 
 export default class Space {
 	readonly tree: ReplicatedTree;
   private appTrees: Map<string, AppTree> = new Map();
-  private newTreeListeners: ((treeId: string) => void)[] = [];
-  private treeLoader: ((treeId: string) => Promise<AppTree>) | undefined;
+  private newTreeObservers: ((treeId: string) => void)[] = [];
+  private treeLoader: ((treeId: string) => Promise<AppTree | undefined>) | undefined;
   private appTreesVertex: TreeVertex;
 
   static isValid(tree: ReplicatedTree): boolean {
@@ -98,14 +98,18 @@ export default class Space {
     this.tree.setVertexProperty(newAppTree, 'tree-id', appTree.getId());
     this.appTrees.set(appTree.getId(), appTree);
 
-    for (const listener of this.newTreeListeners) {
+    for (const listener of this.newTreeObservers) {
       listener(appTree.getId());
     }
 
     return appTree;
   }
 
-  async loadAppTree(appTreeId: string): Promise<AppTree> {
+  getVertex(vertexId: string): TreeVertex | undefined {
+    return this.tree.getVertex(vertexId);
+  }
+
+  async loadAppTree(appTreeId: string): Promise<AppTree | undefined> {
     let appTree = this.appTrees.get(appTreeId);
     if (appTree) {
       return appTree;
@@ -115,18 +119,23 @@ export default class Space {
       throw new Error("No tree loader registered");
     }
 
-    return this.treeLoader(appTreeId);
+    appTree = await this.treeLoader(appTreeId);
+    if (appTree) {
+      this.appTrees.set(appTreeId, appTree);
+    }
+
+    return appTree;
   }
 
-  observeNewAppTree(listener: (appTreeId: string) => void) {
-    this.newTreeListeners.push(listener);
+  observeNewAppTree(observer: (appTreeId: string) => void) {
+    this.newTreeObservers.push(observer);
   }
 
-  unobserveNewAppTree(listener: (appTreeId: string) => void) {
-    this.newTreeListeners = this.newTreeListeners.filter(l => l !== listener);
+  unobserveNewAppTree(observer: (appTreeId: string) => void) {
+    this.newTreeObservers = this.newTreeObservers.filter(l => l !== observer);
   }
 
-  registerTreeLoader(loader: (appTreeId: string) => Promise<AppTree>) {
+  registerTreeLoader(loader: (appTreeId: string) => Promise<AppTree | undefined>) {
     this.treeLoader = loader;
   }
 

@@ -38,14 +38,19 @@ export class LocalSpaceSync {
     });
 
     space.registerTreeLoader(async (appTreeId) => {
-      const ops = await loadAllTreeOps(this.uri, appTreeId);
+      try {
+        const ops = await loadAllTreeOps(this.uri, appTreeId);
 
-      if (ops.length === 0) {
-        throw new Error("No operations found for space");
+        if (ops.length === 0) {
+          throw new Error("No operations found for space");
+        }
+      
+        const tree = new ReplicatedTree(appTreeId, ops);
+        return new AppTree(tree);
+      } catch (error) {
+        console.error("Error loading app tree", appTreeId, error);
+        return undefined;
       }
-    
-      const tree = new ReplicatedTree(appTreeId, ops);
-      return new AppTree(tree);
     });
   }
 
