@@ -1,10 +1,59 @@
 <script lang="ts">
   import AppTree from "@shared/spaces/AppTree";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
-  
+
   let { appTree }: { appTree: AppTree } = $props();
 
+  $effect(() => {
+    console.log("appTree", appTree);
+
+    const messagesVertex = appTree.tree.getVertexByPath("/app-tree/messages");
+    if (!messagesVertex) {
+      const newVertex = appTree.tree.newVertex(appTree.tree.rootVertexId);
+      appTree.tree.setVertexProperty(newVertex, "_n", "messages");
+    }
+  });
+
+  let messagesVertex = $derived(appTree.tree.getVertexByPath("/app-tree/messages"));
+
+  $effect(() => {
+    if (messagesVertex) {
+      console.log("subscribing to messagesVertex", messagesVertex.id);
+      appTree.tree.subscribe(messagesVertex.id, (event) => {
+        if (event.type === "children") {
+          console.log("add or remove a child, ", event.vertexId);
+        }
+      });
+    }
+  });
+
+  let messages = $derived.by(() => {
+    if (!messagesVertex) {
+      return [];
+    }
+    return appTree.tree.getChildren(messagesVertex.id);
+  });
+
+  $effect(() => {
+    console.log("messages", messages);
+  });
+
   async function sendMsg(query: string) {
+    console.log("sendMsg", query);
+
+    console.log("messagesVertex", messagesVertex);
+
+    if (!messagesVertex) {
+      return;
+    }
+
+    const newMessageVertex = appTree.tree.newVertex(messagesVertex.id);
+    appTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
+    appTree.tree.setVertexProperty(newMessageVertex, "role", "user");
+    appTree.tree.setVertexProperty(newMessageVertex, "text", query);
+
+    console.log("newMessageVertex", newMessageVertex);
+
     /*
     if (!workspaceOnClient || query === "" || !messages) {
       return;
