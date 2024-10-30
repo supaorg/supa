@@ -144,8 +144,6 @@ export default class Space {
   }
 
   getAppTreeIds(): ReadonlyArray<string> {
-    console.log('appTreesVertex', this.appTreesVertex);
-
     return this.appTreesVertex.children;
   }
 

@@ -12,9 +12,6 @@
       return undefined;
     }
 
-    // Wait for 5 seconds
-    //await new Promise((resolve) => setTimeout(resolve, 1000));
-
     return await $currentSpaceStore.loadAppTree(treeId);
   });
 </script>

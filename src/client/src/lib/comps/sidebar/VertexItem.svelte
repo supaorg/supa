@@ -11,11 +11,11 @@
   onMount(() => {
     const vertex = $currentSpaceStore?.getVertex(id);
 
-    console.log("vertex", vertex);
+    //console.log("vertex", vertex);
 
     appTreeId = vertex?.getProperty("tree-id")?.value as string | undefined;
 
-    console.log("appTreeId", appTreeId);
+    //console.log("appTreeId", appTreeId);
   });
 </script>
 

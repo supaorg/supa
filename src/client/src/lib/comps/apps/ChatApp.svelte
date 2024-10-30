@@ -4,6 +4,48 @@
 
   let { appTree }: { appTree: AppTree } = $props();
 
+  let treeIdTest = "";
+
+  $effect(() => { 
+    console.log("appTree", appTree.getId());
+
+    treeIdTest = appTree.getId();
+
+    return () => {
+      console.log("unmount appTree", appTree.getId());
+    };
+  });
+
+
+  let messagesVertex = $derived.by(() => { 
+    let messagesVertex = appTree.tree.getVertexByPath("/app-tree/messages");
+
+    if (messagesVertex) {
+      return messagesVertex;
+    }
+
+    const newVertex = appTree.tree.newVertex(appTree.tree.rootVertexId);
+    appTree.tree.setVertexProperty(newVertex, "_n", "messages");
+
+    messagesVertex = appTree.tree.getVertex(newVertex);
+
+    if (!messagesVertex) {
+      throw new Error("messagesVertex not found");
+    }
+
+    return messagesVertex;    
+  });
+
+  let firstMessageId = $derived.by(() => {
+    const child = appTree.tree.getChildren(messagesVertex.id)[0];
+    if (!child) {
+      return null;
+    }
+    return child.id;
+  });
+
+  /*
+
   $effect(() => {
     console.log("appTree", appTree);
 
@@ -37,15 +79,11 @@
   $effect(() => {
     console.log("messages", messages);
   });
+  */
 
   async function sendMsg(query: string) {
     console.log("sendMsg", query);
-
     console.log("messagesVertex", messagesVertex);
-
-    if (!messagesVertex) {
-      return;
-    }
 
     const newMessageVertex = appTree.tree.newVertex(messagesVertex.id);
     appTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
@@ -53,6 +91,7 @@
     appTree.tree.setVertexProperty(newMessageVertex, "text", query);
 
     console.log("newMessageVertex", newMessageVertex);
+    
 
     /*
     if (!workspaceOnClient || query === "" || !messages) {
@@ -93,6 +132,8 @@
   </div>
   <div class="flex-grow overflow-y-auto pt-2" id="chat-messanges-scrollable">
     Messages
+    Root: {messagesVertex}
+    First: {firstMessageId}
     <!--
     {#if !messages}
       <div class="flex items-center justify-center">
