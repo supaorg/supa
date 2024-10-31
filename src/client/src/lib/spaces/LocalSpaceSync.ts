@@ -1,5 +1,6 @@
 import type { SpacePointer } from "./SpacePointer";
 import Space from "@shared/spaces/Space";
+import { Backend } from "@shared/spaces/Backend";
 import { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
 import {
   readDir,
@@ -25,16 +26,21 @@ export class LocalSpaceSync {
   private savingOpsToFile = false;
   private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
   private saveOpsIntervalMs = 500;
+  private backend: Backend;
 
   constructor(readonly space: Space, private uri: string) {
     space.tree.subscribeToOpApplied(
       (op) => {
-        this.handleOpApplied(space.getId(), op);
+        this.handleOpAppliedFromSamePeer(space.tree, op);
       }
     );
 
     space.observeNewAppTree((appTreeId) => {
       this.handleNewAppTree(appTreeId);
+    });
+
+    space.observeTreeLoad((appTreeId) => {
+      this.handleLoadAppTree(appTreeId);
     });
 
     space.registerTreeLoader(async (appTreeId) => {
@@ -44,7 +50,7 @@ export class LocalSpaceSync {
         if (ops.length === 0) {
           throw new Error("No operations found for space");
         }
-      
+
         const tree = new ReplicatedTree(appTreeId, ops);
         return new AppTree(tree);
       } catch (error) {
@@ -52,6 +58,8 @@ export class LocalSpaceSync {
         return undefined;
       }
     });
+
+    this.backend = new Backend(space, true);
   }
 
   async connect(): Promise<void> {
@@ -196,10 +204,13 @@ export class LocalSpaceSync {
     }
   }
 
-  private handleOpApplied(treeId: string, op: VertexOperation) {
-    if (op.id.peerId !== this.space.tree.peerId) {
+  private handleOpAppliedFromSamePeer(tree: ReplicatedTree, op: VertexOperation) {
+    // Important that we don't save ops from other peers here
+    if (op.id.peerId !== tree.peerId) {
       return;
     }
+
+    const treeId = tree.rootVertexId;
 
     let ops = this.treeOpsToSave.get(treeId);
     if (!ops) {
@@ -207,6 +218,8 @@ export class LocalSpaceSync {
       this.treeOpsToSave.set(treeId, ops);
     }
     ops.push(op);
+
+    this.backend.addOp(treeId, op);
   }
 
   private handleNewAppTree(appTreeId: string) {
@@ -220,8 +233,18 @@ export class LocalSpaceSync {
 
     const ops = appTree.tree.popLocalOps();
     this.treeOpsToSave.set(appTreeId, ops);
+  }
 
-    console.log("!!! Added ops for new app tree", appTreeId, ops.length);
+  private handleLoadAppTree(appTreeId: string) {
+    const appTree = this.space.getAppTree(appTreeId);
+
+    if (!appTree) {
+      throw new Error(`App tree with id ${appTreeId} not found`);
+    }
+
+    appTree.tree.subscribeToOpApplied((op) => {
+      this.handleOpAppliedFromSamePeer(appTree.tree, op);
+    });
   }
 }
 

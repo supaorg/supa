@@ -1,103 +1,94 @@
 <script lang="ts">
   import AppTree from "@shared/spaces/AppTree";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
+  import type { TreeVertex } from "@shared/replicatedTree/TreeVertex";
+  import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
+  import { app } from "@tauri-apps/api";
+  import ChatAppMessage from "./ChatAppMessage.svelte";
 
   let { appTree }: { appTree: AppTree } = $props();
 
-  let treeIdTest = "";
+  let messagesVertex: TreeVertex | undefined = $state();
+  let firstMessageId: string | undefined = $state();
+  let lastMessageId: string | undefined = $state();
 
-  $effect(() => { 
-    console.log("appTree", appTree.getId());
-
-    treeIdTest = appTree.getId();
-
-    return () => {
-      console.log("unmount appTree", appTree.getId());
-    };
-  });
-
-
-  let messagesVertex = $derived.by(() => { 
-    let messagesVertex = appTree.tree.getVertexByPath("/app-tree/messages");
-
-    if (messagesVertex) {
-      return messagesVertex;
-    }
-
-    const newVertex = appTree.tree.newVertex(appTree.tree.rootVertexId);
-    appTree.tree.setVertexProperty(newVertex, "_n", "messages");
-
-    messagesVertex = appTree.tree.getVertex(newVertex);
-
-    if (!messagesVertex) {
-      throw new Error("messagesVertex not found");
-    }
-
-    return messagesVertex;    
-  });
-
-  let firstMessageId = $derived.by(() => {
-    const child = appTree.tree.getChildren(messagesVertex.id)[0];
-    if (!child) {
-      return null;
-    }
-    return child.id;
-  });
-
-  /*
-
-  $effect(() => {
-    console.log("appTree", appTree);
-
-    const messagesVertex = appTree.tree.getVertexByPath("/app-tree/messages");
+  $effect.pre(() => {
+    messagesVertex = appTree.tree.getVertexByPath("/app-tree/messages");
     if (!messagesVertex) {
       const newVertex = appTree.tree.newVertex(appTree.tree.rootVertexId);
       appTree.tree.setVertexProperty(newVertex, "_n", "messages");
+
+      messagesVertex = appTree.tree.getVertex(newVertex);
+    } else {
+      const child = appTree.tree.getChildren(messagesVertex.id)[0];
+      firstMessageId = child ? child.id : undefined;
+      lastMessageId = getLastMessageId();
     }
-  });
 
-  let messagesVertex = $derived(appTree.tree.getVertexByPath("/app-tree/messages"));
-
-  $effect(() => {
-    if (messagesVertex) {
-      console.log("subscribing to messagesVertex", messagesVertex.id);
-      appTree.tree.subscribe(messagesVertex.id, (event) => {
-        if (event.type === "children") {
-          console.log("add or remove a child, ", event.vertexId);
-        }
-      });
-    }
-  });
-
-  let messages = $derived.by(() => {
     if (!messagesVertex) {
-      return [];
+      throw new Error("messagesVertex should be defined");
     }
-    return appTree.tree.getChildren(messagesVertex.id);
+
+    appTree.tree.subscribe(messagesVertex.id, onVertexChange);
+
+    return () => {
+      if (messagesVertex) {
+        appTree.tree.unsubscribe(messagesVertex.id, onVertexChange);
+      }
+    };
   });
 
-  $effect(() => {
-    console.log("messages", messages);
-  });
-  */
+  function onVertexChange(event: VertexChangeEvent) {
+    if (event.type === "children") {
+      console.log("add or remove a child, ", event.vertexId);
+    }
+  }
+
+  function getLastMessageId(): string | undefined {
+    if (!messagesVertex || messagesVertex.children.length === 0) {
+      return undefined;
+    }
+
+    let lastMessageId: string = messagesVertex.children[0];
+
+    while (true) {
+      const children = appTree.tree.getChildren(lastMessageId);
+      if (children.length === 0) {
+        return lastMessageId;
+      }
+      lastMessageId = children[0].id;
+    }
+  }
 
   async function sendMsg(query: string) {
     console.log("sendMsg", query);
     console.log("messagesVertex", messagesVertex);
 
-    const newMessageVertex = appTree.tree.newVertex(messagesVertex.id);
+    if (!messagesVertex) {
+      throw new Error("messagesVertex not found");
+    }
+
+    lastMessageId = getLastMessageId();
+
+    console.log("lastMessageId", lastMessageId);
+
+    const isFirstMessage = !lastMessageId;
+
+    const parentId = lastMessageId ?? messagesVertex.id;
+
+    const newMessageVertex = appTree.tree.newVertex(parentId);
     appTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
     appTree.tree.setVertexProperty(newMessageVertex, "role", "user");
     appTree.tree.setVertexProperty(newMessageVertex, "text", query);
+    appTree.tree.setVertexProperty(newMessageVertex, "createdAt", Date.now());
 
-    console.log("newMessageVertex", newMessageVertex);
-    
-
-    /*
-    if (!workspaceOnClient || query === "" || !messages) {
-      return;
+    if (isFirstMessage) {
+      firstMessageId = newMessageVertex;
     }
 
+    console.log("newMessageVertex", newMessageVertex);
+
+    /*
     const msg: Message = {
       id: uuidv4(),
       role: "user",
@@ -106,9 +97,6 @@
       createdAt: Date.now(),
       updatedAt: null,
     };
-
-    await workspaceOnClient.postToThread(threadId, msg);
-    scrollToBottom();
     */
   }
 
@@ -131,9 +119,11 @@
     </div>
   </div>
   <div class="flex-grow overflow-y-auto pt-2" id="chat-messanges-scrollable">
-    Messages
-    Root: {messagesVertex}
-    First: {firstMessageId}
+    <div class="w-full max-w-3xl mx-auto px-4">
+      {#if firstMessageId}
+        <ChatAppMessage id={firstMessageId} tree={appTree.tree} />
+      {/if}
+    </div>
     <!--
     {#if !messages}
       <div class="flex items-center justify-center">

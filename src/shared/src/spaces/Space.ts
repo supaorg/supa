@@ -6,6 +6,7 @@ export default class Space {
 	readonly tree: ReplicatedTree;
   private appTrees: Map<string, AppTree> = new Map();
   private newTreeObservers: ((treeId: string) => void)[] = [];
+  private treeLoadObservers: ((treeId: string) => void)[] = [];
   private treeLoader: ((treeId: string) => Promise<AppTree | undefined>) | undefined;
   private appTreesVertex: TreeVertex;
 
@@ -122,6 +123,10 @@ export default class Space {
     appTree = await this.treeLoader(appTreeId);
     if (appTree) {
       this.appTrees.set(appTreeId, appTree);
+
+      for (const listener of this.treeLoadObservers) {
+        listener(appTree.getId());
+      }
     }
 
     return appTree;
@@ -133,6 +138,14 @@ export default class Space {
 
   unobserveNewAppTree(observer: (appTreeId: string) => void) {
     this.newTreeObservers = this.newTreeObservers.filter(l => l !== observer);
+  }
+
+  observeTreeLoad(observer: (appTreeId: string) => void) {
+    this.treeLoadObservers.push(observer);
+  }
+
+  unobserveTreeLoad(observer: (appTreeId: string) => void) {
+    this.treeLoadObservers = this.treeLoadObservers.filter(l => l !== observer);
   }
 
   registerTreeLoader(loader: (appTreeId: string) => Promise<AppTree | undefined>) {
