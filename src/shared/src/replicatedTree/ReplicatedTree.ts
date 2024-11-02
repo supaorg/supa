@@ -444,7 +444,7 @@ export class ReplicatedTree {
     let targetId = childId;
     let vertex: TreeVertex | undefined;
 
-    const maxDepth = 1000;
+    const maxDepth = 100000;
     let depth = 0;
 
     while ((vertex = this.state.getVertex(targetId))) {

@@ -78,9 +78,9 @@
 
     const newMessageVertex = appTree.tree.newVertex(parentId);
     appTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
-    appTree.tree.setVertexProperty(newMessageVertex, "role", "user");
-    appTree.tree.setVertexProperty(newMessageVertex, "text", query);
     appTree.tree.setVertexProperty(newMessageVertex, "createdAt", Date.now());
+    appTree.tree.setVertexProperty(newMessageVertex, "text", query);
+    appTree.tree.setVertexProperty(newMessageVertex, "role", "user");
 
     if (isFirstMessage) {
       firstMessageId = newMessageVertex;

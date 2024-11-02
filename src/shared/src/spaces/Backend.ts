@@ -1,6 +1,6 @@
-import type { VertexOperation } from "@shared/replicatedTree/operations";
+import type { VertexOperation } from "../replicatedTree/operations";
 import Space from "./Space";
-import ChatAppBackend from "@shared/apps/ChatAppBackend";
+import ChatAppBackend from "../apps/ChatAppBackend";
 
 /**
  * Monitors all incoming ops and sends them to back-ends specific to app trees.
@@ -18,13 +18,9 @@ export class Backend {
   }
 
   addOp(treeId: string, op: VertexOperation) {
-    console.log("Backend addOp", treeId, op);
-
     if (!this.inLocalMode) {
       // @TODO: add the op to the space
     }
-
-    // @TODO: route the op to the correct app back-end
 
     if (treeId === this.space.getId()) {
       return;
@@ -36,6 +32,7 @@ export class Backend {
       throw new Error(`App tree with id ${treeId} not found`);
     }
 
+    // name it 'default-chat-assist', 'chat-assistant', 'ai-chat'?
     if (appTree.getAppId() === "default-chat") {
       this.chatAppBackend.addOp(appTree, op);
     }
