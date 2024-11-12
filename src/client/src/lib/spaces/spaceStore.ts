@@ -3,7 +3,7 @@ import { writable, get, derived } from "svelte/store";
 import { localStorageStore } from "@skeletonlabs/skeleton";
 import type { SpacePointer } from "./SpacePointer";
 import type Space from "@shared/spaces/Space";
-import { loadSpaceFromPointer, LocalSpaceSync } from "./LocalSpaceSync";
+import { loadSpaceFromPointer } from "./LocalSpaceSync";
 
 /**
  * A persistent store of pointers to spaces.

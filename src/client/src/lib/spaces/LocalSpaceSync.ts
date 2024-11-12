@@ -412,7 +412,7 @@ function turnOpsIntoJSONLines(ops: VertexOperation[]): string {
       // We save parentId like that because it might be null and we want to save null with quotes
       str += `["m",${op.id.counter},"${op.targetId}",${JSON.stringify(op.parentId)}]\n`;
     } else if (isSetPropertyOp(op)) {
-      str += `["p",${op.id.counter},"${op.targetId}","${op.key}","${op.value}"]\n`;
+      str += `["p",${op.id.counter},"${op.targetId}","${op.key}",${JSON.stringify(op.value)}]\n`;
     }
   }
 

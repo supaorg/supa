@@ -18,8 +18,13 @@
 
   let canRetry = $state(false);
   let retrying = $state(false);
+  let msgChange = $state(0);
 
   let message: Message = $derived.by(() => { 
+    // @TODO: change how messages are updated, get rid of the hack
+    // HACK: force a re-render when the message changes by capturing the msgChange state
+    console.log("msgChange", msgChange);
+
     return {
       id,
       role: tree.getVertexProperty(id, "role")?.value as "user" | "assistant",
@@ -32,7 +37,6 @@
     updateChildren();
 
     tree.subscribe(id, onVertexChange);
-
     return () => {
       tree.unsubscribe(id, onVertexChange);
     };
@@ -46,6 +50,11 @@
     console.log("onVertexChange", event);
     if (event.type === "children") {
       updateChildren();
+    }
+
+    if (event.type === "property") {
+      // Just update the message
+      msgChange = msgChange + 1;
     }
   }
 
