@@ -8,7 +8,7 @@ export default class Space {
   private newTreeObservers: ((treeId: string) => void)[] = [];
   private treeLoadObservers: ((treeId: string) => void)[] = [];
   private treeLoader: ((treeId: string) => Promise<AppTree | undefined>) | undefined;
-  private appTreesVertex: TreeVertex;
+  readonly appTreesVertex: TreeVertex;
 
   static isValid(tree: ReplicatedTree): boolean {
     const root = tree.getVertexByPath('/space');
@@ -158,6 +158,17 @@ export default class Space {
 
   getAppTreeIds(): ReadonlyArray<string> {
     return this.appTreesVertex.children;
+  }
+
+  getVertexIdReferencingAppTree(appTreeId: string): string | undefined {
+    for (const vertexId of this.appTreesVertex.children) {
+      const referencingVertex = this.tree.getVertex(vertexId);
+      if (referencingVertex?.getProperty('tree-id')?.value === appTreeId) {
+        return vertexId;
+      }
+    }
+
+    return undefined;
   }
 
 	createVertex() {

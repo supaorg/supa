@@ -3,7 +3,6 @@
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import type { TreeVertex } from "@shared/replicatedTree/TreeVertex";
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
-  import { app } from "@tauri-apps/api";
   import ChatAppMessage from "./ChatAppMessage.svelte";
 
   let { appTree }: { appTree: AppTree } = $props();
@@ -11,8 +10,11 @@
   let messagesVertex: TreeVertex | undefined = $state();
   let firstMessageId: string | undefined = $state();
   let lastMessageId: string | undefined = $state();
+  let title: string | undefined = $state();
 
   $effect.pre(() => {
+    title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")?.value as string;
+
     messagesVertex = appTree.tree.getVertexByPath("/app-tree/messages");
     if (!messagesVertex) {
       const newVertex = appTree.tree.newVertex(appTree.tree.rootVertexId);
@@ -30,13 +32,21 @@
     }
 
     appTree.tree.subscribe(messagesVertex.id, onVertexChange);
+    appTree.tree.subscribe(appTree.tree.rootVertexId, onAppVertexChange);
 
     return () => {
       if (messagesVertex) {
         appTree.tree.unsubscribe(messagesVertex.id, onVertexChange);
+        appTree.tree.unsubscribe(appTree.tree.rootVertexId, onAppVertexChange);
       }
     };
   });
+
+  function onAppVertexChange(event: VertexChangeEvent) {
+    if (event.type === "property") {
+      title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")?.value as string;
+    }
+  }
 
   function onVertexChange(event: VertexChangeEvent) {
     if (event.type === "children") {
@@ -115,7 +125,7 @@
       <!--
       <AppConfigDropdown {threadId} />
       -->
-      <h3 class="text-lg">{appTree.getId()}</h3>
+      <h3 class="text-lg">{title ? title : "New thread"}</h3>
     </div>
   </div>
   <div class="flex-grow overflow-y-auto pt-2" id="chat-messanges-scrollable">
