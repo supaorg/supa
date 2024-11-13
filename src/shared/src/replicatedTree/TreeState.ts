@@ -112,6 +112,21 @@ export class TreeState {
     } as VertexPropertyChangeEvent);
   }
 
+  setTransientProperty(vertexId: string, key: string, value: any) {
+    const vertex = this.getVertex(vertexId);
+    if (vertex) {
+      vertex.setTransientProperty(key, value);
+    }
+
+    // @TODO: add info that it's a transient property
+    this.notifyChange({
+      type: 'property',
+      vertexId: vertexId,
+      key,
+      value,
+    } as VertexPropertyChangeEvent);
+  }
+
   addChangeListener(vertexId: TreeVertexId | null, listener: (event: VertexChangeEvent) => void) {
     if (vertexId === null) {
       this.globalChangeListeners.add(listener);

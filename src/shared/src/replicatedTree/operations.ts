@@ -12,6 +12,7 @@ export interface SetVertexProperty {
   targetId: string;
   key: string;
   value: VertexPropertyType;
+  transient: boolean;
 }
 
 export type VertexOperation = MoveVertex | SetVertexProperty;
@@ -29,5 +30,9 @@ export function newMoveVertexOp(clock: number, peerId: string, targetId: string,
 }
 
 export function newSetVertexPropertyOp(clock: number, peerId: string, targetId: string, key: string, value: VertexPropertyType): SetVertexProperty {
-  return { id: new OpId(clock, peerId), targetId, key, value };
+  return { id: new OpId(clock, peerId), targetId, key, value, transient: false };
+}
+
+export function newSetTransientVertexPropertyOp(clock: number, peerId: string, targetId: string, key: string, value: VertexPropertyType): SetVertexProperty {
+  return { id: new OpId(clock, peerId), targetId, key, value, transient: true };
 }

@@ -53,7 +53,7 @@
     }
 
     if (event.type === "property") {
-      // Just update the message
+      // Just trigger a re-render of the message (hack)
       msgChange = msgChange + 1;
     }
   }

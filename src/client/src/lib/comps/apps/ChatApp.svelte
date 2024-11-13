@@ -4,6 +4,12 @@
   import type { TreeVertex } from "@shared/replicatedTree/TreeVertex";
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
   import ChatAppMessage from "./ChatAppMessage.svelte";
+  import { tick } from "svelte";
+    import type { VertexOperation } from "@shared/replicatedTree/operations";
+
+  const mainScrollableId = "chat-messanges-scrollable";
+
+  let scrollableElement = $state<HTMLElement | undefined>(undefined);
 
   let { appTree }: { appTree: AppTree } = $props();
 
@@ -12,8 +18,11 @@
   let lastMessageId: string | undefined = $state();
   let title: string | undefined = $state();
 
+  let stickToBottomWhenLastMessageChanges = $state(false);
+
   $effect.pre(() => {
-    title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")?.value as string;
+    title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")
+      ?.value as string;
 
     messagesVertex = appTree.tree.getVertexByPath("/app-tree/messages");
     if (!messagesVertex) {
@@ -33,18 +42,37 @@
 
     appTree.tree.subscribe(messagesVertex.id, onVertexChange);
     appTree.tree.subscribe(appTree.tree.rootVertexId, onAppVertexChange);
+    appTree.tree.subscribeToOpApplied(onOpApplied);
 
     return () => {
       if (messagesVertex) {
         appTree.tree.unsubscribe(messagesVertex.id, onVertexChange);
         appTree.tree.unsubscribe(appTree.tree.rootVertexId, onAppVertexChange);
+        appTree.tree.unsubscribeFromOpApplied(onOpApplied);
       }
     };
   });
 
+  $effect(() => {
+    scrollToBottom();
+  });
+
+  function scrollToBottom() {
+    tick().then(() => {
+      if (scrollableElement) {
+        scrollableElement.scrollTo(0, scrollableElement.scrollHeight);
+      }
+    });
+  }
+
+  function onOpApplied(op: VertexOperation) {
+    scrollToBottom();
+  }
+
   function onAppVertexChange(event: VertexChangeEvent) {
     if (event.type === "property") {
-      title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")?.value as string;
+      title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")
+        ?.value as string;
     }
   }
 
@@ -108,6 +136,8 @@
       updatedAt: null,
     };
     */
+
+    scrollToBottom();
   }
 
   async function stopMsg() {
@@ -128,7 +158,11 @@
       <h3 class="text-lg">{title ? title : "New thread"}</h3>
     </div>
   </div>
-  <div class="flex-grow overflow-y-auto pt-2" id="chat-messanges-scrollable">
+  <div
+    class="flex-grow overflow-y-auto pt-2"
+    bind:this={scrollableElement}
+    id={mainScrollableId}
+  >
     <div class="w-full max-w-3xl mx-auto px-4">
       {#if firstMessageId}
         <ChatAppMessage id={firstMessageId} tree={appTree.tree} />

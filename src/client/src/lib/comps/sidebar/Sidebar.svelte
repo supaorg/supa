@@ -23,6 +23,7 @@
   <div class="min-h-min px-2 pt-2">
     <div class="flex items-center">
       <div class="flex-grow min-w-0"></div>
+      <a href="/many-moves">Test moves</a>
       <a href="/space-debug" class="sidebar-btn p-2 ml-2 flex-shrink-0">
         <Settings size={24} />
       </a>

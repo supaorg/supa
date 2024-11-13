@@ -81,10 +81,12 @@ export default class ChatAppBackend {
       role: m.role,
       content: m.text,
     })), (result) => {
-      appTree.tree.setVertexProperty(newMessageVertex, "text", result.answer);
-
+      appTree.tree.setTransientVertexProperty(newMessageVertex, "text", result.answer);
       console.log(result.answer);
     });
+
+    // And finally set the permanent property
+    appTree.tree.setVertexProperty(newMessageVertex, "text", result.answer);
 
     const newMessage = {
       id: newMessageVertex,

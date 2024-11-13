@@ -18,6 +18,7 @@ import uuid from "@shared/uuid/uuid";
 import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "@shared/replicatedTree/operations";
 import { OpId } from "@shared/replicatedTree/OpId";
 import AppTree from "@shared/spaces/AppTree";
+import perf from "@shared/tools/perf";
 
 export class LocalSpaceSync {
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
@@ -45,13 +46,17 @@ export class LocalSpaceSync {
 
     space.registerTreeLoader(async (appTreeId) => {
       try {
+        console.log("load app tree", appTreeId);
+        let p = perf("1. loadAllTreeOps");
         const ops = await loadAllTreeOps(this.uri, appTreeId);
-
+        p.stop();
         if (ops.length === 0) {
           throw new Error("No operations found for space");
         }
 
+        p = perf("2. ReplicatedTree");
         const tree = new ReplicatedTree(appTreeId, ops);
+        p.stop();
         return new AppTree(tree);
       } catch (error) {
         console.error("Error loading app tree", appTreeId, error);
@@ -217,7 +222,11 @@ export class LocalSpaceSync {
       ops = [];
       this.treeOpsToSave.set(treeId, ops);
     }
-    ops.push(op);
+
+    // Only save move ops or non-transient property ops (so, no transient properties)
+    if (!isSetPropertyOp(op) || !op.transient) {
+      ops.push(op);
+    }
 
     this.backend.addOp(treeId, op);
   }
@@ -233,6 +242,10 @@ export class LocalSpaceSync {
 
     const ops = appTree.tree.popLocalOps();
     this.treeOpsToSave.set(appTreeId, ops);
+
+    appTree.tree.subscribeToOpApplied((op) => {
+      this.handleOpAppliedFromSamePeer(appTree.tree, op);
+    });
   }
 
   private handleLoadAppTree(appTreeId: string) {
@@ -422,6 +435,7 @@ function turnOpsIntoJSONLines(ops: VertexOperation[]): string {
 function turnJSONLinesIntoOps(jsonLines: string, peerId: string): VertexOperation[] {
   const ops: VertexOperation[] = [];
 
+  // @TODO: this is too slow, figure out a better way
   // Split JSON lines using a regex that respects quotes and escaped characters
   const lineRegex = /\r?\n(?=(?:(?:[^"\\]|\\[^"]|\\")*"(?:[^"\\]|\\[^"]|\\")*")*(?:[^"\\]|\\[^"]|\\")*$)/;
   const lines = jsonLines.split(lineRegex);

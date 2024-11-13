@@ -1,4 +1,4 @@
-import { newMoveVertexOp, type MoveVertex, type SetVertexProperty, isMoveVertexOp, isSetPropertyOp, type VertexOperation, newSetVertexPropertyOp } from "./operations";
+import { newMoveVertexOp, type MoveVertex, type SetVertexProperty, isMoveVertexOp, isSetPropertyOp, type VertexOperation, newSetVertexPropertyOp, newSetTransientVertexPropertyOp } from "./operations";
 import type { VertexPropertyType, TreeVertexProperty, VertexChangeEvent, TreeVertexId } from "./treeTypes";
 import { TreeVertex } from "./TreeVertex";
 import { TreeState } from "./TreeState";
@@ -20,6 +20,7 @@ export class ReplicatedTree {
   private moveOps: MoveVertex[] = [];
   private setPropertyOps: SetVertexProperty[] = [];
   private propertiesAndTheirOpIds: Map<PropertyKeyAtVertexId, OpId> = new Map();
+  private transientPropertiesAndTheirOpIds: Map<PropertyKeyAtVertexId, OpId> = new Map();
   private localOps: VertexOperation[] = [];
   private pendingMovesWithMissingParent: Map<string, MoveVertex[]> = new Map();
   private pendingPropertiesWithMissingVertex: Map<string, SetVertexProperty[]> = new Map();
@@ -144,6 +145,13 @@ export class ReplicatedTree {
     const op = newMoveVertexOp(this.lamportClock, this.peerId, vertexId, parentId);
     this.localOps.push(op);
     this.applyMove(op);
+  }
+
+  setTransientVertexProperty(vertexId: string, key: string, value: VertexPropertyType) {
+    this.lamportClock++;
+    const op = newSetTransientVertexPropertyOp(this.lamportClock, this.peerId, vertexId, key, value);
+    this.localOps.push(op);
+    this.applyProperty(op);
   }
 
   setVertexProperty(vertexId: string, key: string, value: VertexPropertyType) {
@@ -421,7 +429,7 @@ export class ReplicatedTree {
       for (const prop of pendingProperties) {
         this.setPropertyAndItsOpId(prop);
       }
-    } 
+    }
   }
 
   private undoMove(op: MoveVertex) {
@@ -469,9 +477,22 @@ export class ReplicatedTree {
     this.reportOpAsApplied(op);
   }
 
+  private setTransientPropertyAndItsOpId(op: SetVertexProperty) {
+    this.transientPropertiesAndTheirOpIds.set(`${op.key}@${op.targetId}`, op.id);
+    this.state.setTransientProperty(op.targetId, op.key, op.value);
+    this.reportOpAsApplied(op);
+  }
+
   private applyProperty(op: SetVertexProperty) {
     const targetVertex = this.state.getVertex(op.targetId);
     if (!targetVertex) {
+      // No need to apply transient properties if the vertex doesn't exist
+      if (op.transient) {
+        return;
+      }
+
+      // If the vertex doesn't exist, we will wait for the move operation to appear that will create the vertex
+      // so we can apply the property then.
       if (!this.pendingPropertiesWithMissingVertex.has(op.targetId)) {
         this.pendingPropertiesWithMissingVertex.set(op.targetId, []);
       }
@@ -481,16 +502,29 @@ export class ReplicatedTree {
 
     this.updateLamportClock(op);
 
-    const prevProp = targetVertex.getProperty(op.key);
+    const prevTransientOpId = this.transientPropertiesAndTheirOpIds.get(`${op.key}@${op.targetId}`);
 
+    const prevProp = targetVertex.getProperty(op.key);
     const prevOpId = this.propertiesAndTheirOpIds.get(`${op.key}@${op.targetId}`);
 
-    this.setPropertyOps.push(op);
+    if (!op.transient) {
+      this.setPropertyOps.push(op);
 
-    // Apply the property if it's not already applied or if the current op is newer
-    // This is the last writer wins approach that ensures the same state between replicas.
-    if (!prevProp || (prevOpId && op.id.isGreaterThan(prevOpId))) {
-      this.setPropertyAndItsOpId(op);
+      // Apply the property if it's not already applied or if the current op is newer
+      // This is the last writer wins approach that ensures the same state between replicas.
+      if (!prevProp || !prevOpId || op.id.isGreaterThan(prevOpId)) {
+        this.setPropertyAndItsOpId(op);
+      }
+
+      // Remove the transient property if the current op is greater
+      if (prevTransientOpId && op.id.isGreaterThan(prevTransientOpId)) {
+        this.transientPropertiesAndTheirOpIds.delete(`${op.key}@${op.targetId}`);
+        targetVertex.removeTransientProperty(op.key);
+      }
+    } else {
+      if (!prevTransientOpId || op.id.isGreaterThan(prevTransientOpId)) {
+        this.setTransientPropertyAndItsOpId(op);
+      }
     }
   }
 
