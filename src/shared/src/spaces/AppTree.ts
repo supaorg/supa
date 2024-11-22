@@ -4,10 +4,12 @@ export default class AppTree {
   readonly tree: ReplicatedTree;
 
   static isValid(tree: ReplicatedTree): boolean {
+    /*
     const root = tree.getVertexByPath('/app-tree');
     if (!root) {
       return false;
     }
+    */
 
     return true;
   }

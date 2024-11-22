@@ -1,6 +1,8 @@
 import type { TreeVertex } from "../replicatedTree/TreeVertex";
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import AppTree from "./AppTree";
+import type { AppConfig } from "@shared/models";
+import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
 
 export default class Space {
 	readonly tree: ReplicatedTree;
@@ -11,17 +13,20 @@ export default class Space {
   readonly appTreesVertex: TreeVertex;
 
   static isValid(tree: ReplicatedTree): boolean {
-    const root = tree.getVertexByPath('/space');
+    /*
+    // @TODO: check for _n equals 'space' of the root and version '0' instead
+    const root = tree.getVertexByPath('space');
     if (!root) {
       return false;
     }
+    */
 
-    const apps = tree.getVertexByPath('/space/apps');
+    const apps = tree.getVertexByPath('app-configs');
     if (!apps) {
       return false;
     }
 
-    const chats = tree.getVertexByPath('/space/app-trees');
+    const chats = tree.getVertexByPath('app-forest');
     if (!chats) { 
       return false;
     }
@@ -34,20 +39,18 @@ export default class Space {
 
     const rootId = tree.rootVertexId;
 
-    tree.setVertexProperty(rootId, '_n', 'space');
-    tree.setVertexProperty(rootId, 'name', 'New Space');
-    tree.setVertexProperty(rootId, 'version', '0');
-    tree.setVertexProperty(rootId, 'needsSetup', true);
-    tree.setVertexProperty(rootId, 'createdAt', new Date().toISOString());
+    tree.setVertexProperties(rootId, {
+      '_n': 'space',
+      'name': 'New Space',
+      'version': '0',
+      'needsSetup': true,
+      'createdAt': new Date().toISOString(),
+    });
 
-    const apps = tree.newVertex(rootId);
-    tree.setVertexProperty(apps, '_n', 'apps');
-
-    const appTrees = tree.newVertex(rootId);
-    tree.setVertexProperty(appTrees, '_n', 'app-trees');
-
-    const settings = tree.newVertex(rootId);
-    tree.setVertexProperty(settings, '_n', 'settings');
+    const apps = tree.newNamedVertex(rootId, 'app-configs');
+    const appTrees = tree.newNamedVertex(rootId, 'app-forest');
+    const providers = tree.newNamedVertex(rootId, 'providers');
+    const settings = tree.newNamedVertex(rootId, 'settings');
     
     return new Space(tree);
   }
@@ -60,7 +63,7 @@ export default class Space {
       throw new Error("Invalid tree structure");
     }
 
-    this.appTreesVertex = tree.getVertexByPath('/space/app-trees') as TreeVertex;
+    this.appTreesVertex = tree.getVertexByPath('app-forest') as TreeVertex;
 	}
 
   getId(): string {
@@ -88,7 +91,7 @@ export default class Space {
   newAppTree(appId: string): AppTree {
     const appTree = AppTree.newAppTree(this.tree.peerId, appId);
 
-    const appsTrees = this.tree.getVertexByPath('/space/app-trees');
+    const appsTrees = this.tree.getVertexByPath('app-forest');
 
     if (!appsTrees) {
       throw new Error("Apps trees vertex not found");
@@ -182,4 +185,90 @@ export default class Space {
 	setProps() {
 		
 	}
+
+  getVertexProperties<T extends object>(vertex: TreeVertex): T | null {
+    const properties: Record<string, any> = {};
+    
+    // Get all property keys from type T
+    const propertyKeys = Object.keys(this.getTypeProperties<T>());
+    
+    for (const key of propertyKeys) {
+      const value = vertex.getProperty(key)?.value;
+      if (value === undefined) return null;
+      properties[key] = value;
+    }
+    
+    return properties as T;
+  }
+
+  private getTypeProperties<T>(): Record<keyof T, null> {
+    return {} as Record<keyof T, null>;
+  }
+
+  getArray<T extends object>(path: string): T[] {
+    const vertex = this.tree.getVertexByPath(path);
+    if (!vertex) return [];
+
+    return vertex.children
+      .map(vertexId => {
+        const vertex = this.tree.getVertex(vertexId);
+        if (!vertex) return null;
+        return this.getVertexProperties<T>(vertex);
+      })
+      .filter((item): item is T => item !== null);
+  }
+
+  getAppConfigs(): AppConfig[] {
+    return this.getArray<AppConfig>('app-configs');
+  }
+
+  insertIntoArray<T extends object>(path: string, item: T): string {
+    const vertex = this.tree.getVertexByPath(path);
+    if (!vertex) {
+      throw new Error(`Path ${path} not found`);
+    }
+
+    const newVertex = this.tree.newVertex(vertex.id);
+    
+    // Set all properties from the item
+    for (const [key, value] of Object.entries(item)) {
+      this.tree.setVertexProperty(newVertex, key, value);
+    }
+
+    return newVertex;
+  }
+
+  updateInArray<T extends object>(vertexId: string, updates: Partial<T>): void {
+    const vertex = this.tree.getVertex(vertexId);
+    if (!vertex) {
+      throw new Error(`Vertex ${vertexId} not found`);
+    }
+
+    // Update only the provided properties
+    for (const [key, value] of Object.entries(updates)) {
+      this.tree.setVertexProperty(vertex.id, key, value as VertexPropertyType);
+    }
+  }
+
+  deleteFromArray(vertexId: string): void {
+    const vertex = this.tree.getVertex(vertexId);
+    if (!vertex) {
+      throw new Error(`Vertex ${vertexId} not found`);
+    }
+
+    this.tree.deleteVertex(vertexId);
+  }
+
+  // Example usage methods:
+  addAppConfig(config: AppConfig): string {
+    return this.insertIntoArray<AppConfig>('app-configs', config);
+  }
+
+  updateAppConfig(vertexId: string, updates: Partial<AppConfig>): void {
+    this.updateInArray<AppConfig>(vertexId, updates);
+  }
+
+  deleteAppConfig(vertexId: string): void {
+    this.deleteFromArray(vertexId);
+  }
 }

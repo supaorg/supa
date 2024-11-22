@@ -1,1 +1,1 @@
-# SupaCloud Docs
+# Supa Docs

@@ -1,7 +1,7 @@
 <script lang="ts">
   import App from "$lib/comps/apps/App.svelte";
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
-  import AppConfigTableCell from "$lib/comps/apps/AppConfigTableCell.svelte";
+  import AppConfigTableCell from "$lib/comps/app-configs/AppConfigTableCell.svelte";
   import { txtStore } from "$lib/stores/txtStore";
 </script>
 
@@ -25,7 +25,7 @@
     <div class="card p-4">
       An ability to create other types of apps is coming at some point. Write at <a
         class="anchor"
-        href="mailto:hey@supamind.org">hey@supamind.org</a
+        href="mailto:hi@supa.cloud">hi@supa.cloud</a
       > if you have ideas or suggestions for an app.
     </div>
   </CenteredPage>

@@ -12,6 +12,8 @@ type PropertyKeyAtVertexId = `${string}@${TreeVertexId}`;
  * It uses CRDTs to manage seamless replication between peers.
  */
 export class ReplicatedTree {
+  private static TRASH_VERTEX_ID = 't';
+
   readonly peerId: string;
   readonly rootVertexId: string;
 
@@ -28,6 +30,10 @@ export class ReplicatedTree {
   private parentIdBeforeMove: Map<OpId, string | null | undefined> = new Map();
   private opAppliedListeners: ((op: VertexOperation) => void)[] = [];
 
+  /**
+   * @param peerId - The peer ID of the current client
+   * @param ops - The operations to replicate an existing tree, if null - a new tree will be created
+   */
   constructor(peerId: string, ops: ReadonlyArray<VertexOperation> | null = null) {
     this.peerId = peerId;
     this.state = new TreeState();
@@ -48,9 +54,16 @@ export class ReplicatedTree {
       }
 
       this.applyOps(ops);
+
+      // @TODO: perhaps don't do it here. Handle it in validation.
+      this.ensureTrashVertex();
+
+      // @TODO: validate the tree structure, throw an exception if it's invalid
     } else {
       // The root is our only vertex that will have a null parentId
-      this.rootVertexId = this.newVertexInternal(null);
+      this.rootVertexId = this.newVertexInternalWithUUID(null);
+
+      this.ensureTrashVertex();
     }
   }
 
@@ -124,8 +137,7 @@ export class ReplicatedTree {
     return ops;
   }
 
-  private newVertexInternal(parentId: string | null): string {
-    const vertexId = uuid();
+  private newVertexInternal(vertexId: string, parentId: string | null): string {
     this.lamportClock++;
     // To create a vertex - we move a vertex with a fresh id under the parent.
     // No need to have a separate "create vertex" operation.
@@ -136,8 +148,39 @@ export class ReplicatedTree {
     return vertexId;
   }
 
-  newVertex(parentId: string): string {
-    return this.newVertexInternal(parentId);
+  private newVertexInternalWithUUID(parentId: string | null): string {
+    const vertexId = uuid();
+    return this.newVertexInternal(vertexId, parentId);
+  }
+
+  private ensureTrashVertex() {
+    const vertexId = ReplicatedTree.TRASH_VERTEX_ID;
+
+    // Check if the trash vertex already exists
+    if (this.state.getVertex(vertexId)) {
+      return;
+    }
+
+    this.newVertexInternal(vertexId, null);
+  }
+
+  newVertex(parentId: string, props: Record<string, VertexPropertyType> | null = null): string {
+    const vertexId = this.newVertexInternalWithUUID(parentId);
+    if (props) {
+      this.setVertexProperties(vertexId, props);
+    }
+
+    return vertexId;
+  }
+
+  newNamedVertex(parentId: string, name: string, props: Record<string, VertexPropertyType> | null = null): string {
+    const vertexId = this.newVertexInternalWithUUID(parentId);
+    if (props) {
+      this.setVertexProperties(vertexId, props);
+    }
+    this.setVertexProperty(vertexId, '_n', name);
+
+    return vertexId;
   }
 
   moveVertex(vertexId: string, parentId: string) {
@@ -145,6 +188,10 @@ export class ReplicatedTree {
     const op = newMoveVertexOp(this.lamportClock, this.peerId, vertexId, parentId);
     this.localOps.push(op);
     this.applyMove(op);
+  }
+
+  deleteVertex(vertexId: string) {
+    this.moveVertex(vertexId, ReplicatedTree.TRASH_VERTEX_ID);
   }
 
   setTransientVertexProperty(vertexId: string, key: string, value: VertexPropertyType) {
@@ -161,6 +208,12 @@ export class ReplicatedTree {
     this.applyProperty(op);
   }
 
+  setVertexProperties(vertexId: string, props: Record<string, VertexPropertyType>) {
+    for (const [key, value] of Object.entries(props)) {
+      this.setVertexProperty(vertexId, key, value);
+    }
+  }
+
   getVertexByPath(path: string): TreeVertex | undefined {
     // Let's remove '/' at the start and at the end of the path
     path = path.replace(/^\/+/, '');
@@ -173,12 +226,7 @@ export class ReplicatedTree {
       throw new Error('The root vertex is not found');
     }
 
-    // First check the root vertex's property '_n'
-    if (root.getProperty('_n')?.value === pathParts[0]) {
-      return this.getVertexByPathArray(root, pathParts.slice(1));
-    }
-
-    return undefined;
+    return this.getVertexByPathArray(root, pathParts);
   }
 
   getVertexByPathArray(vertex: TreeVertex, path: string[]): TreeVertex | undefined {
@@ -186,14 +234,12 @@ export class ReplicatedTree {
       return vertex ?? undefined;
     }
 
-    const firstName = path[0];
-    const rest = path.slice(1);
-
+    const targetName = path[0];
     // Now, search recursively by name '_n' in children until the path is empty or not found.
     const children = this.getChildren(vertex.id);
     for (const child of children) {
-      if (child.getProperty('_n')?.value === firstName) {
-        return this.getVertexByPathArray(child, rest);
+      if (child.getProperty('_n')?.value === targetName) {
+        return this.getVertexByPathArray(child, path.slice(1));
       }
     }
 
@@ -486,7 +532,7 @@ export class ReplicatedTree {
   private applyProperty(op: SetVertexProperty) {
     const targetVertex = this.state.getVertex(op.targetId);
     if (!targetVertex) {
-      // No need to apply transient properties if the vertex doesn't exist
+      // No need to handle transient properties if the vertex doesn't exist
       if (op.transient) {
         return;
       }

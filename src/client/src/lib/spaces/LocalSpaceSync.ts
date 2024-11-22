@@ -363,6 +363,11 @@ async function loadLocalSpace(path: string): Promise<Space> {
     throw new Error("Space ID not found in space.json");
   }
 
+  // @TODO: do migrations here based on /v{version} directory 
+  // and if the version is not found, do migrations starting from the latest version directory.
+  // e.g the current version is 1, we look for /v1 and if not found, read available version directories
+  // and pick the latest one - v0, v0.5, pick v0.5 for migrations.
+
   // Load space tree 
   const ops = await loadAllTreeOps(path, spaceId);
 

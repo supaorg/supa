@@ -24,7 +24,7 @@
     title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")
       ?.value as string;
 
-    messagesVertex = appTree.tree.getVertexByPath("/app-tree/messages");
+    messagesVertex = appTree.tree.getVertexByPath("messages");
     if (!messagesVertex) {
       const newVertex = appTree.tree.newVertex(appTree.tree.rootVertexId);
       appTree.tree.setVertexProperty(newVertex, "_n", "messages");
