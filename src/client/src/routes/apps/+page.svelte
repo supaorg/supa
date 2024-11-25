@@ -3,6 +3,16 @@
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
   import AppConfigTableCell from "$lib/comps/app-configs/AppConfigTableCell.svelte";
   import { txtStore } from "$lib/stores/txtStore";
+
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { onMount } from "svelte";
+  import type { AppConfig } from "@shared/models";
+
+  let appConfigs: AppConfig[] = [];
+
+  onMount(() => {
+    appConfigs = $currentSpaceStore?.getAppConfigs() || [];
+  });
 </script>
 
 <App>
@@ -12,7 +22,7 @@
       <h3 class="h3">Chats</h3>
       <table class="table-auto w-full">
         <tbody>
-          {#each $appConfigsStore as config (config.id)}
+          {#each appConfigs as config (config.id)}
             <AppConfigTableCell {config} />
           {/each}
         </tbody>

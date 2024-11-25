@@ -99,7 +99,7 @@ export default class Space {
 
     const newAppTree = this.tree.newVertex(appsTrees.id);
 
-    this.tree.setVertexProperty(newAppTree, 'tree-id', appTree.getId());
+    this.tree.setVertexProperty(newAppTree, 'tid', appTree.getId());
     this.appTrees.set(appTree.getId(), appTree);
 
     for (const listener of this.newTreeObservers) {
@@ -166,7 +166,7 @@ export default class Space {
   getVertexIdReferencingAppTree(appTreeId: string): string | undefined {
     for (const vertexId of this.appTreesVertex.children) {
       const referencingVertex = this.tree.getVertex(vertexId);
-      if (referencingVertex?.getProperty('tree-id')?.value === appTreeId) {
+      if (referencingVertex?.getProperty('tid')?.value === appTreeId) {
         return vertexId;
       }
     }
@@ -175,10 +175,6 @@ export default class Space {
   }
 
 	createVertex() {
-		
-	}
-
-	deleteVertex() {
 		
 	}
 
@@ -250,7 +246,7 @@ export default class Space {
     }
   }
 
-  deleteFromArray(vertexId: string): void {
+  deleteVertex(vertexId: string): void {
     const vertex = this.tree.getVertex(vertexId);
     if (!vertex) {
       throw new Error(`Vertex ${vertexId} not found`);
@@ -269,6 +265,6 @@ export default class Space {
   }
 
   deleteAppConfig(vertexId: string): void {
-    this.deleteFromArray(vertexId);
+    this.deleteVertex(vertexId);
   }
 }

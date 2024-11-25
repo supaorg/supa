@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { AppConfig } from "@shared/models";
   import {
     SlideToggle,
     getModalStore,
     type ModalSettings,
   } from "@skeletonlabs/skeleton";
-  import { Icon, Trash } from "svelte-hero-icons";
+  import { TrashIcon } from "lucide-svelte";
 
   export let config: AppConfig;
   let isVisible: boolean = isAppConfigVisible();
@@ -18,10 +18,7 @@
   }
 
   function setAppConfigVisibility(visible: boolean) {
-    config.meta = config.meta || {};
-    config.meta.visible = visible ? "true" : "false";
-
-    $currentWorkspaceStore?.updateAppConfig(config);
+    $currentSpaceStore?.tree.setVertexProperty(config.id, 'visible', visible);
   }
 
   $: {
@@ -46,7 +43,7 @@
   }
 
   function deleteAppConfig() {
-    $currentWorkspaceStore?.deleteAppConfig(config.id);
+    $currentSpaceStore?.deleteVertex(config.id);
   }
 </script>
 
@@ -66,10 +63,10 @@
   <td>
     {#if !isDefault}
       <button on:click={requestDeleteAppConfig}
-        ><Icon src={Trash} micro class="w-4" /></button
+        ><TrashIcon class="w-4" /></button
       >
     {:else}
-      <div><Icon src={Trash} micro class="w-4 opacity-30" /></div>
+      <div><TrashIcon class="w-4 opacity-30" /></div>
     {/if}
   </td>
 </tr>

@@ -12,7 +12,7 @@
 
   onMount(() => {
     const vertex = $currentSpaceStore?.getVertex(id);
-    appTreeId = vertex?.getProperty("tree-id")?.value as string | undefined;
+    appTreeId = vertex?.getProperty("tid")?.value as string | undefined;
     name = vertex?.getProperty("_n")?.value as string | undefined;
   });
 
