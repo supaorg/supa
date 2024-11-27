@@ -1,20 +1,35 @@
 <script lang="ts">
   import type { AppConfig } from "@shared/models";
+  import { onMount } from "svelte";
   import InputModel from "../models/InputModel.svelte";
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
   import uuid from "@shared/uuid/uuid";
 
-  let { configId }: { configId?: string } = $props();
+  export let configId: string | null = null;
+  let prevConfigId: string | null = null;
+  let isNewApp: boolean = configId === null;
 
-  let isNewApp = $derived(!configId);
+  let formElement: HTMLFormElement;
+  let appConfig: AppConfig | null = null;
 
-  let appConfig = $derived.by(() => {
-    console.log("configId", configId);
-    console.log("isNewApp", isNewApp);
+  let disableFields = false;
 
-    if (isNewApp) {
-      return {
+  async function init() {
+    if (configId !== null) {
+      prevConfigId = configId;
+      isNewApp = false;
+
+      appConfig =
+        // @TODO: implement getting app config from space
+        //$currentWorkspaceStore?.getAppConfig(configId) ?? null;
+        null;
+      if (configId === "default") {
+        disableFields = true;
+      }
+    } else {
+      isNewApp = true;
+      appConfig = {
         id: uuid(),
         name: "",
         description: "",
@@ -22,22 +37,14 @@
         button: "",
         targetLLM: "auto",
       } as AppConfig;
-    } else {
-      // @TODO: implement
-      return null;
     }
+  }
+
+  onMount(async () => {
+    await init();
   });
 
-  let formElement = $state<HTMLFormElement | undefined>(undefined);
-
-  let disableFields = false;
-
   async function handleSubmit() {
-    if (!formElement) {
-      console.error("formElement is undefined");
-      return;
-    }
-
     if (!formElement.checkValidity()) {
       formElement.reportValidity();
       return;
@@ -69,7 +76,7 @@
       {$txtStore.appConfigPage.defaultConfigTitle}
     {/if}
   </h2>
-  <form class="space-y-4" bind:this={formElement}>
+  <form class="space-y-4" bind:this={formElement} on:submit|preventDefault>
     <!--
     <p class="text-sm">
       You can create you own system prompts (instructions) based on the default
@@ -119,13 +126,13 @@
         required
         bind:value={appConfig.instructions}
         disabled={disableFields}
-      ></textarea>
+      />
     </label>
     <div class="label">
       <span>{$txtStore.basics.model}</span>
-      <!--<InputModel bind:value={appConfig.targetLLM} required />-->
+      <InputModel bind:value={appConfig.targetLLM} required />
     </div>
-    <button type="submit" onclick={handleSubmit} class="btn variant-filled">
+    <button type="submit" on:click={handleSubmit} class="btn variant-filled">
       {#if isNewApp}
         {$txtStore.appConfigPage.buttonCreate}
       {:else}

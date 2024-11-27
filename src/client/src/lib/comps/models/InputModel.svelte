@@ -4,7 +4,7 @@
   import { onMount } from "svelte";
   import { Sparkles, CircleAlert } from "lucide-svelte/icons";
 
-  export let value: string;
+  export let value: string | undefined;
   export let required: boolean = false;
 
   let error = "";
