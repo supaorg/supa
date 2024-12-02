@@ -18,13 +18,13 @@
 
   $effect(() => {
     if (configId) {
-      /*
-      @TODO: implement loading app config from space
-      appName = appConfig.name;
-      appDescription = appConfig.description;
-      appInstructions = appConfig.instructions;
-      appTargetLLM = appConfig.targetLLM;
-      */
+      const config = $currentSpaceStore?.getAppConfig(configId);
+      if (config) {
+        name = config.name;
+        description = config.description;
+        instructions = config.instructions;
+        targetLLM = config.targetLLM || "auto";
+      }
     }
   });
 
@@ -46,9 +46,6 @@
     }
 
     if (!configId) {
-      // @TODO: implement saving app config to space
-      //await $currentWorkspaceStore?.newAppConfig(appConfig);
-
       $currentSpaceStore?.insertIntoArray("app-configs", {
         id: uuid(),
         name: name,
@@ -59,9 +56,6 @@
 
       goto("/apps");
     } else {
-      // @TODO: implement updating app config in space
-      //await $currentWorkspaceStore?.updateAppConfig(appConfig);
-
       $currentSpaceStore?.updateInArray(configId, {
         name: name,
         description: description,

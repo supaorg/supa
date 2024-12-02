@@ -44,7 +44,7 @@ export interface AppConfig {
   description: string;
   instructions: string;
   targetLLM?: string;
-  meta?: { [key: string]: string };
+  visible?: boolean;
 }
 
 export type ModelProvider = {

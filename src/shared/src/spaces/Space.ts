@@ -182,40 +182,44 @@ export default class Space {
 		
 	}
 
-  getVertexProperties<T extends object>(vertex: TreeVertex): T | null {
-    const properties: Record<string, any> = {};
-    
-    // Get all property keys from type T
-    const propertyKeys = Object.keys(this.getTypeProperties<T>());
-    
-    for (const key of propertyKeys) {
-      const value = vertex.getProperty(key)?.value;
-      if (value === undefined) return null;
-      properties[key] = value;
-    }
-    
-    return properties as T;
-  }
-
-  private getTypeProperties<T>(): Record<keyof T, null> {
-    return {} as Record<keyof T, null>;
-  }
-
-  getArray<T extends object>(path: string): T[] {
+  getArray(path: string): object[] {
     const vertex = this.tree.getVertexByPath(path);
+
     if (!vertex) return [];
 
     return vertex.children
       .map(vertexId => {
         const vertex = this.tree.getVertex(vertexId);
         if (!vertex) return null;
-        return this.getVertexProperties<T>(vertex);
+
+        const properties = vertex.getAllProperties();
+        const obj = properties.reduce((obj, prop) => {
+          obj[prop.key] = prop.value;
+          return obj;
+        }, {} as Record<string, any>);
+        
+        obj.id = vertex.id;
+        return obj;
       })
-      .filter((item): item is T => item !== null);
+      .filter((item): item is Record<string, any> => item !== null);
   }
 
   getAppConfigs(): AppConfig[] {
-    return this.getArray<AppConfig>('app-configs');
+    return this.getArray('app-configs') as AppConfig[];
+  }
+
+  getAppConfig(configId: string): AppConfig | undefined {
+    const vertex = this.tree.getVertex(configId);
+
+    if (!vertex) return undefined;
+
+    const props = vertex.getAllProperties();
+    const config = props.reduce((obj, prop) => {
+      obj[prop.key] = prop.value;
+      return obj;
+    }, {} as AppConfig);
+
+    return config;
   }
 
   insertIntoArray<T extends object>(path: string, item: T): string {

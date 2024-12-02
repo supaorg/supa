@@ -3,27 +3,29 @@
   import type { AppConfig } from "@shared/models";
   import {
     SlideToggle,
-    getModalStore,
+    //getModalStore,
     type ModalSettings,
   } from "@skeletonlabs/skeleton";
   import { TrashIcon } from "lucide-svelte";
 
-  export let config: AppConfig;
-  let isVisible: boolean = isAppConfigVisible();
-  const isDefault = config.id === "default";
-  const modalStore = getModalStore();
+  let { config }: { config: AppConfig } = $props();
 
-  function isAppConfigVisible() {
-    return config.meta ? config.meta.visible !== "false" : true;
-  }
+  let isVisible: boolean = $state(config.visible !== undefined ? config.visible : true);
+  const isDefault = config.id === "default";
+  //const modalStore = getModalStore();
+
+  $effect(() => {
+    setAppConfigVisibility(isVisible);
+  });
 
   function setAppConfigVisibility(visible: boolean) {
-    $currentSpaceStore?.tree.setVertexProperty(config.id, 'visible', visible);
-  }
-
-  $: {
-    if (isVisible !== isAppConfigVisible()) {
-      setAppConfigVisibility(isVisible);
+    const vertex = $currentSpaceStore?.tree.getVertex(config.id);
+    if (vertex) {
+      const isCurrentVisible = vertex.getProperty("visible")?.value === true;
+      if (isCurrentVisible !== visible) {
+        console.log("setting visible", visible);
+        $currentSpaceStore?.tree.setVertexProperty(config.id, "visible", visible);
+      }
     }
   }
 
@@ -39,7 +41,7 @@
   } as ModalSettings;
 
   function requestDeleteAppConfig() {
-    modalStore.trigger(deletionModal);
+    //modalStore.trigger(deletionModal);
   }
 
   function deleteAppConfig() {
