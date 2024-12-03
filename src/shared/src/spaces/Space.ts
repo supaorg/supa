@@ -5,7 +5,7 @@ import type { AppConfig } from "@shared/models";
 import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
 
 export default class Space {
-	readonly tree: ReplicatedTree;
+  readonly tree: ReplicatedTree;
   private appTrees: Map<string, AppTree> = new Map();
   private newTreeObservers: ((treeId: string) => void)[] = [];
   private treeLoadObservers: ((treeId: string) => void)[] = [];
@@ -27,7 +27,7 @@ export default class Space {
     }
 
     const chats = tree.getVertexByPath('app-forest');
-    if (!chats) { 
+    if (!chats) {
       return false;
     }
 
@@ -48,23 +48,26 @@ export default class Space {
     });
 
     const apps = tree.newNamedVertex(rootId, 'app-configs');
+    const defaultConfig = Space.getDefaultAppConfig();
+    tree.newVertex(apps, defaultConfig);
+
     const appTrees = tree.newNamedVertex(rootId, 'app-forest');
     const providers = tree.newNamedVertex(rootId, 'providers');
     const settings = tree.newNamedVertex(rootId, 'settings');
-    
+
     return new Space(tree);
   }
 
-	constructor(tree: ReplicatedTree) {
-		this.tree = tree;
-  
+  constructor(tree: ReplicatedTree) {
+    this.tree = tree;
+
     // @TODO: or perhaps a migration should be here
     if (!Space.isValid(tree)) {
       throw new Error("Invalid tree structure");
     }
 
     this.appTreesVertex = tree.getVertexByPath('app-forest') as TreeVertex;
-	}
+  }
 
   getId(): string {
     return this.tree.rootVertexId;
@@ -111,6 +114,15 @@ export default class Space {
 
   getVertex(vertexId: string): TreeVertex | undefined {
     return this.tree.getVertex(vertexId);
+  }
+
+  findObjectWithPropertyAtPath(path: string, key: string, value: VertexPropertyType): object | undefined {
+    const arr = this.getArray(path);
+    // Check if the object has the property and its value matches the given value
+    return arr.find((obj: object) => {
+      const typedObj = obj as Record<string, VertexPropertyType>;
+      return typedObj[key] === value;
+    });
   }
 
   async loadAppTree(appTreeId: string): Promise<AppTree | undefined> {
@@ -174,13 +186,13 @@ export default class Space {
     return undefined;
   }
 
-	createVertex() {
-		
-	}
+  createVertex() {
 
-	setProps() {
-		
-	}
+  }
+
+  setProps() {
+
+  }
 
   getArray(path: string): object[] {
     const vertex = this.tree.getVertexByPath(path);
@@ -197,8 +209,7 @@ export default class Space {
           obj[prop.key] = prop.value;
           return obj;
         }, {} as Record<string, any>);
-        
-        obj.id = vertex.id;
+
         return obj;
       })
       .filter((item): item is Record<string, any> => item !== null);
@@ -209,17 +220,22 @@ export default class Space {
   }
 
   getAppConfig(configId: string): AppConfig | undefined {
-    const vertex = this.tree.getVertex(configId);
+    const config = this.findObjectWithPropertyAtPath('app-configs', 'id', configId);
 
-    if (!vertex) return undefined;
+    if (!config) return undefined;
 
-    const props = vertex.getAllProperties();
-    const config = props.reduce((obj, prop) => {
-      obj[prop.key] = prop.value;
-      return obj;
-    }, {} as AppConfig);
+    return config as AppConfig;
+  }
 
-    return config;
+  static getDefaultAppConfig(): AppConfig {
+    return {
+      id: "default",
+      name: "Ask AI",
+      button: "New query",
+      description: "A basic chat assistant",
+      instructions:
+        "You are Supa, an advanced AI assistant with vast knowledge. Be direct in all responses. Do not spare the user's feelings. Cut niceties and filler words. Prioritize clear, concise communication over formality. Before replying, silently think about what the user says or what you are about to write. It is okay to make mistakes; ensure you review and correct yourself. Do the same for what you read—be critical and correct mistakes from users.",
+    } as AppConfig;
   }
 
   insertIntoArray<T extends object>(path: string, item: T): string {
@@ -229,7 +245,7 @@ export default class Space {
     }
 
     const newVertex = this.tree.newVertex(vertex.id);
-    
+
     // Set all properties from the item
     for (const [key, value] of Object.entries(item)) {
       this.tree.setVertexProperty(newVertex, key, value);

@@ -1,3 +1,4 @@
+import { AppConfig } from "../models";
 import { isSetPropertyOp, type VertexOperation } from "../replicatedTree/operations";
 import { TreeVertex } from "../replicatedTree/TreeVertex";
 import type AppTree from "../spaces/AppTree";
@@ -12,7 +13,6 @@ type ChatMessage = {
 
 export default class ChatAppBackend {
   constructor(private space: Space) {
-
   }
 
   addOp(appTree: AppTree, op: VertexOperation) {
@@ -64,6 +64,10 @@ export default class ChatAppBackend {
   }
 
   private async replyToMessage(appTree: AppTree, messages: ChatMessage[]) {
+    const configId = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "configId");
+    console.log("configId", configId);
+    const config: AppConfig = configId ? this.space.getAppConfig(configId.value as string) : this.space.getDefaultAppConfig();
+
     const lastMessage = messages[messages.length - 1];
 
     const newMessageVertex = appTree.tree.newVertex(lastMessage.id);
@@ -74,13 +78,17 @@ export default class ChatAppBackend {
 
     const lang = Lang.openai({
       apiKey: "...",
-      model: "gpt-4o"
+      model: "..."
     });
 
-    const result = await lang.chat(messages.map((m) => ({
-      role: m.role,
-      content: m.text,
-    })), (result) => {
+    const messagesForLang = [
+      { role: "system", content: config.instructions },
+      ...messages.map((m) => ({
+        role: m.role,
+        content: m.text,
+      }))];
+
+    const result = await lang.chat(messagesForLang, (result) => {
       appTree.tree.setTransientVertexProperty(newMessageVertex, "text", result.answer);
       console.log(result.answer);
     });
@@ -103,11 +111,11 @@ export default class ChatAppBackend {
 
     const lang = Lang.openai({
       apiKey: "...",
-      model: "gpt-4o"
+      model: "..."
     });
 
     const allMessagesInOneMessage = messages.map((m) => `**${m.role}**:\n${m.text}`).join("\n\n\n");
-    
+
     const result = await lang.askForObject({
       title: "Create or Edit a Title",
       instructions: [
@@ -132,7 +140,7 @@ export default class ChatAppBackend {
     if (answer.title !== title) {
       appTree.tree.setVertexProperty(appTree.tree.rootVertexId, "title", answer.title);
     }
-    
+
     const vertexIdReferencingAppTree = this.space.getVertexIdReferencingAppTree(appTree.getId());
     if (vertexIdReferencingAppTree) {
       const titleInSpace = this.space.tree.getVertexProperty(vertexIdReferencingAppTree, "_n")?.value as string;

@@ -4,24 +4,27 @@
   import Pen from "lucide-svelte/icons/pen";
   import { onMount } from "svelte";
 
-  function newAppTree() {
+  function newAppTree(configId: string) {
     if (!$currentSpaceStore) return;
 
-    $currentSpaceStore.newAppTree("default-chat");
+    const newTree = $currentSpaceStore.newAppTree("default-chat");
+    newTree.tree.setVertexProperty(newTree.tree.rootVertexId, "configId", configId);
   }
 
-  let appConfigs: AppConfig[] = [];
+  let appConfigs: AppConfig[] = $state([]);
 
   onMount(() => {
     appConfigs = $currentSpaceStore?.getAppConfigs() || [];
   });
 </script>
 
-<button class="sidebar-btn w-full flex" on:click={newAppTree}>
-  <span class="w-6 h-6 flex-shrink-0">
-    <span class="relative flex h-full items-center justify-center">
-      <Pen size={18} />
+{#each appConfigs as config (config.id)}
+  <button class="sidebar-btn w-full flex" onclick={() => newAppTree(config.id)}>
+    <span class="w-6 h-6 flex-shrink-0">
+      <span class="relative flex h-full items-center justify-center">
+        <Pen size={18} />
+      </span>
     </span>
-  </span>
-  <span class="flex-grow text-left">Ask AI</span>
-</button>
+    <span class="flex-grow text-left">{config.name}</span>
+  </button>
+{/each}
