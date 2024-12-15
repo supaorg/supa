@@ -1,10 +1,8 @@
 <script lang="ts">
-  import type { AppConfig } from "@shared/models";
   import InputModel from "../models/InputModel.svelte";
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
   import uuid from "@shared/uuid/uuid";
-  import { onMount } from "svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
   let { configId }: { configId?: string } = $props();
@@ -129,7 +127,7 @@
   </label>
   <div class="label">
     <span>{$txtStore.basics.model}</span>
-    <!--<InputModel bind:value={appConfig.targetLLM} required />-->
+    <InputModel bind:value={targetLLM} required />
   </div>
   <button type="submit" onclick={handleSubmit} class="btn variant-filled">
     {#if isNewApp}

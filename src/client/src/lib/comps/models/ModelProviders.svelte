@@ -1,15 +1,13 @@
 <script lang="ts">
   import type { ModelProvider } from "@shared/models";
   import ModelProviderCard from "./ModelProviderCard.svelte";
-  import { onMount } from "svelte";
   import { XCircle } from "lucide-svelte/icons";
   import Link from "../basic/Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
+  import { providers } from "@shared/providers";
 
-  let providers: ModelProvider[] = [];
   let showHowForProvider: ModelProvider | null = null;
-  let renderKey = 0;
 
   export let onConnect: (provider: ModelProvider) => void = () => {};
   export let onDisconnect: (provider: ModelProvider) => void = () => {};
@@ -17,15 +15,6 @@
   function onHow(provider: ModelProvider) {
     showHowForProvider = provider;
   }
-
-  async function fetchProviders() {
-    // @TODO: implement getting providers from space
-    //providers = await $currentWorkspaceStore?.getModelProviders() ?? [];
-  }
-
-  onMount(async () => {
-    await fetchProviders();
-  });
 </script>
 
 <div class="relative">
@@ -171,8 +160,6 @@
             autofocus={false}
             onValidKey={() => {
               showHowForProvider = null;
-              providers = [];
-              fetchProviders();
             }}
           />
         {:else if showHowForProvider.name === "Ollama"}
@@ -180,8 +167,6 @@
             id={showHowForProvider.id}
             onConnect={() => {
               showHowForProvider = null;
-              providers = [];
-              fetchProviders();
             }}
           />
         {/if}

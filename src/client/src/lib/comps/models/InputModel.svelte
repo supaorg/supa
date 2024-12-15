@@ -90,7 +90,7 @@
     <button
       type="button"
       class="flex p-4 gap-4 items-center cursor-pointer w-full"
-      on:click={onRequestChange}
+      onclick={onRequestChange}
     >
       <div class="w-8 h-8 flex items-center justify-center rounded-token">
         <Sparkles size={18} />
@@ -105,7 +105,7 @@
     <button
       type="button"
       class="flex p-4 gap-4 items-center cursor-pointer w-full"
-      on:click={onRequestChange}
+      onclick={onRequestChange}
     >
       <div
         class="w-8 h-8 bg-white flex items-center justify-center rounded-token"
@@ -124,7 +124,7 @@
       type="button"
       class="btn variant-filled"
       on:invalid={onInputInvalid}
-      on:click={onRequestChange}>Select a model</button
+      onclick={onRequestChange}>Select a model</button
     >
   </div>
   -->
@@ -141,7 +141,7 @@
 <input
   bind:this={inputElement}
   bind:value
-  on:invalid={onInputInvalid}
+  oninvalid={onInputInvalid}
   type="text"
   name="model"
   style="position: absolute; left: -9999px;"

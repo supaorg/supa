@@ -1,9 +1,24 @@
 <script lang="ts">
   import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
   import type { Snippet } from "svelte";
+  import {
+    Modal,
+    getDrawerStore,
+    initializeStores,
+    type ModalComponent,
+  } from "@skeletonlabs/skeleton";
+    import SelectModelModal from "../popups/SelectModelModal.svelte";
+
+  initializeStores();
 
   let { children }: { children: Snippet } = $props();
+
+  const modalRegistry: Record<string, ModalComponent> = {
+    selectModel: { ref: SelectModelModal },
+  };
 </script>
+
+<Modal components={modalRegistry} />
 
 <div class="flex h-screen overflow-hidden">
   <aside

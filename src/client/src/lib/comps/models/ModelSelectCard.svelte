@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { ModelProvider } from "@shared/models";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
@@ -14,10 +14,13 @@
   let showModels = false;
 
   onMount(async () => {
+    // TODO: get models from space
+    /*
     models =
       (await $currentWorkspaceStore?.getModelsForProvider(
         provider.id,
       )) ?? [];
+    */
   });
 
   function onProviderClick() {
@@ -56,7 +59,7 @@
 >
   <button
     class="flex p-4 gap-4 items-center cursor-pointer w-full"
-    on:click={onProviderClick}
+    onclick={onProviderClick}
   >
     <div
       class="w-8 h-8 bg-white flex items-center justify-center rounded-token"
@@ -74,7 +77,7 @@
           </span>
           <button
             class="btn btn-sm variant-filled"
-            on:click={() => (showModels = true)}>Change</button
+            onclick={() => (showModels = true)}>Change</button
           >
         {/if}
       </div>
