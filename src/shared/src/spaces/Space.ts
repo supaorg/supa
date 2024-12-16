@@ -320,8 +320,13 @@ export default class Space {
     return this.insertIntoArray('app-configs', config);
   }
 
-  updateAppConfig(vertexId: string, updates: Partial<AppConfig>): void {
-    this.updateInArray(vertexId, updates);
+  updateAppConfig(configId: string, updates: Partial<AppConfig>): void {
+    const vertexId = this.getFirstVertexWithPropertyAtPath('app-configs', 'id', configId);
+    if (!vertexId) {
+      throw new Error(`App config ${configId} not found`);
+    }
+
+    this.updateInArray(vertexId.id, updates);
   }
 
   deleteAppConfig(vertexId: string): void {

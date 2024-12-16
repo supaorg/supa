@@ -54,7 +54,7 @@
 
       goto("/apps");
     } else {
-      $currentSpaceStore?.updateInArray(configId, {
+      $currentSpaceStore?.updateAppConfig(configId, {
         name: name,
         description: description,
         instructions: instructions,

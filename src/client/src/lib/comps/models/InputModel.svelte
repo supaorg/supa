@@ -5,10 +5,7 @@
   import { Sparkles, CircleAlert } from "lucide-svelte/icons";
   import { providers } from "@shared/providers";
 
-  export let value: string | undefined;
-  export let required: boolean = false;
-
-  let error = "";
+  let { value = $bindable(), required }: { value: string; required?: boolean } = $props();
 
   const popupStore = getModalStore();
   let inputElement: HTMLInputElement;
@@ -27,9 +24,10 @@
     });
   }
 
-  let providerId: string;
-  let model: string;
-  let provider: ModelProvider | null;
+  let providerId: string = $state("");
+  let model: string = $state("");
+  let provider: ModelProvider | null = $state(null);
+  let error = $state("");
 
   function validate() {
     if (!value) {
@@ -51,6 +49,8 @@
   }
 
   onMount(() => {
+    console.log("onMount", value);
+
     update();
   });
 
