@@ -6,6 +6,8 @@
     ModelProviderCloudConfig,
     ModelProviderConfig,
   } from "@shared/models";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { validateKey } from "@shared/tools/providerKeyValidators";
 
   export let id: string;
   export let onValidKey: (key: string) => void;
@@ -27,17 +29,14 @@
       apiKey,
     } as ModelProviderCloudConfig;
 
-    // @TODO: implement saving provider to space
-    //$currentWorkspaceStore?.saveModelProvider(config);
+    $currentSpaceStore?.saveModelProviderConfig(config);
   }
 
   async function handleApiKeyChange() {
     checkingKey = true;
     clearTimeout(timeout);
     timeout = setTimeout(async () => {
-      apiKeyIsValid = false;
-      // @TODO: implement validating provider key
-      //apiKeyIsValid = await $currentWorkspaceStore?.validateModelProviderKey(id, apiKey) || false;
+      let apiKeyIsValid = await validateKey(id, apiKey);
       if (apiKeyIsValid) {
         saveCloudProviderWithApiKey(apiKey);
         onValidKey(apiKey);
@@ -71,8 +70,8 @@
     type="password"
     bind:value={apiKey}
     bind:this={inputElement}
-    on:input={handleApiKeyChange}
-    on:blur={handleBlur}
+    oninput={handleApiKeyChange}
+    onblur={handleBlur}
   />
   {#if apiKeyIsValid}
     <span class="absolute right-0"

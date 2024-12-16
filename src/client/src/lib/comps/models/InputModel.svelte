@@ -3,17 +3,18 @@
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
   import { Sparkles, CircleAlert } from "lucide-svelte/icons";
+  import { providers } from "@shared/providers";
 
   export let value: string | undefined;
   export let required: boolean = false;
 
   let error = "";
 
-  const modalStore = getModalStore();
+  const popupStore = getModalStore();
   let inputElement: HTMLInputElement;
 
   function onRequestChange() {
-    modalStore.trigger({
+    popupStore.trigger({
       type: "component",
       component: "selectModel",
       meta: {
@@ -72,14 +73,7 @@
       return;
     }
 
-    provider = null;
-
-    // @TODO: implement getting provider from space
-    /*
-    provider =
-      (await $currentWorkspaceStore?.getModelProvider(providerId)) ??
-      null;
-    */
+    provider = providers.find((p) => p.id === providerId) ?? null;
 
     validate();
   }

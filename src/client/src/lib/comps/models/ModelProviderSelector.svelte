@@ -3,12 +3,15 @@
   import { onMount } from "svelte";
   import ModelSelectCard from "./ModelSelectCard.svelte";
   import AutoModelSelectCard from "./AutoModelSelectCard.svelte";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { providers } from "@shared/providers";
 
-  let providers: ModelProvider[] = [];
-  let configs: ModelProviderConfig[] = [];
+  let setupProviders: {
+    provider: ModelProvider;
+    config: ModelProviderConfig;
+  }[] = [];
 
   export let selectedModel: string | null = null;
-
   export let onModelSelect: (model: string) => void = () => {};
 
   type SelectedPair = {
@@ -19,28 +22,21 @@
   let selectedPair: SelectedPair | null = null;
 
   onMount(async () => {
-    // @TODO: implement getting providers and configs from space
+    const configs = $currentSpaceStore?.getModelProviderConfigs();
+    if (!configs) return;
 
-    /*
-    let [providers, configs] = await Promise.all([
-      $currentWorkspaceStore?.getModelProviders(),
-      $currentWorkspaceStore?.getModelProviderConfigs(),
-    ]);
-
-    if (!providers || !configs) {
-      return;
-    }
-
-    // Keep the providers that are setup
-    providers = providers.filter((provider) =>
-      configs.some((config) => config.id === provider.id),
-    );
+    // Keep the providers that have configs
+    setupProviders = providers
+      .filter((provider) => configs.some((config) => config.id === provider.id))
+      .map((provider) => ({
+        provider,
+        config: configs.find((config) => config.id === provider.id)!,
+      }));
 
     if (selectedModel) {
       const [providerId, model] = selectedModel.split("/");
       selectedPair = { providerId, model };
     }
-    */
   });
 
   function getPairString(pair: SelectedPair) {
@@ -56,18 +52,19 @@
 </script>
 
 <div class="grid grid-cols-1 gap-4">
-  {#if providers.length > 0}
+  {#if setupProviders.length > 0}
     <AutoModelSelectCard
       selected={selectedPair?.providerId === "auto"}
       {onSelect}
     />
   {/if}
-  {#each providers as provider (provider.id)}
+  {#each setupProviders as setup (setup.provider.id)}
     <ModelSelectCard
-      {provider}
+      provider={setup.provider}
+      config={setup.config}
       {onSelect}
-      selected={selectedPair?.providerId === provider.id}
-      modelId={selectedPair?.providerId === provider.id
+      selected={selectedPair?.providerId === setup.provider.id}
+      modelId={selectedPair?.providerId === setup.provider.id
         ? selectedPair.model
         : null}
     />

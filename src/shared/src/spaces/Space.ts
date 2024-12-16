@@ -3,6 +3,7 @@ import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import AppTree from "./AppTree";
 import type { AppConfig } from "@shared/models";
 import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
+import { ModelProviderConfig } from "../models";
 
 export default class Space {
   readonly tree: ReplicatedTree;
@@ -238,7 +239,15 @@ export default class Space {
     } as AppConfig;
   }
 
-  insertIntoArray<T extends object>(path: string, item: T): string {
+  getModelProviderConfig(providerId: string): ModelProviderConfig | undefined {
+    return this.getFirstObjectWithPropertyAtPath('providers', 'id', providerId) as ModelProviderConfig | undefined;
+  }
+
+  getModelProviderConfigs(): ModelProviderConfig[] {
+    return this.getArray('providers') as ModelProviderConfig[];
+  }
+
+  insertIntoArray(path: string, item: object): string {
     const vertex = this.tree.getVertexByPath(path);
     if (!vertex) {
       throw new Error(`Path ${path} not found`);
@@ -248,13 +257,44 @@ export default class Space {
 
     // Set all properties from the item
     for (const [key, value] of Object.entries(item)) {
-      this.tree.setVertexProperty(newVertex, key, value);
+      this.tree.setVertexProperty(newVertex, key, value as VertexPropertyType);
     }
 
     return newVertex;
   }
 
-  updateInArray<T extends object>(vertexId: string, updates: Partial<T>): void {
+  getFirstVertexWithPropertyAtPath(path: string, key: string, value: VertexPropertyType): TreeVertex | undefined {
+    const vertex = this.tree.getVertexByPath(path);
+    if (!vertex) return undefined;
+
+    const children = vertex.children;
+    for (const childId of children) {
+      const child = this.tree.getVertex(childId);
+      if (!child) continue;
+
+      const property = child.getProperty(key);
+      if (property?.value === value) {
+        return child;
+      }
+    }
+
+    return undefined;
+  }
+
+  getFirstObjectWithPropertyAtPath(path: string, key: string, value: VertexPropertyType): object | undefined {
+    const vertex = this.getFirstVertexWithPropertyAtPath(path, key, value);
+    if (!vertex) return undefined;
+
+    const properties = vertex.getAllProperties();
+    const obj = properties.reduce((obj, prop) => {
+      obj[prop.key] = prop.value;
+      return obj;
+    }, {} as Record<string, any>);
+
+    return obj;
+  }
+
+  updateInArray(vertexId: string, updates: Partial<object>): void {
     const vertex = this.tree.getVertex(vertexId);
     if (!vertex) {
       throw new Error(`Vertex ${vertexId} not found`);
@@ -277,14 +317,18 @@ export default class Space {
 
   // Example usage methods:
   addAppConfig(config: AppConfig): string {
-    return this.insertIntoArray<AppConfig>('app-configs', config);
+    return this.insertIntoArray('app-configs', config);
   }
 
   updateAppConfig(vertexId: string, updates: Partial<AppConfig>): void {
-    this.updateInArray<AppConfig>(vertexId, updates);
+    this.updateInArray(vertexId, updates);
   }
 
   deleteAppConfig(vertexId: string): void {
     this.deleteVertex(vertexId);
+  }
+
+  saveModelProviderConfig(config: ModelProviderConfig) {
+    this.insertIntoArray('providers', config);
   }
 }

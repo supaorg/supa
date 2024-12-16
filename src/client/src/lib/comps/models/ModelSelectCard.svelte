@@ -1,10 +1,12 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
-  import type { ModelProvider } from "@shared/models";
+  import type { ModelProvider, ModelProviderConfig } from "@shared/models";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
+  import { getProviderModels } from "@shared/tools/providerModels";
 
   export let provider: ModelProvider;
+  export let config: ModelProviderConfig;
   export let selected = false;
   export let onSelect: (providerId: string, model: string) => void;
   export let modelId: string | null = null;
@@ -14,13 +16,10 @@
   let showModels = false;
 
   onMount(async () => {
-    // TODO: get models from space
-    /*
-    models =
-      (await $currentWorkspaceStore?.getModelsForProvider(
-        provider.id,
-      )) ?? [];
-    */
+    models = await getProviderModels(
+      provider.id,
+      config.type !== "cloud" ? "" : config.apiKey,
+    );
   });
 
   function onProviderClick() {
