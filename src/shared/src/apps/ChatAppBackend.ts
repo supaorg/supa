@@ -4,6 +4,9 @@ import { TreeVertex } from "../replicatedTree/TreeVertex";
 import type AppTree from "../spaces/AppTree";
 import Space from "../spaces/Space";
 import { Lang } from 'aiwrapper';
+import { AgentServices } from "../agents/AgentServices.ts";
+import { SimpleChatAgent } from "../agents/SimpleChatAgent.ts";
+import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
 
 type ChatMessage = {
   id: string;
@@ -65,45 +68,47 @@ export default class ChatAppBackend {
 
   private async replyToMessage(appTree: AppTree, messages: ChatMessage[]) {
     const configId = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "configId");
-    console.log("configId", configId);
-    const config: AppConfig = configId ? this.space.getAppConfig(configId.value as string) : this.space.getDefaultAppConfig();
+    const config: AppConfig = configId ? this.space.getAppConfig(configId.value as string) : Space.getDefaultAppConfig();
+    const agentServices = new AgentServices(this.space);
+    const simpleChatAgent = new SimpleChatAgent(agentServices, config);
+    const threadTitleAgent = new ThreadTitleAgent(agentServices, config);
 
     const lastMessage = messages[messages.length - 1];
-
     const newMessageVertex = appTree.tree.newVertex(lastMessage.id);
     appTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
     appTree.tree.setVertexProperty(newMessageVertex, "createdAt", Date.now());
     appTree.tree.setVertexProperty(newMessageVertex, "text", "thinking...");
     appTree.tree.setVertexProperty(newMessageVertex, "role", "assistant");
 
-    const lang = Lang.openai({
-      apiKey: "...",
-      model: "..."
-    });
-
     const messagesForLang = [
-      { role: "system", content: config.instructions },
+      { role: "system", text: config.instructions },
       ...messages.map((m) => ({
         role: m.role,
-        content: m.text,
+        text: m.text,
       }))];
 
-    const result = await lang.chat(messagesForLang, (result) => {
-      appTree.tree.setTransientVertexProperty(newMessageVertex, "text", result.answer);
-      console.log(result.answer);
-    });
+    const response = await simpleChatAgent.input(messagesForLang, (resp) => {
+      const wipResponse = resp as string;
+      appTree.tree.setTransientVertexProperty(newMessageVertex, "text", wipResponse);
+      console.log(wipResponse);
+    }) as string;
 
     // And finally set the permanent property
-    appTree.tree.setVertexProperty(newMessageVertex, "text", result.answer);
+    appTree.tree.setVertexProperty(newMessageVertex, "text", response);
 
     const newMessage = {
       id: newMessageVertex,
       role: "assistant",
-      text: result.answer,
+      text: response,
     } as ChatMessage;
     messages.push(newMessage);
 
-    this.generateTitle(appTree, messages);
+    const title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")?.value as string;
+    const newTitle = await threadTitleAgent.input({ messages, title }) as string;
+
+    if (newTitle !== title) {
+      appTree.tree.setVertexProperty(appTree.tree.rootVertexId, "title", newTitle as string);
+    }
   }
 
   private async generateTitle(appTree: AppTree, messages: ChatMessage[]) {
