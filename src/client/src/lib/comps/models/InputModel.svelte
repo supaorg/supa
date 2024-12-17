@@ -48,9 +48,7 @@
     error = inputElement.validationMessage;
   }
 
-  onMount(() => {
-    console.log("onMount", value);
-
+  $effect(() => {
     update();
   });
 

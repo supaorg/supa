@@ -17,6 +17,7 @@
   $effect(() => {
     if (configId) {
       const config = $currentSpaceStore?.getAppConfig(configId);
+      console.log("config", config);
       if (config) {
         name = config.name;
         description = config.description;

@@ -10,8 +10,6 @@
 
   onMount(() => {
     appConfigs = $currentSpaceStore?.getAppConfigs() || [];
-
-    console.log("appConfigs", appConfigs);
   });
 </script>
 
