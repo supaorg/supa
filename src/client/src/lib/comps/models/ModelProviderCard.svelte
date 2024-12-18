@@ -4,6 +4,8 @@
   import { onMount } from "svelte";
   import { ProgressBar } from "@skeletonlabs/skeleton";
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
+  import { validateKey } from "@shared/tools/providerKeyValidators";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
   type State =
     | "loading"
@@ -23,29 +25,19 @@
   });
 
   async function checkProvider() {
-    const providerConfig =
-      // @TODO: implement getting provider from space
-      //await $currentWorkspaceStore?.getModelProviderConfig(provider.id);
-      null;
-    if (providerConfig) {
-      await checkIfValid();
-    } else {
-      state = "disconnected";
-    }
-  }
-
-  async function checkIfValid() {
     state = "loading";
 
-    const isValid =
-      // @TODO: implement validating provider config
-      //await $currentWorkspaceStore?.validateModelProviderConfig(provider.id);
-      false;
-    state = isValid ? "connected" : "invalid-key";
+    const status = await $currentSpaceStore?.getModelProviderStatus(
+      provider.id,
+    );
 
-    if (isValid) {
+    if (status === "valid") {
+      state = "connected";
       onConnect(provider);
+    } else if (status === "invalid") {
+      state = "invalid-key";
     } else {
+      state = "disconnected";
       onDisconnect(provider);
     }
   }
@@ -53,8 +45,7 @@
   function disconnect() {
     state = "disconnected";
     onDisconnect(provider);
-    // @TODO: implement deleting provider from space
-    //$currentWorkspaceStore?.deleteModelProviderConfig(provider.id);
+    $currentSpaceStore?.deleteModelProviderConfig(provider.id);
   }
 </script>
 

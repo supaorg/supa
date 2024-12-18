@@ -4,6 +4,7 @@ import AppTree from "./AppTree";
 import type { AppConfig } from "@shared/models";
 import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
 import { ModelProviderConfig } from "../models";
+import { validateKey } from "../tools/providerKeyValidators";
 
 export default class Space {
   readonly tree: ReplicatedTree;
@@ -245,6 +246,28 @@ export default class Space {
 
   getModelProviderConfigs(): ModelProviderConfig[] {
     return this.getArray('providers') as ModelProviderConfig[];
+  }
+
+  deleteModelProviderConfig(providerId: string) {
+    const providerVertex = this.getFirstVertexWithPropertyAtPath('providers', 'id', providerId);
+    if (!providerVertex) return;
+
+    this.tree.deleteVertex(providerVertex.id);
+  }
+
+  async getModelProviderStatus(targetLLMOrProvider: string): Promise<"valid" | "invalid" | "not-setup"> {
+    const providerId = targetLLMOrProvider.split("/")[0];
+    const config = this.getModelProviderConfig(providerId);
+
+    if (!config) return "not-setup";
+
+    if (config?.type === "cloud") {
+      if (config.apiKey === undefined) return "not-setup";
+
+      return await validateKey(providerId, config.apiKey) ? "valid" : "invalid";
+    }
+
+    return "valid";
   }
 
   insertIntoArray(path: string, item: object): string {
