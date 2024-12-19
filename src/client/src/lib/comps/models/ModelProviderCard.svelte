@@ -4,7 +4,6 @@
   import { onMount } from "svelte";
   import { ProgressBar } from "@skeletonlabs/skeleton";
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
-  import { validateKey } from "@shared/tools/providerKeyValidators";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
   type State =

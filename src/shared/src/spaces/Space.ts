@@ -8,6 +8,7 @@ import { validateKey } from "../tools/providerKeyValidators";
 
 export default class Space {
   readonly tree: ReplicatedTree;
+  private secrets: Record<string, string> | undefined;
   private appTrees: Map<string, AppTree> = new Map();
   private newTreeObservers: ((treeId: string) => void)[] = [];
   private treeLoadObservers: ((treeId: string) => void)[] = [];
@@ -240,8 +241,18 @@ export default class Space {
     } as AppConfig;
   }
 
+  // Get provider config and add API key from secrets if it's a cloud provider
   getModelProviderConfig(providerId: string): ModelProviderConfig | undefined {
-    return this.getFirstObjectWithPropertyAtPath('providers', 'id', providerId) as ModelProviderConfig | undefined;
+    const config = this.getFirstObjectWithPropertyAtPath('providers', 'id', providerId) as ModelProviderConfig | undefined;
+    
+    if (config && config.type === 'cloud') {
+      const apiKey = this.getServiceApiKey(providerId);
+      if (apiKey) {
+        config.apiKey = apiKey;
+      }
+    }
+
+    return config;
   }
 
   getModelProviderConfigs(): ModelProviderConfig[] {
@@ -262,9 +273,10 @@ export default class Space {
     if (!config) return "not-setup";
 
     if (config?.type === "cloud") {
-      if (config.apiKey === undefined) return "not-setup";
+      const apiKey = this.getServiceApiKey(providerId);
+      if (!apiKey) return "not-setup";
 
-      return await validateKey(providerId, config.apiKey) ? "valid" : "invalid";
+      return await validateKey(providerId, apiKey) ? "valid" : "invalid";
     }
 
     return "valid";
@@ -356,7 +368,42 @@ export default class Space {
     this.deleteVertex(vertexId);
   }
 
+  // For cloud providers, store API key in secrets and remove from config
   saveModelProviderConfig(config: ModelProviderConfig) {
-    this.insertIntoArray('providers', config);
+    if (config.type === 'cloud' && 'apiKey' in config) {
+      const { apiKey, ...configWithoutKey } = config;
+      this.setApiKey(config.id, apiKey);
+      this.insertIntoArray('providers', configWithoutKey);
+    } else {
+      this.insertIntoArray('providers', config);
+    }
+  }
+
+  getAllSecrets(): Record<string, string> | undefined {
+    return this.secrets;
+  }
+
+  saveAllSecrets(secrets: Record<string, string>) {
+    this.secrets = secrets;
+  }
+
+  getSecret(key: string): string | undefined {
+    return this.secrets?.[key];
+  }
+
+  getServiceApiKey(provider: string): string | undefined {
+    return this.secrets?.[`api-key-${provider}`];
+  }
+
+  setSecret(key: string, value: string) {
+    if (!this.secrets) {
+      this.secrets = {};
+    }
+
+    this.secrets[key] = value;
+  }
+
+  setApiKey(providerId: string, apiKey: string) {
+    this.setSecret(`api-key-${providerId}`, apiKey);
   }
 }

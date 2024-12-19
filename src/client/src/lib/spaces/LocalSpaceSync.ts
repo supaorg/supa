@@ -8,6 +8,7 @@ import {
   open,
   mkdir,
   readTextFile,
+  writeTextFile,
   watch,
   type WatchEvent,
   type UnwatchFn,
@@ -16,9 +17,76 @@ import {
 } from "@tauri-apps/plugin-fs";
 import uuid from "@shared/uuid/uuid";
 import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "@shared/replicatedTree/operations";
-import { OpId } from "@shared/replicatedTree/OpId";
 import AppTree from "@shared/spaces/AppTree";
 import perf from "@shared/tools/perf";
+
+async function encryptSecrets(secretsObj: Record<string, string>, key: string): Promise<string> {
+  // Convert the key string to a crypto key
+  const encoder = new TextEncoder();
+  const keyBuffer = encoder.encode(key);
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    keyBuffer,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt"]
+  );
+
+  // Convert secrets to string and encrypt
+  const secretsString = JSON.stringify(secretsObj);
+  const secretsBuffer = encoder.encode(secretsString);
+  
+  // Generate random IV
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  
+  const encryptedBuffer = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    cryptoKey,
+    secretsBuffer
+  );
+
+  // Combine IV and encrypted data and convert to base64
+  const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encryptedBuffer), iv.length);
+  
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptSecrets(encryptedData: string, key: string): Promise<Record<string, string>> {
+  // Convert the key string to a crypto key
+  const encoder = new TextEncoder();
+  const keyBuffer = encoder.encode(key);
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    keyBuffer,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"]
+  );
+
+  // Convert base64 back to array buffer
+  const combined = new Uint8Array(
+    atob(encryptedData).split('').map(c => c.charCodeAt(0))
+  );
+
+  // Extract IV and encrypted data
+  const iv = combined.slice(0, 12);
+  const encryptedBuffer = combined.slice(12);
+
+  const decryptedBuffer = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    cryptoKey,
+    encryptedBuffer
+  );
+
+  const decryptedString = new TextDecoder().decode(decryptedBuffer);
+  try {
+    return JSON.parse(decryptedString);
+  } catch (error) {
+    return {};
+  }
+}
 
 export class LocalSpaceSync {
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
@@ -27,6 +95,8 @@ export class LocalSpaceSync {
   private savingOpsToFile = false;
   private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
   private saveOpsIntervalMs = 500;
+  private saveSecretsTimer: ReturnType<typeof setInterval> | null = null;
+  private saveSecretsIntervalMs = 1000;
   private backend: Backend;
 
   constructor(readonly space: Space, private uri: string) {
@@ -72,6 +142,8 @@ export class LocalSpaceSync {
       return;
     }
 
+    await this.loadSecretsFromFile();
+
     this.unwatchSpaceFsChanges = await watch(this.uri, (event) => {
       this.handleWatchEvent(event);
     }, { recursive: true });
@@ -80,6 +152,11 @@ export class LocalSpaceSync {
     this.saveOpsTimer = setInterval(() => {
       this.saveOps();
     }, this.saveOpsIntervalMs);
+
+    // Save secrets every n milliseconds
+    this.saveSecretsTimer = setInterval(() => {
+      this.checkIfSecretsNeedToBeSaved();
+    }, this.saveSecretsIntervalMs);
 
     this.connected = true;
   }
@@ -97,6 +174,11 @@ export class LocalSpaceSync {
     if (this.saveOpsTimer) {
       clearInterval(this.saveOpsTimer);
       this.saveOpsTimer = null;
+    }
+
+    if (this.saveSecretsTimer) {
+      clearInterval(this.saveSecretsTimer);
+      this.saveSecretsTimer = null;
     }
 
     this.connected = false;
@@ -191,6 +273,61 @@ export class LocalSpaceSync {
 
   }
 
+  private async tryReadSecretsFromPeer(path: string) {
+    const secrets = await readTextFile(path);
+    this.space.saveAllSecrets(JSON.parse(secrets));
+  }
+
+  private async loadSecretsFromFile() {
+    const secrets = await this.readSecretsFromFile();
+    if (secrets) {
+      this.space.saveAllSecrets(secrets);
+    }
+  }
+
+  private async checkIfSecretsNeedToBeSaved() {
+    const secrets = this.space.getAllSecrets();
+    if (!secrets) {
+      return;
+    }
+
+    const secretsFromFile = await this.readSecretsFromFile();
+    if (!secretsFromFile) {
+      // If no secrets in file yet, we should save
+      await this.writeSecretsToFile(secrets);
+      return;
+    }
+
+    // Compare the stringified versions of both objects
+    const currentSecretsStr = JSON.stringify(secrets, Object.keys(secrets).sort());
+    const fileSecretsStr = JSON.stringify(secretsFromFile, Object.keys(secretsFromFile).sort());
+    
+    if (currentSecretsStr === fileSecretsStr) {
+      return;
+    }
+
+    console.log("Saving secrets to file", secrets);
+    await this.writeSecretsToFile(secrets);
+  }
+
+  private async readSecretsFromFile(): Promise<Record<string, string> | undefined> {
+    const secretsPath = this.uri + '/secrets.json';
+
+    try { 
+      const encryptedContent = await readTextFile(secretsPath);
+      return await decryptSecrets(encryptedContent, this.space.getId());
+    } catch (error) {
+      return undefined;
+    }
+  }
+
+  private async writeSecretsToFile(secrets: Record<string, string>) {
+    const secretsPath = this.uri + '/secrets.json';
+
+    const encryptedContent = await encryptSecrets(secrets, this.space.getId());
+    await writeTextFile(secretsPath, encryptedContent);
+  }
+
   private handleWatchEvent(event: WatchEvent) {
     console.log("handleWatchEvent", event);
 
@@ -198,13 +335,25 @@ export class LocalSpaceSync {
       const createEvent = event.type.create;
       if (createEvent.kind === 'file') {
         const path = event.paths[0];
-        this.tryReadOpsFromPeer(path);
+
+        if (path.endsWith('.jsonl')) {
+          this.tryReadOpsFromPeer(path);
+        } else if (path.endsWith('secrets.json')) {
+          this.tryReadSecretsFromPeer(path);
+        }
       }
     } else if (typeof event.type === 'object' && 'modify' in event.type) {
       const modifyEvent = event.type.modify;
       if (modifyEvent.kind === 'data' && (modifyEvent.mode === 'any' || modifyEvent.mode === 'content')) {
         const path = event.paths[0];
-        this.tryReadOpsFromPeer(path);
+
+        console.log("modifyEvent", path);
+
+        if (path.endsWith('.jsonl')) {
+          this.tryReadOpsFromPeer(path);
+        } else if (path.endsWith('secrets.json')) {
+          this.tryReadSecretsFromPeer(path);
+        }
       }
     }
   }
