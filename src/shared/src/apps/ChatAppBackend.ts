@@ -109,50 +109,13 @@ export default class ChatAppBackend {
     if (newTitle !== title) {
       appTree.tree.setVertexProperty(appTree.tree.rootVertexId, "title", newTitle as string);
     }
-  }
-
-  private async generateTitle(appTree: AppTree, messages: ChatMessage[]) {
-    const title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")?.value as string;
-
-    const lang = Lang.openai({
-      apiKey: "...",
-      model: "..."
-    });
-
-    const allMessagesInOneMessage = messages.map((m) => `**${m.role}**:\n${m.text}`).join("\n\n\n");
-
-    const result = await lang.askForObject({
-      title: "Create or Edit a Title",
-      instructions: [
-        "Read the provided message thread",
-        "Look if the thread already has a title. Decide if it is good or not",
-        "If not, write a new short (1-3 words) title for a chat thread based on a provided conversation",
-        "Be as concise as possible. Provide only the title, with no additional comments or explanations",
-        "If decide to keep the existing title, return it as is",
-        "Use plain text only—no Markdown or formatting",
-      ],
-      content: {
-        "Current Title": title,
-        "Messages": allMessagesInOneMessage,
-      },
-      objectExamples: [{
-        title: "City Farewell"
-      }]
-    });
-
-    const answer = result.answerObj as { title: string };
-
-    if (answer.title !== title) {
-      appTree.tree.setVertexProperty(appTree.tree.rootVertexId, "title", answer.title);
-    }
 
     const vertexIdReferencingAppTree = this.space.getVertexIdReferencingAppTree(appTree.getId());
     if (vertexIdReferencingAppTree) {
       const titleInSpace = this.space.tree.getVertexProperty(vertexIdReferencingAppTree, "_n")?.value as string;
-      if (titleInSpace !== answer.title) {
-        this.space.tree.setVertexProperty(vertexIdReferencingAppTree, "_n", answer.title);
+      if (titleInSpace !== newTitle) {
+        this.space.tree.setVertexProperty(vertexIdReferencingAppTree, "_n", newTitle);
       }
     }
   }
-
 }
