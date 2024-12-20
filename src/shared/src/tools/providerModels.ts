@@ -63,9 +63,31 @@ async function getProviderModels_openaiLikeApi(
   }
 }
 
-// From: https://docs.anthropic.com/claude/docs/models-overview
-async function getProviderModels_anthropic(key: string, signal?: AbortSignal) {
-  return ['claude-3-haiku-20240307', 'claude-3-opus-20240229', 'claude-3-5-sonnet-20240620', 'claude-3-sonnet-20240229'];
+async function getProviderModels_anthropic(key: string, signal?: AbortSignal): Promise<string[]> {
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/models", {
+      method: "GET",
+      headers: {
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      signal,
+    });
+
+    const data = await res.json();
+
+    if (data.error || !data.data) {
+      console.error("Anthropic error:", data);
+      return [];
+    }
+
+    return data.data.map((model: { id: string }) => model.id);
+    //return ["claude-3-haiku-20240307", "claude-3-opus-20240229", "claude-3-5-sonnet-20240620", "claude-3-sonnet-20240229"];
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return [];
+  }
 }
 
 async function getProviderModels_ollama(): Promise<string[]> {

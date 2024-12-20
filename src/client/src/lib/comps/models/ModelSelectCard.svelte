@@ -1,19 +1,26 @@
 <script lang="ts">
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { ModelProvider, ModelProviderConfig } from "@shared/models";
   import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
   import { getProviderModels } from "@shared/tools/providerModels";
 
-  export let provider: ModelProvider;
-  export let config: ModelProviderConfig;
-  export let selected = false;
-  export let onSelect: (providerId: string, model: string) => void;
-  export let modelId: string | null = null;
+  let {
+    provider,
+    config,
+    selected,
+    onSelect,
+    modelId = $bindable(),
+  }: {
+    provider: ModelProvider;
+    config: ModelProviderConfig;
+    selected: boolean;
+    onSelect: (providerId: string, model: string) => void;
+    modelId: string | null;
+  } = $props();
+  
   let prevSelectedModelId: string | null = null;
-
-  let models: string[] = [];
-  let showModels = false;
+  let models = $state<string[]>([]);
+  let showModels = $state(false);
 
   onMount(async () => {
     models = await getProviderModels(

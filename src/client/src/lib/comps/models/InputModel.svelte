@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { ModelProvider } from "@shared/models";
   import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
-  import { onMount } from "svelte";
   import { Sparkles, CircleAlert } from "lucide-svelte/icons";
   import { providers } from "@shared/providers";
 
-  let { value = $bindable(), required }: { value: string; required?: boolean } = $props();
+  let { value = $bindable(), required }: { value: string; required?: boolean } =
+    $props();
 
   const popupStore = getModalStore();
   let inputElement: HTMLInputElement;
@@ -24,9 +24,9 @@
     });
   }
 
-  let providerId: string = $state("");
-  let model: string = $state("");
-  let provider: ModelProvider | null = $state(null);
+  let providerId = $state("");
+  let model = $state("");
+  let provider = $state<ModelProvider | null>(null);
   let error = $state("");
 
   function validate() {

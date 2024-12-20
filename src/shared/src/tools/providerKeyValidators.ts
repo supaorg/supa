@@ -64,11 +64,15 @@ async function validateKey_anthropic(
   signal?: AbortSignal,
 ): Promise<boolean> {
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("https://api.anthropic.com/v1/models", {
       method: "POST",
       headers: {
         "x-api-key": key,
+        "anthropic-dangerous-direct-browser-access": "true",
       },
+      body: JSON.stringify({
+        "anthropic-dangerous-direct-browser-access": "true",
+      }),
       signal
     });
 

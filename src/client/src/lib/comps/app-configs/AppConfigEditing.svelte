@@ -5,7 +5,10 @@
   import uuid from "@shared/uuid/uuid";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
-  let { configId }: { configId?: string } = $props();
+  let {
+    configId,
+    disableFields = false,
+  }: { configId?: string; disableFields?: boolean } = $props();
 
   let isNewApp = $derived(!configId);
 
@@ -17,7 +20,6 @@
   $effect(() => {
     if (configId) {
       const config = $currentSpaceStore?.getAppConfig(configId);
-      console.log("config", config);
       if (config) {
         name = config.name;
         description = config.description;
@@ -28,8 +30,6 @@
   });
 
   let formElement = $state<HTMLFormElement | undefined>(undefined);
-
-  let disableFields = false;
 
   async function handleSubmit(e: Event) {
     e.preventDefault();

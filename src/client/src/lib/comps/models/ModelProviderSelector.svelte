@@ -6,20 +6,25 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { providers } from "@shared/providers";
 
+  let {
+    selectedModel,
+    onModelSelect,
+  }: {
+    selectedModel: string | null;
+    onModelSelect: (model: string) => void;
+  } = $props();
+
   let setupProviders: {
     provider: ModelProvider;
     config: ModelProviderConfig;
-  }[] = [];
-
-  export let selectedModel: string | null = null;
-  export let onModelSelect: (model: string) => void = () => {};
+  }[] = $state([]);
 
   type SelectedPair = {
     providerId: string;
     model: string;
   };
 
-  let selectedPair: SelectedPair | null = null;
+  let selectedPair: SelectedPair | null = $state(null);
 
   onMount(async () => {
     const configs = $currentSpaceStore?.getModelProviderConfigs();
@@ -32,6 +37,8 @@
         provider,
         config: configs.find((config) => config.id === provider.id)!,
       }));
+
+    console.log("setupProviders", setupProviders);
 
     if (selectedModel) {
       const [providerId, model] = selectedModel.split("/");

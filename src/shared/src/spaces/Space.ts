@@ -256,7 +256,16 @@ export default class Space {
   }
 
   getModelProviderConfigs(): ModelProviderConfig[] {
-    return this.getArray('providers') as ModelProviderConfig[];
+    const configs = this.getArray('providers') as ModelProviderConfig[];
+    return configs.map(config => {
+      if (config.type === 'cloud') {
+        const apiKey = this.getServiceApiKey(config.id);
+        if (apiKey) {
+          return { ...config, apiKey };
+        }
+      }
+      return config;
+    });
   }
 
   deleteModelProviderConfig(providerId: string) {
