@@ -116,7 +116,6 @@ export class LocalSpaceSync {
 
     space.registerTreeLoader(async (appTreeId) => {
       try {
-        console.log("load app tree", appTreeId);
         let p = perf("1. loadAllTreeOps");
         const ops = await loadAllTreeOps(this.uri, appTreeId);
         p.stop();
@@ -306,7 +305,6 @@ export class LocalSpaceSync {
       return;
     }
 
-    console.log("Saving secrets to file", secrets);
     await this.writeSecretsToFile(secrets);
   }
 
@@ -329,8 +327,6 @@ export class LocalSpaceSync {
   }
 
   private handleWatchEvent(event: WatchEvent) {
-    console.log("handleWatchEvent", event);
-
     if (typeof event.type === 'object' && 'create' in event.type) {
       const createEvent = event.type.create;
       if (createEvent.kind === 'file') {
@@ -346,8 +342,6 @@ export class LocalSpaceSync {
       const modifyEvent = event.type.modify;
       if (modifyEvent.kind === 'data' && (modifyEvent.mode === 'any' || modifyEvent.mode === 'content')) {
         const path = event.paths[0];
-
-        console.log("modifyEvent", path);
 
         if (path.endsWith('.jsonl')) {
           this.tryReadOpsFromPeer(path);
@@ -498,6 +492,7 @@ async function openFileToCurrentTreeOpsJSONLFile(spacePath: string, treeId: stri
 
 async function loadLocalSpace(path: string): Promise<Space> {
   const spacePath = path + '/space.json';
+
   const spaceJson = await readTextFile(spacePath);
 
   if (!spaceJson) {
@@ -523,8 +518,6 @@ async function loadLocalSpace(path: string): Promise<Space> {
   if (ops.length === 0) {
     throw new Error("No operations found for space");
   }
-
-  console.log("Loaded ops", ops.length);
 
   return new Space(new ReplicatedTree(uuid(), ops));
 }
