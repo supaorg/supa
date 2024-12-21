@@ -26,7 +26,7 @@ function getProviderModels_openai(key: string, signal?: AbortSignal) {
 
   // Here we filter out models that don't have "gpt" in their id
   return models.then((models) =>
-    models.filter((model) => model.includes("gpt"))
+    models.filter((model) => model.startsWith("gpt") || model.startsWith("o"))
   );
 }
 
