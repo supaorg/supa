@@ -1,4 +1,4 @@
-import { TreeVertex } from "./TreeVertex";
+import { VertexState } from "./VertexState";
 
 export type TreeVertexId = string;
 
@@ -30,5 +30,5 @@ export type VertexMoveEvent = VertexChangeEvent & {
 
 export type VertexChildrenChangeEvent = VertexChangeEvent & {
   type: 'children';
-  children: TreeVertex[];
+  children: VertexState[];
 }

@@ -1,4 +1,4 @@
-import type { TreeVertex } from "./TreeVertex";
+import type { VertexState } from "./VertexState";
 import type { ReplicatedTree } from "./ReplicatedTree";
 import type { TreeVertexProperty, VertexChangeEvent, VertexPropertyType } from "./treeTypes";
 
@@ -9,7 +9,7 @@ import type { TreeVertexProperty, VertexChangeEvent, VertexPropertyType } from "
 export class Vertex {
   constructor(
     private tree: ReplicatedTree,
-    private state: TreeVertex
+    private state: VertexState
   ) { }
 
   get id(): string {

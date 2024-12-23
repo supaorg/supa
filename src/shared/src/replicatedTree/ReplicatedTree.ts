@@ -5,7 +5,7 @@
 
 import { newMoveVertexOp, type MoveVertex, type SetVertexProperty, isMoveVertexOp, isSetPropertyOp, type VertexOperation, newSetVertexPropertyOp, newSetTransientVertexPropertyOp } from "./operations";
 import type { VertexPropertyType, TreeVertexProperty, VertexChangeEvent, TreeVertexId } from "./treeTypes";
-import { TreeVertex } from "./TreeVertex";
+import { VertexState } from "./VertexState";
 import { TreeState } from "./TreeState";
 import { OpId } from "./OpId";
 import uuid from "../uuid/uuid";
@@ -287,10 +287,10 @@ export class ReplicatedTree {
   /** Checks if the given `ancestorId` is an ancestor of `childId` in the tree */
   isAncestor(childId: string, ancestorId: string | null): boolean {
     let targetId = childId;
-    let vertex: TreeVertex | undefined;
+    let vertex: VertexState | undefined;
     let depth = 0;
 
-    while ((vertex = this.state.getVertex(targetId))) {
+    while (vertex = this.state.getVertex(targetId)) {
       if (vertex.parentId === ancestorId) return true;
       if (!vertex.parentId) return false;
 

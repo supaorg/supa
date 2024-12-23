@@ -1,7 +1,6 @@
 import type { TreeVertexId, TreeVertexProperty } from "./treeTypes";
 
-// @TODO: rename to VertexState
-export class TreeVertex {
+export class VertexState {
   readonly id: string;
   parentId: TreeVertexId | null;
   private properties: TreeVertexProperty[];

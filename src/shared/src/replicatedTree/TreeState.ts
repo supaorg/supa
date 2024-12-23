@@ -1,8 +1,8 @@
 import type { TreeVertexId, VertexChangeEvent, VertexPropertyChangeEvent, VertexChildrenChangeEvent, VertexMoveEvent } from "./treeTypes";
-import { TreeVertex } from "./TreeVertex";
+import { VertexState } from "./VertexState";
 
 export class TreeState {
-  private vertices: Map<TreeVertexId, TreeVertex>;
+  private vertices: Map<TreeVertexId, VertexState>;
   private changeListeners: Map<TreeVertexId, Set<(event: VertexChangeEvent) => void>> = new Map();
   private globalChangeListeners: Set<(event: VertexChangeEvent) => void> = new Set();
 
@@ -10,11 +10,11 @@ export class TreeState {
     this.vertices = new Map();
   }
 
-  getAllVertices(): ReadonlyArray<TreeVertex> {
+  getAllVertices(): ReadonlyArray<VertexState> {
     return Array.from(this.vertices.values());
   }
 
-  getVertex(id: string): TreeVertex | undefined {
+  getVertex(id: string): VertexState | undefined {
     return this.vertices.get(id);
   }
 
@@ -22,21 +22,21 @@ export class TreeState {
     return this.getVertex(vertexId)?.children ?? [];
   }
 
-  getChildren(vertexId: TreeVertexId): TreeVertex[] {
+  getChildren(vertexId: TreeVertexId): VertexState[] {
     return this.getChildrenIds(vertexId)
       .map(id => {
         // Returning a copy so that the caller can't modify the vertex
         const vertex = this.vertices.get(id);
         return vertex ? vertex : undefined;
       })
-      .filter(vertex => vertex !== undefined) as TreeVertex[];
+      .filter(vertex => vertex !== undefined) as VertexState[];
   }
 
-  moveVertex(vertexId: TreeVertexId, newParentId: TreeVertexId | null): TreeVertex {
+  moveVertex(vertexId: TreeVertexId, newParentId: TreeVertexId | null): VertexState {
     let vertex = this.getVertex(vertexId);
     const prevParentId = vertex ? vertex.parentId : undefined;
     if (!vertex) {
-      vertex = new TreeVertex(vertexId, newParentId);
+      vertex = new VertexState(vertexId, newParentId);
       this.vertices.set(vertexId, vertex);
     }
 
