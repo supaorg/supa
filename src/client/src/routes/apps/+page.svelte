@@ -8,6 +8,8 @@
 
   let appConfigs: AppConfig[] = [];
 
+  // @TODO: subscribe to config changes and update appConfigs
+
   onMount(() => {
     appConfigs = $currentSpaceStore?.getAppConfigs() || [];
   });

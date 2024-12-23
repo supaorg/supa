@@ -120,7 +120,7 @@ export default class Space {
   }
 
   findObjectWithPropertyAtPath(path: string, key: string, value: VertexPropertyType): object | undefined {
-    const arr = this.getArray(path);
+    const arr = this.getArray<object>(path);
     // Check if the object has the property and its value matches the given value
     return arr.find((obj: object) => {
       const typedObj = obj as Record<string, VertexPropertyType>;
@@ -197,29 +197,37 @@ export default class Space {
 
   }
 
-  getArray(path: string): object[] {
+  getArray<T>(path: string): T[] {
     const vertex = this.tree.getVertexByPath(path);
 
     if (!vertex) return [];
 
-    return vertex.children
-      .map(vertexId => {
-        const vertex = this.tree.getVertex(vertexId);
-        if (!vertex) return null;
+    return this.vertexChildrenToTypedArray<T>(vertex);
+  }
 
-        const properties = vertex.getAllProperties();
-        const obj = properties.reduce((obj, prop) => {
-          obj[prop.key] = prop.value;
-          return obj;
-        }, {} as Record<string, any>);
+  private vertexChildrenToTypedArray<T>(vertex: TreeVertex): T[] {
+    return vertex.children.map(childId => {
+      const child = this.tree.getVertex(childId);
+      if (!child) return null;
 
+      const properties = child.getAllProperties();
+      const obj = properties.reduce((obj, prop) => {
+        obj[prop.key] = prop.value;
         return obj;
-      })
-      .filter((item): item is Record<string, any> => item !== null);
+      }, {} as Record<string, any>);
+
+      return obj as T;
+    }).filter((item): item is T => item !== null);
   }
 
   getAppConfigs(): AppConfig[] {
-    return this.getArray('app-configs') as AppConfig[];
+    return this.getArray<AppConfig>('app-configs');
+  }
+
+  observeAppConfigs(observer: (appConfigs: AppConfig[]) => void) {
+    // @TODO: implement
+    // observeChildrenAtVertex(this.tree.getVertexByPath('app-configs'), observer);
+    // observeChildrenAtPath('app-configs', observer);
   }
 
   getAppConfig(configId: string): AppConfig | undefined {
@@ -244,7 +252,7 @@ export default class Space {
   // Get provider config and add API key from secrets if it's a cloud provider
   getModelProviderConfig(providerId: string): ModelProviderConfig | undefined {
     const config = this.getFirstObjectWithPropertyAtPath('providers', 'id', providerId) as ModelProviderConfig | undefined;
-    
+
     if (config && config.type === 'cloud') {
       const apiKey = this.getServiceApiKey(providerId);
       if (apiKey) {

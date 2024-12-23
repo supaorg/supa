@@ -19,8 +19,10 @@
   });
 
   function setAppConfigVisibility(visible: boolean) {
+    // @TODO: just use 'config' from props
     const vertex = $currentSpaceStore?.tree.getVertex(config.id);
     if (vertex) {
+      console.log("setting visible", visible);
       const isCurrentVisible = vertex.getProperty("visible")?.value === true;
       if (isCurrentVisible !== visible) {
         console.log("setting visible", visible);
