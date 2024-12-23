@@ -2,16 +2,24 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { onMount, onDestroy } from "svelte";
   import VertexItem from "./VertexItem.svelte";
-    import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
-  let appTreeIds: string[] = [];
+  import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
+  
+  let appTreeIds: string[] = $state([]);
+
   onMount(() => {
     appTreeIds = [...($currentSpaceStore?.getAppTreeIds() ?? [])];
 
-    $currentSpaceStore?.tree.subscribe($currentSpaceStore?.appTreesVertex.id, onAppTreeChange);    
+    $currentSpaceStore?.tree.subscribe(
+      $currentSpaceStore?.appTreesVertex.id,
+      onAppTreeChange,
+    );
   });
 
   onDestroy(() => {
-    $currentSpaceStore?.tree.unsubscribe($currentSpaceStore?.appTreesVertex.id, onAppTreeChange);
+    $currentSpaceStore?.tree.unsubscribe(
+      $currentSpaceStore?.appTreesVertex.id,
+      onAppTreeChange,
+    );
   });
 
   function onAppTreeChange(event: VertexChangeEvent) {

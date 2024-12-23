@@ -20,7 +20,10 @@
   import SpaceSetup from "$lib/comps/setup/SpaceSetup.svelte";
 
   type State = "initializing" | "needsSpace" | "ready";
-  let state: State = "initializing";
+
+  let state: State = $state("initializing");
+
+  let { children } = $props();
 
   onMount(async () => {
     if (!isTauri()) {
@@ -50,9 +53,9 @@
 {#if state === "initializing"}
   <Loading />
 {:else if state === "needsSpace"}
-  <SpaceSetup onSpaceSetup={onSpaceSetup} />
+  <SpaceSetup {onSpaceSetup} />
 {:else if state === "ready"}
-  <slot />
+  {@render children?.()}
 {/if}
 
 {#if isTauri()}

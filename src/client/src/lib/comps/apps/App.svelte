@@ -8,13 +8,15 @@
     type ModalComponent,
   } from "@skeletonlabs/skeleton";
   import SelectModelPopup from "../popups/SelectModelPopup.svelte";
-
-  initializeStores();
+  import NewThreadPopup from "../popups/NewThreadPopup.svelte";
 
   let { children }: { children: Snippet } = $props();
 
+  initializeStores();
+
   const modalRegistry: Record<string, ModalComponent> = {
     selectModel: { ref: SelectModelPopup },
+    newThread: { ref: NewThreadPopup },
   };
 </script>
 

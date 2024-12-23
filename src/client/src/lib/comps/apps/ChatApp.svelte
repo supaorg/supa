@@ -99,22 +99,16 @@
   }
 
   async function sendMsg(query: string) {
-    console.log("sendMsg", query);
-    console.log("messagesVertex", messagesVertex);
-
     if (!messagesVertex) {
       throw new Error("messagesVertex not found");
     }
 
     lastMessageId = getLastMessageId();
 
-    console.log("lastMessageId", lastMessageId);
-
     const isFirstMessage = !lastMessageId;
-
     const parentId = lastMessageId ?? messagesVertex.id;
-
     const newMessageVertex = appTree.tree.newVertex(parentId);
+    
     appTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
     appTree.tree.setVertexProperty(newMessageVertex, "createdAt", Date.now());
     appTree.tree.setVertexProperty(newMessageVertex, "text", query);
@@ -123,19 +117,6 @@
     if (isFirstMessage) {
       firstMessageId = newMessageVertex;
     }
-
-    console.log("newMessageVertex", newMessageVertex);
-
-    /*
-    const msg: Message = {
-      id: uuidv4(),
-      role: "user",
-      text: query,
-      inProgress: null,
-      createdAt: Date.now(),
-      updatedAt: null,
-    };
-    */
 
     scrollToBottom();
   }

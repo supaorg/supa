@@ -2,36 +2,25 @@
   import { goto } from "$app/navigation";
   import type { AppConfig, ThreadMessage } from "@shared/models";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
-  import { v4 as uuidv4 } from "uuid";
   import { getModalStore } from "@skeletonlabs/skeleton";
-  import { appConfigsStore, currentWorkspaceStore } from "$lib/stores/workspaceStore";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
   const modalStore = getModalStore();
+  const placeholder = "Write a message...";
 
-  const appConfigId = $modalStore[0].meta.appConfigId as string;
-  let appConfig: AppConfig | undefined;
-  let placeholder = "Write a message...";
+  let appConfig = $state<AppConfig | undefined>(undefined);
+  let isSending = $state(false);
 
-  $: {
-    let targetAppConfig: AppConfig | undefined;
-
-    for (const appConfig of $appConfigsStore) {
-      if (appConfig.id === appConfigId) {
-        targetAppConfig = appConfig;
-        break;
-      }
+  modalStore.subscribe((modals) => {
+    if (modals.length === 0 || !modals[0].meta || !modals[0].meta.appConfigId) {
+      appConfig = undefined;
+      return;
     }
 
-    if (targetAppConfig) {
-      placeholder = targetAppConfig.button;
-    }
+    const appConfigId = modals[0].meta.appConfigId as string;
 
-    appConfig = targetAppConfig;
-
-    console.log(appConfig);
-  }
-
-  let isSending = false;
+    appConfig = $currentSpaceStore?.getAppConfig(appConfigId);
+  });
 
   function onSend(msg: string) {
     if (!msg) {
@@ -44,27 +33,26 @@
   async function newThread(message: string = "") {
     isSending = true;
 
-    const newThread = await $currentWorkspaceStore?.createThread(appConfigId);
-
-    if (!newThread) {
-      throw new Error("Failed to create thread");
+    if (!$currentSpaceStore || !appConfig) {
+      throw new Error("Space or app config not found");
     }
 
-    const msg = {
-      id: uuidv4(),
-      chatThreadId: newThread.id,
-      role: "user",
-      text: message,
-      inProgress: null,
-      createdAt: Date.now(),
-      updatedAt: null,
-    } as ThreadMessage;
+    // Create new app tree
+    const newTree = $currentSpaceStore.newAppTree("default-chat");
+    newTree.tree.setVertexProperty(newTree.tree.rootVertexId, "configId", appConfig.id);
 
-    // Post and don't wait for the response, just go to the new thread
-    // to see it live
-    $currentWorkspaceStore?.postToThread(newThread.id, msg);
+    // Create messages vertex
+    const messagesVertex = newTree.tree.newVertex(newTree.tree.rootVertexId);
+    newTree.tree.setVertexProperty(messagesVertex, "_n", "messages");
 
-    goto(`/?t=${newThread.id}`);
+    // Create first message
+    const newMessageVertex = newTree.tree.newVertex(messagesVertex);
+    newTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
+    newTree.tree.setVertexProperty(newMessageVertex, "createdAt", Date.now());
+    newTree.tree.setVertexProperty(newMessageVertex, "text", message);
+    newTree.tree.setVertexProperty(newMessageVertex, "role", "user");
+
+    goto(`/?t=${newTree.getId()}`);
 
     isSending = false;
 
