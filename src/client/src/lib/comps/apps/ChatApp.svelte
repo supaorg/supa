@@ -1,10 +1,10 @@
 <script lang="ts">
   import AppTree from "@shared/spaces/AppTree";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
-  import type { TreeVertex } from "@shared/replicatedTree/TreeVertex";
+  import { Vertex } from "@shared/replicatedTree/Vertex";
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
   import ChatAppMessage from "./ChatAppMessage.svelte";
-  import { tick } from "svelte";
+  import { onMount, tick } from "svelte";
     import type { VertexOperation } from "@shared/replicatedTree/operations";
 
   const mainScrollableId = "chat-messanges-scrollable";
@@ -13,40 +13,41 @@
 
   let { appTree }: { appTree: AppTree } = $props();
 
-  let messagesVertex: TreeVertex | undefined = $state();
-  let firstMessageId: string | undefined = $state();
-  let lastMessageId: string | undefined = $state();
+  let messagesContainerVertex: Vertex | undefined = $state();
+  let firstMessageVertex: Vertex | undefined = $state();
+  let lastMessageVertex: Vertex | undefined = $state();
   let title: string | undefined = $state();
 
   let stickToBottomWhenLastMessageChanges = $state(false);
 
-  $effect.pre(() => {
+  //$effect.pre(() => {
+  onMount(() => {
+    console.log("ChatApp.svelte");
+
     title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")
       ?.value as string;
 
-    messagesVertex = appTree.tree.getVertexByPath("messages");
-    if (!messagesVertex) {
-      const newVertex = appTree.tree.newVertex(appTree.tree.rootVertexId);
-      appTree.tree.setVertexProperty(newVertex, "_n", "messages");
-
-      messagesVertex = appTree.tree.getVertex(newVertex);
+    messagesContainerVertex = appTree.tree.getVertexByPath("messages");
+    if (!messagesContainerVertex) {
+      messagesContainerVertex = appTree.tree.newVertex(appTree.tree.rootVertexId);
+      messagesContainerVertex.setProperty("_n", "messages");
     } else {
-      const child = appTree.tree.getChildren(messagesVertex.id)[0];
-      firstMessageId = child ? child.id : undefined;
-      lastMessageId = getLastMessageId();
+      const child = appTree.tree.getChildren(messagesContainerVertex.id)[0];
+      firstMessageVertex = child ? child : undefined;
+      lastMessageVertex = getLastMessageVertex();
     }
 
-    if (!messagesVertex) {
+    if (!messagesContainerVertex) {
       throw new Error("messagesVertex should be defined");
     }
 
-    appTree.tree.subscribe(messagesVertex.id, onVertexChange);
+    appTree.tree.subscribe(messagesContainerVertex.id, onVertexChange);
     appTree.tree.subscribe(appTree.tree.rootVertexId, onAppVertexChange);
     appTree.tree.subscribeToOpApplied(onOpApplied);
 
     return () => {
-      if (messagesVertex) {
-        appTree.tree.unsubscribe(messagesVertex.id, onVertexChange);
+      if (messagesContainerVertex) {
+        appTree.tree.unsubscribe(messagesContainerVertex.id, onVertexChange);
         appTree.tree.unsubscribe(appTree.tree.rootVertexId, onAppVertexChange);
         appTree.tree.unsubscribeFromOpApplied(onOpApplied);
       }
@@ -82,40 +83,42 @@
     }
   }
 
-  function getLastMessageId(): string | undefined {
-    if (!messagesVertex || messagesVertex.children.length === 0) {
+  function getLastMessageVertex(): Vertex | undefined {
+    if (!messagesContainerVertex || messagesContainerVertex.children.length === 0) {
       return undefined;
     }
 
-    let lastMessageId: string = messagesVertex.children[0];
+    let lastMessageVertex: Vertex = messagesContainerVertex.children[0];
 
     while (true) {
-      const children = appTree.tree.getChildren(lastMessageId);
+      const children = appTree.tree.getChildren(lastMessageVertex.id);
       if (children.length === 0) {
-        return lastMessageId;
+        return lastMessageVertex;
       }
-      lastMessageId = children[0].id;
+      lastMessageVertex = children[0];
     }
   }
 
   async function sendMsg(query: string) {
-    if (!messagesVertex) {
+    if (!messagesContainerVertex) {
       throw new Error("messagesVertex not found");
     }
 
-    lastMessageId = getLastMessageId();
+    lastMessageVertex = getLastMessageVertex();
 
-    const isFirstMessage = !lastMessageId;
-    const parentId = lastMessageId ?? messagesVertex.id;
+    const isFirstMessage = !lastMessageVertex;
+    const parentId = lastMessageVertex ? lastMessageVertex.id : messagesContainerVertex.id;
     const newMessageVertex = appTree.tree.newVertex(parentId);
-    
-    appTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
-    appTree.tree.setVertexProperty(newMessageVertex, "createdAt", Date.now());
-    appTree.tree.setVertexProperty(newMessageVertex, "text", query);
-    appTree.tree.setVertexProperty(newMessageVertex, "role", "user");
+
+    newMessageVertex.setProperties({
+      "_n": "message",
+      "createdAt": Date.now(),
+      "text": query,
+      "role": "user"
+    });
 
     if (isFirstMessage) {
-      firstMessageId = newMessageVertex;
+      firstMessageVertex = newMessageVertex;
     }
 
     scrollToBottom();
@@ -145,8 +148,8 @@
     id={mainScrollableId}
   >
     <div class="w-full max-w-3xl mx-auto px-4">
-      {#if firstMessageId}
-        <ChatAppMessage id={firstMessageId} tree={appTree.tree} />
+      {#if firstMessageVertex}
+        <ChatAppMessage id={firstMessageVertex.id} tree={appTree.tree} />
       {/if}
     </div>
     <!--

@@ -1,10 +1,10 @@
-import type { TreeVertex } from "../replicatedTree/TreeVertex";
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import AppTree from "./AppTree";
-import type { AppConfig } from "@shared/models";
-import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
+import type { AppConfig } from "../models";
+import type { VertexPropertyType } from "../replicatedTree/treeTypes";
 import { ModelProviderConfig } from "../models";
 import { validateKey } from "../tools/providerKeyValidators";
+import { Vertex } from "../replicatedTree/Vertex";
 
 export default class Space {
   readonly tree: ReplicatedTree;
@@ -13,7 +13,7 @@ export default class Space {
   private newTreeObservers: ((treeId: string) => void)[] = [];
   private treeLoadObservers: ((treeId: string) => void)[] = [];
   private treeLoader: ((treeId: string) => Promise<AppTree | undefined>) | undefined;
-  readonly appTreesVertex: TreeVertex;
+  readonly appTreesVertex: Vertex;
 
   static isValid(tree: ReplicatedTree): boolean {
     /*
@@ -52,7 +52,7 @@ export default class Space {
 
     const apps = tree.newNamedVertex(rootId, 'app-configs');
     const defaultConfig = Space.getDefaultAppConfig();
-    tree.newVertex(apps, defaultConfig);
+    tree.newVertex(apps.id, defaultConfig);
 
     const appTrees = tree.newNamedVertex(rootId, 'app-forest');
     const providers = tree.newNamedVertex(rootId, 'providers');
@@ -69,7 +69,7 @@ export default class Space {
       throw new Error("Invalid tree structure");
     }
 
-    this.appTreesVertex = tree.getVertexByPath('app-forest') as TreeVertex;
+    this.appTreesVertex = tree.getVertexByPath('app-forest') as Vertex;
   }
 
   getId(): string {
@@ -105,7 +105,7 @@ export default class Space {
 
     const newAppTree = this.tree.newVertex(appsTrees.id);
 
-    this.tree.setVertexProperty(newAppTree, 'tid', appTree.getId());
+    this.tree.setVertexProperty(newAppTree.id, 'tid', appTree.getId());
     this.appTrees.set(appTree.getId(), appTree);
 
     for (const listener of this.newTreeObservers) {
@@ -115,10 +115,11 @@ export default class Space {
     return appTree;
   }
 
-  getVertex(vertexId: string): TreeVertex | undefined {
+  getVertex(vertexId: string): Vertex | undefined {
     return this.tree.getVertex(vertexId);
   }
 
+  // @TODO: make part of Vertex
   findObjectWithPropertyAtPath(path: string, key: string, value: VertexPropertyType): object | undefined {
     const arr = this.getArray<object>(path);
     // Check if the object has the property and its value matches the given value
@@ -175,14 +176,13 @@ export default class Space {
   }
 
   getAppTreeIds(): ReadonlyArray<string> {
-    return this.appTreesVertex.children;
+    return this.appTreesVertex.children.map(v => v.id);
   }
 
   getVertexIdReferencingAppTree(appTreeId: string): string | undefined {
-    for (const vertexId of this.appTreesVertex.children) {
-      const referencingVertex = this.tree.getVertex(vertexId);
-      if (referencingVertex?.getProperty('tid')?.value === appTreeId) {
-        return vertexId;
+    for (const vertex of this.appTreesVertex.children) {
+      if (vertex.getProperty('tid')?.value === appTreeId) {
+        return vertex.id;
       }
     }
 
@@ -205,18 +205,12 @@ export default class Space {
     return this.vertexChildrenToTypedArray<T>(vertex);
   }
 
-  private vertexChildrenToTypedArray<T>(vertex: TreeVertex): T[] {
-    return vertex.children.map(childId => {
-      const child = this.tree.getVertex(childId);
+  private vertexChildrenToTypedArray<T>(vertex: Vertex): T[] {
+    return vertex.children.map(child => {
       if (!child) return null;
 
-      const properties = child.getAllProperties();
-      const obj = properties.reduce((obj, prop) => {
-        obj[prop.key] = prop.value;
-        return obj;
-      }, {} as Record<string, any>);
-
-      return obj as T;
+      const properties = child.getProperties();
+      return properties as unknown as T;
     }).filter((item): item is T => item !== null);
   }
 
@@ -299,7 +293,7 @@ export default class Space {
     return "valid";
   }
 
-  insertIntoArray(path: string, item: object): string {
+  insertIntoArray(path: string, item: object): Vertex {
     const vertex = this.tree.getVertexByPath(path);
     if (!vertex) {
       throw new Error(`Path ${path} not found`);
@@ -309,21 +303,17 @@ export default class Space {
 
     // Set all properties from the item
     for (const [key, value] of Object.entries(item)) {
-      this.tree.setVertexProperty(newVertex, key, value as VertexPropertyType);
+      this.tree.setVertexProperty(newVertex.id, key, value as VertexPropertyType);
     }
 
     return newVertex;
   }
 
-  getFirstVertexWithPropertyAtPath(path: string, key: string, value: VertexPropertyType): TreeVertex | undefined {
+  getFirstVertexWithPropertyAtPath(path: string, key: string, value: VertexPropertyType): Vertex | undefined {
     const vertex = this.tree.getVertexByPath(path);
     if (!vertex) return undefined;
 
-    const children = vertex.children;
-    for (const childId of children) {
-      const child = this.tree.getVertex(childId);
-      if (!child) continue;
-
+    for (const child of vertex.children) {
       const property = child.getProperty(key);
       if (property?.value === value) {
         return child;
@@ -337,13 +327,7 @@ export default class Space {
     const vertex = this.getFirstVertexWithPropertyAtPath(path, key, value);
     if (!vertex) return undefined;
 
-    const properties = vertex.getAllProperties();
-    const obj = properties.reduce((obj, prop) => {
-      obj[prop.key] = prop.value;
-      return obj;
-    }, {} as Record<string, any>);
-
-    return obj;
+    return vertex.getProperties();
   }
 
   updateInArray(vertexId: string, updates: Partial<object>): void {
@@ -368,7 +352,7 @@ export default class Space {
   }
 
   // Example usage methods:
-  addAppConfig(config: AppConfig): string {
+  addAppConfig(config: AppConfig): Vertex {
     return this.insertIntoArray('app-configs', config);
   }
 

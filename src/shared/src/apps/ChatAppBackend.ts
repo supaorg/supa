@@ -1,12 +1,11 @@
 import { AppConfig } from "../models";
 import { isSetPropertyOp, type VertexOperation } from "../replicatedTree/operations";
-import { TreeVertex } from "../replicatedTree/TreeVertex";
 import type AppTree from "../spaces/AppTree";
 import Space from "../spaces/Space";
-import { Lang } from 'aiwrapper';
 import { AgentServices } from "../agents/AgentServices.ts";
 import { SimpleChatAgent } from "../agents/SimpleChatAgent.ts";
 import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
+import { Vertex } from "../replicatedTree/Vertex.ts";
 
 type ChatMessage = {
   id: string;
@@ -35,7 +34,7 @@ export default class ChatAppBackend {
     }
   }
 
-  private getMessage(msgVertex: TreeVertex) {
+  private getMessage(msgVertex: Vertex): ChatMessage {
     return {
       id: msgVertex.id,
       role: msgVertex.getProperty("role")?.value as "user" | "assistant",
@@ -43,24 +42,18 @@ export default class ChatAppBackend {
     };
   }
 
-  private getMessagesUp(tree: AppTree, msgVertex: TreeVertex) {
+  private getMessagesUp(tree: AppTree, msgVertex: Vertex): ChatMessage[] {
     const messages: ChatMessage[] = [];
     messages.push(this.getMessage(msgVertex));
 
-    let parentId = msgVertex.parentId;
-    while (parentId) {
-      const message = tree.tree.getVertex(parentId);
-
-      if (!message) {
-        throw new Error(`Message with id ${parentId} not found`);
-      }
-
-      if (message.getProperty("_n")?.value !== "message") {
+    let currentVertex = msgVertex.parent;
+    while (currentVertex) {
+      if (currentVertex.getProperty("_n")?.value !== "message") {
         break;
       }
 
-      messages.push(this.getMessage(message));
-      parentId = message.parentId;
+      messages.push(this.getMessage(currentVertex));
+      currentVertex = currentVertex.parent;
     }
 
     return messages.reverse();
@@ -68,17 +61,23 @@ export default class ChatAppBackend {
 
   private async replyToMessage(appTree: AppTree, messages: ChatMessage[]) {
     const configId = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "configId");
-    const config: AppConfig = configId ? this.space.getAppConfig(configId.value as string) : Space.getDefaultAppConfig();
+    const config: AppConfig | undefined = configId ? this.space.getAppConfig(configId.value as string) : undefined;
+
+    if (!config) {
+      throw new Error("No config found");
+    }
+
     const agentServices = new AgentServices(this.space);
     const simpleChatAgent = new SimpleChatAgent(agentServices, config);
     const threadTitleAgent = new ThreadTitleAgent(agentServices, config);
 
     const lastMessage = messages[messages.length - 1];
-    const newMessageVertex = appTree.tree.newVertex(lastMessage.id);
-    appTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
-    appTree.tree.setVertexProperty(newMessageVertex, "createdAt", Date.now());
-    appTree.tree.setVertexProperty(newMessageVertex, "text", "thinking...");
-    appTree.tree.setVertexProperty(newMessageVertex, "role", "assistant");
+    const newMessageVertex = appTree.tree.newVertex(lastMessage.id, {
+      "_n": "message",
+      "createdAt": Date.now(),
+      "text": "thinking...",
+      "role": "assistant"
+    });
 
     const messagesForLang = [
       { role: "system", text: config.instructions },
@@ -89,15 +88,15 @@ export default class ChatAppBackend {
 
     const response = await simpleChatAgent.input(messagesForLang, (resp) => {
       const wipResponse = resp as string;
-      appTree.tree.setTransientVertexProperty(newMessageVertex, "text", wipResponse);
+      appTree.tree.setTransientVertexProperty(newMessageVertex.id, "text", wipResponse);
       console.log(wipResponse);
     }) as string;
 
     // And finally set the permanent property
-    appTree.tree.setVertexProperty(newMessageVertex, "text", response);
+    newMessageVertex.setProperty("text", response);
 
     const newMessage = {
-      id: newMessageVertex,
+      id: newMessageVertex.id,
       role: "assistant",
       text: response,
     } as ChatMessage;

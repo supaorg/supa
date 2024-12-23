@@ -39,18 +39,25 @@
 
     // Create new app tree
     const newTree = $currentSpaceStore.newAppTree("default-chat");
-    newTree.tree.setVertexProperty(newTree.tree.rootVertexId, "configId", appConfig.id);
+    newTree.tree.setVertexProperty(
+      newTree.tree.rootVertexId,
+      "configId",
+      appConfig.id,
+    );
 
     // Create messages vertex
     const messagesVertex = newTree.tree.newVertex(newTree.tree.rootVertexId);
-    newTree.tree.setVertexProperty(messagesVertex, "_n", "messages");
+    newTree.tree.setVertexProperty(messagesVertex.id, "_n", "messages");
 
     // Create first message
-    const newMessageVertex = newTree.tree.newVertex(messagesVertex);
-    newTree.tree.setVertexProperty(newMessageVertex, "_n", "message");
-    newTree.tree.setVertexProperty(newMessageVertex, "createdAt", Date.now());
-    newTree.tree.setVertexProperty(newMessageVertex, "text", message);
-    newTree.tree.setVertexProperty(newMessageVertex, "role", "user");
+    const newMessageVertex = newTree.tree.newVertex(messagesVertex.id);
+
+    newMessageVertex.setProperties({
+      _n: "message",
+      createdAt: Date.now(),
+      text: message,
+      role: "user",
+    });
 
     goto(`/?t=${newTree.getId()}`);
 

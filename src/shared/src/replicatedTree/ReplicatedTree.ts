@@ -9,6 +9,7 @@ import { TreeVertex } from "./TreeVertex";
 import { TreeState } from "./TreeState";
 import { OpId } from "./OpId";
 import uuid from "../uuid/uuid";
+import { Vertex } from './Vertex';
 
 type PropertyKeyAtVertexId = `${string}@${TreeVertexId}`;
 
@@ -84,35 +85,37 @@ export class ReplicatedTree {
     return [...this.moveOps, ...this.setPropertyOps];
   }
 
-  getVertex(vertexId: string): TreeVertex | undefined {
-    return this.state.getVertex(vertexId);
+  getVertex(vertexId: string): Vertex | undefined {
+    const vertex = this.state.getVertex(vertexId);
+    return vertex ? new Vertex(this, vertex) : undefined;
   }
 
-  getAllVertices(): ReadonlyArray<TreeVertex> {
-    return this.state.getAllVertices();
+  getAllVertices(): ReadonlyArray<Vertex> {
+    return this.state.getAllVertices().map(v => new Vertex(this, v));
   }
 
-  getParent(vertexId: string): TreeVertex | undefined {
+  getParent(vertexId: string): Vertex | undefined {
     const parentId = this.state.getVertex(vertexId)?.parentId;
-    return parentId ? this.state.getVertex(parentId) : undefined;
+    const parent = parentId ? this.state.getVertex(parentId) : undefined;
+    return parent ? new Vertex(this, parent) : undefined;
   }
 
-  getChildren(vertexId: string): TreeVertex[] {
-    return this.state.getChildren(vertexId);
+  getChildren(vertexId: string): Vertex[] {
+    return this.state.getChildren(vertexId).map(v => new Vertex(this, v));
   }
 
   getChildrenIds(vertexId: string): string[] {
     return this.state.getChildrenIds(vertexId);
   }
 
-  getAncestors(vertexId: string): TreeVertex[] {
-    const ancestors: TreeVertex[] = [];
+  getAncestors(vertexId: string): Vertex[] {
+    const ancestors: Vertex[] = [];
     let currentVertex = this.state.getVertex(vertexId);
 
     while (currentVertex && currentVertex.parentId) {
       const parentVertex = this.state.getVertex(currentVertex.parentId);
       if (parentVertex) {
-        ancestors.push(parentVertex);
+        ancestors.push(new Vertex(this, parentVertex));
         currentVertex = parentVertex;
       } else {
         break;
@@ -150,23 +153,33 @@ export class ReplicatedTree {
     this.maxDepth = maxDepth;
   }
 
-  newVertex(parentId: string, props: Record<string, VertexPropertyType> | null = null): string {
+  newVertex(parentId: string, props: Record<string, VertexPropertyType> | object | null = null): Vertex {
+    const typedProps = props as Record<string, VertexPropertyType> | null;
     const vertexId = this.newVertexInternalWithUUID(parentId);
-    if (props) {
-      this.setVertexProperties(vertexId, props);
+    if (typedProps) {
+      this.setVertexProperties(vertexId, typedProps);
     }
 
-    return vertexId;
+    const vertex = this.state.getVertex(vertexId);
+    if (!vertex) {
+      throw new Error('Failed to create vertex');
+    }
+    return new Vertex(this, vertex);
   }
 
-  newNamedVertex(parentId: string, name: string, props: Record<string, VertexPropertyType> | null = null): string {
+  newNamedVertex(parentId: string, name: string, props: Record<string, VertexPropertyType> | object | null = null): Vertex {
+    const typedProps = props as Record<string, VertexPropertyType> | null;
     const vertexId = this.newVertexInternalWithUUID(parentId);
-    if (props) {
-      this.setVertexProperties(vertexId, props);
+    if (typedProps) {
+      this.setVertexProperties(vertexId, typedProps);
     }
     this.setVertexProperty(vertexId, '_n', name);
 
-    return vertexId;
+    const vertex = this.state.getVertex(vertexId);
+    if (!vertex) {
+      throw new Error('Failed to create named vertex');
+    }
+    return new Vertex(this, vertex);
   }
 
   moveVertex(vertexId: string, parentId: string) {
@@ -194,13 +207,14 @@ export class ReplicatedTree {
     this.applyProperty(op);
   }
 
-  setVertexProperties(vertexId: string, props: Record<string, VertexPropertyType>) {
-    for (const [key, value] of Object.entries(props)) {
+  setVertexProperties(vertexId: string, props: Record<string, VertexPropertyType> | object) {
+    const typedProps = props as Record<string, VertexPropertyType>;
+    for (const [key, value] of Object.entries(typedProps)) {
       this.setVertexProperty(vertexId, key, value);
     }
   }
 
-  getVertexByPath(path: string): TreeVertex | undefined {
+  getVertexByPath(path: string): Vertex | undefined {
     // Let's remove '/' at the start and at the end of the path
     path = path.replace(/^\/+/, '');
     path = path.replace(/\/+$/, '');
@@ -212,10 +226,11 @@ export class ReplicatedTree {
       throw new Error('The root vertex is not found');
     }
 
-    return this.getVertexByPathArray(root, pathParts);
+    const vertex = this.getVertexByPathArray(new Vertex(this, root), pathParts);
+    return vertex;
   }
 
-  getVertexByPathArray(vertex: TreeVertex, path: string[]): TreeVertex | undefined {
+  private getVertexByPathArray(vertex: Vertex, path: string[]): Vertex | undefined {
     if (path.length === 0) {
       return vertex ?? undefined;
     }
