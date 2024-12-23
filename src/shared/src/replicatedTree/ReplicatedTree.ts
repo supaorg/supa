@@ -1,3 +1,8 @@
+/**
+ * MIT License
+ * Copyright (c) 2024 Dmitry Kury (d@dkury.com)
+ */
+
 import { newMoveVertexOp, type MoveVertex, type SetVertexProperty, isMoveVertexOp, isSetPropertyOp, type VertexOperation, newSetVertexPropertyOp, newSetTransientVertexPropertyOp } from "./operations";
 import type { VertexPropertyType, TreeVertexProperty, VertexChangeEvent, TreeVertexId } from "./treeTypes";
 import { TreeVertex } from "./TreeVertex";
@@ -9,10 +14,13 @@ type PropertyKeyAtVertexId = `${string}@${TreeVertexId}`;
 
 /**
  * ReplicatedTree is a tree data structure for storing vertices with properties.
- * It uses CRDTs to manage seamless replication between peers.
+ * It uses 2 conflict-free replicated data types (CRDTs) to manage seamless replication between peers.
+ * A move tree CRDT is used for the tree structure (https://martin.kleppmann.com/papers/move-op.pdf).
+ * A last writer wins (LWW) CRDT is used for properties.
  */
 export class ReplicatedTree {
   private static TRASH_VERTEX_ID = 't';
+  private static DEFAULT_MAX_DEPTH = 100000;
 
   readonly peerId: string;
   readonly rootVertexId: string;
@@ -29,6 +37,7 @@ export class ReplicatedTree {
   private appliedOps: Set<string> = new Set();
   private parentIdBeforeMove: Map<OpId, string | null | undefined> = new Map();
   private opAppliedListeners: ((op: VertexOperation) => void)[] = [];
+  private maxDepth = ReplicatedTree.DEFAULT_MAX_DEPTH;
 
   /**
    * @param peerId - The peer ID of the current client
@@ -137,31 +146,8 @@ export class ReplicatedTree {
     return ops;
   }
 
-  private newVertexInternal(vertexId: string, parentId: string | null): string {
-    this.lamportClock++;
-    // To create a vertex - we move a vertex with a fresh id under the parent.
-    // No need to have a separate "create vertex" operation.
-    const op = newMoveVertexOp(this.lamportClock, this.peerId, vertexId, parentId);
-    this.localOps.push(op);
-    this.applyMove(op);
-
-    return vertexId;
-  }
-
-  private newVertexInternalWithUUID(parentId: string | null): string {
-    const vertexId = uuid();
-    return this.newVertexInternal(vertexId, parentId);
-  }
-
-  private ensureTrashVertex() {
-    const vertexId = ReplicatedTree.TRASH_VERTEX_ID;
-
-    // Check if the trash vertex already exists
-    if (this.state.getVertex(vertexId)) {
-      return;
-    }
-
-    this.newVertexInternal(vertexId, null);
+  setMaxDepth(maxDepth: number) {
+    this.maxDepth = maxDepth;
   }
 
   newVertex(parentId: string, props: Record<string, VertexPropertyType> | null = null): string {
@@ -283,6 +269,44 @@ export class ReplicatedTree {
     return true;
   }
 
+  /** Checks if the given `ancestorId` is an ancestor of `childId` in the tree */
+  isAncestor(childId: string, ancestorId: string | null): boolean {
+    let targetId = childId;
+    let vertex: TreeVertex | undefined;
+    let depth = 0;
+
+    while ((vertex = this.state.getVertex(targetId))) {
+      if (vertex.parentId === ancestorId) return true;
+      if (!vertex.parentId) return false;
+
+      if (depth > this.maxDepth) {
+        console.error(`isAncestor: max depth of ${this.maxDepth} reached. Perhaps, we have an infinite loop here.`);
+        return true;
+      }
+
+      targetId = vertex.parentId;
+      depth++;
+    }
+
+    return false;
+  }
+
+  subscribe(vertexId: string | null, listener: (event: VertexChangeEvent) => void) {
+    this.state.addChangeListener(vertexId, listener);
+  }
+
+  unsubscribe(vertexId: string | null, listener: (event: VertexChangeEvent) => void) {
+    this.state.removeChangeListener(vertexId, listener);
+  }
+
+  subscribeToOpApplied(listener: (op: VertexOperation) => void) {
+    this.opAppliedListeners.push(listener);
+  }
+
+  unsubscribeFromOpApplied(listener: (op: VertexOperation) => void) {
+    this.opAppliedListeners = this.opAppliedListeners.filter(l => l !== listener);
+  }
+
   static compareVertices(vertexId: string, treeA: ReplicatedTree, treeB: ReplicatedTree): boolean {
     const childrenA = treeA.state.getChildrenIds(vertexId);
     const childrenB = treeB.state.getChildrenIds(vertexId);
@@ -322,6 +346,33 @@ export class ReplicatedTree {
     return true;
   }
 
+  private newVertexInternal(vertexId: string, parentId: string | null): string {
+    this.lamportClock++;
+    // To create a vertex - we move a vertex with a fresh id under the parent.
+    // No need to have a separate "create vertex" operation.
+    const op = newMoveVertexOp(this.lamportClock, this.peerId, vertexId, parentId);
+    this.localOps.push(op);
+    this.applyMove(op);
+
+    return vertexId;
+  }
+
+  private newVertexInternalWithUUID(parentId: string | null): string {
+    const vertexId = uuid();
+    return this.newVertexInternal(vertexId, parentId);
+  }
+
+  private ensureTrashVertex() {
+    const vertexId = ReplicatedTree.TRASH_VERTEX_ID;
+
+    // Check if the trash vertex already exists
+    if (this.state.getVertex(vertexId)) {
+      return;
+    }
+
+    this.newVertexInternal(vertexId, null);
+  }
+
   /** Updates the lamport clock with the counter value of the operation */
   private updateLamportClock(operation: VertexOperation): void {
     // This is how Lamport clock updates with a foreign operation that has a greater counter value.
@@ -345,15 +396,16 @@ export class ReplicatedTree {
 
     const lastOp = this.moveOps.length > 0 ? this.moveOps[this.moveOps.length - 1] : null;
 
-    // If the new move is the newest - just try to move it. No conflict resolution is needed.
+    // If it's the most recent move operation - just try to move it. No conflict resolution is needed.
     if (lastOp === null || op.id.isGreaterThan(lastOp.id)) {
       this.moveOps.push(op);
       this.reportOpAsApplied(op);
       this.tryToMove(op);
     }
+
     // Here comes the core of the 'THE REPLICATED TREE ALGORITHM'.
     // From https://martin.kleppmann.com/papers/move-op.pdf
-    // We undo all moves that are newer (based on the Lamport clock) than the target move, do the move, and then redo the moves.
+    // We undo all moves that are newer (based on the Lamport clock) than the target move, do the move, and then redo the moves we just undid.
     // The algorithm ensures that all replicas converge to the same tree after applying all operations.
     // The replicas are basically forced to apply the moves in the same order (by undo-do-redo).
     // So if a conflict or a cycle is introduced by some of the peers - the algorithm will resolve it.
@@ -493,30 +545,6 @@ export class ReplicatedTree {
     this.state.moveVertex(op.targetId, prevParentId);
   }
 
-  /** Checks if the given `ancestorId` is an ancestor of `childId` in the tree */
-  isAncestor(childId: string, ancestorId: string | null): boolean {
-    let targetId = childId;
-    let vertex: TreeVertex | undefined;
-
-    const maxDepth = 100000;
-    let depth = 0;
-
-    while ((vertex = this.state.getVertex(targetId))) {
-      if (vertex.parentId === ancestorId) return true;
-      if (!vertex.parentId) return false;
-
-      if (depth > maxDepth) {
-        console.error(`isAncestor: max depth of ${maxDepth} reached. Perhaps, we have an infinite loop here.`);
-        return true;
-      }
-
-      targetId = vertex.parentId;
-      depth++;
-    }
-
-    return false;
-  }
-
   private setPropertyAndItsOpId(op: SetVertexProperty) {
     this.propertiesAndTheirOpIds.set(`${op.key}@${op.targetId}`, op.id);
     this.state.setProperty(op.targetId, op.key, op.value);
@@ -572,21 +600,5 @@ export class ReplicatedTree {
         this.setTransientPropertyAndItsOpId(op);
       }
     }
-  }
-
-  subscribe(vertexId: string | null, listener: (event: VertexChangeEvent) => void) {
-    this.state.addChangeListener(vertexId, listener);
-  }
-
-  unsubscribe(vertexId: string | null, listener: (event: VertexChangeEvent) => void) {
-    this.state.removeChangeListener(vertexId, listener);
-  }
-
-  subscribeToOpApplied(listener: (op: VertexOperation) => void) {
-    this.opAppliedListeners.push(listener);
-  }
-
-  unsubscribeFromOpApplied(listener: (op: VertexOperation) => void) {
-    this.opAppliedListeners = this.opAppliedListeners.filter(l => l !== listener);
   }
 }
