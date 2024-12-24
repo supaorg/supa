@@ -42,8 +42,12 @@ export class Vertex {
     return this.tree.getChildren(this.id);
   }
 
+  getAsTypedObject<T>(): T {
+    return this.getProperties() as T;
+  }
+
   getChildrenAsTypedArray<T>(): T[] {
-    return this.children.map(v => v.getProperties() as unknown as T);
+    return this.children.map(v => v.getAsTypedObject<T>());
   }
 
   newChild(props?: Record<string, VertexPropertyType> | object | null): Vertex {
@@ -65,6 +69,7 @@ export class Vertex {
     this.tree.setVertexProperties(this.id, typedProps);
   }
 
+  // @TODO: or return TreeVertexPropertyType?
   getProperty(key: string): TreeVertexProperty | undefined {
     return this.tree.getVertexProperty(this.id, key);
   }
@@ -75,6 +80,22 @@ export class Vertex {
       props[p.key] = p.value;
     });
     return props;
+  }
+
+  findAllChildrenWithProperty(key: string, value: VertexPropertyType): Vertex[] {
+    return this.children.filter(c => c.getProperty(key)?.value === value);
+  }
+
+  findFirstChildVertexWithProperty(key: string, value: VertexPropertyType): Vertex | undefined {
+    return this.children.find(c => c.getProperty(key)?.value === value);
+  }
+
+  findFirstTypedChildWithProperty<T>(key: string, value: VertexPropertyType): T | undefined {
+    return this.findFirstChildVertexWithProperty(key, value)?.getAsTypedObject<T>();
+  }
+
+  findAllTypedChildrenWithProperty<T>(key: string, value: VertexPropertyType): T[] {
+    return this.findAllChildrenWithProperty(key, value).map(c => c.getAsTypedObject<T>());
   }
 
   observe(listener: (event: VertexChangeEvent) => void): () => void {

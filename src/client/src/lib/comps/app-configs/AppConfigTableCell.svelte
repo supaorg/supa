@@ -10,7 +10,9 @@
 
   let { config }: { config: AppConfig } = $props();
 
-  let isVisible: boolean = $state(config.visible !== undefined ? config.visible : true);
+  let isVisible: boolean = $state(
+    config.visible !== undefined ? config.visible : true,
+  );
   const isDefault = config.id === "default";
   //const modalStore = getModalStore();
 
@@ -19,6 +21,12 @@
   });
 
   function setAppConfigVisibility(visible: boolean) {
+    if (visible !== config.visible) {
+      console.log("setting visible", visible);
+      $currentSpaceStore?.updateAppConfig(config.id, { visible });
+    }
+
+    /*
     // @TODO: just use 'config' from props
     const vertex = $currentSpaceStore?.tree.getVertex(config.id);
     if (vertex) {
@@ -26,9 +34,14 @@
       const isCurrentVisible = vertex.getProperty("visible")?.value === true;
       if (isCurrentVisible !== visible) {
         console.log("setting visible", visible);
-        $currentSpaceStore?.tree.setVertexProperty(config.id, "visible", visible);
+        $currentSpaceStore?.tree.setVertexProperty(
+          config.id,
+          "visible",
+          visible,
+        );
       }
     }
+    */
   }
 
   const deletionModal = {
@@ -66,7 +79,7 @@
   >
   <td>
     {#if !isDefault}
-      <button on:click={requestDeleteAppConfig}
+      <button onclick={requestDeleteAppConfig}
         ><TrashIcon class="w-4" /></button
       >
     {:else}

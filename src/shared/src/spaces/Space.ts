@@ -5,6 +5,7 @@ import type { VertexPropertyType } from "../replicatedTree/treeTypes";
 import { ModelProviderConfig } from "../models";
 import { validateKey } from "../tools/providerKeyValidators";
 import { Vertex } from "../replicatedTree/Vertex";
+import { AppConfigsData } from "$lib/spaces/AppConfigsData";
 
 export default class Space {
   readonly tree: ReplicatedTree;
@@ -14,6 +15,8 @@ export default class Space {
   private treeLoadObservers: ((treeId: string) => void)[] = [];
   private treeLoader: ((treeId: string) => Promise<AppTree | undefined>) | undefined;
   readonly appTreesVertex: Vertex;
+
+  readonly appConfigs: AppConfigsData;
 
   static isValid(tree: ReplicatedTree): boolean {
     /*
@@ -70,6 +73,8 @@ export default class Space {
     }
 
     this.appTreesVertex = tree.getVertexByPath('app-forest') as Vertex;
+
+    this.appConfigs = new AppConfigsData(this.tree.getVertexByPath('app-configs')!);
   }
 
   getId(): string {
@@ -117,6 +122,10 @@ export default class Space {
 
   getVertex(vertexId: string): Vertex | undefined {
     return this.tree.getVertex(vertexId);
+  }
+
+  getVertexByPath(path: string): Vertex | undefined {
+    return this.tree.getVertexByPath(path);
   }
 
   // @TODO: make part of Vertex
