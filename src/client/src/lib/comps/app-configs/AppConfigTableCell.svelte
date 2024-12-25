@@ -3,7 +3,7 @@
   import type { AppConfig } from "@shared/models";
   import {
     SlideToggle,
-    //getModalStore,
+    getModalStore,
     type ModalSettings,
   } from "@skeletonlabs/skeleton";
   import { TrashIcon } from "lucide-svelte";
@@ -14,7 +14,7 @@
     config.visible !== undefined ? config.visible : true,
   );
   const isDefault = config.id === "default";
-  //const modalStore = getModalStore();
+  const modalStore = getModalStore();
 
   $effect(() => {
     setAppConfigVisibility(isVisible);
@@ -25,23 +25,6 @@
       console.log("setting visible", visible);
       $currentSpaceStore?.updateAppConfig(config.id, { visible });
     }
-
-    /*
-    // @TODO: just use 'config' from props
-    const vertex = $currentSpaceStore?.tree.getVertex(config.id);
-    if (vertex) {
-      console.log("setting visible", visible);
-      const isCurrentVisible = vertex.getProperty("visible")?.value === true;
-      if (isCurrentVisible !== visible) {
-        console.log("setting visible", visible);
-        $currentSpaceStore?.tree.setVertexProperty(
-          config.id,
-          "visible",
-          visible,
-        );
-      }
-    }
-    */
   }
 
   const deletionModal = {
@@ -56,11 +39,11 @@
   } as ModalSettings;
 
   function requestDeleteAppConfig() {
-    //modalStore.trigger(deletionModal);
+    modalStore.trigger(deletionModal);
   }
 
   function deleteAppConfig() {
-    $currentSpaceStore?.deleteVertex(config.id);
+    $currentSpaceStore?.appConfigs.delete(config);
   }
 </script>
 
@@ -79,8 +62,7 @@
   >
   <td>
     {#if !isDefault}
-      <button onclick={requestDeleteAppConfig}
-        ><TrashIcon class="w-4" /></button
+      <button onclick={requestDeleteAppConfig}><TrashIcon class="w-4" /></button
       >
     {:else}
       <div><TrashIcon class="w-4 opacity-30" /></div>

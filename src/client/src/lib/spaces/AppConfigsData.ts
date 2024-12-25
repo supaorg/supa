@@ -46,13 +46,13 @@ export class AppConfigsData {
     targetVertex.setProperties(updates);
   }
 
-  delete(configId: string) {
-    const vertex = this.root.findFirstChildVertexWithProperty("id", configId);
+  delete(entry: AppConfig) {
+    const vertex = this.root.findFirstChildVertexWithProperty("id", entry.id);
     if (!vertex) {
-      throw new Error(`App config ${configId} not found`);
+      throw new Error(`App config ${entry.id} not found`);
     }
 
-    this.root.delete();
+    vertex.delete();
   }
 
   observe(observer: (appConfigs: AppConfig[]) => void) {
