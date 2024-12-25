@@ -9,14 +9,14 @@
   onMount(() => {
     appTreeIds = [...($currentSpaceStore?.getAppTreeIds() ?? [])];
 
-    $currentSpaceStore?.tree.subscribe(
+    $currentSpaceStore?.tree.observe(
       $currentSpaceStore?.appTreesVertex.id,
       onAppTreeChange,
     );
   });
 
   onDestroy(() => {
-    $currentSpaceStore?.tree.unsubscribe(
+    $currentSpaceStore?.tree.unobserve(
       $currentSpaceStore?.appTreesVertex.id,
       onAppTreeChange,
     );

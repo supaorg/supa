@@ -17,9 +17,9 @@
   });
 
   $effect(() => {
-    $currentSpaceStore?.tree.subscribe(id, onSpaceChange);
+    const unobserve = $currentSpaceStore?.tree.observe(id, onSpaceChange);
     return () => {
-      $currentSpaceStore?.tree.unsubscribe(id, onSpaceChange);
+      unobserve?.();
     };
   });
 

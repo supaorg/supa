@@ -56,6 +56,7 @@ export class AppConfigsData {
   }
 
   observe(observer: (appConfigs: AppConfig[]) => void) {
+    observer(this.getAll());
     return this.root.observeChildrenAsTypedArray(observer);
   }
 }

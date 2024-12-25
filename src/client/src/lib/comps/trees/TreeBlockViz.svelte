@@ -62,11 +62,11 @@
   onMount(() => {
     isRoot = vertexId === tree.rootVertexId;
     updateChildren();
-    tree.subscribe(vertexId, handleTreeChange);
+    tree.observe(vertexId, handleTreeChange);
   });
 
   onDestroy(() => {
-    tree.unsubscribe(vertexId, handleTreeChange);
+    tree.unobserve(vertexId, handleTreeChange);
   });
 
   function toggleExpand() {

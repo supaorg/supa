@@ -3,8 +3,8 @@ import { VertexState } from "./VertexState";
 
 export class TreeState {
   private vertices: Map<TreeVertexId, VertexState>;
-  private changeListeners: Map<TreeVertexId, Set<(event: VertexChangeEvent) => void>> = new Map();
-  private globalChangeListeners: Set<(event: VertexChangeEvent) => void> = new Set();
+  private changeCallbacks: Map<TreeVertexId, Set<(event: VertexChangeEvent) => void>> = new Map();
+  private globalChangeCallbacks: Set<(event: VertexChangeEvent) => void> = new Set();
 
   constructor() {
     this.vertices = new Map();
@@ -100,9 +100,11 @@ export class TreeState {
 
   setProperty(vertexId: string, key: string, value: any) {
     const vertex = this.getVertex(vertexId);
-    if (vertex) {
-      vertex.setProperty(key, value);
+    if (!vertex) {
+      throw new Error(`Vertex ${vertexId} not found`);
     }
+
+    vertex.setProperty(key, value);
 
     this.notifyChange({
       type: 'property',
@@ -110,6 +112,14 @@ export class TreeState {
       key,
       value,
     } as VertexPropertyChangeEvent);
+
+    if (vertex.parentId !== null) {
+      this.notifyChange({
+        type: 'children',
+        vertexId: vertex.parentId,
+        children: [vertex],
+      } as VertexChildrenChangeEvent);
+    }
   }
 
   setTransientProperty(vertexId: string, key: string, value: any) {
@@ -127,28 +137,28 @@ export class TreeState {
     } as VertexPropertyChangeEvent);
   }
 
-  addChangeListener(vertexId: TreeVertexId | null, listener: (event: VertexChangeEvent) => void) {
+  addChangeCallback(vertexId: TreeVertexId | null, listener: (event: VertexChangeEvent) => void) {
     if (vertexId === null) {
-      this.globalChangeListeners.add(listener);
+      this.globalChangeCallbacks.add(listener);
     } else {
-      if (!this.changeListeners.has(vertexId)) {
-        this.changeListeners.set(vertexId, new Set());
+      if (!this.changeCallbacks.has(vertexId)) {
+        this.changeCallbacks.set(vertexId, new Set());
       }
-      this.changeListeners.get(vertexId)!.add(listener);
+      this.changeCallbacks.get(vertexId)!.add(listener);
     }
   }
 
-  removeChangeListener(vertexId: TreeVertexId | null, listener: (event: VertexChangeEvent) => void) {
+  removeChangeCallback(vertexId: TreeVertexId | null, listener: (event: VertexChangeEvent) => void) {
     if (vertexId === null) {
-      this.globalChangeListeners.delete(listener);
+      this.globalChangeCallbacks.delete(listener);
     } else {
-      this.changeListeners.get(vertexId)?.delete(listener);
+      this.changeCallbacks.get(vertexId)?.delete(listener);
     }
   }
 
   private notifyChange(event: VertexChangeEvent) {
-    this.globalChangeListeners.forEach(listener => listener(event));
-    this.changeListeners.get(event.vertexId)?.forEach(listener => listener(event));
+    this.globalChangeCallbacks.forEach(listener => listener(event));
+    this.changeCallbacks.get(event.vertexId)?.forEach(listener => listener(event));
   }
 
   printTree(vertexId: TreeVertexId, indent: string = "", isLast: boolean = true): string {

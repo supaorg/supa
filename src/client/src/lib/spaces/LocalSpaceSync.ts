@@ -100,7 +100,7 @@ export class LocalSpaceSync {
   private backend: Backend;
 
   constructor(readonly space: Space, private uri: string) {
-    space.tree.subscribeToOpApplied(
+    space.tree.observeOpApplied(
       (op) => {
         this.handleOpAppliedFromSamePeer(space.tree, op);
       }
@@ -386,7 +386,7 @@ export class LocalSpaceSync {
     const ops = appTree.tree.popLocalOps();
     this.treeOpsToSave.set(appTreeId, ops);
 
-    appTree.tree.subscribeToOpApplied((op) => {
+    appTree.tree.observeOpApplied((op) => {
       this.handleOpAppliedFromSamePeer(appTree.tree, op);
     });
   }
@@ -398,7 +398,7 @@ export class LocalSpaceSync {
       throw new Error(`App tree with id ${appTreeId} not found`);
     }
 
-    appTree.tree.subscribeToOpApplied((op) => {
+    appTree.tree.observeOpApplied((op) => {
       this.handleOpAppliedFromSamePeer(appTree.tree, op);
     });
   }

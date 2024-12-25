@@ -37,7 +37,7 @@ export class ReplicatedTree {
   private pendingPropertiesWithMissingVertex: Map<string, SetVertexProperty[]> = new Map();
   private appliedOps: Set<string> = new Set();
   private parentIdBeforeMove: Map<OpId, string | null | undefined> = new Map();
-  private opAppliedListeners: ((op: VertexOperation) => void)[] = [];
+  private opAppliedCallbacks: ((op: VertexOperation) => void)[] = [];
   private maxDepth = ReplicatedTree.DEFAULT_MAX_DEPTH;
 
   /**
@@ -306,20 +306,18 @@ export class ReplicatedTree {
     return false;
   }
 
-  subscribe(vertexId: string | null, listener: (event: VertexChangeEvent) => void) {
-    this.state.addChangeListener(vertexId, listener);
+  observe(vertexId: string | null, callback: (event: VertexChangeEvent) => void): () => void {
+    this.state.addChangeCallback(vertexId, callback);
+    return () => this.state.removeChangeCallback(vertexId, callback);
   }
 
-  unsubscribe(vertexId: string | null, listener: (event: VertexChangeEvent) => void) {
-    this.state.removeChangeListener(vertexId, listener);
+  unobserve(vertexId: string | null, callback: (event: VertexChangeEvent) => void): void {
+    this.state.removeChangeCallback(vertexId, callback);
   }
 
-  subscribeToOpApplied(listener: (op: VertexOperation) => void) {
-    this.opAppliedListeners.push(listener);
-  }
-
-  unsubscribeFromOpApplied(listener: (op: VertexOperation) => void) {
-    this.opAppliedListeners = this.opAppliedListeners.filter(l => l !== listener);
+  observeOpApplied(callback: (op: VertexOperation) => void): () => void {
+    this.opAppliedCallbacks.push(callback);
+    return () => this.opAppliedCallbacks = this.opAppliedCallbacks.filter(l => l !== callback);
   }
 
   static compareVertices(vertexId: string, treeA: ReplicatedTree, treeB: ReplicatedTree): boolean {
@@ -456,8 +454,8 @@ export class ReplicatedTree {
 
   private reportOpAsApplied(op: VertexOperation) {
     this.appliedOps.add(op.id.toString());
-    for (const listener of this.opAppliedListeners) {
-      listener(op);
+    for (const callback of this.opAppliedCallbacks) {
+      callback(op);
     }
   }
 

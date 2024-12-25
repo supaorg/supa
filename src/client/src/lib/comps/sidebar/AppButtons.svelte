@@ -20,10 +20,7 @@
   let appConfigs = $state<AppConfig[]>([]);
 
   onMount(() => {
-    appConfigs = $currentSpaceStore?.getAppConfigs() || [];
-
     const unobserve = $currentSpaceStore?.appConfigs.observe((configs) => {
-      console.log("appConfigs changed", configs);
       appConfigs = configs;
     });
 

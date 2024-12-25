@@ -5,7 +5,7 @@
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
   import ChatAppMessage from "./ChatAppMessage.svelte";
   import { onMount, tick } from "svelte";
-    import type { VertexOperation } from "@shared/replicatedTree/operations";
+  import type { VertexOperation } from "@shared/replicatedTree/operations";
 
   const mainScrollableId = "chat-messanges-scrollable";
 
@@ -29,7 +29,9 @@
 
     messagesContainerVertex = appTree.tree.getVertexByPath("messages");
     if (!messagesContainerVertex) {
-      messagesContainerVertex = appTree.tree.newVertex(appTree.tree.rootVertexId);
+      messagesContainerVertex = appTree.tree.newVertex(
+        appTree.tree.rootVertexId,
+      );
       messagesContainerVertex.setProperty("_n", "messages");
     } else {
       const child = appTree.tree.getChildren(messagesContainerVertex.id)[0];
@@ -41,16 +43,20 @@
       throw new Error("messagesVertex should be defined");
     }
 
-    appTree.tree.subscribe(messagesContainerVertex.id, onVertexChange);
-    appTree.tree.subscribe(appTree.tree.rootVertexId, onAppVertexChange);
-    appTree.tree.subscribeToOpApplied(onOpApplied);
+    const unobserveVertex = appTree.tree.observe(
+      messagesContainerVertex.id,
+      onVertexChange,
+    );
+    const unobserveAppVertex = appTree.tree.observe(
+      appTree.tree.rootVertexId,
+      onAppVertexChange,
+    );
+    const unobserveOpApplied = appTree.tree.observeOpApplied(onOpApplied);
 
     return () => {
-      if (messagesContainerVertex) {
-        appTree.tree.unsubscribe(messagesContainerVertex.id, onVertexChange);
-        appTree.tree.unsubscribe(appTree.tree.rootVertexId, onAppVertexChange);
-        appTree.tree.unsubscribeFromOpApplied(onOpApplied);
-      }
+      unobserveVertex();
+      unobserveAppVertex();
+      unobserveOpApplied();
     };
   });
 
@@ -84,7 +90,10 @@
   }
 
   function getLastMessageVertex(): Vertex | undefined {
-    if (!messagesContainerVertex || messagesContainerVertex.children.length === 0) {
+    if (
+      !messagesContainerVertex ||
+      messagesContainerVertex.children.length === 0
+    ) {
       return undefined;
     }
 
@@ -107,14 +116,16 @@
     lastMessageVertex = getLastMessageVertex();
 
     const isFirstMessage = !lastMessageVertex;
-    const parentId = lastMessageVertex ? lastMessageVertex.id : messagesContainerVertex.id;
+    const parentId = lastMessageVertex
+      ? lastMessageVertex.id
+      : messagesContainerVertex.id;
     const newMessageVertex = appTree.tree.newVertex(parentId);
 
     newMessageVertex.setProperties({
-      "_n": "message",
-      "createdAt": Date.now(),
-      "text": query,
-      "role": "user"
+      _n: "message",
+      createdAt: Date.now(),
+      text: query,
+      role: "user",
     });
 
     if (isFirstMessage) {

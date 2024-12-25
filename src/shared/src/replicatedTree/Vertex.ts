@@ -99,18 +99,17 @@ export class Vertex {
   }
 
   observe(listener: (event: VertexChangeEvent) => void): () => void {
-    this.tree.subscribe(this.id, listener);
-    return () => this.tree.unsubscribe(this.id, listener);
+    const unobserve = this.tree.observe(this.id, listener);
+    return () => unobserve();
   }
 
   observeChildren(listener: (children: Vertex[]) => void): () => void {
-    const wrappedListener = (event: VertexChangeEvent) => {
+    const unobserve = this.tree.observe(this.id, (event: VertexChangeEvent) => {
       if (event.type === 'children') {
         listener(this.children);
       }
-    };
-    this.tree.subscribe(this.id, wrappedListener);
-    return () => this.tree.unsubscribe(this.id, wrappedListener);
+    });
+    return () => unobserve();
   }
 
   observeChildrenAsTypedArray<T>(listener: (children: T[]) => void): () => void {

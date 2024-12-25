@@ -8,28 +8,15 @@
 
   let appConfigs: AppConfig[] = [];
 
-  // @TODO: subscribe to config changes and update appConfigs
-
   onMount(() => {
-    const appConfigsVertex = $currentSpaceStore?.getVertexByPath("app-configs");
-    if (!appConfigsVertex) {
-      appConfigs = [];
-      return;
-    }
-
-    const unobserveA = appConfigsVertex.observeChildren((children) => {
-      console.log("configs changed", children);
-    });
-
-    const unobserveB = appConfigsVertex.observe((event) => {
-      console.log("the vertex changed", event);
-    });
-
-    appConfigs = $currentSpaceStore?.getAppConfigs() || [];
+    const unobserveChildren = $currentSpaceStore?.appConfigs.observe(
+      (configs) => {
+        appConfigs = configs;
+      },
+    );
 
     return () => {
-      unobserveA();
-      unobserveB();
+      unobserveChildren?.();
     };
   });
 </script>

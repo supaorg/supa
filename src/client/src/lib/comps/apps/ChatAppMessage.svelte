@@ -36,9 +36,9 @@
   $effect(() => {
     updateChildren();
 
-    tree.subscribe(id, onVertexChange);
+    const unobserve = tree.observe(id, onVertexChange);
     return () => {
-      tree.unsubscribe(id, onVertexChange);
+      unobserve();
     };
   });
 
