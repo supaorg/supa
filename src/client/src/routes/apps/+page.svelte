@@ -6,7 +6,7 @@
   import { onMount } from "svelte";
   import type { AppConfig } from "@shared/models";
 
-  let appConfigs: AppConfig[] = [];
+  let appConfigs = $state<AppConfig[]>([]);
 
   onMount(() => {
     const unobserveChildren = $currentSpaceStore?.appConfigs.observe(

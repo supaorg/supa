@@ -1,63 +1,28 @@
 <script lang="ts">
   import type { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
-  import Self from "./ChatAppMessage.svelte";
-
+  import MarkdownMessage from "../markdown/MarkdownMessage.svelte";
   import { User, Sparkles, CircleAlert } from "lucide-svelte";
+  import type { ThreadMessage } from "@shared/models";
+  import type { ChatAppData } from "@shared/spaces/ChatAppData";
+  import { onMount } from "svelte";
 
-  let { id, tree }: { id: string; tree: ReplicatedTree } = $props();
-
-  type Message = {
-    id: string;
-    role: "user" | "assistant";
-    text: string;
-    createdAt: number;
-  };
-
-  let activeChild: string | undefined = $state(undefined);
+  let { message, data }: { message: ThreadMessage; data: ChatAppData } =
+    $props();
 
   let canRetry = $state(false);
   let retrying = $state(false);
   let msgChange = $state(0);
 
-  let message: Message = $derived.by(() => { 
-    // @TODO: change how messages are updated, get rid of the hack
-    // HACK: force a re-render when the message changes by capturing the msgChange state
-    console.log("msgChange", msgChange);
+  onMount(() => {
+    const unobserve = data.observeMessage(message.id, (msg) => {
+      message = msg;
+    });
 
-    return {
-      id,
-      role: tree.getVertexProperty(id, "role")?.value as "user" | "assistant",
-      text: tree.getVertexProperty(id, "text")?.value as string,
-      createdAt: tree.getVertexProperty(id, "createdAt")?.value as number,
-    } as Message;
-  });
-
-  $effect(() => {
-    updateChildren();
-
-    const unobserve = tree.observe(id, onVertexChange);
     return () => {
       unobserve();
     };
   });
-
-  function updateChildren() {
-    activeChild = tree.getChildren(id)[0]?.id;
-  }
-
-  function onVertexChange(event: VertexChangeEvent) {
-    console.log("onVertexChange", event);
-    if (event.type === "children") {
-      updateChildren();
-    }
-
-    if (event.type === "property") {
-      // Just trigger a re-render of the message (hack)
-      msgChange = msgChange + 1;
-    }
-  }
-
 
   function isMoreThanOneMinuteOld(dateInMs: number) {
     return dateInMs + 60000 < Date.now();
@@ -135,8 +100,7 @@
       {#if message.role === "user"}
         {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
       {:else}
-        <!--<MarkdownMessage source={message.text ? message.text : "Loading..."} />-->
-        {message.text}
+        <MarkdownMessage source={message.text ? message.text : "Loading..."} />
       {/if}
 
       {#if canRetry && !retrying}
@@ -148,6 +112,3 @@
     </div>
   </div>
 </div>
-{#if activeChild}
-  <Self {tree} id={activeChild} />
-{/if}

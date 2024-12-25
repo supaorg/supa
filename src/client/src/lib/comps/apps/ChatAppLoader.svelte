@@ -1,27 +1,31 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import ChatApp from "./ChatApp.svelte";
+  import { ChatAppData } from "@shared/spaces/ChatAppData";
 
   let { treeId }: { treeId: string } = $props();
 
-  let appTree = $derived.by(async () => {
+  let data = $derived.by(async () => {
     console.log("Loading app tree", treeId);
 
     if (!$currentSpaceStore) {
-      console.error("No current space id");
-      return undefined;
+      throw new Error("No current space id");
     }
 
-    return await $currentSpaceStore.loadAppTree(treeId);
+    const appTree = await $currentSpaceStore.loadAppTree(treeId);
+    if (!appTree) {
+      throw new Error("Failed to load app tree");
+    }
+
+    return new ChatAppData($currentSpaceStore, appTree.tree);
   });
 </script>
 
-{#await appTree}
+{#await data}
   <div>Loading...</div>
-{:then appTree}
-  {#if appTree}
-    <ChatApp {appTree} />
-  {/if}
+{:then data}
+  <ChatApp {data} />
 {:catch}
   <div>Error loading app tree</div>
 {/await}
+

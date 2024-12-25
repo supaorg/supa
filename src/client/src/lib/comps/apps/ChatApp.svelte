@@ -1,62 +1,37 @@
 <script lang="ts">
-  import AppTree from "@shared/spaces/AppTree";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import { Vertex } from "@shared/replicatedTree/Vertex";
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
   import ChatAppMessage from "./ChatAppMessage.svelte";
   import { onMount, tick } from "svelte";
   import type { VertexOperation } from "@shared/replicatedTree/operations";
+  import AppConfigDropdown from "./AppConfigDropdown.svelte";
+  import { ChatAppData } from "@shared/spaces/ChatAppData";
+  import type { ThreadMessage } from "@shared/models";
 
   const mainScrollableId = "chat-messanges-scrollable";
 
   let scrollableElement = $state<HTMLElement | undefined>(undefined);
 
-  let { appTree }: { appTree: AppTree } = $props();
+  let { data }: { data: ChatAppData } = $props();
 
-  let messagesContainerVertex: Vertex | undefined = $state();
-  let firstMessageVertex: Vertex | undefined = $state();
-  let lastMessageVertex: Vertex | undefined = $state();
   let title: string | undefined = $state();
+  let messages = $state<ThreadMessage[]>([]);
 
   let stickToBottomWhenLastMessageChanges = $state(false);
 
-  //$effect.pre(() => {
   onMount(() => {
-    console.log("ChatApp.svelte");
+    const unobserve = data.observe((data) => {
+      title = data.title as string;
+    });
 
-    title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")
-      ?.value as string;
-
-    messagesContainerVertex = appTree.tree.getVertexByPath("messages");
-    if (!messagesContainerVertex) {
-      messagesContainerVertex = appTree.tree.newVertex(
-        appTree.tree.rootVertexId,
-      );
-      messagesContainerVertex.setProperty("_n", "messages");
-    } else {
-      const child = appTree.tree.getChildren(messagesContainerVertex.id)[0];
-      firstMessageVertex = child ? child : undefined;
-      lastMessageVertex = getLastMessageVertex();
-    }
-
-    if (!messagesContainerVertex) {
-      throw new Error("messagesVertex should be defined");
-    }
-
-    const unobserveVertex = appTree.tree.observe(
-      messagesContainerVertex.id,
-      onVertexChange,
-    );
-    const unobserveAppVertex = appTree.tree.observe(
-      appTree.tree.rootVertexId,
-      onAppVertexChange,
-    );
-    const unobserveOpApplied = appTree.tree.observeOpApplied(onOpApplied);
+    const unobserveMessages = data.observeMessages((msgs) => {
+      messages = msgs;
+    });
 
     return () => {
-      unobserveVertex();
-      unobserveAppVertex();
-      unobserveOpApplied();
+      unobserve();
+      unobserveMessages();
     };
   });
 
@@ -72,65 +47,26 @@
     });
   }
 
+  // @TODO: new message arrives
   function onOpApplied(op: VertexOperation) {
     scrollToBottom();
   }
 
-  function onAppVertexChange(event: VertexChangeEvent) {
-    if (event.type === "property") {
-      title = appTree.tree.getVertexProperty(appTree.tree.rootVertexId, "title")
-        ?.value as string;
-    }
-  }
-
-  function onVertexChange(event: VertexChangeEvent) {
-    if (event.type === "children") {
-      console.log("add or remove a child, ", event.vertexId);
-    }
-  }
-
-  function getLastMessageVertex(): Vertex | undefined {
-    if (
-      !messagesContainerVertex ||
-      messagesContainerVertex.children.length === 0
-    ) {
-      return undefined;
-    }
-
-    let lastMessageVertex: Vertex = messagesContainerVertex.children[0];
-
-    while (true) {
-      const children = appTree.tree.getChildren(lastMessageVertex.id);
-      if (children.length === 0) {
-        return lastMessageVertex;
-      }
-      lastMessageVertex = children[0];
-    }
-  }
-
   async function sendMsg(query: string) {
-    if (!messagesContainerVertex) {
-      throw new Error("messagesVertex not found");
-    }
-
-    lastMessageVertex = getLastMessageVertex();
-
-    const isFirstMessage = !lastMessageVertex;
-    const parentId = lastMessageVertex
-      ? lastMessageVertex.id
-      : messagesContainerVertex.id;
-    const newMessageVertex = appTree.tree.newVertex(parentId);
-
-    newMessageVertex.setProperties({
-      _n: "message",
-      createdAt: Date.now(),
-      text: query,
+    data.newMessage({
+      id: crypto.randomUUID(),
       role: "user",
+      text: query,
+      createdAt: Date.now(),
+      inProgress: null,
+      updatedAt: null,
     });
 
+    /*
     if (isFirstMessage) {
       firstMessageVertex = newMessageVertex;
     }
+    */
 
     scrollToBottom();
   }
@@ -147,9 +83,7 @@
 <div class="flex flex-col w-full h-full overflow-hidden">
   <div class="min-h-min px-2">
     <div class="flex flex-1 gap-4 items-center py-2">
-      <!--
-      <AppConfigDropdown {threadId} />
-      -->
+      <AppConfigDropdown {data} />
       <h3 class="text-lg">{title ? title : "New thread"}</h3>
     </div>
   </div>
@@ -159,9 +93,9 @@
     id={mainScrollableId}
   >
     <div class="w-full max-w-3xl mx-auto px-4">
-      {#if firstMessageVertex}
-        <ChatAppMessage id={firstMessageVertex.id} tree={appTree.tree} />
-      {/if}
+      {#each messages as message (message.id)}
+        <ChatAppMessage {message} {data} />
+      {/each}
     </div>
     <!--
     {#if !messages}

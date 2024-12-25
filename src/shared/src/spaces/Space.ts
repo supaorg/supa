@@ -188,10 +188,10 @@ export default class Space {
     return this.appTreesVertex.children.map(v => v.id);
   }
 
-  getVertexIdReferencingAppTree(appTreeId: string): string | undefined {
+  getVertexReferencingAppTree(appTreeId: string): Vertex | undefined {
     for (const vertex of this.appTreesVertex.children) {
       if (vertex.getProperty('tid')?.value === appTreeId) {
-        return vertex.id;
+        return vertex;
       }
     }
 

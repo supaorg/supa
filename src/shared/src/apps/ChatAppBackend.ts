@@ -109,11 +109,11 @@ export default class ChatAppBackend {
       appTree.tree.setVertexProperty(appTree.tree.rootVertexId, "title", newTitle as string);
     }
 
-    const vertexIdReferencingAppTree = this.space.getVertexIdReferencingAppTree(appTree.getId());
-    if (vertexIdReferencingAppTree) {
-      const titleInSpace = this.space.tree.getVertexProperty(vertexIdReferencingAppTree, "_n")?.value as string;
+    const vertexReferencingAppTree = this.space.getVertexReferencingAppTree(appTree.getId());
+    if (vertexReferencingAppTree) {
+      const titleInSpace = vertexReferencingAppTree.getProperty("_n")?.value as string;
       if (titleInSpace !== newTitle) {
-        this.space.tree.setVertexProperty(vertexIdReferencingAppTree, "_n", newTitle);
+        vertexReferencingAppTree.setProperty("_n", newTitle);
       }
     }
   }
