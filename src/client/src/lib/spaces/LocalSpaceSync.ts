@@ -370,8 +370,6 @@ export class LocalSpaceSync {
     if (!isSetPropertyOp(op) || !op.transient) {
       ops.push(op);
     }
-
-    this.backend.addOp(treeId, op);
   }
 
   private handleNewAppTree(appTreeId: string) {

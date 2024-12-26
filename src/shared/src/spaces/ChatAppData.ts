@@ -56,9 +56,11 @@ export class ChatAppData {
 
   observeMessages(callback: (messages: ThreadMessage[]) => void): () => void {
     callback(this.messages);
+    return this.observeNewMessages(callback);
+  }
 
+  observeNewMessages(callback: (messages: ThreadMessage[]) => void): () => void {
     return this.appTree.observeVertexMove((vertex) => {
-      // Check if the vertex is a message
       if (vertex.getProperty("text")) {
         callback(this.messages);
       }
@@ -76,11 +78,17 @@ export class ChatAppData {
     });
   }
 
-  newMessage(message: ThreadMessage): void {
+  newMessage(message: Partial<ThreadMessage>): ThreadMessage {
     const lastMsgVertex = this.messages[this.messages.length - 1];
 
     const newMessageVertex = this.appTree.newVertex(lastMsgVertex.id);
     newMessageVertex.setProperties(message);
+    
+    const props = newMessageVertex.getProperties();
+    return {
+      id: newMessageVertex.id,
+      ...props,
+    } as ThreadMessage;
   }
 
   private getChildMessages(vertex: Vertex): ThreadMessage[] {

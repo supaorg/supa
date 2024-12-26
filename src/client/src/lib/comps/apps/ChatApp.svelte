@@ -22,6 +22,10 @@
     });
 
     const unobserveMessages = data.observeMessages((msgs) => {
+      if (msgs.length > messages.length) {
+        scrollToBottom();
+      }
+
       messages = msgs;
     });
 
@@ -43,14 +47,8 @@
     });
   }
 
-  // @TODO: new message arrives
-  function onOpApplied(op: VertexOperation) {
-    scrollToBottom();
-  }
-
   async function sendMsg(query: string) {
     data.newMessage({
-      id: crypto.randomUUID(),
       role: "user",
       text: query,
       createdAt: Date.now(),
@@ -93,23 +91,6 @@
         <ChatAppMessage {message} {data} />
       {/each}
     </div>
-    <!--
-    {#if !messages}
-      <div class="flex items-center justify-center">
-        <ProgressRadial class="w-10" />
-      </div>
-    {:else}
-      {#each messages as message (message.id)}
-        <div class="w-full max-w-3xl mx-auto px-4">
-          <ThreadMessage
-            {message}
-            {threadId}
-            isLastInThread={message.id === messages[messages.length - 1].id}
-          />
-        </div>
-      {/each}
-    {/if}
-    -->
   </div>
   <div class="min-h-min">
     <section class="max-w-3xl mx-auto py-2 px-2">

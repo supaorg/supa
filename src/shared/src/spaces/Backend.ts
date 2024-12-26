@@ -7,16 +7,29 @@ import ChatAppBackend from "../apps/ChatAppBackend";
  * And also checks if there are jobs available to be taken
  */
 export class Backend {
-  private chatAppBackend: ChatAppBackend;
+  private appBackends: ChatAppBackend[] = [];
 
   constructor(private space: Space, private inLocalMode: boolean = false) {
     if (!inLocalMode) {
       throw new Error("Backend is not supported for remote spaces yet");
     }
 
-    this.chatAppBackend = new ChatAppBackend(space);
+    space.observeTreeLoad((appTreeId) => {
+      const appTree = space.getAppTree(appTreeId);
+      if (!appTree) {
+        throw new Error(`App tree with id ${appTreeId} not found`);
+      }
+
+      if (appTree.getAppId() !== "default-chat") {
+        console.warn(`There's no backend for app ${appTree.getAppId()}`);
+        return;
+      }
+
+      this.appBackends.push(new ChatAppBackend(space, appTree.tree));
+    });
   }
 
+  /*
   addOp(treeId: string, op: VertexOperation) {
     if (!this.inLocalMode) {
       // @TODO: add the op to the space
@@ -37,4 +50,5 @@ export class Backend {
       this.chatAppBackend.addOp(appTree, op);
     }
   }
+  */
 }
