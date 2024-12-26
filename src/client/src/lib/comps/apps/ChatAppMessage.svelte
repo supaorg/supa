@@ -1,6 +1,4 @@
 <script lang="ts">
-  import type { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
-  import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
   import MarkdownMessage from "../markdown/MarkdownMessage.svelte";
   import { User, Sparkles, CircleAlert } from "lucide-svelte";
   import type { ThreadMessage } from "@shared/models";
@@ -12,7 +10,6 @@
 
   let canRetry = $state(false);
   let retrying = $state(false);
-  let msgChange = $state(0);
 
   onMount(() => {
     const unobserve = data.observeMessage(message.id, (msg) => {

@@ -3,7 +3,7 @@ import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import type Space from "./Space";
 import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
 import type { ThreadMessage } from "@shared/models";
-import { isMoveVertexOp } from "@shared/replicatedTree/operations";
+import { isMoveVertexOp, isSetPropertyOp } from "@shared/replicatedTree/operations";
 
 export class ChatAppData {
   private root: Vertex;
@@ -57,8 +57,9 @@ export class ChatAppData {
   observeMessages(callback: (messages: ThreadMessage[]) => void): () => void {
     callback(this.messages);
 
-    return this.appTree.observeOpApplied((op) => {
-      if (op && isMoveVertexOp(op)) {
+    return this.appTree.observeVertexMove((vertex) => {
+      // Check if the vertex is a message
+      if (vertex.getProperty("text")) {
         callback(this.messages);
       }
     });
@@ -70,12 +71,8 @@ export class ChatAppData {
       throw new Error(`Vertex ${id} not found`);
     }
 
-    callback(vertex.getAsTypedObject<ThreadMessage>());
-
-    return this.root.observe((event) => {
-      if (event.type === "property") {
-        callback(vertex.getAsTypedObject<ThreadMessage>());
-      }
+    return this.appTree.observeVertex(id, (vertex) => {
+      callback(vertex.getAsTypedObject<ThreadMessage>());
     });
   }
 
@@ -90,17 +87,18 @@ export class ChatAppData {
     const messages: ThreadMessage[] = [];
 
     for (const child of vertex.children) {
+      const props = child.getProperties();
+
       messages.push({
         id: child.id,
-        role: child.getProperty("role")?.value as "user" | "assistant",
-        text: child.getProperty("text")?.value as string,
-        createdAt: child.getProperty("createdAt")?.value as number,
-        inProgress: child.getProperty("inProgress")?.value as number | null,
-        updatedAt: child.getProperty("updatedAt")?.value as number | null,
+        role: props.role as "user" | "assistant",
+        text: props.text as string,
+        createdAt: props.createdAt as number,
+        inProgress: props.inProgress as number | null,
+        updatedAt: props.updatedAt as number | null
       });
     }
 
     return messages;
   }
-
 }

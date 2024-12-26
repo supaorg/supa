@@ -6,8 +6,6 @@
   let { treeId }: { treeId: string } = $props();
 
   let data = $derived.by(async () => {
-    console.log("Loading app tree", treeId);
-
     if (!$currentSpaceStore) {
       throw new Error("No current space id");
     }
@@ -22,7 +20,7 @@
 </script>
 
 {#await data}
-  <div>Loading...</div>
+  <div></div>
 {:then data}
   <ChatApp {data} />
 {:catch}

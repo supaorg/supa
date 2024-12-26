@@ -1,7 +1,5 @@
 <script lang="ts">
   import SendMessageForm from "../forms/SendMessageForm.svelte";
-  import { Vertex } from "@shared/replicatedTree/Vertex";
-  import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
   import ChatAppMessage from "./ChatAppMessage.svelte";
   import { onMount, tick } from "svelte";
   import type { VertexOperation } from "@shared/replicatedTree/operations";
@@ -11,13 +9,11 @@
 
   const mainScrollableId = "chat-messanges-scrollable";
 
-  let scrollableElement = $state<HTMLElement | undefined>(undefined);
-
   let { data }: { data: ChatAppData } = $props();
 
+  let scrollableElement = $state<HTMLElement | undefined>(undefined);
   let title: string | undefined = $state();
   let messages = $state<ThreadMessage[]>([]);
-
   let stickToBottomWhenLastMessageChanges = $state(false);
 
   onMount(() => {
