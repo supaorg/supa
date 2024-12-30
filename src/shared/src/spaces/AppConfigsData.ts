@@ -1,6 +1,5 @@
-import type { AppConfig } from "@shared/models";
-import type { Vertex } from "@shared/replicatedTree/Vertex";
-import type Space from "@shared/spaces/Space";
+import type { AppConfig } from "../models";
+import type { Vertex } from "../replicatedTree/Vertex";
 
 // @TODO: answer: should I resolve 'id' into vertex id? And same for _n to 'name'?
 

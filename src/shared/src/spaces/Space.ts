@@ -5,7 +5,7 @@ import type { VertexPropertyType } from "../replicatedTree/treeTypes";
 import { ModelProviderConfig } from "../models";
 import { validateKey } from "../tools/providerKeyValidators";
 import { Vertex } from "../replicatedTree/Vertex";
-import { AppConfigsData } from "$lib/spaces/AppConfigsData";
+import { AppConfigsData } from "./AppConfigsData";
 
 export default class Space {
   readonly tree: ReplicatedTree;
