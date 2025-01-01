@@ -1,12 +1,10 @@
 import { type AppConfig, type ThreadMessage } from "../models";
-import { isSetPropertyOp, type VertexOperation } from "../replicatedTree/operations";
-import type AppTree from "../spaces/AppTree";
 import Space from "../spaces/Space";
 import { AgentServices } from "../agents/AgentServices.ts";
 import { SimpleChatAgent } from "../agents/SimpleChatAgent.ts";
 import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
-import { ChatAppData } from "@shared/spaces/ChatAppData";
-import type { ReplicatedTree } from "@shared/replicatedTree/ReplicatedTree";
+import { ChatAppData } from "../spaces/ChatAppData";
+import type { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 
 export default class ChatAppBackend {
   private data: ChatAppData;
@@ -14,15 +12,23 @@ export default class ChatAppBackend {
   constructor(private space: Space, private appTree: ReplicatedTree) {
     this.data = new ChatAppData(this.space, appTree);
 
-    this.data.observeNewMessages((messages) => {
-      if (messages.length === 0) {
-        return;
-      }
+    this.processMessages(this.data.messages);
 
-      if (messages[messages.length - 1].role === "user") {
-        this.replyToMessage(messages);
-      }
+    this.data.observeNewMessages((messages) => {
+      this.processMessages(messages);
     });
+  }
+
+  private processMessages(messages: ThreadMessage[]) {
+    console.log("Processing messages", messages);
+
+    if (messages.length === 0) {
+      return;
+    }
+
+    if (messages[messages.length - 1].role === "user") {
+      this.replyToMessage(messages);
+    }
   }
 
   private async replyToMessage(messages: ThreadMessage[]) {
@@ -39,13 +45,7 @@ export default class ChatAppBackend {
     const simpleChatAgent = new SimpleChatAgent(agentServices, config);
     const threadTitleAgent = new ThreadTitleAgent(agentServices, config);
 
-    const newMessage = this.data.newMessage({
-      createdAt: Date.now(),
-      text: "thinking...",
-      role: "assistant",
-      inProgress: null,
-      updatedAt: null,
-    });
+    const newMessage = this.data.newMessage("assistant", "thinking...");
 
     const messagesForLang = [
       { role: "system", text: config.instructions },

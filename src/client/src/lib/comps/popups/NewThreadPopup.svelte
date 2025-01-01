@@ -4,6 +4,7 @@
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import { getModalStore } from "@skeletonlabs/skeleton";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
+    import { ChatAppData } from "@shared/spaces/ChatAppData";
 
   const modalStore = getModalStore();
   const placeholder = "Write a message...";
@@ -37,29 +38,13 @@
       throw new Error("Space or app config not found");
     }
 
+
     // Create new app tree
-    const newTree = $currentSpaceStore.newAppTree("default-chat");
-    newTree.tree.setVertexProperty(
-      newTree.tree.rootVertexId,
-      "configId",
-      appConfig.id,
-    );
+    const newTree = ChatAppData.createNewChatTree($currentSpaceStore, appConfig.id);
+    const chatAppData = new ChatAppData($currentSpaceStore, newTree);
+    chatAppData.newMessage("user", message);
 
-    // Create messages vertex
-    const messagesVertex = newTree.tree.newVertex(newTree.tree.rootVertexId);
-    newTree.tree.setVertexProperty(messagesVertex.id, "_n", "messages");
-
-    // Create first message
-    const newMessageVertex = newTree.tree.newVertex(messagesVertex.id);
-
-    newMessageVertex.setProperties({
-      _n: "message",
-      createdAt: Date.now(),
-      text: message,
-      role: "user",
-    });
-
-    goto(`/?t=${newTree.getId()}`);
+    goto(`/?t=${newTree.rootVertexId}`);
 
     isSending = false;
 

@@ -7,13 +7,22 @@ import { isMoveVertexOp, isSetPropertyOp } from "@shared/replicatedTree/operatio
 
 export class ChatAppData {
   private root: Vertex;
-  private messagesVertex: Vertex;
   private referenceInSpace: Vertex;
+
+  static createNewChatTree(space: Space, configId: string): ReplicatedTree {
+    const tree = space.newAppTree("default-chat").tree;
+    tree.setVertexProperty(tree.rootVertexId, "configId", configId);
+    tree.newNamedVertex(tree.rootVertexId, "messages");
+    return tree;
+  }
 
   constructor(private space: Space, private appTree: ReplicatedTree) {
     this.root = appTree.getVertex(appTree.rootVertexId)!;
-    this.messagesVertex = appTree.getVertexByPath("messages")!;
     this.referenceInSpace = space.getVertexReferencingAppTree(appTree.rootVertexId)!;
+  }
+
+  get messagesVertex(): Vertex | undefined {
+    return this.appTree.getVertexByPath("messages");
   }
 
   get configId(): string | undefined {
@@ -31,7 +40,11 @@ export class ChatAppData {
 
   get messages(): ThreadMessage[] {
     const msgs: ThreadMessage[] = [];
-    let targetVertex: Vertex | undefined = this.messagesVertex;
+    let targetVertex = this.messagesVertex;
+
+    if (!targetVertex) {
+      return [];
+    }
 
     while (true) {
       const newMsgs = this.getChildMessages(targetVertex);
@@ -78,17 +91,40 @@ export class ChatAppData {
     });
   }
 
-  newMessage(message: Partial<ThreadMessage>): ThreadMessage {
-    const lastMsgVertex = this.messages[this.messages.length - 1];
+  newMessage(role: "user" | "assistant", text: string): ThreadMessage {
+    const lastMsgVertex = this.getLastMsgParentVertex();
 
     const newMessageVertex = this.appTree.newVertex(lastMsgVertex.id);
-    newMessageVertex.setProperties(message);
+    newMessageVertex.setProperties({
+      _n: "message",
+      createdAt: Date.now(),
+      text,
+      role,
+    });
     
     const props = newMessageVertex.getProperties();
     return {
       id: newMessageVertex.id,
       ...props,
     } as ThreadMessage;
+  }
+
+  private getLastMsgParentVertex(): Vertex {
+    let targetVertex = this.messagesVertex;
+
+    if (!targetVertex) {
+      // Create messages vertex if it doesn't exist
+      targetVertex = this.appTree.newVertex(this.appTree.rootVertexId, {
+        _n: "messages",
+      });
+    }
+
+    // Get the last message vertex
+    while (targetVertex.children.length > 0) {
+      targetVertex = targetVertex.children[0];
+    }
+
+    return targetVertex;
   }
 
   private getChildMessages(vertex: Vertex): ThreadMessage[] {

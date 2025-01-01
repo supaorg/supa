@@ -117,6 +117,10 @@ export default class Space {
       listener(appTree.getId());
     }
 
+    for (const listener of this.treeLoadObservers) {
+      listener(appTree.getId());
+    }
+    
     return appTree;
   }
 

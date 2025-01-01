@@ -48,13 +48,7 @@
   }
 
   async function sendMsg(query: string) {
-    data.newMessage({
-      role: "user",
-      text: query,
-      createdAt: Date.now(),
-      inProgress: null,
-      updatedAt: null,
-    });
+    data.newMessage("user", query);
 
     /*
     if (isFirstMessage) {
