@@ -125,7 +125,7 @@ export class ReplicatedTree {
     return ancestors;
   }
 
-  getVertexProperty(vertexId: string, key: string): TreeVertexProperty | undefined {
+  getVertexProperty(vertexId: string, key: string): VertexPropertyType | undefined {
     const vertex = this.state.getVertex(vertexId);
     if (!vertex) {
       return undefined;
@@ -239,7 +239,7 @@ export class ReplicatedTree {
     // Now, search recursively by name '_n' in children until the path is empty or not found.
     const children = this.getChildren(vertex.id);
     for (const child of children) {
-      if (child.getProperty('_n')?.value === targetName) {
+      if (child.getProperty('_n') === targetName) {
         return this.getVertexByPathArray(child, path.slice(1));
       }
     }

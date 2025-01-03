@@ -44,7 +44,7 @@ export default class AppTree {
       throw new Error("App ID is not set");
     }
 
-    return appId.value as string;
+    return appId as string;
   }
 
   getVersion(): string {
@@ -53,7 +53,7 @@ export default class AppTree {
       throw new Error("Version is not set");
     }
 
-    return version.value as string;
+    return version as string;
   }
 
   getCreatedAt(): Date {
@@ -62,6 +62,6 @@ export default class AppTree {
       throw new Error("App tree createdAt is not set");
     }
 
-    return new Date(createdAt.value as string);
+    return new Date(createdAt as string);
   }
 }

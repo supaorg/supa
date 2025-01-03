@@ -2,7 +2,7 @@ import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import AppTree from "./AppTree";
 import type { AppConfig } from "../models";
 import type { VertexPropertyType } from "../replicatedTree/treeTypes";
-import { ModelProviderConfig } from "../models";
+import type { ModelProviderConfig } from "../models";
 import { validateKey } from "../tools/providerKeyValidators";
 import { Vertex } from "../replicatedTree/Vertex";
 import { AppConfigsData } from "./AppConfigsData";
@@ -87,7 +87,7 @@ export default class Space {
       throw new Error("Space name is not set");
     }
 
-    return name.value as string;
+    return name as string;
   }
 
   getCreatedAt(): Date {
@@ -96,7 +96,7 @@ export default class Space {
       throw new Error("Space createdAt is not set");
     }
 
-    return new Date(createdAt.value as string);
+    return new Date(createdAt as string);
   }
 
   newAppTree(appId: string): AppTree {
@@ -120,7 +120,7 @@ export default class Space {
     for (const listener of this.treeLoadObservers) {
       listener(appTree.getId());
     }
-    
+
     return appTree;
   }
 
@@ -194,7 +194,7 @@ export default class Space {
 
   getVertexReferencingAppTree(appTreeId: string): Vertex | undefined {
     for (const vertex of this.appTreesVertex.children) {
-      if (vertex.getProperty('tid')?.value === appTreeId) {
+      if (vertex.getProperty('tid') === appTreeId) {
         return vertex;
       }
     }
@@ -328,7 +328,7 @@ export default class Space {
 
     for (const child of vertex.children) {
       const property = child.getProperty(key);
-      if (property?.value === value) {
+      if (property === value) {
         return child;
       }
     }

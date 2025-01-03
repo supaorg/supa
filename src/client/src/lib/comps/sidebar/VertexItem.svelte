@@ -12,8 +12,8 @@
 
   onMount(() => {
     const vertex = $currentSpaceStore?.getVertex(id);
-    appTreeId = vertex?.getProperty("tid")?.value as string | undefined;
-    name = vertex?.getProperty("_n")?.value as string | undefined;
+    appTreeId = vertex?.getProperty("tid") as string | undefined;
+    name = vertex?.getProperty("_n") as string | undefined;
   });
 
   $effect(() => {
@@ -23,10 +23,10 @@
     };
   });
 
-  function onSpaceChange(event: VertexChangeEvent) {
-    if (event.type === "property") {
+  function onSpaceChange(events: VertexChangeEvent[]) {
+    if (events.some(e => e.type === "property")) {
       const vertex = $currentSpaceStore?.getVertex(id);
-      name = vertex?.getProperty("_n")?.value as string | undefined;
+      name = vertex?.getProperty("_n") as string | undefined;
     }
   }
 </script>

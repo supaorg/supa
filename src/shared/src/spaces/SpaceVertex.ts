@@ -11,12 +11,12 @@ export class SpaceVertex {
   }
 
   newChildVertex(): SpaceVertex {
-    const vertexId = this.tree.newVertex(this.rootVertexId);
-    return new SpaceVertex(this.tree, vertexId);
+    const vertex = this.tree.newVertex(this.rootVertexId);
+    return new SpaceVertex(this.tree, vertex.id);
   }
 
   getProperty(key: string): VertexPropertyType | undefined {
-    return this.tree.getVertexProperty(this.rootVertexId, key)?.value;
+    return this.tree.getVertexProperty(this.rootVertexId, key);
   }
 
   getProperties(): Record<string, VertexPropertyType> {

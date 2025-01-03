@@ -25,11 +25,11 @@ export class ChatAppData {
   }
 
   get configId(): string | undefined {
-    return this.root.getProperty("configId")?.value as string;
+    return this.root.getProperty("configId") as string;
   }
 
   get title(): string | undefined {
-    return this.root.getProperty("title")?.value as string;
+    return this.root.getProperty("title") as string;
   }
 
   set title(title: string) {

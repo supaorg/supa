@@ -69,8 +69,7 @@ export class Vertex {
     this.tree.setVertexProperties(this.id, typedProps);
   }
 
-  // @TODO: or return TreeVertexPropertyType?
-  getProperty(key: string): TreeVertexProperty | undefined {
+  getProperty(key: string): VertexPropertyType | undefined {
     return this.tree.getVertexProperty(this.id, key);
   }
 
@@ -83,11 +82,11 @@ export class Vertex {
   }
 
   findAllChildrenWithProperty(key: string, value: VertexPropertyType): Vertex[] {
-    return this.children.filter(c => c.getProperty(key)?.value === value);
+    return this.children.filter(c => c.getProperty(key) === value);
   }
 
   findFirstChildVertexWithProperty(key: string, value: VertexPropertyType): Vertex | undefined {
-    return this.children.find(c => c.getProperty(key)?.value === value);
+    return this.children.find(c => c.getProperty(key) === value);
   }
 
   findFirstTypedChildWithProperty<T>(key: string, value: VertexPropertyType): T | undefined {

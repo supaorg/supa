@@ -1,4 +1,4 @@
-import type { TreeVertexId, TreeVertexProperty } from "./treeTypes";
+import type { TreeVertexId, TreeVertexProperty, VertexPropertyType } from "./treeTypes";
 
 export class VertexState {
   readonly id: string;
@@ -35,13 +35,13 @@ export class VertexState {
     }
   }
 
-  getProperty(key: string): TreeVertexProperty | undefined {
+  getProperty(key: string): VertexPropertyType | undefined {
     const transientProp = this.transientProperties.find(p => p.key === key);
     if (transientProp) {
-      return transientProp;
+      return transientProp.value;
     }
 
-    return this.properties.find(p => p.key === key);
+    return this.properties.find(p => p.key === key)?.value;
   }
 
   getAllProperties(includingTransient: boolean = true): ReadonlyArray<TreeVertexProperty> {
