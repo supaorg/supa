@@ -38,12 +38,12 @@
     }
   }
 
-  function handleTreeChange(event: VertexChangeEvent) {
-    if (event.type === "property") {
-      console.log("property change", event);
-    } else if (event.type === "children") {
-      console.log("children change", event);
-    } else if (event.type === "move") {
+  function handleTreeChange(events: VertexChangeEvent[]) {
+    if (events.some(e => e.type === "property")) {
+      console.log("property change", events);
+    } else if (events.some(e => e.type === "children")) {
+      console.log("children change", events);
+    } else if (events.some(e => e.type === "move")) {
       console.log("move change", event);
     }
 
@@ -54,7 +54,7 @@
     }
     */
 
-    console.log("handleTreeChange", event);
+    console.log("handleTreeChange", events);
 
     updateChildren();
   }
@@ -62,11 +62,8 @@
   onMount(() => {
     isRoot = vertexId === tree.rootVertexId;
     updateChildren();
-    tree.observe(vertexId, handleTreeChange);
-  });
-
-  onDestroy(() => {
-    tree.unobserve(vertexId, handleTreeChange);
+    const unobserve = tree.observe(vertexId, handleTreeChange);
+    return () => unobserve();
   });
 
   function toggleExpand() {
