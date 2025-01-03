@@ -1,9 +1,8 @@
-import type { Vertex } from "@shared/replicatedTree/Vertex";
+import type { Vertex } from "../replicatedTree/Vertex";
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import type Space from "./Space";
-import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
-import type { ThreadMessage } from "@shared/models";
-import { isMoveVertexOp, isSetPropertyOp } from "@shared/replicatedTree/operations";
+import type { VertexPropertyType } from "../replicatedTree/treeTypes";
+import type { ThreadMessage } from "../models";
 
 export class ChatAppData {
   private root: Vertex;
@@ -74,7 +73,8 @@ export class ChatAppData {
 
   observeNewMessages(callback: (messages: ThreadMessage[]) => void): () => void {
     return this.appTree.observeVertexMove((vertex) => {
-      if (vertex.getProperty("text")) {
+      const text = vertex.getProperty("text");
+      if (text) {
         callback(this.messages);
       }
     });
@@ -94,14 +94,13 @@ export class ChatAppData {
   newMessage(role: "user" | "assistant", text: string): ThreadMessage {
     const lastMsgVertex = this.getLastMsgParentVertex();
 
-    const newMessageVertex = this.appTree.newVertex(lastMsgVertex.id);
-    newMessageVertex.setProperties({
+    const newMessageVertex = this.appTree.newVertex(lastMsgVertex.id, {
       _n: "message",
       createdAt: Date.now(),
       text,
       role,
     });
-    
+
     const props = newMessageVertex.getProperties();
     return {
       id: newMessageVertex.id,

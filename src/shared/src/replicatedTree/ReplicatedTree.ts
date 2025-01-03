@@ -312,68 +312,40 @@ export class ReplicatedTree {
       callback(vertex);
     }
 
-    let frameRequest: number | null = null;
-
-    const changeHandler = (event: VertexChangeEvent) => {
-      if (frameRequest === null) {
-        frameRequest = requestAnimationFrame(() => {
-          frameRequest = null;
-          const vertex = this.getVertex(vertexId);
-          if (vertex) {
-            callback(vertex);
-          }
-        });
+    const unsubscribe = this.observe(vertexId, (_) => { 
+      const vertex = this.getVertex(vertexId);
+      if (vertex) {
+        callback(vertex);
       }
-    };
-
-    const unsubscribe = this.observe(vertexId, changeHandler);
+    });
 
     return () => {
       unsubscribe();
-      if (frameRequest !== null) {
-        cancelAnimationFrame(frameRequest);
-      }
     };
   }
 
-  observeVertexMove(callback: (newVertex: Vertex) => void): () => void {
-    let frameRequest: number | null = null;
-    let newVertices = new Set<string>();
-
-    const changeHandler = (op: VertexOperation) => {
-      if (isMoveVertexOp(op) && frameRequest === null) {
-        newVertices.add(op.targetId);
-        frameRequest = requestAnimationFrame(() => {
-          frameRequest = null;
-          // Process all accumulated new vertices
-          for (const vertexId of newVertices) {
-            const vertex = this.getVertex(vertexId);
-            if (vertex) {
-              callback(vertex);
-            }
-          }
-          newVertices.clear();
-        });
+  observeVertexMove(callback: (movedVertex: Vertex) => void): () => void {
+    const listener = (events: VertexChangeEvent[]) => {
+      const moveEvent = events.find(e => e.type === 'move');
+      if (moveEvent) {
+        const vertex = this.getVertex(moveEvent.vertexId);
+        if (vertex) {
+          callback(vertex);
+        }
       }
     };
 
-    const unsubscribe = this.observeOpApplied(changeHandler);
+    this.state.addGlobalChangeCallback(listener);
 
-    return () => {
-      unsubscribe();
-      if (frameRequest !== null) {
-        cancelAnimationFrame(frameRequest);
-      }
-      newVertices.clear();
-    };
+    return () => this.state.removeGlobalChangeCallback(listener);
   }
 
-  observe(vertexId: string | null, callback: (event: VertexChangeEvent) => void): () => void {
+  observe(vertexId: string, callback: (events: VertexChangeEvent[]) => void): () => void {
     this.state.addChangeCallback(vertexId, callback);
     return () => this.state.removeChangeCallback(vertexId, callback);
   }
 
-  unobserve(vertexId: string | null, callback: (event: VertexChangeEvent) => void): void {
+  unobserve(vertexId: string, callback: (events: VertexChangeEvent[]) => void): void {
     this.state.removeChangeCallback(vertexId, callback);
   }
 

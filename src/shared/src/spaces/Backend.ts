@@ -30,27 +30,4 @@ export class Backend {
       this.appBackends.push(new ChatAppBackend(space, appTree.tree));
     });
   }
-
-  /*
-  addOp(treeId: string, op: VertexOperation) {
-    if (!this.inLocalMode) {
-      // @TODO: add the op to the space
-    }
-
-    if (treeId === this.space.getId()) {
-      return;
-    }
-
-    const appTree = this.space.getAppTree(treeId);
-
-    if (!appTree) {
-      throw new Error(`App tree with id ${treeId} not found`);
-    }
-
-    // name it 'default-chat-assist', 'chat-assistant', 'ai-chat'?
-    if (appTree.getAppId() === "default-chat") {
-      this.chatAppBackend.addOp(appTree, op);
-    }
-  }
-  */
 }

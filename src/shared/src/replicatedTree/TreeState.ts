@@ -3,11 +3,55 @@ import { VertexState } from "./VertexState";
 
 export class TreeState {
   private vertices: Map<TreeVertexId, VertexState>;
-  private changeCallbacks: Map<TreeVertexId, Set<(event: VertexChangeEvent) => void>> = new Map();
-  private globalChangeCallbacks: Set<(event: VertexChangeEvent) => void> = new Set();
+  private changeCallbacks: Map<TreeVertexId, Set<(events: VertexChangeEvent[]) => void>> = new Map();
+  private globalChangeCallbacks: Set<(events: VertexChangeEvent[]) => void> = new Set();
+
+  private batchTickInterval: number;
+  private batchedEvents: Map<TreeVertexId, VertexChangeEvent[]> = new Map();
 
   constructor() {
     this.vertices = new Map();
+
+    this.batchTickInterval = setInterval(() => {
+      this.processBatchedEvents();
+    }, 33.3);
+  }
+
+  dispose() {
+    clearInterval(this.batchTickInterval);
+  }
+
+  private processBatchedEvents() {
+    for (const [vertexId, events] of this.batchedEvents) {
+      // Get last property events per key and last move/children events
+      let lastMoveEvent: VertexMoveEvent | null = null;
+      let lastChildrenEvent: VertexChildrenChangeEvent | null = null;
+      const propertyEventsByKey = new Map<string, VertexPropertyChangeEvent>();
+
+      for (let i = events.length - 1; i >= 0; i--) {
+        const event = events[i];
+        if (!lastMoveEvent && event.type === 'move') lastMoveEvent = event as VertexMoveEvent;
+        if (!lastChildrenEvent && event.type === 'children') lastChildrenEvent = event as VertexChildrenChangeEvent;
+        if (event.type === 'property') {
+          const propertyEvent = event as VertexPropertyChangeEvent;
+          if (!propertyEventsByKey.has(propertyEvent.key)) {
+            propertyEventsByKey.set(propertyEvent.key, propertyEvent);
+          }
+        }
+      }
+
+      // Combine all events with move and children events first
+      const filteredEvents = [
+        ...(lastMoveEvent ? [lastMoveEvent] : []),
+        ...(lastChildrenEvent ? [lastChildrenEvent] : []),
+        ...propertyEventsByKey.values()
+      ];
+
+      this.globalChangeCallbacks.forEach(listener => listener(filteredEvents));
+      this.changeCallbacks.get(vertexId)?.forEach(listener => listener(filteredEvents));
+    }
+
+    this.batchedEvents.clear();
   }
 
   getAllVertices(): ReadonlyArray<VertexState> {
@@ -75,6 +119,7 @@ export class TreeState {
     this.notifyChange({
       type: 'move',
       vertexId: vertexId,
+      // @TODO: how do I detect that the vertex that was moved is new? oldParentId is null or undefined?
       oldParentId: prevParentId,
       newParentId,
     } as VertexMoveEvent);
@@ -117,7 +162,7 @@ export class TreeState {
       this.notifyChange({
         type: 'children',
         vertexId: vertex.parentId,
-        children: [vertex],
+        children: [vertex], // @TODO: shoulld I set all children or rename this property?
       } as VertexChildrenChangeEvent);
     }
   }
@@ -137,28 +182,37 @@ export class TreeState {
     } as VertexPropertyChangeEvent);
   }
 
-  addChangeCallback(vertexId: TreeVertexId | null, listener: (event: VertexChangeEvent) => void) {
-    if (vertexId === null) {
-      this.globalChangeCallbacks.add(listener);
-    } else {
-      if (!this.changeCallbacks.has(vertexId)) {
-        this.changeCallbacks.set(vertexId, new Set());
-      }
-      this.changeCallbacks.get(vertexId)!.add(listener);
+  addChangeCallback(vertexId: TreeVertexId, listener: (events: VertexChangeEvent[]) => void) {
+    if (!this.changeCallbacks.has(vertexId)) {
+      this.changeCallbacks.set(vertexId, new Set());
     }
+    this.changeCallbacks.get(vertexId)!.add(listener);
   }
 
-  removeChangeCallback(vertexId: TreeVertexId | null, listener: (event: VertexChangeEvent) => void) {
-    if (vertexId === null) {
-      this.globalChangeCallbacks.delete(listener);
-    } else {
-      this.changeCallbacks.get(vertexId)?.delete(listener);
-    }
+  removeChangeCallback(vertexId: TreeVertexId, listener: (events: VertexChangeEvent[]) => void) {
+    this.changeCallbacks.get(vertexId)?.delete(listener);
+  }
+
+  addGlobalChangeCallback(listener: (events: VertexChangeEvent[]) => void) {
+    this.globalChangeCallbacks.add(listener);
+  }
+
+  removeGlobalChangeCallback(listener: (events: VertexChangeEvent[]) => void) {
+    this.globalChangeCallbacks.delete(listener);
   }
 
   private notifyChange(event: VertexChangeEvent) {
-    this.globalChangeCallbacks.forEach(listener => listener(event));
-    this.changeCallbacks.get(event.vertexId)?.forEach(listener => listener(event));
+    let events = this.batchedEvents.get(event.vertexId);
+    if (!events) {
+      events = [];
+      this.batchedEvents.set(event.vertexId, events);
+    }
+
+    events.push(event);
+
+    // @TODO: have immediate events
+    //this.globalChangeCallbacks.forEach(listener => listener(event));
+    //this.changeCallbacks.get(event.vertexId)?.forEach(listener => listener(event));
   }
 
   printTree(vertexId: TreeVertexId, indent: string = "", isLast: boolean = true): string {

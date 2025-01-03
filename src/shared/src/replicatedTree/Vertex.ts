@@ -98,14 +98,14 @@ export class Vertex {
     return this.findAllChildrenWithProperty(key, value).map(c => c.getAsTypedObject<T>());
   }
 
-  observe(listener: (event: VertexChangeEvent) => void): () => void {
+  observe(listener: (events: VertexChangeEvent[]) => void): () => void {
     const unobserve = this.tree.observe(this.id, listener);
     return () => unobserve();
   }
 
   observeChildren(listener: (children: Vertex[]) => void): () => void {
-    const unobserve = this.tree.observe(this.id, (event: VertexChangeEvent) => {
-      if (event.type === 'children') {
+    const unobserve = this.tree.observe(this.id, (events: VertexChangeEvent[]) => {
+      if (events.some(e => e.type === 'children')) {
         listener(this.children);
       }
     });

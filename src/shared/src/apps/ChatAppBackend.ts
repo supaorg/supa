@@ -15,6 +15,7 @@ export default class ChatAppBackend {
     this.processMessages(this.data.messages);
 
     this.data.observeNewMessages((messages) => {
+      console.log("New messages", messages);
       this.processMessages(messages);
     });
   }
