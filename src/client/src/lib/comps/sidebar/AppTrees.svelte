@@ -3,8 +3,19 @@
   import { onMount, onDestroy } from "svelte";
   import VertexItem from "./VertexItem.svelte";
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
-  
+  import { page } from "$app/state";
+
   let appTreeIds: string[] = $state([]);
+
+  let openAppTreeId = $derived(() => {
+    const url = page.url;
+
+    const t = url.searchParams.get("t");
+
+    console.log("openAppTreeId", t);
+
+    return t;
+  });
 
   onMount(() => {
     appTreeIds = [...($currentSpaceStore?.getAppTreeIds() ?? [])];
@@ -18,7 +29,7 @@
   });
 
   function onAppTreeChange(events: VertexChangeEvent[]) {
-    if (events.some(e => e.type === "children")) {
+    if (events.some((e) => e.type === "children")) {
       appTreeIds = [...($currentSpaceStore?.getAppTreeIds() ?? [])];
     }
   }

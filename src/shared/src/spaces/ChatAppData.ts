@@ -28,6 +28,10 @@ export class ChatAppData {
     return this.root.getProperty("configId") as string;
   }
 
+  set configId(configId: string) {
+    this.root.setProperty("configId", configId);
+  }
+
   get title(): string | undefined {
     return this.root.getProperty("title") as string;
   }

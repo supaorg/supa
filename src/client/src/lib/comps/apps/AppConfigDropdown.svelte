@@ -3,15 +3,14 @@
   import { ChevronDown } from "lucide-svelte";
   import { popup } from "@skeletonlabs/skeleton";
   import type { PopupSettings } from "@skeletonlabs/skeleton";
-  import { get } from "svelte/store";
   import { onMount } from "svelte";
   import { ChatAppData } from "@shared/spaces/ChatAppData";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
   let { data }: { data: ChatAppData } = $props();
 
-  let visibleAppConfigs: AppConfig[] = [];
-
-  let appConfig: AppConfig | null;
+  let visibleAppConfigs = $state<AppConfig[]>([]);
+  let appConfig = $state<AppConfig | undefined>(undefined);
 
   const popupClick: PopupSettings = {
     event: "click",
@@ -19,37 +18,23 @@
     placement: "top",
   };
 
-  onMount(async () => {
-    /*
-    visibleAppConfigs = $appConfigsStore.filter((config) =>
-      config.meta ? config.meta.visible : false,
-    );
-    */
+  onMount(() => {
+    const unobserve = $currentSpaceStore?.appConfigs.observe((configs) => {
+      visibleAppConfigs = configs.filter((config) => config.visible);
+    });
 
-    /*
-    if (!$threadsStore || $threadsStore.length === 0) {
-      return;
+    if (data.configId) {
+      appConfig = $currentSpaceStore?.getAppConfig(data.configId);
     }
 
-    const thread = $threadsStore.find((t) => t.id === threadId);
-
-    if (!thread) {
-      return;
-    }
-
-    appConfig = (await $currentWorkspaceStore?.getAppConfig(
-      thread.appConfigId,
-    )) as AppConfig | null;
-    */
+    return () => {
+      unobserve?.();
+    };
   });
 
   async function changeAppConfig(appConfigId: string) {
-    /*
-    if ($currentWorkspaceStore) {
-      // @TODO: change app config
-      await $currentWorkspaceStore.changeAppConfig(threadId, appConfigId);
-    }
-    */
+    data.configId = appConfigId;
+    appConfig = $currentSpaceStore?.getAppConfig(appConfigId);
   }
 </script>
 
