@@ -33,6 +33,7 @@ export class ChatAppData {
   }
 
   set title(title: string) {
+    console.log("setting title", title);
     this.root.setProperty("title", title);
     this.referenceInSpace.setProperty("title", title);
   }

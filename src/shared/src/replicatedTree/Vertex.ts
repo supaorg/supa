@@ -16,9 +16,12 @@ export class Vertex {
     return this.state.id;
   }
 
-  get name(): string {
-    //return this.state.name;
-    throw new Error('Not implemented');
+  get name(): string | undefined {
+    return this.getProperty('_n') as string | undefined;
+  }
+
+  set name(name: string) {
+    this.tree.setVertexProperty(this.id, '_n', name);
   }
 
   get path(): string {

@@ -9,6 +9,10 @@ import type { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 export default class ChatAppBackend {
   private data: ChatAppData;
 
+  get appTreeId(): string {
+    return this.appTree.rootVertexId;
+  }
+
   constructor(private space: Space, private appTree: ReplicatedTree) {
     this.data = new ChatAppData(this.space, appTree);
 
@@ -68,5 +72,8 @@ export default class ChatAppBackend {
     if (newTitle !== this.data.title) {
       this.data.title = newTitle;
     }
+
+    this.space.setAppTreeName(this.appTreeId, this.data.title);
+    
   }
 }

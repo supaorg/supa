@@ -124,6 +124,13 @@ export default class Space {
     return appTree;
   }
 
+  setAppTreeName(appTreeId: string, name: string) {
+    const vertex = this.getVertexReferencingAppTree(appTreeId);
+    if (!vertex || vertex.name === name) return;
+
+    vertex.name = name;
+  }
+
   getVertex(vertexId: string): Vertex | undefined {
     return this.tree.getVertex(vertexId);
   }
