@@ -44,8 +44,28 @@ export class VertexState {
     return this.properties.find(p => p.key === key);
   }
 
-  getAllProperties(): ReadonlyArray<TreeVertexProperty> {
-    return this.properties;
+  getAllProperties(includingTransient: boolean = true): ReadonlyArray<TreeVertexProperty> {
+    if (!includingTransient) {
+      return this.properties;
+    }
+
+    const result: TreeVertexProperty[] = [];
+    const seenKeys = new Set<string>();
+
+    // Add transient properties first
+    for (const prop of this.transientProperties) {
+      result.push(prop);
+      seenKeys.add(prop.key);
+    }
+
+    // Add permanent properties that don't have a transient override
+    for (const prop of this.properties) {
+      if (!seenKeys.has(prop.key)) {
+        result.push(prop);
+      }
+    }
+
+    return result;
   }
 
   removeProperty(key: string): void {

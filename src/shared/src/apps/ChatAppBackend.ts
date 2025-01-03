@@ -15,14 +15,11 @@ export default class ChatAppBackend {
     this.processMessages(this.data.messages);
 
     this.data.observeNewMessages((messages) => {
-      console.log("New messages", messages);
       this.processMessages(messages);
     });
   }
 
   private processMessages(messages: ThreadMessage[]) {
-    console.log("Processing messages", messages);
-
     if (messages.length === 0) {
       return;
     }
@@ -33,8 +30,6 @@ export default class ChatAppBackend {
   }
 
   private async replyToMessage(messages: ThreadMessage[]) {
-    console.log("replyToMessage", messages);
-
     const config: AppConfig | undefined = this.data.configId ?
       this.space.getAppConfig(this.data.configId) : undefined;
 
@@ -58,7 +53,6 @@ export default class ChatAppBackend {
     const response = await simpleChatAgent.input(messagesForLang, (resp) => {
       const wipResponse = resp as string;
       this.appTree.setTransientVertexProperty(newMessage.id, "text", wipResponse);
-      console.log(wipResponse);
     }) as string;
 
     // Update the message with the final response

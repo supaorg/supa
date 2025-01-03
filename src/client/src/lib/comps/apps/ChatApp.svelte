@@ -82,7 +82,7 @@
   >
     <div class="w-full max-w-3xl mx-auto px-4">
       {#each messages as message (message.id)}
-        <ChatAppMessage {message} {data} />
+        <ChatAppMessage messageId={message.id} {data} />
       {/each}
     </div>
   </div>

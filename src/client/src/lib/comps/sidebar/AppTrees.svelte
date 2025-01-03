@@ -9,21 +9,16 @@
   onMount(() => {
     appTreeIds = [...($currentSpaceStore?.getAppTreeIds() ?? [])];
 
-    $currentSpaceStore?.tree.observe(
+    const unsubscribe = $currentSpaceStore?.tree.observe(
       $currentSpaceStore?.appTreesVertex.id,
       onAppTreeChange,
     );
+
+    return () => unsubscribe?.();
   });
 
-  onDestroy(() => {
-    $currentSpaceStore?.tree.unobserve(
-      $currentSpaceStore?.appTreesVertex.id,
-      onAppTreeChange,
-    );
-  });
-
-  function onAppTreeChange(event: VertexChangeEvent) {
-    if (event.type === "children") {
+  function onAppTreeChange(events: VertexChangeEvent[]) {
+    if (events.some(e => e.type === "children")) {
       appTreeIds = [...($currentSpaceStore?.getAppTreeIds() ?? [])];
     }
   }

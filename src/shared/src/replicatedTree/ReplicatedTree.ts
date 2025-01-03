@@ -345,10 +345,6 @@ export class ReplicatedTree {
     return () => this.state.removeChangeCallback(vertexId, callback);
   }
 
-  unobserve(vertexId: string, callback: (events: VertexChangeEvent[]) => void): void {
-    this.state.removeChangeCallback(vertexId, callback);
-  }
-
   observeOpApplied(callback: (op: VertexOperation) => void): () => void {
     this.opAppliedCallbacks.push(callback);
     return () => this.opAppliedCallbacks = this.opAppliedCallbacks.filter(l => l !== callback);
