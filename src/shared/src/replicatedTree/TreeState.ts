@@ -78,6 +78,7 @@ export class TreeState {
 
   moveVertex(vertexId: TreeVertexId, newParentId: TreeVertexId | null): VertexState {
     let vertex = this.getVertex(vertexId);
+    // Undefined if the vertex is new
     const prevParentId = vertex ? vertex.parentId : undefined;
     if (!vertex) {
       vertex = new VertexState(vertexId, newParentId);
@@ -119,7 +120,6 @@ export class TreeState {
     this.notifyChange({
       type: 'move',
       vertexId: vertexId,
-      // @TODO: how do I detect that the vertex that was moved is new? oldParentId is null or undefined?
       oldParentId: prevParentId,
       newParentId,
     } as VertexMoveEvent);
@@ -132,7 +132,7 @@ export class TreeState {
       } as VertexChildrenChangeEvent);
     }
 
-    if (childrenInOldParent !== null && prevParentId !== null) {
+    if (childrenInOldParent !== null && prevParentId) {
       this.notifyChange({
         type: 'children',
         vertexId: prevParentId,

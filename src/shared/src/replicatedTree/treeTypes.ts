@@ -24,7 +24,7 @@ export type VertexPropertyChangeEvent = VertexChangeEvent & {
 
 export type VertexMoveEvent = VertexChangeEvent & {
   type: 'move';
-  oldParentId: TreeVertexId;
+  oldParentId: TreeVertexId | null | undefined;
   newParentId: TreeVertexId;
 }
 

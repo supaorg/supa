@@ -4,7 +4,7 @@
  */
 
 import { newMoveVertexOp, type MoveVertex, type SetVertexProperty, isMoveVertexOp, isSetPropertyOp, type VertexOperation, newSetVertexPropertyOp, newSetTransientVertexPropertyOp } from "./operations";
-import type { VertexPropertyType, TreeVertexProperty, VertexChangeEvent, TreeVertexId } from "./treeTypes";
+import type { VertexPropertyType, TreeVertexProperty, VertexChangeEvent, TreeVertexId, VertexMoveEvent } from "./treeTypes";
 import { VertexState } from "./VertexState";
 import { TreeState } from "./TreeState";
 import { OpId } from "./OpId";
@@ -324,13 +324,13 @@ export class ReplicatedTree {
     };
   }
 
-  observeVertexMove(callback: (movedVertex: Vertex) => void): () => void {
+  observeVertexMove(callback: (movedVertex: Vertex, isNew: boolean) => void): () => void {
     const listener = (events: VertexChangeEvent[]) => {
-      const moveEvent = events.find(e => e.type === 'move');
+      const moveEvent = events.find(e => e.type === 'move') as VertexMoveEvent | undefined;
       if (moveEvent) {
         const vertex = this.getVertex(moveEvent.vertexId);
         if (vertex) {
-          callback(vertex);
+          callback(vertex, moveEvent.oldParentId === undefined);
         }
       }
     };

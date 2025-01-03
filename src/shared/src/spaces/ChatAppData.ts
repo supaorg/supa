@@ -72,10 +72,12 @@ export class ChatAppData {
   }
 
   observeNewMessages(callback: (messages: ThreadMessage[]) => void): () => void {
-    return this.appTree.observeVertexMove((vertex) => {
-      const text = vertex.getProperty("text");
-      if (text) {
-        callback(this.messages);
+    return this.appTree.observeVertexMove((vertex, isNew) => {
+      if (isNew) {
+        const text = vertex.getProperty("text");
+        if (text) {
+          callback(this.messages);
+        }
       }
     });
   }
