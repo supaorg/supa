@@ -1,11 +1,16 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { AppConfig } from "@shared/models";
+
+  /*
   import {
     SlideToggle,
     getModalStore,
     type ModalSettings,
   } from "@skeletonlabs/skeleton";
+  */
+  import { Switch } from '@skeletonlabs/skeleton-svelte';
+ 
   import { TrashIcon } from "lucide-svelte";
 
   let { config }: { config: AppConfig } = $props();
@@ -14,8 +19,10 @@
     config.visible !== undefined ? config.visible : true,
   );
   const isDefault = config.id === "default";
-  const modalStore = getModalStore();
 
+  /*
+  const modalStore = getModalStore();
+  */
   $effect(() => {
     setAppConfigVisibility(isVisible);
   });
@@ -27,6 +34,7 @@
     }
   }
 
+  /*
   const deletionModal = {
     type: "confirm",
     title: `Delete the ${config.name} app config?`,
@@ -37,10 +45,12 @@
       }
     },
   } as ModalSettings;
-
+  */
+ 
   function requestDeleteAppConfig() {
-    modalStore.trigger(deletionModal);
+    //modalStore.trigger(deletionModal);
   }
+  
 
   function deleteAppConfig() {
     $currentSpaceStore?.appConfigs.delete(config);
@@ -54,10 +64,9 @@
     ></td
   >
   <td
-    ><SlideToggle
+    ><Switch
       name={"visible-" + config.id}
       bind:checked={isVisible}
-      size="sm"
     /></td
   >
   <td>

@@ -2,7 +2,7 @@
   import type { ModelProvider } from "@shared/models";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import { onMount } from "svelte";
-  import { ProgressBar } from "@skeletonlabs/skeleton";
+  import { ProgressRing } from "@skeletonlabs/skeleton-svelte";
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
@@ -112,7 +112,7 @@
         >Disconnect</button
       >
     {:else if state === "loading"}
-      <div class="w-full"><ProgressBar value={undefined} /></div>
+      <div class="w-full"><ProgressRing value={null} /></div>
     {/if}
   </div>
 </div>

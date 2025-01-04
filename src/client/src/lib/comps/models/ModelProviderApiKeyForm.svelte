@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ProgressRadial } from "@skeletonlabs/skeleton";
+  import { ProgressRing } from "@skeletonlabs/skeleton-svelte";
   import { CheckCircle, CircleAlert } from "lucide-svelte/icons";
   import { onMount } from "svelte";
   import type {
@@ -78,7 +78,7 @@
       ><CheckCircle size={18} class="w-6 mt-2 ml-2 mr-2" /></span
     >
   {:else if checkingKey}
-    <span class="absolute right-0"><ProgressRadial class="w-6 m-2" /></span>
+    <span class="absolute right-0"><ProgressRing value={null} /></span>
   {:else if showWarning}
     <span class="absolute right-0"
       ><CircleAlert size={18} class="w-6 mt-2 ml-2 mr-2" /></span

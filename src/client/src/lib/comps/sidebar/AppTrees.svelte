@@ -7,7 +7,7 @@
 
   let appTreeIds: string[] = $state([]);
 
-  let openAppTreeId = $derived(() => {
+  let openAppTreeId = $derived.by(() => {
     const url = page.url;
 
     const t = url.searchParams.get("t");

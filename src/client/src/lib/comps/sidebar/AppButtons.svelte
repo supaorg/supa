@@ -3,11 +3,12 @@
   import type { AppConfig } from "@shared/models";
   import Pen from "lucide-svelte/icons/pen";
   import { onMount } from "svelte";
-  import { getModalStore } from "@skeletonlabs/skeleton";
+  //import { getModalStore } from "@skeletonlabs/skeleton";
 
-  const modalStore = getModalStore();
+  //const modalStore = getModalStore();
 
   function openNewThreadModal(appConfigId: string) {
+    /*
     modalStore.trigger({
       type: "component",
       component: "newThread",
@@ -15,6 +16,7 @@
         appConfigId: appConfigId,
       },
     });
+    */
   }
 
   let appConfigs = $state<AppConfig[]>([]);

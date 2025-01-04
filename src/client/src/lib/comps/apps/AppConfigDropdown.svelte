@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { AppConfig } from "@shared/models";
   import { ChevronDown } from "lucide-svelte";
-  import { popup } from "@skeletonlabs/skeleton";
-  import type { PopupSettings } from "@skeletonlabs/skeleton";
+  //import { popup } from "@skeletonlabs/skeleton";
+  //import type { PopupSettings } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
   import { ChatAppData } from "@shared/spaces/ChatAppData";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
@@ -12,11 +12,13 @@
   let visibleAppConfigs = $state<AppConfig[]>([]);
   let appConfig = $state<AppConfig | undefined>(undefined);
 
+  /* 
   const popupClick: PopupSettings = {
     event: "click",
     target: "app-config-dropdown-popup",
     placement: "top",
   };
+  */
 
   onMount(() => {
     const unobserve = $currentSpaceStore?.appConfigs.observe((configs) => {
@@ -39,7 +41,7 @@
 </script>
 
 {#if appConfig}
-  <button class="btn btn-sm variant-ringed" use:popup={popupClick}
+  <button class="btn btn-sm variant-ringed"
     >{appConfig.name} <ChevronDown size={16} /></button
   >
 {:else}

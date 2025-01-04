@@ -2,16 +2,17 @@
   import { goto } from "$app/navigation";
   import type { AppConfig, ThreadMessage } from "@shared/models";
   import SendMessageForm from "../forms/SendMessageForm.svelte";
-  import { getModalStore } from "@skeletonlabs/skeleton";
+  //import { getModalStore } from "@skeletonlabs/skeleton";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
-    import { ChatAppData } from "@shared/spaces/ChatAppData";
+  import { ChatAppData } from "@shared/spaces/ChatAppData";
 
-  const modalStore = getModalStore();
+  //const modalStore = getModalStore();
   const placeholder = "Write a message...";
 
   let appConfig = $state<AppConfig | undefined>(undefined);
   let isSending = $state(false);
 
+  /*
   modalStore.subscribe((modals) => {
     if (modals.length === 0 || !modals[0].meta || !modals[0].meta.appConfigId) {
       appConfig = undefined;
@@ -22,6 +23,7 @@
 
     appConfig = $currentSpaceStore?.getAppConfig(appConfigId);
   });
+  */
 
   function onSend(msg: string) {
     if (!msg) {
@@ -48,7 +50,7 @@
 
     isSending = false;
 
-    modalStore.close();
+    //modalStore.close();
   }
 </script>
 

@@ -1,17 +1,19 @@
 <script lang="ts">
   //import { EllipsisVertical, Icon } from "svelte-hero-icons";
   import { EllipsisVertical } from "lucide-svelte";
-  import type { PopupSettings } from "@skeletonlabs/skeleton";
-  import { popup } from "@skeletonlabs/skeleton";
+  //import type { PopupSettings } from "@skeletonlabs/skeleton";
+  //import { popup } from "@skeletonlabs/skeleton";
   import { goto } from "$app/navigation";
 
   let { appTreeId } : { appTreeId: string } = $props();
 
+  /*
   const popupSettings: PopupSettings = {
     event: "click",
     target: `popup-${appTreeId}`,
     placement: "bottom",
   };
+  */
 
   function startRenamingThread() {
     // @TODO: trigger the parent component to start renaming the thread
@@ -27,7 +29,7 @@
   }
 </script>
 
-<button use:popup={popupSettings}><EllipsisVertical size={18} /></button>
+<button><EllipsisVertical size={18} /></button>
 
 <!--
 <Portal>

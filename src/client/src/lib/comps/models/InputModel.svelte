@@ -1,16 +1,18 @@
 <script lang="ts">
   import type { ModelProvider } from "@shared/models";
-  import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
+  //import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
+  import { ProgressRing } from "@skeletonlabs/skeleton-svelte";
   import { Sparkles, CircleAlert } from "lucide-svelte/icons";
   import { providers } from "@shared/providers";
 
   let { value = $bindable(), required }: { value: string; required?: boolean } =
     $props();
 
-  const popupStore = getModalStore();
+  //const popupStore = getModalStore();
   let inputElement: HTMLInputElement;
 
   function onRequestChange() {
+    /*
     popupStore.trigger({
       type: "component",
       component: "selectModel",
@@ -22,6 +24,7 @@
         },
       },
     });
+    */
   }
 
   let providerId = $state("");
@@ -122,7 +125,7 @@
   -->
 {:else}
   <div class="input variant-form-material">
-    <ProgressRadial class="w-6" />
+    <ProgressRing value={null} />
   </div>
 {/if}
 {#if error}

@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { Tokens } from "marked";
-  import { CodeBlock, storeHighlightJs } from "@skeletonlabs/skeleton";
+  //import { CodeBlock, storeHighlightJs } from "@skeletonlabs/skeleton-svelte";
 
-  export let token: Tokens.Code;
+  let { token }: { token: Tokens.Code } = $props();
 
+  /*
   const availableLangs = $storeHighlightJs.listLanguages();
   let language: string;
   let code: string;
@@ -17,8 +18,10 @@
       language = 'plaintext';
     }
   }
+  */
 </script>
 
 <div class="my-4">
-  <CodeBlock {language} {code} />
+  <!-- <CodeBlock {language} {code} /> -->
+  <pre>{token.text}</pre>
 </div>

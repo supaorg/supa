@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { ModelProvider, ModelProviderConfig } from "@shared/models";
-  import { ListBox, ListBoxItem } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
   import { getProviderModels } from "@shared/tools/providerModels";
 
@@ -93,16 +92,11 @@
     {#if selected}
       {#if showModels}
         <div class="p-4">
-          <ListBox>
+          <select size={models.length}>
             {#each models as model}
-              <ListBoxItem
-                bind:group={modelId}
-                on:click={() => onChangeModel(model)}
-                name="models"
-                value={model}>{model}</ListBoxItem
-              >
+              <option value={model}>{model}</option>
             {/each}
-          </ListBox>
+          </select>
         </div>
       {/if}
     {/if}

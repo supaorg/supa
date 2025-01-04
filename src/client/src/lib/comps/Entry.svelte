@@ -9,8 +9,10 @@
     arrow,
   } from "@floating-ui/dom";
 
+  /*
   import { storePopup } from "@skeletonlabs/skeleton";
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+  */
 
   import { onMount } from "svelte";
   import Loading from "$lib/comps/basic/Loading.svelte";

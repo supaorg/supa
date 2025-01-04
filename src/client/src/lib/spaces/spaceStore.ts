@@ -1,6 +1,7 @@
 import type { Readable, Writable } from "svelte/store";
 import { writable, get, derived } from "svelte/store";
-import { localStorageStore } from "@skeletonlabs/skeleton";
+//import { localStorageStore } from "@skeletonlabs/skeleton";
+
 import type { SpacePointer } from "./SpacePointer";
 import type Space from "@shared/spaces/Space";
 import { loadSpaceFromPointer } from "./LocalSpaceSync";
@@ -9,16 +10,19 @@ import { loadSpaceFromPointer } from "./LocalSpaceSync";
  * A persistent store of pointers to spaces.
  * We use pointers to connect to spaces.
  */
+/*
 const spacePointersStore: Writable<SpacePointer[]> = localStorageStore(
   "spacePointers",
   [],
 );
+*/
+const spacePointersStore: Writable<SpacePointer[]> = writable<SpacePointer[]>([]);
 
 /**
  * The current space id. It's used in pair with spacesStore.
  */
-export const currentSpaceIdStore: Writable<string | null> = localStorageStore("currentSpaceId", null);
-
+//export const currentSpaceIdStore: Writable<string | null> = localStorageStore("currentSpaceId", null);
+export const currentSpaceIdStore: Writable<string | null> = writable<string | null>(null);
 /**
  * A store of actual connected spaces constructed from space pointers.
  */

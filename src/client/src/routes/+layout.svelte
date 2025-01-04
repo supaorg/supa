@@ -7,8 +7,8 @@
 </script>
 
 <svelte:head>
-  <title>SupaCloud</title>
-  <meta name="description" content="SupaCloud" />
+  <title>Supa</title>
+  <meta name="description" content="Supa" />
 </svelte:head>
 
 <Entry>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { focusTrap } from "@skeletonlabs/skeleton";
+  //import { focusTrap } from "@skeletonlabs/skeleton";
   import { Send, StopCircle } from "lucide-svelte";
 
   const THREAD_STATUS = {
@@ -78,7 +78,8 @@
   }
 </script>
 
-<form use:focusTrap={isFocused}>
+<!--<form use:focusTrap={isFocused}>-->
+<form>
   <div
     class="input-group flex input-group-divider grid-cols-2 rounded-container-token p-2"
   >
