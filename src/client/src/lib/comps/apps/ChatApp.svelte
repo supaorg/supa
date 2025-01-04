@@ -2,7 +2,6 @@
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import ChatAppMessage from "./ChatAppMessage.svelte";
   import { onMount, tick } from "svelte";
-  import type { VertexOperation } from "@shared/replicatedTree/operations";
   import AppConfigDropdown from "./AppConfigDropdown.svelte";
   import { ChatAppData } from "@shared/spaces/ChatAppData";
   import type { ThreadMessage } from "@shared/models";
