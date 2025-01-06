@@ -92,7 +92,7 @@
     {#if selected}
       {#if showModels}
         <div class="p-4">
-          <select size={models.length}>
+          <select class="select" size={models.length}>
             {#each models as model}
               <option value={model}>{model}</option>
             {/each}

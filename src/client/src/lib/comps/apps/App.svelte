@@ -9,12 +9,12 @@
     type ModalComponent,
   } from "@skeletonlabs/skeleton";
   */
-  import SelectModelPopup from "../popups/SelectModelPopup.svelte";
-  import NewThreadPopup from "../popups/NewThreadPopup.svelte";
+  //import SelectModelPopup from "../popups/SelectModelPopup.svelte";
+  //import NewThreadPopup from "../popups/NewThreadPopup.svelte";
   //import { storeHighlightJs } from "@skeletonlabs/skeleton";
   // For code highlighting in conversations
-  import hljs from "highlight.js";
-  import { extendMarked } from "$lib/utils/markdown/extendMarked";
+  //import hljs from "highlight.js";
+  //import { extendMarked } from "$lib/utils/markdown/extendMarked";
 
   let { children }: { children: Snippet } = $props();
 

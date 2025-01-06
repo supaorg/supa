@@ -1,17 +1,19 @@
 <script lang="ts">
   import type { ModelProvider } from "@shared/models";
-  //import { ProgressRadial, getModalStore } from "@skeletonlabs/skeleton";
   import { ProgressRing } from "@skeletonlabs/skeleton-svelte";
   import { Sparkles, CircleAlert } from "lucide-svelte/icons";
   import { providers } from "@shared/providers";
+  import { Modal } from "@skeletonlabs/skeleton-svelte";
+  import SelectModelPopup from "../popups/SelectModelPopup.svelte";
 
   let { value = $bindable(), required }: { value: string; required?: boolean } =
     $props();
 
-  //const popupStore = getModalStore();
   let inputElement: HTMLInputElement;
+  let openState = $state(false);
 
   function onRequestChange() {
+    openState = true;
     /*
     popupStore.trigger({
       type: "component",
@@ -142,3 +144,19 @@
   style="position: absolute; left: -9999px;"
   {required}
 />
+
+<Modal
+  bind:open={openState}
+  contentBase="card bg-surface-100-900 p-4 space-y-4 shadow-xl max-w-screen-sm min-w-[400px] max-h-screen overflow-y-auto"
+  backdropClasses="backdrop-blur-sm"
+>
+  {#snippet content()}
+    <SelectModelPopup
+      onRequestClose={() => (openState = false)}
+      selectedModel={value}
+      onModelSelect={(model) => {
+        value = model;
+      }}
+    />
+  {/snippet}
+</Modal>
