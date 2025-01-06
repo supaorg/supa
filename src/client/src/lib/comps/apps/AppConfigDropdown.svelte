@@ -48,6 +48,7 @@
   <button class="btn" disabled>...</button>
 {/if}
 
+<!--
 <div class="card shadow-xl z-10" data-popup="app-config-dropdown-popup">
   <div class="arrow variant-filled"></div>
   <div class="btn-group-vertical variant-filled">
@@ -62,3 +63,4 @@
     {/each}
   </div>
 </div>
+-->

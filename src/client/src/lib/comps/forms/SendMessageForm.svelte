@@ -1,6 +1,6 @@
 <script lang="ts">
   //import { focusTrap } from "@skeletonlabs/skeleton";
-  import { Send, StopCircle } from "lucide-svelte";
+  import { Send, StopCircle, Paperclip } from "lucide-svelte";
 
   const THREAD_STATUS = {
     DISABLED: "disabled",
@@ -78,7 +78,55 @@
   }
 </script>
 
+
+
 <!--<form use:focusTrap={isFocused}>-->
+<form class="w-full">
+  <div class="relative flex h-full max-w-full flex-1 flex-col">
+    <div class="absolute bottom-full left-0 right-0 z-20"></div>
+    <div class="group relative flex w-full items-center">
+      <div class="w-full">
+        <div class="flex w-full cursor-text flex-col rounded-lg px-2.5 py-1 transition-colors bg-surface-900">
+          <div class="flex min-h-[44px] items-start pl-2">
+            <div class="min-w-0 max-w-full flex-1">
+              <div class="max-h-[25dvh] max-h-52 overflow-auto">
+                <textarea
+                  class="block h-10 w-full resize-none border-0 bg-transparent px-0 py-2 text-token-text-primary placeholder:opacity-80"
+                  {placeholder}
+                  bind:value={query}
+                  onkeydown={handleKeydownInChatInput}
+                  onkeyup={handleKeyupInChatInput}
+                ></textarea>
+              </div>
+            </div>
+            <div class="w-[32px] pt-1"></div>
+          </div>
+          
+          <!-- Bottom toolbar -->
+          <div class="flex h-[44px] items-center justify-between">
+            <div class="flex gap-x-1">
+              <!-- Attach files button -->
+              <button class="flex h-8 w-8 items-center justify-center rounded-lg text-token-text-primary">
+                <Paperclip size={16} />
+              </button>
+            </div>
+            
+            <!-- Voice button -->
+            <div class="min-w-8">
+              <div class="relative h-8 w-8">
+                <button onclick={sendMsg} class="flex h-8 w-8 items-center justify-center rounded-full">
+                  <Send size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!--
 <form>
   <div
     class="input-group flex input-group-divider grid-cols-2 rounded-container-token p-2"
@@ -86,7 +134,7 @@
     <textarea
       bind:value={query}
       data-focusindex="0"
-      class="chat-textarea bg-transparent resize-none border-0 ring-0 flex-grow max-h-[200px]"
+      class="bg-transparent resize-none border-0 ring-0 flex-grow max-h-[200px]"
       name="prompt"
       id="prompt"
       {placeholder}
@@ -114,3 +162,4 @@
     {/if}
   </div>
 </form>
+-->

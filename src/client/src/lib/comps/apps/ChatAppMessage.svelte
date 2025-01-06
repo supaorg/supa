@@ -58,43 +58,32 @@
 </script>
 
 {#if message}
-  <div class="flex flex-1 text-base mx-auto gap-3 w-full">
-    <div class="flex-shrink-0 flex flex-col relative items-end">
-      <div
-        class="gizmo-shadow-stroke flex h-6 w-6 items-center justify-center overflow-hidden"
-      >
+  <div class="flex gap-3 px-4 py-2">
+    <div class="flex-shrink-0 mt-1">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center">
         {#if message.role === "user"}
-          <User size={16} />
+          <User size={18} />
         {:else if message.role === "assistant"}
-          <Sparkles size={16} />
+          <Sparkles size={18} />
         {:else}
-          <CircleAlert size={16} />
+          <CircleAlert size={18} />
         {/if}
       </div>
     </div>
-    <div
-      class="card p-4 variant-filled-secondary z-10"
-      data-popup={`popup-${message.id}`}
-    >
-      <p>{formatChatDate(message.createdAt)}</p>
-      <div class="arrow variant-filled-secondary"></div>
-    </div>
-    <div class="relative flex w-full flex-col flex-grow">
-      <header class="flex justify-between items-center">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 mt-2">
         {#if message.role === "user"}
           <p class="font-bold">You</p>
-          <button class="cursor-default"
-            ><small class="opacity-50"
-              >{formatChatDateToTime(message.createdAt)}</small
-            ></button
-          >
+          <button class="cursor-default">
+            <small class="opacity-50">{formatChatDateToTime(message.createdAt)}</small>
+          </button>
         {:else if message.role === "assistant"}
           <p class="font-bold">AI</p>
         {:else}
           <p class="font-bold">Error</p>
         {/if}
-      </header>
-      <div class="thread-message flex-grow leading-relaxed">
+      </div>
+      <div>
         {#if message.role === "user"}
           {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
         {:else}
@@ -107,9 +96,16 @@
           <button class="btn variant-filled" onclick={retry}>Retry</button>
         {/if}
       </div>
-      <div class="mt-1 flex justify-start gap-3 empty:hidden h-7">
-        <div class="h-7"></div>
-      </div>
     </div>
   </div>
 {/if}
+
+<!--
+    <div
+      class="card p-4 variant-filled-secondary z-10"
+      data-popup={`popup-${message.id}`}
+    >
+      <p>{formatChatDate(message.createdAt)}</p>
+      <div class="arrow variant-filled-secondary"></div>
+    </div>
+-->
