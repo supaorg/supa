@@ -64,12 +64,19 @@ export class Vertex {
   }
 
   setProperty(key: string, value: VertexPropertyType): void {
+    // First check if the property is already set
+    const existingValue = this.getProperty(key);
+    if (existingValue === value) {
+      return;
+    }
+
     this.tree.setVertexProperty(this.id, key, value);
   }
 
   setProperties(props: Record<string, VertexPropertyType> | object): void {
-    const typedProps = props as Record<string, VertexPropertyType>;
-    this.tree.setVertexProperties(this.id, typedProps);
+    for (const [key, value] of Object.entries(props)) {
+      this.setProperty(key, value);
+    }
   }
 
   getProperty(key: string): VertexPropertyType | undefined {

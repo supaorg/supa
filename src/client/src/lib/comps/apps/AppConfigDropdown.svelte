@@ -1,24 +1,20 @@
 <script lang="ts">
-  import type { AppConfig } from "@shared/models";
-  import { ChevronDown } from "lucide-svelte";
-  //import { popup } from "@skeletonlabs/skeleton";
-  //import type { PopupSettings } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
+  import type { AppConfig } from "@shared/models";
+  import { Combobox } from "@skeletonlabs/skeleton-svelte";
   import { ChatAppData } from "@shared/spaces/ChatAppData";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
   let { data }: { data: ChatAppData } = $props();
 
   let visibleAppConfigs = $state<AppConfig[]>([]);
-  let appConfig = $state<AppConfig | undefined>(undefined);
-
-  /* 
-  const popupClick: PopupSettings = {
-    event: "click",
-    target: "app-config-dropdown-popup",
-    placement: "top",
-  };
-  */
+  let selectedConfig = $state<string[] | undefined>(undefined);
+  let comboboxData = $derived.by(() => {
+    return visibleAppConfigs.map((config) => ({
+      label: config.name,
+      value: config.id,
+    }));
+  });
 
   onMount(() => {
     const unobserve = $currentSpaceStore?.appConfigs.observe((configs) => {
@@ -26,7 +22,7 @@
     });
 
     if (data.configId) {
-      appConfig = $currentSpaceStore?.getAppConfig(data.configId);
+      selectedConfig = [data.configId];
     }
 
     return () => {
@@ -34,33 +30,19 @@
     };
   });
 
-  async function changeAppConfig(appConfigId: string) {
-    data.configId = appConfigId;
-    appConfig = $currentSpaceStore?.getAppConfig(appConfigId);
-  }
+  $effect(() => {
+    if (selectedConfig && selectedConfig.length > 0) {
+      data.configId = selectedConfig[0];
+    }
+  });
 </script>
 
-{#if appConfig}
-  <button class="btn btn-sm variant-ringed"
-    >{appConfig.name} <ChevronDown size={16} /></button
-  >
-{:else}
-  <button class="btn" disabled>...</button>
-{/if}
-
-<!--
-<div class="card shadow-xl z-10" data-popup="app-config-dropdown-popup">
-  <div class="arrow variant-filled"></div>
-  <div class="btn-group-vertical variant-filled">
-    {#each visibleAppConfigs as config (config.id)}
-      <button
-        class="btn"
-        data-agent-id={config.id}
-        onclick={() => changeAppConfig(config.id)}
-      >
-        {config.name}
-      </button>
-    {/each}
+{#if selectedConfig}
+  <div class="w-[150px]">
+    <Combobox
+      data={comboboxData}
+      bind:value={selectedConfig}
+      placeholder="Select configuration..."
+    />
   </div>
-</div>
--->
+{/if}
