@@ -70,8 +70,9 @@
 <div class="flex flex-col w-full h-full overflow-hidden">
   <div class="min-h-min px-2">
     <div class="flex flex-1 gap-4 items-center py-2">
-      <AppConfigDropdown {data} />
       <h3 class="text-lg">{title ? title : "New thread"}</h3>
+      <div class="flex-grow"></div>
+      <AppConfigDropdown {data} />
     </div>
   </div>
   <div

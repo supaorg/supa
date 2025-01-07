@@ -6,9 +6,9 @@
 </script>
 
 <div class="flex flex-col h-screen">
-  <div class="min-h-min px-2 pb-2">
+  <div class="min-h-min px-2 pb-2 mb-2">
     <AppButtons />
-    <a href="/apps" class="sidebar-btn w-full flex">
+    <a href="/apps" class="w-full flex px-4 py-2 gap-2">
       <span class="w-6 h-6 flex-shrink-0">
         <span class="relative flex h-full items-center justify-center">
           <LayoutGrid size={18} />
