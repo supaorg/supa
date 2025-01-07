@@ -7,16 +7,6 @@
 
   let appTreeIds: string[] = $state([]);
 
-  let openAppTreeId = $derived.by(() => {
-    const url = page.url;
-
-    const t = url.searchParams.get("t");
-
-    console.log("openAppTreeId", t);
-
-    return t;
-  });
-
   onMount(() => {
     appTreeIds = [...($currentSpaceStore?.getAppTreeIds() ?? [])];
 

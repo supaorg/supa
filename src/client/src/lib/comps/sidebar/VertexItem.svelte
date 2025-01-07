@@ -3,13 +3,19 @@
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
   import { onMount } from "svelte";
   import AppTreeOptionsPopup from "../popups/AppTreeOptionsPopup.svelte";
+  import { page } from "$app/state";
 
-  let { id }: { id: string } = $props();
+  let { id }: { id: string; } = $props();
 
-  let classActive = "";
-  //$: classActive = active ? "bg-primary-active-token" : "";
   let appTreeId: string | undefined = $state(undefined);
   let name: string | undefined = $state(undefined);
+
+  let isOpen = $derived.by(() => {
+    const openTreeId = page.url.searchParams.get("t");
+    return openTreeId === appTreeId;
+  });
+
+  let classActive = $derived(isOpen ? "bg-primary-500" : "");
 
   onMount(() => {
     const vertex = $currentSpaceStore?.getVertex(id);
@@ -39,6 +45,9 @@
     <a href={`/?t=${appTreeId}`} class="flex-grow py-2 px-4 truncate">
       <span>{name ?? "New conversation"}</span>
     </a>
-    <AppTreeOptionsPopup {appTreeId} />
+    {#if isOpen}
+      <AppTreeOptionsPopup {appTreeId} />
+    {/if}
   </span>
 {/if}
+
