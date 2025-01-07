@@ -1,43 +1,46 @@
 <script lang="ts">
-  //import { EllipsisVertical, Icon } from "svelte-hero-icons";
   import { EllipsisVertical } from "lucide-svelte";
-  //import type { PopupSettings } from "@skeletonlabs/skeleton";
-  //import { popup } from "@skeletonlabs/skeleton";
   import { goto } from "$app/navigation";
+  import { Popover } from "@skeletonlabs/skeleton-svelte";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
-  let { appTreeId } : { appTreeId: string } = $props();
+  let { appTreeId }: { appTreeId: string } = $props();
+  let openState = $state(false);
 
-  /*
-  const popupSettings: PopupSettings = {
-    event: "click",
-    target: `popup-${appTreeId}`,
-    placement: "bottom",
-  };
-  */
+  function popoverClose() {
+    openState = false;
+  }
 
   function startRenamingThread() {
-    // @TODO: trigger the parent component to start renaming the thread
+    // @TODO: trigger renaming
+    popoverClose();
   }
 
   async function deleteThread() {
-    /*
-    if ($currentWorkspaceStore) {
-      await $currentWorkspaceStore.deleteThread(threadId);
-    }
-    */
+    $currentSpaceStore?.deleteAppTree(appTreeId);
     goto("/");
+    popoverClose();
   }
 </script>
 
-<button><EllipsisVertical size={18} /></button>
+<div class="flex justify-center items-center mt-1">
+  <Popover
+    bind:open={openState}
+    positioning={{ placement: "bottom" }}
+    triggerBase=""
+    contentBase="card bg-surface-200-800 p-4 space-y-4 max-w-[320px]"
+    arrow
+    arrowBackground="!bg-surface-200 dark:!bg-surface-800"
+  >
+    {#snippet trigger()}
+      <EllipsisVertical size={18} />
+    {/snippet}
 
-<!--
-<Portal>
-  <div class="card shadow-xl z-10" data-popup={`popup-${threadId}`}>
-    <div class="btn-group-vertical variant-filled">
-      <button on:click={deleteThread}>Delete</button>
-    </div>
-    <div class="arrow variant-filled" />
-  </div>
-</Portal>
--->
+    {#snippet content()}
+      <div class="btn-group-vertical variant-filled">
+        <button class="btn variant-filled" onclick={deleteThread}>Delete</button
+        >
+      </div>
+    {/snippet}
+  </Popover>
+</div>

@@ -199,6 +199,13 @@ export default class Space {
     return this.appTreesVertex.children.map(v => v.id);
   }
 
+  deleteAppTree(appTreeId: string) {
+    const vertex = this.getVertexReferencingAppTree(appTreeId);
+    if (!vertex) return;
+
+    this.tree.deleteVertex(vertex.id);
+  }
+
   getVertexReferencingAppTree(appTreeId: string): Vertex | undefined {
     for (const vertex of this.appTreesVertex.children) {
       if (vertex.getProperty('tid') === appTreeId) {
