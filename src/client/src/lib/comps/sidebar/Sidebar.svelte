@@ -7,7 +7,7 @@
 </script>
 
 <div class="flex flex-col h-screen">
-  <div class="min-h-min px-2 pb-2">
+  <div class="min-h-min pb-2">
     <AppButtons />
     <a href="/apps" class="w-full flex px-4 py-2 gap-2">
       <span class="w-6 h-6 flex-shrink-0">
@@ -22,7 +22,7 @@
     <AppTrees />
   </div>
   <div class="min-h-min px-2 py-2">
-    <div class="flex items-center gap-2 px-4 py-2">
+    <div class="flex items-center gap-2 p-2">
       <div class="flex-grow"><SpaceSelectorPopup /></div>
       <a href="/settings" class="sidebar-btn flex-shrink-0">
         <Settings size={18} />

@@ -7,12 +7,21 @@
   import { Popover } from "@skeletonlabs/skeleton-svelte";
 
   import { ChevronsUpDown } from "lucide-svelte";
+    import { onMount } from "svelte";
 
   let openState = $state(false);
 
-  function popoverClose() {
-    openState = false;
-  }
+  let selectedSpaceId = $state<string | null>(null);
+
+  onMount(() => {
+    selectedSpaceId = $currentSpaceIdStore;
+  });
+
+  $effect(() => {
+    console.log("selectedSpaceId", selectedSpaceId);
+    $currentSpaceIdStore = selectedSpaceId;
+  });
+  
 </script>
 
 <Popover
@@ -34,7 +43,7 @@
       <select
         class="select rounded-container"
         size={$spacePointersStore.length}
-        value={$currentSpaceIdStore}
+        bind:value={selectedSpaceId}
       >
         {#each $spacePointersStore as pointer (pointer.id)}
           <option value={pointer.id}>{pointer.name || "Space"}</option>

@@ -42,7 +42,7 @@
   <span
     class={`flex rounded-token hover:bg-surface-100-800-token ${classActive}`}
   >
-    <a href={`/?t=${appTreeId}`} class="flex-grow py-2 px-4 truncate">
+    <a href={`/?t=${appTreeId}`} class="flex-grow py-2 px-2 truncate">
       <span>{name ?? "New conversation"}</span>
     </a>
     {#if isOpen}
