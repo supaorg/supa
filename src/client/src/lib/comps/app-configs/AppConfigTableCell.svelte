@@ -1,16 +1,7 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { AppConfig } from "@shared/models";
-
-  /*
-  import {
-    SlideToggle,
-    getModalStore,
-    type ModalSettings,
-  } from "@skeletonlabs/skeleton";
-  */
-  import { Switch } from '@skeletonlabs/skeleton-svelte';
- 
+  import { Switch, Popover } from '@skeletonlabs/skeleton-svelte';
   import { TrashIcon } from "lucide-svelte";
 
   let { config }: { config: AppConfig } = $props();
@@ -18,42 +9,26 @@
   let isVisible: boolean = $state(
     config.visible !== undefined ? config.visible : true,
   );
-  const isDefault = config.id === "default";
+  let isDefault = $derived(config.id === "default");
+  let deletePopoverOpen = $state(false);
 
-  /*
-  const modalStore = getModalStore();
-  */
   $effect(() => {
     setAppConfigVisibility(isVisible);
   });
 
   function setAppConfigVisibility(visible: boolean) {
     if (visible !== config.visible) {
-      console.log("setting visible", visible);
       $currentSpaceStore?.updateAppConfig(config.id, { visible });
     }
   }
-
-  /*
-  const deletionModal = {
-    type: "confirm",
-    title: `Delete the ${config.name} app config?`,
-    body: "Are you sure you want to delete this app config?",
-    response: (r: boolean) => {
-      if (r) {
-        deleteAppConfig();
-      }
-    },
-  } as ModalSettings;
-  */
  
-  function requestDeleteAppConfig() {
-    //modalStore.trigger(deletionModal);
+  function closeDeletePopover() {
+    deletePopoverOpen = false;
   }
-  
 
   function deleteAppConfig() {
     $currentSpaceStore?.appConfigs.delete(config);
+    closeDeletePopover();
   }
 </script>
 
@@ -71,8 +46,24 @@
   >
   <td>
     {#if !isDefault}
-      <button onclick={requestDeleteAppConfig}><TrashIcon class="w-4" /></button
+      <Popover
+        bind:open={deletePopoverOpen}
+        positioning={{ placement: 'left' }}
+        triggerBase=""
+        contentBase="card bg-surface-200-800 p-4 space-y-4 max-w-[320px]"
+        arrow
+        arrowBackground="!bg-surface-200 dark:!bg-surface-800"
       >
+        {#snippet trigger()}
+          <TrashIcon class="w-4" />
+        {/snippet}
+        
+        {#snippet content()}
+          <div class="btn-group-vertical variant-filled">
+            <button class="btn variant-filled" onclick={deleteAppConfig}>Delete</button>
+          </div>
+        {/snippet}
+      </Popover>
     {:else}
       <div><TrashIcon class="w-4 opacity-30" /></div>
     {/if}
