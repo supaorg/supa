@@ -23,7 +23,7 @@
   }
 </script>
 
-<div class="flex justify-center items-center mt-1">
+<div class="flex justify-center items-center mt-1 mr-2">
   <Popover
     bind:open={openState}
     positioning={{ placement: "bottom" }}

@@ -3,10 +3,11 @@
   import AppButtons from "./AppButtons.svelte";
   import LayoutGrid from "lucide-svelte/icons/layout-grid";
   import AppTrees from "./AppTrees.svelte";
+    import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
 </script>
 
 <div class="flex flex-col h-screen">
-  <div class="min-h-min px-2 pb-2 mb-2">
+  <div class="min-h-min px-2 pb-2">
     <AppButtons />
     <a href="/apps" class="w-full flex px-4 py-2 gap-2">
       <span class="w-6 h-6 flex-shrink-0">
@@ -20,12 +21,11 @@
   <div class="flex-grow overflow-y-auto px-2">
     <AppTrees />
   </div>
-  <div class="min-h-min px-2 pt-2">
-    <div class="flex items-center">
-      <div class="flex-grow min-w-0"></div>
-      <a href="/many-moves">Test moves</a>
-      <a href="/space-debug" class="sidebar-btn p-2 ml-2 flex-shrink-0">
-        <Settings size={24} />
+  <div class="min-h-min px-2 py-2">
+    <div class="flex items-center gap-2 px-4 py-2">
+      <div class="flex-grow"><SpaceSelectorPopup /></div>
+      <a href="/settings" class="sidebar-btn flex-shrink-0">
+        <Settings size={18} />
       </a>
     </div>
   </div>

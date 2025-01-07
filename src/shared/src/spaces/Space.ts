@@ -81,7 +81,7 @@ export default class Space {
     return this.tree.rootVertexId;
   }
 
-  getName(): string {
+  get name(): string {
     const name = this.tree.getVertexProperty(this.tree.rootVertexId, 'name');
     if (!name) {
       throw new Error("Space name is not set");

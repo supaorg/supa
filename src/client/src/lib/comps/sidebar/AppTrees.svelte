@@ -1,9 +1,8 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
-  import { onMount, onDestroy } from "svelte";
+  import { onMount } from "svelte";
   import VertexItem from "./VertexItem.svelte";
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
-  import { page } from "$app/state";
 
   let appTreeIds: string[] = $state([]);
 

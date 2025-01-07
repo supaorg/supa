@@ -1,0 +1,48 @@
+<script lang="ts">
+  import {
+    currentSpaceStore,
+    spacePointersStore,
+    currentSpaceIdStore,
+  } from "$lib/spaces/spaceStore";
+  import { Popover } from "@skeletonlabs/skeleton-svelte";
+
+  import { ChevronsUpDown } from "lucide-svelte";
+
+  let openState = $state(false);
+
+  function popoverClose() {
+    openState = false;
+  }
+</script>
+
+<Popover
+  bind:open={openState}
+  positioning={{ placement: "bottom" }}
+  triggerBase="flex-grow"
+  contentBase="card bg-surface-200-800 p-2 space-y-4 max-w-[320px]"
+  arrow
+  arrowBackground="!bg-surface-200 dark:!bg-surface-800"
+>
+  {#snippet trigger()}
+    <div class="flex items-center gap-2">
+      <ChevronsUpDown size={18} />
+      <span class="flex-grow text-left">{$currentSpaceStore?.name}</span>
+    </div>
+  {/snippet}
+  {#snippet content()}
+    {#if $spacePointersStore.length > 1}
+      <select
+        class="select rounded-container"
+        size={$spacePointersStore.length}
+        value={$currentSpaceIdStore}
+      >
+        {#each $spacePointersStore as pointer (pointer.id)}
+          <option value={pointer.id}>{pointer.name || "Space"}</option>
+        {/each}
+      </select>
+      <hr />
+    {/if}
+    
+    <a href="/spaces" class="btn variant-filled w-full">Manage spaces</a>
+  {/snippet}
+</Popover>

@@ -9,7 +9,7 @@ import { loadSpaceFromPointer } from "./LocalSpaceSync";
  * A persistent store of pointers to spaces.
  * We use pointers to connect to spaces.
  */
-const spacePointersStore: Persisted<SpacePointer[]> = persisted(
+export const spacePointersStore: Persisted<SpacePointer[]> = persisted(
   "spacePointers",
   [],
 );
@@ -105,7 +105,7 @@ export function addLocalSpace(space: Space, path: string) {
   const pointer: SpacePointer = {
     id: space.getId(),
     uri: path,
-    name: space.getName(),
+    name: space.name,
     createdAt: space.getCreatedAt(),
   }
 
