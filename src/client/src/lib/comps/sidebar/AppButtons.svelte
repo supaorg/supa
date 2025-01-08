@@ -5,10 +5,13 @@
   import { onMount } from "svelte";
   import { Modal } from "@skeletonlabs/skeleton-svelte";
   import NewThreadPopup from "../popups/NewThreadPopup.svelte";
+  import type Space from "@shared/spaces/Space";
 
   let newThreadModalIsOpen = $state(false);
   let targetAppConfig = $state<AppConfig | undefined>(undefined);
   let appConfigs = $state<AppConfig[]>([]);
+  let currentSpace = $state<Space | null>(null);
+  let appConfigUnobserve: (() => void) | undefined;
 
   function startNewThread(appConfig: AppConfig) {
     newThreadModalIsOpen = true;
@@ -16,12 +19,23 @@
   }
 
   onMount(() => {
-    const unobserve = $currentSpaceStore?.appConfigs.observe((configs) => {
-      appConfigs = configs;
+    const currentSpaceSub = currentSpaceStore.subscribe((space) => {
+      if (currentSpace === space) {
+        return;
+      }
+
+      appConfigUnobserve?.();
+
+      currentSpace = space;
+
+      appConfigUnobserve = currentSpace?.appConfigs.observe((configs) => {
+        appConfigs = configs;
+      });
     });
 
     return () => {
-      unobserve?.();
+      appConfigUnobserve?.();
+      currentSpaceSub?.();
     };
   });
 </script>

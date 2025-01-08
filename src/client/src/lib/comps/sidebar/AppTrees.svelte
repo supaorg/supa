@@ -3,23 +3,42 @@
   import { onMount } from "svelte";
   import VertexItem from "./VertexItem.svelte";
   import type { VertexChangeEvent } from "@shared/replicatedTree/treeTypes";
+  import type Space from "@shared/spaces/Space";
 
-  let appTreeIds: string[] = $state([]);
+  let appTreeIds = $state<string[]>([]);
+  let currentSpace = $state<Space | null>(null);
+  let appTreesUnobserve: (() => void) | undefined;
 
   onMount(() => {
-    appTreeIds = [...($currentSpaceStore?.getAppTreeIds() ?? [])];
+    const currentSpaceSub = currentSpaceStore.subscribe((space) => {
+      if (currentSpace === space) {
+        return;
+      }
 
-    const unsubscribe = $currentSpaceStore?.tree.observe(
-      $currentSpaceStore?.appTreesVertex.id,
-      onAppTreeChange,
-    );
+      appTreesUnobserve?.();
 
-    return () => unsubscribe?.();
+      currentSpace = space;
+      
+      if (currentSpace) {
+        appTreeIds = [...(currentSpace.getAppTreeIds() ?? [])];
+        appTreesUnobserve = currentSpace.tree.observe(
+          currentSpace.appTreesVertex.id,
+          onAppTreeChange,
+        );
+      } else {
+        appTreeIds = [];
+      }
+    });
+
+    return () => {
+      currentSpaceSub?.();
+      appTreesUnobserve?.();
+    };
   });
 
   function onAppTreeChange(events: VertexChangeEvent[]) {
     if (events.some((e) => e.type === "children")) {
-      appTreeIds = [...($currentSpaceStore?.getAppTreeIds() ?? [])];
+      appTreeIds = [...(currentSpace?.getAppTreeIds() ?? [])];
     }
   }
 </script>

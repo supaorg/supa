@@ -5,18 +5,30 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { onMount } from "svelte";
   import type { AppConfig } from "@shared/models";
+  import type Space from "@shared/spaces/Space";
 
   let appConfigs = $state<AppConfig[]>([]);
+  let currentSpace = $state<Space | null>(null);
+  let appConfigUnobserve: (() => void) | undefined;
 
   onMount(() => {
-    const unobserveChildren = $currentSpaceStore?.appConfigs.observe(
-      (configs) => {
+    const currentSpaceSub = currentSpaceStore.subscribe((space) => {
+      if (currentSpace === space) {
+        return;
+      }
+
+      appConfigUnobserve?.();
+
+      currentSpace = space;
+
+      appConfigUnobserve = currentSpace?.appConfigs.observe((configs) => {
         appConfigs = configs;
-      },
-    );
+      });
+    });
 
     return () => {
-      unobserveChildren?.();
+      appConfigUnobserve?.();
+      currentSpaceSub?.();
     };
   });
 </script>
