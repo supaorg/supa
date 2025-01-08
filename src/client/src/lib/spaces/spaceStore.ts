@@ -86,6 +86,26 @@ export async function loadSpacesAndConnectToCurrent(): Promise<Space | null> {
   return currentSpace;
 }
 
+export function setLastPageUrlInSpace(url: string) {
+  const currentSpace = get(currentSpaceStore);
+
+  if (!currentSpace) {
+    return;
+  }
+
+  // Get the pointer corresponding to the current space
+  const pointer = get(spacePointersStore).find((pointer) => pointer.id === currentSpace?.getId());
+  if (pointer) {
+    pointer.lastPageUrl = url;
+    // Update the pointer in the store
+    spacePointersStore.set(get(spacePointersStore));
+  }
+}
+
+export function getCurrentSpacePointer(): SpacePointer | null {
+  return get(spacePointersStore).find((pointer) => pointer.id === get(currentSpaceIdStore)) || null;
+}
+
 async function loadAndConnectToSpace(pointer: SpacePointer): Promise<Space> {
   const uri = pointer.uri;
 

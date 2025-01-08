@@ -1,13 +1,15 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
   import {
     currentSpaceStore,
     spacePointersStore,
     currentSpaceIdStore,
+    getCurrentSpacePointer,
   } from "$lib/spaces/spaceStore";
   import { Popover } from "@skeletonlabs/skeleton-svelte";
 
   import { ChevronsUpDown } from "lucide-svelte";
-    import { onMount } from "svelte";
+  import { onMount } from "svelte";
 
   let openState = $state(false);
 
@@ -18,10 +20,17 @@
   });
 
   $effect(() => {
-    console.log("selectedSpaceId", selectedSpaceId);
     $currentSpaceIdStore = selectedSpaceId;
+
+    const currentPointer = getCurrentSpacePointer();
+    if (currentPointer) {
+      if (currentPointer.lastPageUrl) {
+        goto(currentPointer.lastPageUrl);
+      }
+    } else {
+      goto("/");
+    }
   });
-  
 </script>
 
 <Popover
@@ -51,7 +60,7 @@
       </select>
       <hr />
     {/if}
-    
+
     <a href="/spaces" class="btn variant-filled w-full">Manage spaces</a>
   {/snippet}
 </Popover>
