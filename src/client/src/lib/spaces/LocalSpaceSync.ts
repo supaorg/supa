@@ -21,6 +21,18 @@ import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyO
 import AppTree from "@shared/spaces/AppTree";
 import perf from "@shared/tools/perf";
 
+const opsParserWorker = new Worker(new URL('./opsParser.worker.ts', import.meta.url));
+
+type ParsedOp = {
+  type: 'm' | 'p';
+  counter: number;
+  peerId: string;
+  targetId: string;
+  parentId?: string;
+  key?: string;
+  value?: any;
+};
+
 async function encryptSecrets(secretsObj: Record<string, string>, key: string): Promise<string> {
   // Convert the key string to a crypto key
   const encoder = new TextEncoder();
@@ -257,7 +269,7 @@ export class LocalSpaceSync {
     for await (const line of linesIterator) {
       lines.push(line);
     }
-    const ops = turnJSONLinesIntoOps(lines, peerId);
+    const ops = await turnJSONLinesIntoOps(lines, peerId);
 
     if (ops.length === 0) {
       return;
@@ -560,7 +572,7 @@ async function loadAllTreeOps(spacePath: string, treeId: string): Promise<Vertex
       lines.push(line);
     }
     const peerId = file.split('/').pop()!.split('.')[0];
-    const ops = turnJSONLinesIntoOps(lines, peerId);
+    const ops = await turnJSONLinesIntoOps(lines, peerId);
     allOps.push(...ops);
   }
 
@@ -586,27 +598,22 @@ function turnOpsIntoJSONLines(ops: VertexOperation[]): string {
   return str;
 }
 
-function turnJSONLinesIntoOps(lines: string[], peerId: string): VertexOperation[] {
-  const ops: VertexOperation[] = [];
-
-  for (const line of lines) {
-    if (line.trim()) {
-      try {
-        // Remove surrounding quotes and null characters if present
-        const cleanLine = line.replace(/^"|"$/g, '').replace(/\u0000/g, '');
-        const [opType, counter, targetId, ...rest] = JSON.parse(cleanLine);
-        if (opType === "m" && rest.length === 1) {
-          ops.push(newMoveVertexOp(counter, peerId, targetId, rest[0]));
-        } else if (opType === "p" && rest.length === 2) {
-          ops.push(newSetVertexPropertyOp(counter, peerId, targetId, rest[0], rest[1]));
+async function turnJSONLinesIntoOps(lines: string[], peerId: string): Promise<VertexOperation[]> {
+  return new Promise((resolve, reject) => {
+    const handleMessage = (e: MessageEvent) => {
+      const { operations } = e.data as { operations: ParsedOp[] };
+      const vertexOps = operations.map((op: ParsedOp) => {
+        if (op.type === 'm') {
+          return newMoveVertexOp(op.counter, op.peerId, op.targetId, op.parentId ?? null);
         } else {
-          console.warn("Unknown operation type or invalid format:", line);
+          return newSetVertexPropertyOp(op.counter, op.peerId, op.targetId, op.key!, op.value);
         }
-      } catch (error) {
-        console.error("Error parsing JSON line:", line, error);
-      }
-    }
-  }
+      });
+      opsParserWorker.removeEventListener('message', handleMessage);
+      resolve(vertexOps);
+    };
 
-  return ops;
+    opsParserWorker.addEventListener('message', handleMessage);
+    opsParserWorker.postMessage({ lines, peerId });
+  });
 }
