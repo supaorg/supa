@@ -4,7 +4,7 @@
   import TauriWindowSetup from "$lib/comps/tauri/TauriWindowSetup.svelte";
   import { isTauri } from "$lib/tauri/isTauri";
   import { loadSpacesAndConnectToCurrent } from "$lib/spaces/spaceStore";
-  import SpaceSetup from "$lib/comps/setup/SpaceSetup.svelte";
+  import SpaceSetup from "$lib/comps/spaces/SpaceSetup.svelte";
   import { page } from "$app/state";
   import { setLastPageUrlInSpace } from "$lib/spaces/spaceStore";
 
