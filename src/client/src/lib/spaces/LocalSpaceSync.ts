@@ -8,6 +8,7 @@ import {
   open,
   mkdir,
   readTextFile,
+  readTextFileLines,
   writeTextFile,
   watch,
   type WatchEvent,
@@ -251,7 +252,12 @@ export class LocalSpaceSync {
       return;
     }
 
-    const ops = turnJSONLinesIntoOps(await readTextFile(path), peerId);
+    const linesIterator = await readTextFileLines(path);
+    const lines: string[] = [];
+    for await (const line of linesIterator) {
+      lines.push(line);
+    }
+    const ops = turnJSONLinesIntoOps(lines, peerId);
 
     if (ops.length === 0) {
       return;
@@ -548,10 +554,13 @@ async function loadAllTreeOps(spacePath: string, treeId: string): Promise<Vertex
 
   const allOps: VertexOperation[] = [];
   for (const file of jsonlFiles) {
-    const fileContent = await readTextFile(file);
-    // Peer ID is the file name without the .jsonl extension and path
+    const linesIterator = await readTextFileLines(file);
+    const lines: string[] = [];
+    for await (const line of linesIterator) {
+      lines.push(line);
+    }
     const peerId = file.split('/').pop()!.split('.')[0];
-    const ops = turnJSONLinesIntoOps(fileContent, peerId);
+    const ops = turnJSONLinesIntoOps(lines, peerId);
     allOps.push(...ops);
   }
 
@@ -577,18 +586,15 @@ function turnOpsIntoJSONLines(ops: VertexOperation[]): string {
   return str;
 }
 
-function turnJSONLinesIntoOps(jsonLines: string, peerId: string): VertexOperation[] {
+function turnJSONLinesIntoOps(lines: string[], peerId: string): VertexOperation[] {
   const ops: VertexOperation[] = [];
-
-  // @TODO: this is too slow, figure out a better way
-  // Split JSON lines using a regex that respects quotes and escaped characters
-  const lineRegex = /\r?\n(?=(?:(?:[^"\\]|\\[^"]|\\")*"(?:[^"\\]|\\[^"]|\\")*")*(?:[^"\\]|\\[^"]|\\")*$)/;
-  const lines = jsonLines.split(lineRegex);
 
   for (const line of lines) {
     if (line.trim()) {
       try {
-        const [opType, counter, targetId, ...rest] = JSON.parse(line);
+        // Remove surrounding quotes and null characters if present
+        const cleanLine = line.replace(/^"|"$/g, '').replace(/\u0000/g, '');
+        const [opType, counter, targetId, ...rest] = JSON.parse(cleanLine);
         if (opType === "m" && rest.length === 1) {
           ops.push(newMoveVertexOp(counter, peerId, targetId, rest[0]));
         } else if (opType === "p" && rest.length === 2) {
