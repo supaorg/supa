@@ -90,6 +90,10 @@ export default class Space {
     return name as string;
   }
 
+  set name(name: string) {
+    this.tree.setVertexProperty(this.tree.rootVertexId, 'name', name);
+  }
+
   getCreatedAt(): Date {
     const createdAt = this.tree.getVertexProperty(this.tree.rootVertexId, 'createdAt');
     if (!createdAt) {

@@ -2,11 +2,27 @@
   import { MoreVertical } from "lucide-svelte";
   import { Popover } from "@skeletonlabs/skeleton-svelte";
 
-  let { spaceId }: { spaceId: string } = $props();
+  let { 
+    onRename = () => {},
+    onRemove = () => {},
+  }: { 
+    onRename: () => void;
+    onRemove: () => void;
+  } = $props();
   let openState = $state(false);
 
   function popoverClose() {
     openState = false;
+  }
+
+  function handleRename() {
+    openState = false;
+    onRename();
+  }
+
+  function handleRemove() {
+    openState = false;
+    onRemove();
   }
 </script>
 
@@ -26,9 +42,9 @@
 
   {#snippet content()}
     <div class="">
-      <button class="btn variant-filled w-full">Rename</button>
-      <button class="btn variant-filled w-full">Reveal in Finder</button>
-      <button class="btn variant-filled-error w-full">Remove from List</button>
+      <button class="btn variant-filled w-full" onclick={handleRename}>Rename</button>
+      <!--<button class="btn variant-filled w-full">Reveal in Finder</button>-->
+      <button class="btn variant-filled-error w-full" onclick={handleRemove}>Remove from List</button>
     </div>
   {/snippet}
 </Popover>

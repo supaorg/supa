@@ -133,3 +133,24 @@ export function addLocalSpace(space: Space, path: string) {
     return [...pointers, pointer];
   });
 }
+
+export function getLoadedSpaceFromPointer(pointer: SpacePointer): Space | null {
+  return get(spaceStore).find((space) => space.getId() === pointer.id) || null;
+}
+
+export function removeSpace(pointerId: string) {
+  // Remove from pointers
+  const pointers = get(spacePointersStore);
+  const updatedPointers = pointers.filter(p => p.id !== pointerId);
+  spacePointersStore.set(updatedPointers);
+
+  // Remove from loaded spaces
+  const spaces = get(spaceStore);
+  spaceStore.set(spaces.filter(s => s.getId() !== pointerId));
+
+  // If this was the current space, try to select another one
+  if (get(currentSpaceIdStore) === pointerId) {
+    const nextSpace = updatedPointers[0];
+    currentSpaceIdStore.set(nextSpace?.id || null);
+  }
+}
