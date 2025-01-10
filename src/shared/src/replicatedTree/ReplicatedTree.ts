@@ -397,6 +397,9 @@ export class ReplicatedTree {
     this.localOps.push(op);
     this.applyMove(op);
 
+    // Set the creation date
+    this.setVertexProperty(vertexId, '_c', new Date().toISOString());
+
     return vertexId;
   }
 

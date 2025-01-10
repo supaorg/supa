@@ -126,7 +126,7 @@ export function addLocalSpace(space: Space, path: string) {
     id: space.getId(),
     uri: path,
     name: space.name,
-    createdAt: space.getCreatedAt(),
+    createdAt: space.createdAt,
   }
 
   spacePointersStore.update((pointers) => {

@@ -20,7 +20,7 @@
       currentSpace = space;
       
       if (currentSpace) {
-        appTreeIds = [...(currentSpace.getAppTreeIdsSortedByCreatedAt() ?? [])];
+        appTreeIds = [...(currentSpace.getAppTreeIds() ?? [])];
         appTreesUnobserve = currentSpace.tree.observe(
           currentSpace.appTreesVertex.id,
           onAppTreeChange,
@@ -38,13 +38,13 @@
 
   function onAppTreeChange(events: VertexChangeEvent[]) {
     if (events.some((e) => e.type === "children")) {
-      appTreeIds = [...(currentSpace?.getAppTreeIdsSortedByCreatedAt() ?? [])];
+      appTreeIds = [...(currentSpace?.getAppTreeIds() ?? [])];
     }
   }
 </script>
 
 <ul>
-  {#each appTreeIds as id (id)}
+  {#each [...appTreeIds].reverse() as id (id)}
     <li class="relative"><VertexItem {id} /></li>
   {/each}
 </ul>

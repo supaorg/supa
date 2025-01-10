@@ -56,8 +56,8 @@ export default class AppTree {
     return version as string;
   }
 
-  getCreatedAt(): Date {
-    const createdAt = this.tree.getVertexProperty(this.tree.rootVertexId, 'createdAt');
+  get createdAt(): Date {
+    const createdAt = this.tree.getVertexProperty(this.tree.rootVertexId, '_c');
     if (!createdAt) {
       throw new Error("App tree createdAt is not set");
     }

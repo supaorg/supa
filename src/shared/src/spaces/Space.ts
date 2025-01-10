@@ -47,10 +47,10 @@ export default class Space {
 
     tree.setVertexProperties(rootId, {
       '_n': 'space',
-      'name': 'New Space',
+      '_c': new Date().toISOString(),
+      'name': 'Space',
       'version': '0',
-      'needsSetup': true,
-      'createdAt': new Date().toISOString(),
+      'needsSetup': true
     });
 
     const apps = tree.newNamedVertex(rootId, 'app-configs');
@@ -94,8 +94,8 @@ export default class Space {
     this.tree.setVertexProperty(this.tree.rootVertexId, 'name', name);
   }
 
-  getCreatedAt(): Date {
-    const createdAt = this.tree.getVertexProperty(this.tree.rootVertexId, 'createdAt');
+  get createdAt(): Date {
+    const createdAt = this.tree.getVertexProperty(this.tree.rootVertexId, '_c');
     if (!createdAt) {
       throw new Error("Space createdAt is not set");
     }
@@ -201,20 +201,6 @@ export default class Space {
 
   getAppTreeIds(): ReadonlyArray<string> {
     return this.appTreesVertex.children.map(v => v.id);
-  }
-
-  getAppTreeIdsSortedByCreatedAt(): ReadonlyArray<string> {
-    const appTreeIds = this.getAppTreeIds();
-    const appTreesWithDates = appTreeIds.map(id => {
-      const appTree = this.getAppTree(id);
-      return {
-        id,
-        createdAt: appTree?.getCreatedAt() ?? new Date(0)
-      };
-    });
-    
-    appTreesWithDates.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return appTreesWithDates.map(item => item.id);
   }
 
   deleteAppTree(appTreeId: string) {

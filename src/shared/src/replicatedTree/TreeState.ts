@@ -69,11 +69,17 @@ export class TreeState {
   getChildren(vertexId: TreeVertexId): VertexState[] {
     return this.getChildrenIds(vertexId)
       .map(id => {
-        // Returning a copy so that the caller can't modify the vertex
         const vertex = this.vertices.get(id);
         return vertex ? vertex : undefined;
       })
-      .filter(vertex => vertex !== undefined) as VertexState[];
+      .filter(vertex => vertex !== undefined)
+      .sort((a, b) => {
+        const aDate = a.getProperty('_c') as string;
+        const bDate = b.getProperty('_c') as string;
+        if (!aDate) return -1;
+        if (!bDate) return 1;
+        return new Date(aDate).getTime() - new Date(bDate).getTime();
+      }) as VertexState[];
   }
 
   moveVertex(vertexId: TreeVertexId, newParentId: TreeVertexId | null): VertexState {

@@ -24,5 +24,10 @@
       <p class="mb-4">You have {$spaceStore.length === 1 ? '1 space' : `${$spaceStore.length} spaces`}</p>
       <a href="/spaces" class="btn preset-filled">Manage</a>
     </div>
+
+    <div class="card p-4 preset-filled-surface-100-900 border-[1px] border-surface-200-800">
+      <h3 class="h4 mb-4">For developers</h3>
+      <a href="/space-debug" class="btn preset-filled">See space trees</a>
+    </div>
   </div>
 </CenteredPage>
