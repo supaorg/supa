@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Send, StopCircle, Paperclip } from "lucide-svelte";
   import { onMount } from 'svelte';
+  import { focusTrap } from '$lib/utils/focusTrap';
 
   const THREAD_STATUS = {
     DISABLED: "disabled",
@@ -41,57 +42,6 @@
       textareaElement?.focus();
     }
   });
-
-  // Focus trap implementation
-  function focusTrap(node: HTMLElement, enabled = true) {
-    if (!enabled) return;
-
-    const getFocusableElements = () => {
-      return Array.from(
-        node.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-      ).filter(el => !el.hasAttribute('disabled'));
-    };
-
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
-
-      const focusableElements = getFocusableElements();
-      if (focusableElements.length === 0) return;
-
-      const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
-      const activeElement = document.activeElement;
-
-      if (e.shiftKey) {
-        if (activeElement === firstElement) {
-          e.preventDefault();
-          lastElement.focus();
-        }
-      } else {
-        if (activeElement === lastElement) {
-          e.preventDefault();
-          firstElement.focus();
-        }
-      }
-    };
-
-    node.addEventListener('keydown', handleKeydown);
-
-    return {
-      destroy() {
-        node.removeEventListener('keydown', handleKeydown);
-      },
-      update(newEnabled: boolean) {
-        if (!newEnabled) {
-          node.removeEventListener('keydown', handleKeydown);
-        } else {
-          node.addEventListener('keydown', handleKeydown);
-        }
-      }
-    };
-  }
 
   function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
     textarea.style.height = "1px"; // Temporarily shrink to get accurate scrollHeight
@@ -198,41 +148,3 @@
     </div>
   </div>
 </form>
-
-<!--
-<form>
-  <div
-    class="input-group flex input-group-divider grid-cols-2 rounded-container-token p-2"
-  >
-    <textarea
-      bind:value={query}
-      data-focusindex="0"
-      class="bg-transparent resize-none border-0 ring-0 flex-grow max-h-[200px]"
-      name="prompt"
-      id="prompt"
-      {placeholder}
-      rows="1"
-      onkeydown={handleKeydownInChatInput}
-      onkeyup={handleKeyupInChatInput}
-    ></textarea>
-    {#if threadStatus === THREAD_STATUS.AI_MESSAGE_IN_PROGRESS}
-      <button
-        class={`btn btn-sm h-10 variant-filled-primary`}
-        data-focusindex="1"
-        onclick={stopMsg}
-      >
-        <StopCircle size={16} />
-      </button>
-    {:else}
-      <button
-        class={`btn btn-sm h-10 ${query ? "variant-filled-primary" : "input-group-shim"}`}
-        data-focusindex="1"
-        onclick={sendMsg}
-        disabled={disabled || threadStatus !== THREAD_STATUS.CAN_SEND_MESSAGE}
-      >
-        <Send size={16} />
-      </button>
-    {/if}
-  </div>
-</form>
--->
