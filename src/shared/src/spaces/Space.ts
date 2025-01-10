@@ -203,6 +203,20 @@ export default class Space {
     return this.appTreesVertex.children.map(v => v.id);
   }
 
+  getAppTreeIdsSortedByCreatedAt(): ReadonlyArray<string> {
+    const appTreeIds = this.getAppTreeIds();
+    const appTreesWithDates = appTreeIds.map(id => {
+      const appTree = this.getAppTree(id);
+      return {
+        id,
+        createdAt: appTree?.getCreatedAt() ?? new Date(0)
+      };
+    });
+    
+    appTreesWithDates.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return appTreesWithDates.map(item => item.id);
+  }
+
   deleteAppTree(appTreeId: string) {
     const vertex = this.getVertexReferencingAppTree(appTreeId);
     if (!vertex) return;
