@@ -33,6 +33,7 @@
   }: SendMessageFormProps = $props();
 
   let query = $state("");
+  let isTextareaFocused = $state(false);
 
   function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
     textarea.style.height = "1px"; // Temporarily shrink to get accurate scrollHeight
@@ -86,7 +87,7 @@
     <div class="absolute bottom-full left-0 right-0 z-20"></div>
     <div class="group relative flex w-full items-center">
       <div class="w-full">
-        <div class="flex w-full cursor-text flex-col rounded-lg px-2.5 py-1 transition-colors bg-surface-900">
+        <div class="flex w-full cursor-text flex-col rounded-lg px-2.5 py-1 transition-colors bg-surface-900" class:ring={isTextareaFocused} class:ring-primary-500={isTextareaFocused}>
           <div class="flex min-h-[44px] items-start pl-2">
             <div class="min-w-0 max-w-full flex-1">
               <div class="max-h-[25dvh] max-h-52 overflow-auto">
@@ -96,6 +97,8 @@
                   bind:value={query}
                   onkeydown={handleKeydownInChatInput}
                   onkeyup={handleKeyupInChatInput}
+                  onfocus={() => isTextareaFocused = true}
+                  onblur={() => isTextareaFocused = false}
                 ></textarea>
               </div>
             </div>
@@ -114,9 +117,23 @@
             <!-- Voice button -->
             <div class="min-w-8">
               <div class="relative h-8 w-8">
-                <button onclick={sendMsg} class="flex h-8 w-8 items-center justify-center rounded-full">
-                  <Send size={16} />
-                </button>
+                {#if threadStatus === THREAD_STATUS.AI_MESSAGE_IN_PROGRESS}
+                  <button 
+                    onclick={stopMsg} 
+                    class="flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface-700"
+                  >
+                    <StopCircle size={16} />
+                  </button>
+                {:else}
+                  <button 
+                    onclick={sendMsg} 
+                    class="flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface-700" 
+                    class:opacity-50={disabled || threadStatus !== THREAD_STATUS.CAN_SEND_MESSAGE}
+                    disabled={disabled || threadStatus !== THREAD_STATUS.CAN_SEND_MESSAGE}
+                  >
+                    <Send size={16} />
+                  </button>
+                {/if}
               </div>
             </div>
           </div>

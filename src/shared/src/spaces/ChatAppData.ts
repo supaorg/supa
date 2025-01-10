@@ -98,7 +98,7 @@ export class ChatAppData {
     });
   }
 
-  newMessage(role: "user" | "assistant", text: string): ThreadMessage {
+  newMessage(role: "user" | "assistant" | "error", text: string): ThreadMessage {
     const lastMsgVertex = this.getLastMsgParentVertex();
 
     const newMessageVertex = this.appTree.newVertex(lastMsgVertex.id, {
@@ -150,5 +150,22 @@ export class ChatAppData {
     }
 
     return messages;
+  }
+
+  isLastMessage(messageId: string): boolean {
+    const vertex = this.appTree.getVertex(messageId);
+    if (!vertex) {
+      return false;
+    }
+    return vertex.children.length === 0;
+  }
+
+  isMessageInProgress(messageId: string): boolean {
+    const vertex = this.appTree.getVertex(messageId);
+    if (!vertex) {
+      return false;
+    }
+
+    return vertex.getProperty("inProgress") === true;
   }
 }

@@ -10,10 +10,18 @@
   let message: ThreadMessage | undefined = $state();
   let canRetry = $state(false);
   let retrying = $state(false);
+  let isLast = $state(false);
 
   onMount(() => {
     const unobserve = data.observeMessage(messageId, (msg) => {
       message = msg;
+      isLast = data.isLastMessage(messageId);
+
+      canRetry =
+        (isLast &&
+          isMoreThanOneMinuteOld(msg.createdAt) &&
+          data.isMessageInProgress(messageId)) ||
+        msg.role === "error";
     });
 
     return () => {
@@ -75,7 +83,9 @@
         {#if message.role === "user"}
           <p class="font-bold">You</p>
           <button class="cursor-default">
-            <small class="opacity-50">{formatChatDateToTime(message.createdAt)}</small>
+            <small class="opacity-50"
+              >{formatChatDateToTime(message.createdAt)}</small
+            >
           </button>
         {:else if message.role === "assistant"}
           <p class="font-bold">AI</p>

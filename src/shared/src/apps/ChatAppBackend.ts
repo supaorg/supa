@@ -46,34 +46,42 @@ export default class ChatAppBackend {
     const threadTitleAgent = new ThreadTitleAgent(agentServices, config);
 
     const newMessage = this.data.newMessage("assistant", "thinking...");
+    this.appTree.setVertexProperty(newMessage.id, "inProgress", true);
 
-    const messagesForLang = [
-      { role: "system", text: config.instructions },
-      ...messages.map((m) => ({
-        role: m.role,
-        text: m.text,
-      }))];
+    try {
+      const messagesForLang = [
+        { role: "system", text: config.instructions },
+        ...messages.map((m) => ({
+          role: m.role,
+          text: m.text,
+        }))];
 
-    const response = await simpleChatAgent.input(messagesForLang, (resp) => {
-      const wipResponse = resp as string;
-      this.appTree.setTransientVertexProperty(newMessage.id, "text", wipResponse);
-    }) as string;
+      const response = await simpleChatAgent.input(messagesForLang, (resp) => {
+        const wipResponse = resp as string;
+        this.appTree.setTransientVertexProperty(newMessage.id, "text", wipResponse);
+      }) as string;
 
-    // Update the message with the final response
-    this.appTree.setVertexProperty(newMessage.id, "text", response);
+      // Update the message with the final response
+      this.appTree.setVertexProperty(newMessage.id, "text", response);
+      this.appTree.setVertexProperty(newMessage.id, "inProgress", false);
 
-    messages.push({ ...newMessage, text: response });
+      messages.push({ ...newMessage, text: response });
 
-    const newTitle = await threadTitleAgent.input({
-      messages,
-      title: this.data.title
-    }) as string;
+      const newTitle = await threadTitleAgent.input({
+        messages,
+        title: this.data.title
+      }) as string;
 
-    if (newTitle !== this.data.title) {
-      this.data.title = newTitle;
+      if (newTitle !== this.data.title) {
+        this.data.title = newTitle;
+      }
+
+      this.space.setAppTreeName(this.appTreeId, this.data.title);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      this.appTree.setVertexProperty(newMessage.id, "role", "error");
+      this.appTree.setVertexProperty(newMessage.id, "text", errorMessage);
+      this.appTree.setVertexProperty(newMessage.id, "inProgress", false);
     }
-
-    this.space.setAppTreeName(this.appTreeId, this.data.title);
-    
   }
 }
