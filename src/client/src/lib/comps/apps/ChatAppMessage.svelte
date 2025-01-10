@@ -4,6 +4,7 @@
   import type { ThreadMessage } from "@shared/models";
   import type { ChatAppData } from "@shared/spaces/ChatAppData";
   import { onMount } from "svelte";
+  import MessageDate from "./MessageDate.svelte";
 
   let { messageId, data }: { messageId: string; data: ChatAppData } = $props();
 
@@ -31,24 +32,6 @@
 
   function isMoreThanOneMinuteOld(dateInMs: number) {
     return dateInMs + 60000 < Date.now();
-  }
-
-  function formatChatDateToTime(dateInMs: number) {
-    const date = new Date(dateInMs);
-    return date.toLocaleString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false, // Use 24-hour format
-    });
-  }
-
-  function formatChatDate(dateInMs: number) {
-    const date = new Date(dateInMs);
-    return date.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
   }
 
   function replaceNewlinesWithHtmlBrs(text: string) {
@@ -79,18 +62,18 @@
       </div>
     </div>
     <div class="flex-1">
-      <div class="flex items-center gap-2 mt-2">
+      <div class="flex items-center justify-between gap-2 mt-2">
+        <div class="flex items-center gap-2">
+          {#if message.role === "user"}
+            <p class="font-bold">You</p>
+          {:else if message.role === "assistant"}
+            <p class="font-bold">AI</p>
+          {:else}
+            <p class="font-bold">Error</p>
+          {/if}
+        </div>
         {#if message.role === "user"}
-          <p class="font-bold">You</p>
-          <button class="cursor-default">
-            <small class="opacity-50"
-              >{formatChatDateToTime(message.createdAt)}</small
-            >
-          </button>
-        {:else if message.role === "assistant"}
-          <p class="font-bold">AI</p>
-        {:else}
-          <p class="font-bold">Error</p>
+          <MessageDate createdAt={message.createdAt} />
         {/if}
       </div>
       <div>
@@ -109,13 +92,3 @@
     </div>
   </div>
 {/if}
-
-<!--
-    <div
-      class="card p-4 variant-filled-secondary z-10"
-      data-popup={`popup-${message.id}`}
-    >
-      <p>{formatChatDate(message.createdAt)}</p>
-      <div class="arrow variant-filled-secondary"></div>
-    </div>
--->
