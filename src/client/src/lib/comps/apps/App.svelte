@@ -2,11 +2,6 @@
   import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
   import type { Snippet } from "svelte";
 
-  //import { storeHighlightJs } from "@skeletonlabs/skeleton";
-  // For code highlighting in conversations
-  //import hljs from "highlight.js";
-  //import { extendMarked } from "$lib/utils/markdown/extendMarked";
-
   let { children }: { children: Snippet } = $props();
 
 </script>

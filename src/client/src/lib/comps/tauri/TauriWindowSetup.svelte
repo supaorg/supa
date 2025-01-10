@@ -90,8 +90,8 @@
   }
 
   onMount(async () => {
+    // @TODO: make it work again
     // We show the window after Svelte is fully loaded to prevent flickering
-
     //console.log("is visible", await appWindow.isVisible());
     //await invoke("show_main_window");
     //await appWindow.setVisibleOnAllWorkspaces(true);
