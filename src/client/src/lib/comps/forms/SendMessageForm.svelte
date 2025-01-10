@@ -1,6 +1,6 @@
 <script lang="ts">
-  //import { focusTrap } from "@skeletonlabs/skeleton";
   import { Send, StopCircle, Paperclip } from "lucide-svelte";
+  import { onMount } from 'svelte';
 
   const THREAD_STATUS = {
     DISABLED: "disabled",
@@ -34,6 +34,64 @@
 
   let query = $state("");
   let isTextareaFocused = $state(false);
+  let textareaElement: HTMLTextAreaElement;
+
+  onMount(() => {
+    if (isFocused) {
+      textareaElement?.focus();
+    }
+  });
+
+  // Focus trap implementation
+  function focusTrap(node: HTMLElement, enabled = true) {
+    if (!enabled) return;
+
+    const getFocusableElements = () => {
+      return Array.from(
+        node.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter(el => !el.hasAttribute('disabled'));
+    };
+
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (e.shiftKey) {
+        if (activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        if (activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    node.addEventListener('keydown', handleKeydown);
+
+    return {
+      destroy() {
+        node.removeEventListener('keydown', handleKeydown);
+      },
+      update(newEnabled: boolean) {
+        if (!newEnabled) {
+          node.removeEventListener('keydown', handleKeydown);
+        } else {
+          node.addEventListener('keydown', handleKeydown);
+        }
+      }
+    };
+  }
 
   function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
     textarea.style.height = "1px"; // Temporarily shrink to get accurate scrollHeight
@@ -79,10 +137,7 @@
   }
 </script>
 
-
-
-<!--<form use:focusTrap={isFocused}>-->
-<form class="w-full">
+<form class="w-full" use:focusTrap={isFocused}>
   <div class="relative flex h-full max-w-full flex-1 flex-col">
     <div class="absolute bottom-full left-0 right-0 z-20"></div>
     <div class="group relative flex w-full items-center">
@@ -92,6 +147,7 @@
             <div class="min-w-0 max-w-full flex-1">
               <div class="max-h-[25dvh] max-h-52 overflow-auto">
                 <textarea
+                  bind:this={textareaElement}
                   class="block h-10 w-full resize-none border-0 bg-transparent px-0 py-2 text-token-text-primary placeholder:opacity-80"
                   {placeholder}
                   bind:value={query}
