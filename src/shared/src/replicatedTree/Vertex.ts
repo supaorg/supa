@@ -24,6 +24,14 @@ export class Vertex {
     this.tree.setVertexProperty(this.id, '_n', name);
   }
 
+  get createdAt(): Date {
+    const createdAt = this.getProperty('_c') as string;
+    if (!createdAt) {
+      return new Date(0);
+    }
+    return new Date(createdAt);
+  }
+
   get path(): string {
     //return this.tree.getVertexPath(this.id);
     throw new Error('Not implemented');
