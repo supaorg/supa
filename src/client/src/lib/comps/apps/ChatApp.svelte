@@ -47,7 +47,8 @@
   }
 
   async function sendMsg(query: string) {
-    data.newMessage("user", query);
+    const msg = data.newMessage("user", query);
+    //data.askForReply(msg.id);
     scrollToBottom();
   }
 

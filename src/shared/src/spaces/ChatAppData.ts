@@ -4,20 +4,34 @@ import type Space from "./Space";
 import type { VertexPropertyType } from "../replicatedTree/treeTypes";
 import type { ThreadMessage } from "../models";
 
+type ChatJob = {
+
+}
+
 export class ChatAppData {
   private root: Vertex;
   private referenceInSpace: Vertex;
+
+  private jobsVertex: Vertex;
 
   static createNewChatTree(space: Space, configId: string): ReplicatedTree {
     const tree = space.newAppTree("default-chat").tree;
     tree.setVertexProperty(tree.rootVertexId, "configId", configId);
     tree.newNamedVertex(tree.rootVertexId, "messages");
+    tree.newNamedVertex(tree.rootVertexId, "jobs");
     return tree;
   }
 
   constructor(private space: Space, private appTree: ReplicatedTree) {
     this.root = appTree.getVertex(appTree.rootVertexId)!;
     this.referenceInSpace = space.getVertexReferencingAppTree(appTree.rootVertexId)!;
+
+    /*
+    this.jobsVertex = this.appTree.getVertexByPath("jobs")!;
+    if (!this.jobsVertex) {
+      this.jobsVertex = this.appTree.newNamedVertex(this.appTree.rootVertexId, "jobs");
+    }
+    */
   }
 
   get messagesVertex(): Vertex | undefined {
@@ -113,6 +127,22 @@ export class ChatAppData {
       id: newMessageVertex.id,
       ...props,
     } as ThreadMessage;
+  }
+
+  askForReply(messageId: string): void {
+    this.appTree.newVertex(this.jobsVertex.id, {
+      _n: "job",
+      type: "reply",
+      messageId,
+    });
+  }
+
+  retryMessage(messageId: string): void {
+    throw new Error("Not implemented");
+  }
+
+  stopMessage(messageId: string): void {
+    throw new Error("Not implemented");
   }
 
   private getLastMsgParentVertex(): Vertex {

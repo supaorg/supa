@@ -92,7 +92,7 @@
     <div class="absolute bottom-full left-0 right-0 z-20"></div>
     <div class="group relative flex w-full items-center">
       <div class="w-full">
-        <div class="flex w-full cursor-text flex-col rounded-lg px-2.5 py-1 transition-colors bg-surface-900" class:ring={isTextareaFocused} class:ring-primary-500={isTextareaFocused}>
+        <div class="flex w-full cursor-text flex-col rounded-lg px-2.5 py-1 transition-colors bg-surface-900" class:ring={isTextareaFocused} class:ring-primary-300-700={isTextareaFocused}>
           <div class="flex min-h-[44px] items-start pl-2">
             <div class="min-w-0 max-w-full flex-1">
               <div class="max-h-[25dvh] max-h-52 overflow-auto">

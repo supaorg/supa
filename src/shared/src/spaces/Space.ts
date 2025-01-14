@@ -19,14 +19,6 @@ export default class Space {
   readonly appConfigs: AppConfigsData;
 
   static isValid(tree: ReplicatedTree): boolean {
-    /*
-    // @TODO: check for _n equals 'space' of the root and version '0' instead
-    const root = tree.getVertexByPath('space');
-    if (!root) {
-      return false;
-    }
-    */
-
     const apps = tree.getVertexByPath('app-configs');
     if (!apps) {
       return false;
@@ -48,7 +40,6 @@ export default class Space {
     tree.setVertexProperties(rootId, {
       '_n': 'space',
       '_c': new Date().toISOString(),
-      'name': 'Space',
       'version': '0',
       'needsSetup': true
     });
