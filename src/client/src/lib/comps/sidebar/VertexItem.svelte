@@ -40,7 +40,7 @@
 
 {#if appTreeId}
   <span
-    class={`flex rounded-token ${isOpen ? "bg-primary-500" : "hover:bg-surface-100-900"}`}
+    class={`flex rounded-token ${isOpen ? "bg-surface-100-900" : "hover:bg-surface-100-900"}`}
   >
     <a href={`/?t=${appTreeId}`} class="flex-grow py-2 px-2 truncate">
       <span>{name ?? "New conversation"}</span>
