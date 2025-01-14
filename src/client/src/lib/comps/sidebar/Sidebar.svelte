@@ -8,7 +8,7 @@
 </script>
 
 <div class="flex flex-col h-screen">
-  <div class="min-h-min pb-2 px-2">
+  <div class="min-h-min py-2 px-2">
     <AppButtons />
     <SidebarPageLink href="/apps">
       <span class="w-full flex gap-2">
