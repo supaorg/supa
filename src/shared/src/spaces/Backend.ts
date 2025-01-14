@@ -27,7 +27,7 @@ export class Backend {
         return;
       }
 
-      this.appBackends.push(new ChatAppBackend(space, appTree.tree));
+      this.appBackends.push(new ChatAppBackend(space, appTree));
     });
   }
 }

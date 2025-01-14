@@ -1,7 +1,10 @@
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 
+type EventCallback = (event: any) => void;
+
 export default class AppTree {
   readonly tree: ReplicatedTree;
+  private eventCallbacks: Map<string, Set<EventCallback>> = new Map();
 
   static isValid(tree: ReplicatedTree): boolean {
     /*
@@ -63,5 +66,20 @@ export default class AppTree {
     }
 
     return new Date(createdAt as string);
+  }
+
+  onEvent(eventName: string, callback: EventCallback): () => void {
+    if (!this.eventCallbacks.has(eventName)) {
+      this.eventCallbacks.set(eventName, new Set());
+    }
+    this.eventCallbacks.get(eventName)!.add(callback);
+    return () => this.eventCallbacks.get(eventName)?.delete(callback);
+  }
+
+  triggerEvent(eventName: string, event: any) {
+    const callbacks = this.eventCallbacks.get(eventName);
+    if (callbacks) {
+      callbacks.forEach(callback => callback(event));
+    }
   }
 }

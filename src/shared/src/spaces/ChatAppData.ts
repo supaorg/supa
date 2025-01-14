@@ -3,6 +3,7 @@ import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import type Space from "./Space";
 import type { VertexPropertyType } from "../replicatedTree/treeTypes";
 import type { ThreadMessage } from "../models";
+import AppTree from "./AppTree";
 
 type ChatJob = {
 
@@ -11,20 +12,20 @@ type ChatJob = {
 export class ChatAppData {
   private root: Vertex;
   private referenceInSpace: Vertex;
-
   private jobsVertex: Vertex;
 
-  static createNewChatTree(space: Space, configId: string): ReplicatedTree {
+  static createNewChatTree(space: Space, configId: string): AppTree {
     const tree = space.newAppTree("default-chat").tree;
     tree.setVertexProperty(tree.rootVertexId, "configId", configId);
     tree.newNamedVertex(tree.rootVertexId, "messages");
     tree.newNamedVertex(tree.rootVertexId, "jobs");
-    return tree;
+
+    return new AppTree(tree);
   }
 
-  constructor(private space: Space, private appTree: ReplicatedTree) {
-    this.root = appTree.getVertex(appTree.rootVertexId)!;
-    this.referenceInSpace = space.getVertexReferencingAppTree(appTree.rootVertexId)!;
+  constructor(private space: Space, private appTree: AppTree) {
+    this.root = appTree.tree.getVertex(appTree.tree.rootVertexId)!;
+    this.referenceInSpace = space.getVertexReferencingAppTree(appTree.tree.rootVertexId)!;
 
     /*
     this.jobsVertex = this.appTree.getVertexByPath("jobs")!;
@@ -35,7 +36,7 @@ export class ChatAppData {
   }
 
   get messagesVertex(): Vertex | undefined {
-    return this.appTree.getVertexByPath("messages");
+    return this.appTree.tree.getVertexByPath("messages");
   }
 
   get configId(): string | undefined {
@@ -77,6 +78,10 @@ export class ChatAppData {
     return msgs;
   }
 
+  triggerEvent(eventName: string, data: any) {
+    this.appTree.triggerEvent(eventName, data);
+  }
+
   observe(callback: (data: Record<string, VertexPropertyType>) => void): () => void {
     callback(this.root.getProperties());
 
@@ -91,7 +96,7 @@ export class ChatAppData {
   }
 
   observeNewMessages(callback: (messages: ThreadMessage[]) => void): () => void {
-    return this.appTree.observeVertexMove((vertex, isNew) => {
+    return this.appTree.tree.observeVertexMove((vertex, isNew) => {
       if (isNew) {
         const text = vertex.getProperty("text");
         if (text) {
@@ -102,12 +107,12 @@ export class ChatAppData {
   }
 
   observeMessage(id: string, callback: (message: ThreadMessage) => void): () => void {
-    const vertex = this.appTree.getVertex(id);
+    const vertex = this.appTree.tree.getVertex(id);
     if (!vertex) {
       throw new Error(`Vertex ${id} not found`);
     }
 
-    return this.appTree.observeVertex(id, (vertex) => {
+    return this.appTree.tree.observeVertex(id, (vertex) => {
       callback(vertex.getAsTypedObject<ThreadMessage>());
     });
   }
@@ -115,7 +120,7 @@ export class ChatAppData {
   newMessage(role: "user" | "assistant" | "error", text: string): ThreadMessage {
     const lastMsgVertex = this.getLastMsgParentVertex();
 
-    const newMessageVertex = this.appTree.newVertex(lastMsgVertex.id, {
+    const newMessageVertex = this.appTree.tree.newVertex(lastMsgVertex.id, {
       _n: "message",
       createdAt: Date.now(),
       text,
@@ -130,7 +135,7 @@ export class ChatAppData {
   }
 
   askForReply(messageId: string): void {
-    this.appTree.newVertex(this.jobsVertex.id, {
+    this.appTree.tree.newVertex(this.jobsVertex.id, {
       _n: "job",
       type: "reply",
       messageId,
@@ -150,7 +155,7 @@ export class ChatAppData {
 
     if (!targetVertex) {
       // Create messages vertex if it doesn't exist
-      targetVertex = this.appTree.newVertex(this.appTree.rootVertexId, {
+      targetVertex = this.appTree.tree.newVertex(this.appTree.tree.rootVertexId, {
         _n: "messages",
       });
     }
@@ -183,7 +188,7 @@ export class ChatAppData {
   }
 
   isLastMessage(messageId: string): boolean {
-    const vertex = this.appTree.getVertex(messageId);
+    const vertex = this.appTree.tree.getVertex(messageId);
     if (!vertex) {
       return false;
     }
@@ -191,7 +196,7 @@ export class ChatAppData {
   }
 
   isMessageInProgress(messageId: string): boolean {
-    const vertex = this.appTree.getVertex(messageId);
+    const vertex = this.appTree.tree.getVertex(messageId);
     if (!vertex) {
       return false;
     }

@@ -15,7 +15,7 @@
       throw new Error("Failed to load app tree");
     }
 
-    return new ChatAppData($currentSpaceStore, appTree.tree);
+    return new ChatAppData($currentSpaceStore, appTree);
   });
 </script>
 

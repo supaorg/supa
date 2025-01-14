@@ -5,21 +5,32 @@ import { SimpleChatAgent } from "../agents/SimpleChatAgent.ts";
 import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
 import { ChatAppData } from "../spaces/ChatAppData";
 import type { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
+import AppTree from "../spaces/AppTree.ts";
 
 export default class ChatAppBackend {
   private data: ChatAppData;
 
   get appTreeId(): string {
-    return this.appTree.rootVertexId;
+    return this.appTree.tree.rootVertexId;
   }
 
-  constructor(private space: Space, private appTree: ReplicatedTree) {
+  constructor(private space: Space, private appTree: AppTree) {
     this.data = new ChatAppData(this.space, appTree);
 
     this.processMessages(this.data.messages);
 
     this.data.observeNewMessages((messages) => {
       this.processMessages(messages);
+    });
+
+    this.appTree.onEvent('retry-message', (event) => {
+      const messageId = event.messageId;
+
+      if (!messageId) {
+        return;
+      }
+
+      console.log("Try replying to a message again", messageId);
     });
   }
 
@@ -46,7 +57,7 @@ export default class ChatAppBackend {
     const threadTitleAgent = new ThreadTitleAgent(agentServices, config);
 
     const newMessage = this.data.newMessage("assistant", "thinking...");
-    this.appTree.setVertexProperty(newMessage.id, "inProgress", true);
+    this.appTree.tree.setVertexProperty(newMessage.id, "inProgress", true);
 
     try {
       const messagesForLang = [
@@ -58,12 +69,12 @@ export default class ChatAppBackend {
 
       const response = await simpleChatAgent.input(messagesForLang, (resp) => {
         const wipResponse = resp as string;
-        this.appTree.setTransientVertexProperty(newMessage.id, "text", wipResponse);
+        this.appTree.tree.setTransientVertexProperty(newMessage.id, "text", wipResponse);
       }) as string;
 
       // Update the message with the final response
-      this.appTree.setVertexProperty(newMessage.id, "text", response);
-      this.appTree.setVertexProperty(newMessage.id, "inProgress", false);
+      this.appTree.tree.setVertexProperty(newMessage.id, "text", response);
+      this.appTree.tree.setVertexProperty(newMessage.id, "inProgress", false);
 
       messages.push({ ...newMessage, text: response });
 
@@ -79,9 +90,9 @@ export default class ChatAppBackend {
       this.space.setAppTreeName(this.appTreeId, this.data.title);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      this.appTree.setVertexProperty(newMessage.id, "role", "error");
-      this.appTree.setVertexProperty(newMessage.id, "text", errorMessage);
-      this.appTree.setVertexProperty(newMessage.id, "inProgress", false);
+      this.appTree.tree.setVertexProperty(newMessage.id, "role", "error");
+      this.appTree.tree.setVertexProperty(newMessage.id, "text", errorMessage);
+      this.appTree.tree.setVertexProperty(newMessage.id, "inProgress", false);
     }
   }
 }

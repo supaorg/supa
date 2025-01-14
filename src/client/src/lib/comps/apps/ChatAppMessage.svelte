@@ -10,7 +10,6 @@
 
   let message: ThreadMessage | undefined = $state();
   let canRetry = $state(false);
-  let retrying = $state(false);
   let isLast = $state(false);
 
   onMount(() => {
@@ -19,10 +18,10 @@
       isLast = data.isLastMessage(messageId);
 
       canRetry =
-        (isLast &&
-          isMoreThanOneMinuteOld(msg.createdAt) &&
-          data.isMessageInProgress(messageId)) ||
-        msg.role === "error";
+        isLast &&
+        (msg.role === "error" ||
+          (isMoreThanOneMinuteOld(msg.createdAt) &&
+            data.isMessageInProgress(messageId)));
     });
 
     return () => {
@@ -42,9 +41,9 @@
   }
 
   async function retry() {
-    retrying = true;
-    //await $currentWorkspaceStore?.retryThread(threadId);
-    retrying = false;
+    data.triggerEvent("retry-message", {
+      messageId: messageId,
+    });
   }
 </script>
 
@@ -85,7 +84,7 @@
           />
         {/if}
 
-        {#if canRetry && !retrying}
+        {#if canRetry}
           <button class="btn variant-filled" onclick={retry}>Retry</button>
         {/if}
       </div>
