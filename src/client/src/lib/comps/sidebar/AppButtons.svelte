@@ -45,7 +45,7 @@
     {#if config.visible}
       <li>
         <button
-          class="w-full flex px-4 py-2 gap-2"
+          class="w-full flex px-2 py-2 gap-2"
           onclick={() => startNewThread(config)}
         >
           <span class="flex-shrink-0 w-6 h-6">

@@ -18,7 +18,7 @@
       appTreesUnobserve?.();
 
       currentSpace = space;
-      
+
       if (currentSpace) {
         appTreeIds = [...(currentSpace.getAppTreeIds() ?? [])];
         appTreesUnobserve = currentSpace.tree.observe(
