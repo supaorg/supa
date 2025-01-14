@@ -4,7 +4,6 @@ import { AgentServices } from "../agents/AgentServices.ts";
 import { SimpleChatAgent } from "../agents/SimpleChatAgent.ts";
 import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
 import { ChatAppData } from "../spaces/ChatAppData";
-import type { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import AppTree from "../spaces/AppTree.ts";
 
 export default class ChatAppBackend {
@@ -30,7 +29,14 @@ export default class ChatAppBackend {
         return;
       }
 
-      console.log("Try replying to a message again", messageId);
+      const messages = this.data.messages;
+      this.replyToMessage(messages);
+    });
+
+    this.appTree.onEvent("stop-message", (event) => {
+      console.log("Stop message event", event);
+
+      // @TODO: check if a message is in progress and worked by an agent and stop it
     });
   }
 
@@ -56,27 +62,46 @@ export default class ChatAppBackend {
     const simpleChatAgent = new SimpleChatAgent(agentServices, config);
     const threadTitleAgent = new ThreadTitleAgent(agentServices, config);
 
-    const newMessage = this.data.newMessage("assistant", "thinking...");
-    this.appTree.tree.setVertexProperty(newMessage.id, "inProgress", true);
+    // Check if the last message is an error that we can reuse
+    const lastMessage = messages[messages.length - 1];
+    const messageToUse = lastMessage?.role === "error" ?
+      lastMessage :
+      this.data.newMessage("assistant", "thinking...");
+
+    // @TODO: consider making TypedVertex<ThreadMessage> that can be used to set properties
+    // @TODO: or consider just having data.updateMessage(message)
+
+    // Set initial state
+    this.appTree.tree.setVertexProperty(messageToUse.id, "role", "assistant");
+    this.appTree.tree.setVertexProperty(messageToUse.id, "text", "thinking...");
+    this.appTree.tree.setVertexProperty(messageToUse.id, "inProgress", true);
 
     try {
+      // If we're retrying an error message, exclude it from the input
+      const messagesToUse = lastMessage?.role === "error" ?
+        messages.slice(0, -1) :
+        messages;
+
       const messagesForLang = [
         { role: "system", text: config.instructions },
-        ...messages.map((m) => ({
+        ...messagesToUse.map((m) => ({
           role: m.role,
           text: m.text,
         }))];
 
       const response = await simpleChatAgent.input(messagesForLang, (resp) => {
         const wipResponse = resp as string;
-        this.appTree.tree.setTransientVertexProperty(newMessage.id, "text", wipResponse);
+        this.appTree.tree.setTransientVertexProperty(messageToUse.id, "text", wipResponse);
       }) as string;
 
       // Update the message with the final response
-      this.appTree.tree.setVertexProperty(newMessage.id, "text", response);
-      this.appTree.tree.setVertexProperty(newMessage.id, "inProgress", false);
+      this.appTree.tree.setVertexProperty(messageToUse.id, "text", response);
+      this.appTree.tree.setVertexProperty(messageToUse.id, "inProgress", false);
 
-      messages.push({ ...newMessage, text: response });
+      // Only add to messages array if it's a new message
+      if (lastMessage?.role !== "error") {
+        messages.push({ ...messageToUse, text: response });
+      }
 
       const newTitle = await threadTitleAgent.input({
         messages,
@@ -90,9 +115,9 @@ export default class ChatAppBackend {
       this.space.setAppTreeName(this.appTreeId, this.data.title);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      this.appTree.tree.setVertexProperty(newMessage.id, "role", "error");
-      this.appTree.tree.setVertexProperty(newMessage.id, "text", errorMessage);
-      this.appTree.tree.setVertexProperty(newMessage.id, "inProgress", false);
+      this.appTree.tree.setVertexProperty(messageToUse.id, "role", "error");
+      this.appTree.tree.setVertexProperty(messageToUse.id, "text", errorMessage);
+      this.appTree.tree.setVertexProperty(messageToUse.id, "inProgress", false);
     }
   }
 }

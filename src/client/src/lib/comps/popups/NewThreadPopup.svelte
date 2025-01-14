@@ -33,7 +33,7 @@
     const chatAppData = new ChatAppData($currentSpaceStore, newTree);
     chatAppData.newMessage("user", message);
 
-    goto(`/?t=${newTree.rootVertexId}`);
+    goto(`/?t=${newTree.tree.rootVertexId}`);
     onRequestClose();
   }
 </script>

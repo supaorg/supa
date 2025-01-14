@@ -2,16 +2,7 @@
   import { Send, StopCircle, Paperclip } from "lucide-svelte";
   import { onMount } from 'svelte';
   import { focusTrap } from '$lib/utils/focusTrap';
-
-  const THREAD_STATUS = {
-    DISABLED: "disabled",
-    CAN_SEND_MESSAGE: "can-send-message",
-    SENDING: "sending",
-    AI_MESSAGE_IN_PROGRESS: "ai-message-in-progress",
-    ERROR: "error",
-  } as const;
-
-  type ThreadStatus = (typeof THREAD_STATUS)[keyof typeof THREAD_STATUS];
+  import { type MessageFormStatus } from "./messageFormStatus";
 
   interface SendMessageFormProps {
     onSend: (msg: string) => void;
@@ -19,7 +10,7 @@
     onHeightChange?: (height: number) => void;
     isFocused?: boolean;
     placeholder?: string;
-    threadStatus?: ThreadStatus;
+    status?: MessageFormStatus;
     disabled?: boolean;
   }
 
@@ -29,7 +20,7 @@
     onHeightChange = () => {},
     isFocused = true,
     placeholder = "Write a message...",
-    threadStatus = THREAD_STATUS.CAN_SEND_MESSAGE,
+    status = "can-send-message",
     disabled = false,
   }: SendMessageFormProps = $props();
 
@@ -69,7 +60,7 @@
   }
 
   async function sendMsg() {
-    if (disabled || threadStatus !== THREAD_STATUS.CAN_SEND_MESSAGE) {
+    if (disabled || status !== "can-send-message") {
       return;
     }
 
@@ -79,7 +70,7 @@
   }
 
   async function stopMsg() {
-    if (threadStatus !== THREAD_STATUS.AI_MESSAGE_IN_PROGRESS) {
+    if (status !== "ai-message-in-progress") {
       return;
     }
 
@@ -123,7 +114,7 @@
             <!-- Voice button -->
             <div class="min-w-8">
               <div class="relative h-8 w-8">
-                {#if threadStatus === THREAD_STATUS.AI_MESSAGE_IN_PROGRESS}
+                {#if status === "ai-message-in-progress"}
                   <button 
                     onclick={stopMsg} 
                     class="flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface-700"
@@ -134,8 +125,8 @@
                   <button 
                     onclick={sendMsg} 
                     class="flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface-700" 
-                    class:opacity-50={disabled || threadStatus !== THREAD_STATUS.CAN_SEND_MESSAGE}
-                    disabled={disabled || threadStatus !== THREAD_STATUS.CAN_SEND_MESSAGE}
+                    class:opacity-50={disabled || status !== "can-send-message" || query.length === 0}
+                    disabled={disabled || status !== "can-send-message" || query.length === 0}
                   >
                     <Send size={16} />
                   </button>

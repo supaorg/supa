@@ -5,6 +5,7 @@
   import AppConfigDropdown from "./AppConfigDropdown.svelte";
   import { ChatAppData } from "@shared/spaces/ChatAppData";
   import type { ThreadMessage } from "@shared/models";
+  import type { MessageFormStatus } from "../forms/messageFormStatus";
 
   const mainScrollableId = "chat-messanges-scrollable";
 
@@ -14,6 +15,23 @@
   let title: string | undefined = $state();
   let messages = $state<ThreadMessage[]>([]);
   let stickToBottomWhenLastMessageChanges = $state(false);
+
+  let formStatus: MessageFormStatus = $derived.by(() => {
+    if (messages.length === 0) {
+      return "can-send-message";
+    }
+
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role === "assistant" && lastMessage.inProgress) {
+      return "ai-message-in-progress";
+    }
+
+    if (lastMessage.role === "user") {
+      return "disabled";
+    }
+
+    return "can-send-message";
+  });
 
   onMount(() => {
     const unobserve = data.observe((data) => {
@@ -53,7 +71,7 @@
   }
 
   async function stopMsg() {
-    
+    data.triggerEvent("stop-message", {});
   }
 </script>
 
@@ -78,7 +96,7 @@
   </div>
   <div class="min-h-min">
     <section class="max-w-3xl mx-auto py-2 px-2">
-      <SendMessageForm onSend={sendMsg} onStop={stopMsg} />
+      <SendMessageForm onSend={sendMsg} onStop={stopMsg} status={formStatus} />
     </section>
   </div>
 </div>
