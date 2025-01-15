@@ -10,6 +10,7 @@
 
   function formatPropertyKey(key: string): string {
     if (key === '_c') return 'created at';
+    if (key === 'tid') return 'app tree';
     return key;
   }
 
@@ -23,6 +24,11 @@
       }
     }
     return value;
+  }
+
+  function openAppTree(treeId: string) {
+    // TODO: Implement opening app tree
+    console.log('Opening app tree:', treeId);
   }
 
   function updateVertex() {
@@ -60,7 +66,16 @@
       {#each Object.entries(properties) as [key, value]}
         <div class="property-item flex items-center gap-2 p-2 hover:bg-surface-500/10">
           <span class="property-key opacity-75">{formatPropertyKey(key)}:</span>
-          <span class="property-value font-mono">{formatPropertyValue(key, value)}</span>
+          {#if key === 'tid'}
+            <button 
+              class="px-2 py-0.5 rounded hover:variant-soft"
+              on:click={() => openAppTree(value)}
+            >
+              [open]
+            </button>
+          {:else}
+            <span class="property-value font-mono">{formatPropertyValue(key, value)}</span>
+          {/if}
         </div>
       {/each}
 
