@@ -38,7 +38,9 @@
       title = data.title as string;
     });
 
-    const unobserveMessages = data.observeMessages((msgs) => {
+    messages = data.messages;
+
+    const unobserveNewMessages = data.observeNewMessages((msgs) => {
       if (msgs.length > messages.length) {
         scrollToBottom();
       }
@@ -48,7 +50,7 @@
 
     return () => {
       unobserve();
-      unobserveMessages();
+      unobserveNewMessages();
     };
   });
 

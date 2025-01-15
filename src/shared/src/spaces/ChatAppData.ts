@@ -12,7 +12,7 @@ type ChatJob = {
 export class ChatAppData {
   private root: Vertex;
   private referenceInSpace: Vertex;
-  private jobsVertex: Vertex;
+  //private jobsVertex: Vertex;
 
   static createNewChatTree(space: Space, configId: string): AppTree {
     const tree = space.newAppTree("default-chat").tree;
@@ -91,18 +91,27 @@ export class ChatAppData {
   }
 
   observeMessages(callback: (messages: ThreadMessage[]) => void): () => void {
-    callback(this.messages);
-    return this.observeNewMessages(callback);
+    // @TODO: observe NOT only new messages but also when messages are updated
+    return this.appTree.tree.observeVertexMove((vertex, _) => {
+      const text = vertex.getProperty("text");
+      if (text) {
+        callback(this.messages);
+      }
+
+    });
   }
 
   observeNewMessages(callback: (messages: ThreadMessage[]) => void): () => void {
     return this.appTree.tree.observeVertexMove((vertex, isNew) => {
-      if (isNew) {
-        const text = vertex.getProperty("text");
-        if (text) {
-          callback(this.messages);
-        }
+      if (!isNew) {
+        return;
       }
+
+      const text = vertex.getProperty("text");
+      if (text) {
+        callback(this.messages);
+      }
+
     });
   }
 
@@ -135,11 +144,13 @@ export class ChatAppData {
   }
 
   askForReply(messageId: string): void {
+    /*
     this.appTree.tree.newVertex(this.jobsVertex.id, {
       _n: "job",
       type: "reply",
       messageId,
     });
+    */
   }
 
   retryMessage(messageId: string): void {
@@ -179,7 +190,7 @@ export class ChatAppData {
         role: props.role as "user" | "assistant",
         text: props.text as string,
         createdAt: props.createdAt as number,
-        inProgress: props.inProgress as number | null,
+        inProgress: props.inProgress as boolean | null,
         updatedAt: props.updatedAt as number | null
       });
     }
