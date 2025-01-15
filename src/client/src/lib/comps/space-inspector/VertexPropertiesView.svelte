@@ -1,0 +1,126 @@
+<script lang="ts">
+  import type { Vertex } from "@shared/replicatedTree/Vertex";
+  import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
+  
+  let { vertex }: { vertex: Vertex } = $props();
+  let properties = $state<Record<string, any>>({});
+
+  function formatPropertyKey(key: string): string {
+    if (key === '_c') return 'created at';
+    if (key === 'tid') return 'app tree';
+    return key;
+  }
+
+  function formatPropertyValue(key: string, value: any): string {
+    if (key === '_c') {
+      try {
+        const date = new Date(value);
+        return date.toLocaleString();
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  }
+
+  function openAppTree(treeId: string) {
+    // TODO: Implement opening app tree
+    console.log('Opening app tree:', treeId);
+  }
+
+  function updateProperties() {
+    const allProps = vertex.getProperties();
+    // Filter out the _n property
+    const { _n, ...filteredProps } = allProps;
+    properties = filteredProps;
+  }
+
+  function updateProperty(key: string, value: VertexPropertyType) {
+    vertex.setProperty(key, value);
+  }
+
+  function getPropertyType(value: any): 'string' | 'number' | 'boolean' | 'other' {
+    if (typeof value === 'string') return 'string';
+    if (typeof value === 'number') return 'number';
+    if (typeof value === 'boolean') return 'boolean';
+    return 'other';
+  }
+
+  function handleStringChange(key: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    updateProperty(key, input.value);
+  }
+
+  function handleNumberChange(key: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = parseFloat(input.value);
+    if (!isNaN(value)) {
+      updateProperty(key, value);
+    }
+  }
+
+  function handleBooleanChange(key: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    updateProperty(key, input.checked);
+  }
+
+  $effect(() => {
+    updateProperties();
+  });
+
+  vertex.observe((events) => {
+    if (events.some((e) => e.type === "property")) {
+      updateProperties();
+    }
+  });
+</script>
+
+<div class="properties-section">
+  {#each Object.entries(properties) as [key, value] (key)}
+    <div class="property-item flex items-center gap-2 p-2 hover:bg-surface-500/10">
+      <span class="property-key opacity-75 min-w-[80px] shrink-0">{formatPropertyKey(key)}:</span>
+      <div class="flex-1 flex">
+        {#if key === 'tid'}
+          <button 
+            class="px-2 py-0.5 btn-sm hover:variant-soft text-xs"
+            onclick={() => openAppTree(value)}
+          >
+            open
+          </button>
+        {:else if key === '_c'}
+          <span class="property-value font-mono text-xs">{formatPropertyValue(key, value)}</span>
+        {:else}
+          {#if getPropertyType(value) === 'string'}
+            <input
+              type="text"
+              class="input input-sm w-full text-left text-xs h-6 px-1"
+              value={value}
+              onclick={(e) => e.stopPropagation()}
+              oninput={(e) => handleStringChange(key, e)}
+            />
+          {:else if getPropertyType(value) === 'number'}
+            <input
+              type="number"
+              class="input input-sm w-full text-left text-xs h-6 px-1"
+              value={value}
+              onclick={(e) => e.stopPropagation()}
+              oninput={(e) => handleNumberChange(key, e)}
+            />
+          {:else if getPropertyType(value) === 'boolean'}
+            <label class="flex items-center w-full">
+              <input
+                type="checkbox"
+                class="h-3 w-3"
+                checked={value}
+                onclick={(e) => e.stopPropagation()}
+                onchange={(e) => handleBooleanChange(key, e)}
+              />
+            </label>
+          {:else}
+            <span class="property-value font-mono text-xs">{formatPropertyValue(key, value)}</span>
+          {/if}
+        {/if}
+      </div>
+    </div>
+  {/each}
+</div> 
