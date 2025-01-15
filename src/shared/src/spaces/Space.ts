@@ -72,6 +72,15 @@ export default class Space {
     return this.tree.rootVertexId;
   }
 
+  get rootVertex(): Vertex {
+    const rootVertex = this.tree.getVertex(this.tree.rootVertexId);
+    if (!rootVertex) {
+      throw new Error("Root vertex not found");
+    }
+
+    return rootVertex;
+  }
+
   get name(): string {
     const name = this.tree.getVertexProperty(this.tree.rootVertexId, 'name');
     if (!name) {

@@ -73,7 +73,7 @@
   bind:this={windowElement}
   role="dialog"
   aria-label="Space Inspector Window"
-  class="fixed z-10 top-20 right-4 bg-surface-50-950 shadow-lg rounded-lg border min-w-[300px] min-h-[200px] flex flex-col"
+  class="fixed z-10 top-20 right-4 bg-surface-50-950 shadow-xl rounded-lg border border-surface-200-800 min-w-[300px] min-h-[200px] flex flex-col"
   style="width: 300px; height: 400px;"
 >
   <button 
