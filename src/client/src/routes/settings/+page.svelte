@@ -3,6 +3,7 @@
   import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore";
+  import { isDevMode } from "$lib/stores/devMode";
 </script>
 
 <CenteredPage>
@@ -27,7 +28,7 @@
 
     <div class="card p-4 preset-filled-surface-100-900 border-[1px] border-surface-200-800">
       <h3 class="h4 mb-4">For developers</h3>
-      <a href="/space-debug" class="btn preset-filled">See space trees</a>
+      <button class="btn preset-filled" on:click={() => $isDevMode = !$isDevMode}>Toggle Dev Mode</button>
     </div>
   </div>
 </CenteredPage>
