@@ -2,7 +2,7 @@
   import type { Vertex } from "@shared/replicatedTree/Vertex";
   import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
   
-  let { vertex }: { vertex: Vertex } = $props();
+  let { vertex, onTreeOpen }: { vertex: Vertex, onTreeOpen: (treeId: string) => void } = $props();
   let properties = $state<Record<string, any>>({});
 
   function formatPropertyKey(key: string): string {
@@ -23,9 +23,8 @@
     return value;
   }
 
-  function openAppTree(treeId: string) {
-    // TODO: Implement opening app tree
-    console.log('Opening app tree:', treeId);
+  async function openAppTree(treeId: string) {
+    onTreeOpen(treeId);
   }
 
   function updateProperties() {

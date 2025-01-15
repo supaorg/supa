@@ -4,7 +4,7 @@
   import Self from "./VertexView.svelte";
   import VertexPropertiesView from "./VertexPropertiesView.svelte";
   
-  let { vertex }: { vertex: Vertex } = $props();
+  let { vertex, onTreeOpen }: { vertex: Vertex, onTreeOpen: (treeId: string) => void } = $props();
   let children = $state<Vertex[]>([]);
   let isExpanded = $state(false);
 
@@ -35,7 +35,7 @@
   </div>
 
   <div class="vertex-content text-xs">
-    <VertexPropertiesView {vertex} />
+    <VertexPropertiesView {vertex} onTreeOpen={onTreeOpen} />
 
     {#if children.length > 0}
       <div class="property-item flex items-center gap-2 p-2 hover:bg-surface-500/10">
@@ -60,7 +60,7 @@
         <div class="vertex-item-children mt-2 pl-[11px] relative" role="group">
           <div class="absolute left-[9px] top-0 bottom-0 border-l border-surface-500/20"></div>
           {#each children as child (child.id)}
-            <Self vertex={child} />
+            <Self vertex={child} onTreeOpen={onTreeOpen} />
           {/each}
         </div>
       {/if}

@@ -90,6 +90,15 @@ export class ReplicatedTree {
     return vertex ? new Vertex(this, vertex) : undefined;
   }
 
+  get rootVertex(): Vertex {
+    const rootVertex = this.state.getVertex(this.rootVertexId);
+    if (!rootVertex) {
+      throw new Error("Root vertex not found");
+    }
+
+    return new Vertex(this, rootVertex);
+  }
+
   getAllVertices(): ReadonlyArray<Vertex> {
     return this.state.getAllVertices().map(v => new Vertex(this, v));
   }
