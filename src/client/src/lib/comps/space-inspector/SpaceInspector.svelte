@@ -6,16 +6,18 @@
 
   let spaceRootVertex = $derived($currentSpaceStore?.rootVertex);
   let appTreeRootVertex = $state<Vertex | undefined>(undefined);
+  let showingAppTree = $state(false);
 
-  async function openTree(treeId: string) {
+  async function onTreeOpen(treeId: string) {
     const appTree = await $currentSpaceStore?.loadAppTree(treeId);
     if (appTree) {
       appTreeRootVertex = appTree.tree.rootVertex;
+      showingAppTree = true;
     }
   }
 
-  function resetToSpace() {
-    appTreeRootVertex = undefined;
+  function showSpace() {
+    showingAppTree = false;
   }
 </script>
 
@@ -23,22 +25,26 @@
   <li>
     <button 
       class="opacity-60 hover:underline" 
-      onclick={resetToSpace}
-      disabled={!appTreeRootVertex}
+      onclick={showSpace}
+      disabled={!showingAppTree}
     >
       Space
     </button>
   </li>
-  {#if appTreeRootVertex}
+  {#if showingAppTree}
     <li class="opacity-50" aria-hidden="true">&rsaquo;</li>
     <li>App Tree</li>
   {/if}
 </ol>
 
 {#if spaceRootVertex}
+  <div class="space-tree" class:hidden={showingAppTree}>
+    <VertexView vertex={spaceRootVertex} {onTreeOpen} />
+  </div>
+
   {#if appTreeRootVertex}
-    <VertexView vertex={appTreeRootVertex} onTreeOpen={openTree} />
-  {:else}
-    <VertexView vertex={spaceRootVertex} onTreeOpen={openTree} />
+    <div class="app-tree" class:hidden={!showingAppTree}>
+      <VertexView vertex={appTreeRootVertex} {onTreeOpen} />
+    </div>
   {/if}
 {/if}
