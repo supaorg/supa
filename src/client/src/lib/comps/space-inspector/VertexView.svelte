@@ -37,8 +37,8 @@
   });
 </script>
 
-<div class="vertex-item py-2" class:ml-4={vertex.parentId !== null}>
-  <div class="vertex-header flex items-center gap-2">
+<div class="vertex-item min-w-[400px]" class:ml-4={vertex.parentId !== null}>
+  <div class="vertex-header flex items-center gap-2 py-2">
     <span class="vertex-name font-medium flex-1">
       {vertex.name ?? vertex.id}
     </span>
