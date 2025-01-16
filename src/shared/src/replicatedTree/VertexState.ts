@@ -51,10 +51,12 @@ export class VertexState {
     }
   }
 
-  getProperty(key: string): VertexPropertyType | undefined {
-    const transientProp = this.transientProperties.find(p => p.key === key);
-    if (transientProp) {
-      return transientProp.value;
+  getProperty(key: string, includingTransient: boolean = true): VertexPropertyType | undefined {
+    if (includingTransient) {
+      const transientProp = this.transientProperties.find(p => p.key === key);
+      if (transientProp) {
+        return transientProp.value;
+      }
     }
 
     return this.properties.find(p => p.key === key)?.value;

@@ -134,13 +134,13 @@ export class ReplicatedTree {
     return ancestors;
   }
 
-  getVertexProperty(vertexId: string, key: string): VertexPropertyType | undefined {
+  getVertexProperty(vertexId: string, key: string, includingTransient: boolean = true): VertexPropertyType | undefined {
     const vertex = this.state.getVertex(vertexId);
     if (!vertex) {
       return undefined;
     }
 
-    return vertex.getProperty(key);
+    return vertex.getProperty(key, includingTransient);
   }
 
   getVertexProperties(vertexId: string): Readonly<TreeVertexProperty[]> {

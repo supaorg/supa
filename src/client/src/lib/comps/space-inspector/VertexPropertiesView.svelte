@@ -50,7 +50,12 @@
 
   function handleStringChange(key: string, event: Event) {
     const input = event.target as HTMLInputElement;
-    updateProperty(key, input.value);
+    vertex.setTransientProperty(key, input.value);
+  }
+
+  function handleStringBlur(key: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    vertex.setProperty(key, input.value);
   }
 
   function handleNumberChange(key: string, event: Event) {
@@ -82,7 +87,16 @@
 </script>
 
 <div class="properties-section">
-  {#each Object.entries(properties) as [key, value] (key)}
+  {#each Object.entries(properties).sort(([a], [b]) => {
+    // Keep _c at the top
+    if (a === '_c') return -1;
+    if (b === '_c') return 1;
+    // Keep tid second
+    if (a === 'tid') return -1;
+    if (b === 'tid') return 1;
+    // Sort rest alphabetically
+    return a.localeCompare(b);
+  }) as [key, value] (key)}
     <div class="property-item flex items-center gap-2 p-2 hover:bg-surface-500/10">
       <span class="property-key opacity-75 min-w-[80px] shrink-0">{formatPropertyKey(key)}:</span>
       <div class="flex-1 flex">
@@ -103,6 +117,7 @@
               value={value}
               onclick={(e) => e.stopPropagation()}
               oninput={(e) => handleStringChange(key, e)}
+              onblur={(e) => handleStringBlur(key, e)}
             />
           {:else if getPropertyType(value) === 'number'}
             <input

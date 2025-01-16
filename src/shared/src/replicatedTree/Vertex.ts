@@ -72,13 +72,23 @@ export class Vertex {
   }
 
   setProperty(key: string, value: VertexPropertyType): void {
+    // First check if the property is already set (not including transient properties)
+    const existingValue = this.getProperty(key, false);
+    if (existingValue === value) {
+      return;
+    }
+
+    this.tree.setVertexProperty(this.id, key, value);
+  }
+
+  setTransientProperty(key: string, value: VertexPropertyType): void {
     // First check if the property is already set
     const existingValue = this.getProperty(key);
     if (existingValue === value) {
       return;
     }
 
-    this.tree.setVertexProperty(this.id, key, value);
+    this.tree.setTransientVertexProperty(this.id, key, value);
   }
 
   setProperties(props: Record<string, VertexPropertyType> | object): void {
@@ -87,8 +97,8 @@ export class Vertex {
     }
   }
 
-  getProperty(key: string): VertexPropertyType | undefined {
-    return this.tree.getVertexProperty(this.id, key);
+  getProperty(key: string, includingTransient: boolean = true): VertexPropertyType | undefined {
+    return this.tree.getVertexProperty(this.id, key, includingTransient);
   }
 
   getProperties(): Record<string, VertexPropertyType> {

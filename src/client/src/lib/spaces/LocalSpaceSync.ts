@@ -591,7 +591,9 @@ function turnOpsIntoJSONLines(ops: VertexOperation[]): string {
       // We save parentId like that because it might be null and we want to save null with quotes
       str += `["m",${op.id.counter},"${op.targetId}",${JSON.stringify(op.parentId)}]\n`;
     } else if (isSetPropertyOp(op)) {
-      str += `["p",${op.id.counter},"${op.targetId}","${op.key}",${JSON.stringify(op.value)}]\n`;
+      // Convert undefined to empty object - {} because JSON doesn't support undefined
+      const value = op.value === undefined ? {} : op.value;
+      str += `["p",${op.id.counter},"${op.targetId}","${op.key}",${JSON.stringify(value)}]\n`;
     }
   }
 
@@ -606,7 +608,9 @@ async function turnJSONLinesIntoOps(lines: string[], peerId: string): Promise<Ve
         if (op.type === 'm') {
           return newMoveVertexOp(op.counter, op.peerId, op.targetId, op.parentId ?? null);
         } else {
-          return newSetVertexPropertyOp(op.counter, op.peerId, op.targetId, op.key!, op.value);
+          // Convert empty object back to undefined
+          const value = op.value && typeof op.value === 'object' && Object.keys(op.value).length === 0 ? undefined : op.value;
+          return newSetVertexPropertyOp(op.counter, op.peerId, op.targetId, op.key!, value);
         }
       });
       opsParserWorker.removeEventListener('message', handleMessage);
