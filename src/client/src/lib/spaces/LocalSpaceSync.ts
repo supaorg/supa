@@ -327,7 +327,7 @@ export class LocalSpaceSync {
   }
 
   private async readSecretsFromFile(): Promise<Record<string, string> | undefined> {
-    const secretsPath = this.uri + '/secrets.json';
+    const secretsPath = this.uri + '/secrets';
 
     try { 
       const encryptedContent = await readTextFile(secretsPath);
@@ -338,7 +338,7 @@ export class LocalSpaceSync {
   }
 
   private async writeSecretsToFile(secrets: Record<string, string>) {
-    const secretsPath = this.uri + '/secrets.json';
+    const secretsPath = this.uri + '/secrets';
 
     const encryptedContent = await encryptSecrets(secrets, this.space.getId());
     await writeTextFile(secretsPath, encryptedContent);
@@ -352,7 +352,7 @@ export class LocalSpaceSync {
 
         if (path.endsWith('.jsonl')) {
           this.tryReadOpsFromPeer(path);
-        } else if (path.endsWith('secrets.json')) {
+        } else if (path.endsWith('secrets')) {
           this.tryReadSecretsFromPeer(path);
         }
       }
@@ -363,7 +363,7 @@ export class LocalSpaceSync {
 
         if (path.endsWith('.jsonl')) {
           this.tryReadOpsFromPeer(path);
-        } else if (path.endsWith('secrets.json')) {
+        } else if (path.endsWith('secrets')) {
           this.tryReadSecretsFromPeer(path);
         }
       }
