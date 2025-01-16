@@ -16,8 +16,10 @@
     isExpanded = !isExpanded;
   }
 
-  onMount(() => {
+  $effect(() => {
+    console.log("effect vertex: ", vertex.id);
     updateVertex();
+
     const unobserve = vertex.observe((events) => {
       if (events.some((e) => e.type === "children")) {
         updateVertex();
