@@ -18,20 +18,36 @@ export class VertexState {
   setProperty(key: string, value: any): void {
     const existingPropIndex = this.properties.findIndex(p => p.key === key);
     if (existingPropIndex !== -1) {
-      // Update existing property
-      this.properties[existingPropIndex] = { key, value };
+      if (value !== undefined) {
+        // Update existing property
+        this.properties[existingPropIndex] = { key, value };
+      } else {
+        // Remove existing property
+        this.removeProperty(key);
+      }
     } else {
-      // Add new property
-      this.properties.push({ key, value });
+      if (value !== undefined) {
+        // Add new property
+        this.properties.push({ key, value });
+      }
     }
   }
 
   setTransientProperty(key: string, value: any): void {
     const existingPropIndex = this.transientProperties.findIndex(p => p.key === key);
     if (existingPropIndex !== -1) {
-      this.transientProperties[existingPropIndex] = { key, value };
+      if (value !== undefined) {
+        // Update existing property
+        this.transientProperties[existingPropIndex] = { key, value };
+      } else {
+        // Remove existing property
+        this.removeTransientProperty(key);
+      }
     } else {
-      this.transientProperties.push({ key, value });
+      if (value !== undefined) {
+        // Add new property
+        this.transientProperties.push({ key, value });
+      }
     }
   }
 

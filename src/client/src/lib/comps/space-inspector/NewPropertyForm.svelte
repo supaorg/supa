@@ -1,4 +1,3 @@
-# New file
 <script lang="ts">
   import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
 

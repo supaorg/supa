@@ -16,7 +16,6 @@
   }
 
   $effect(() => {
-    console.log("effect vertex: ", vertex.id);
     updateVertex();
 
     const unobserve = vertex.observe((events) => {
