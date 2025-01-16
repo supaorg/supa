@@ -1,9 +1,12 @@
 <script lang="ts">
   import type { Vertex } from "@shared/replicatedTree/Vertex";
   import type { VertexPropertyType } from "@shared/replicatedTree/treeTypes";
+  import { TrashIcon, Plus } from "lucide-svelte";
+  import NewPropertyForm from "./NewPropertyForm.svelte";
   
   let { vertex, onTreeOpen }: { vertex: Vertex, onTreeOpen: (treeId: string) => void } = $props();
   let properties = $state<Record<string, any>>({});
+  let isAddingProperty = $state(false);
 
   function formatPropertyKey(key: string): string {
     if (key === '_c') return 'created at';
@@ -63,6 +66,10 @@
     updateProperty(key, input.checked);
   }
 
+  function deleteProperty(key: string) {
+    vertex.setProperty(key, undefined);
+  }
+
   $effect(() => {
     updateProperties();
   });
@@ -120,6 +127,31 @@
           {/if}
         {/if}
       </div>
+      {#if key !== '_c' && key !== 'tid'}
+        <button 
+          class="btn-icon btn-icon-sm hover:variant-soft"
+          onclick={() => deleteProperty(key)}
+        >
+          <TrashIcon size={14} />
+        </button>
+      {/if}
     </div>
   {/each}
+  {#if isAddingProperty}
+    <NewPropertyForm 
+      onCreate={(key, value) => {
+        updateProperty(key, value);
+        isAddingProperty = false;
+      }}
+      onCancel={() => isAddingProperty = false}
+    />
+  {:else}
+    <button 
+      class="flex items-center gap-2 p-2 w-full hover:bg-surface-500/10 text-xs opacity-75"
+      onclick={() => isAddingProperty = true}
+    >
+      <Plus size={14} />
+      <span>Add property</span>
+    </button>
+  {/if}
 </div> 

@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Vertex } from "@shared/replicatedTree/Vertex";
-  import { onMount, onDestroy } from "svelte";
   import Self from "./VertexView.svelte";
   import VertexPropertiesView from "./VertexPropertiesView.svelte";
   

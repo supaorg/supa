@@ -2,7 +2,7 @@ import { VertexState } from "./VertexState";
 
 export type TreeVertexId = string;
 
-export type VertexPropertyType = string | number | boolean | string[] | number[] | boolean[];
+export type VertexPropertyType = string | number | boolean | string[] | number[] | boolean[] | undefined;
 
 export type TreeVertexProperty = {
   readonly key: string;
