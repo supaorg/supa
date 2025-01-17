@@ -8,6 +8,7 @@ import AppTree from "../spaces/AppTree.ts";
 
 export default class ChatAppBackend {
   private data: ChatAppData;
+  private activeAgent: SimpleChatAgent | null = null;
 
   get appTreeId(): string {
     return this.appTree.tree.rootVertexId;
@@ -34,9 +35,17 @@ export default class ChatAppBackend {
     });
 
     this.appTree.onEvent("stop-message", (event) => {
-      console.log("Stop message event", event);
+      if (this.activeAgent) {
+        this.activeAgent.stop();
+      }
 
-      // @TODO: check if a message is in progress and worked by an agent and stop it
+      // Get the last message and set inProgress to false
+      const messages = this.data.messages;
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.role === "assistant") {
+        this.appTree.tree.setVertexProperty(lastMessage.id, "inProgress", false);
+      }
+
     });
   }
 
@@ -60,6 +69,7 @@ export default class ChatAppBackend {
 
     const agentServices = new AgentServices(this.space);
     const simpleChatAgent = new SimpleChatAgent(agentServices, config);
+    this.activeAgent = simpleChatAgent;
     const threadTitleAgent = new ThreadTitleAgent(agentServices, config);
 
     // Check if the last message is an error that we can reuse
@@ -97,6 +107,7 @@ export default class ChatAppBackend {
       // Update the message with the final response
       this.appTree.tree.setVertexProperty(messageToUse.id, "text", response);
       this.appTree.tree.setVertexProperty(messageToUse.id, "inProgress", false);
+      this.activeAgent = null;
 
       // Only add to messages array if it's a new message
       if (lastMessage?.role !== "error") {

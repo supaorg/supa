@@ -178,7 +178,7 @@ export class ChatAppData {
   }
 
   stopMessage(messageId: string): void {
-    throw new Error("Not implemented");
+    this.triggerEvent("stop-message", { messageId });
   }
 
   private getLastMsgParentVertex(): Vertex {

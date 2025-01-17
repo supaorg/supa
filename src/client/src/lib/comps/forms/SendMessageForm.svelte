@@ -76,9 +76,13 @@
 
     onStop();
   }
+
+  function handleSubmit(e: SubmitEvent) {
+    e.preventDefault();
+  }
 </script>
 
-<form class="w-full" use:focusTrap={isFocused}>
+<form class="w-full" use:focusTrap={isFocused} onsubmit={handleSubmit}>
   <div class="relative flex h-full max-w-full flex-1 flex-col">
     <div class="absolute bottom-full left-0 right-0 z-20"></div>
     <div class="group relative flex w-full items-center">
