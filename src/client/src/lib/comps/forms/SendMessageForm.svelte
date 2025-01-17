@@ -85,7 +85,7 @@
 <form class="w-full" use:focusTrap={isFocused} onsubmit={handleSubmit}>
   <div class="relative flex w-full items-center">
     <div
-      class="flex w-full flex-col rounded-lg bg-surface-900 transition-colors px-2"
+      class="flex w-full flex-col rounded-lg bg-surface-900 transition-colors"
       class:ring={isTextareaFocused}
       class:ring-primary-300-700={isTextareaFocused}
     >
