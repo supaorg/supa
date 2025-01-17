@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Send, StopCircle, Paperclip } from "lucide-svelte";
-  import { onMount } from 'svelte';
-  import { focusTrap } from '$lib/utils/focusTrap';
+  import { onMount } from "svelte";
+  import { focusTrap } from "$lib/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
 
   interface SendMessageFormProps {
@@ -83,61 +83,53 @@
 </script>
 
 <form class="w-full" use:focusTrap={isFocused} onsubmit={handleSubmit}>
-  <div class="relative flex h-full max-w-full flex-1 flex-col">
-    <div class="absolute bottom-full left-0 right-0 z-20"></div>
-    <div class="group relative flex w-full items-center">
-      <div class="w-full">
-        <div class="flex w-full cursor-text flex-col rounded-lg px-2.5 py-1 transition-colors bg-surface-900" class:ring={isTextareaFocused} class:ring-primary-300-700={isTextareaFocused}>
-          <div class="flex min-h-[44px] items-start pl-2">
-            <div class="min-w-0 max-w-full flex-1">
-              <div class="max-h-[25dvh] max-h-52 overflow-auto">
-                <textarea
-                  bind:this={textareaElement}
-                  class="block h-10 w-full resize-none border-0 bg-transparent px-0 py-2 text-token-text-primary placeholder:opacity-80"
-                  {placeholder}
-                  bind:value={query}
-                  onkeydown={handleKeydownInChatInput}
-                  onkeyup={handleKeyupInChatInput}
-                  onfocus={() => isTextareaFocused = true}
-                  onblur={() => isTextareaFocused = false}
-                ></textarea>
-              </div>
-            </div>
-            <div class="w-[32px] pt-1"></div>
-          </div>
-          
-          <!-- Bottom toolbar -->
-          <div class="flex h-[44px] items-center justify-between">
-            <div class="flex gap-x-1">
-              <!-- Attach files button -->
-              <button class="flex h-8 w-8 items-center justify-center rounded-lg text-token-text-primary">
-                <Paperclip size={16} />
-              </button>
-            </div>
-            
-            <!-- Voice button -->
-            <div class="min-w-8">
-              <div class="relative h-8 w-8">
-                {#if status === "ai-message-in-progress"}
-                  <button 
-                    onclick={stopMsg} 
-                    class="flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface-700"
-                  >
-                    <StopCircle size={16} />
-                  </button>
-                {:else}
-                  <button 
-                    onclick={sendMsg} 
-                    class="flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface-700" 
-                    class:opacity-50={disabled || status !== "can-send-message" || query.length === 0}
-                    disabled={disabled || status !== "can-send-message" || query.length === 0}
-                  >
-                    <Send size={16} />
-                  </button>
-                {/if}
-              </div>
-            </div>
-          </div>
+  <div class="relative flex w-full items-center">
+    <div
+      class="flex w-full flex-col rounded-lg bg-surface-900 transition-colors px-2"
+      class:ring={isTextareaFocused}
+      class:ring-primary-300-700={isTextareaFocused}
+    >
+      <textarea
+        bind:this={textareaElement}
+        class="block h-10 w-full resize-none border-0 bg-transparent p-2 text-token-text-primary placeholder:opacity-80 outline-none focus:ring-0"
+        {placeholder}
+        bind:value={query}
+        onkeydown={handleKeydownInChatInput}
+        onkeyup={handleKeyupInChatInput}
+        onfocus={() => (isTextareaFocused = true)}
+        onblur={() => (isTextareaFocused = false)}
+      ></textarea>
+
+      <!-- Bottom toolbar -->
+      <div class="flex items-center justify-between p-2">
+        <button
+          class="flex items-center justify-center rounded-lg text-token-text-primary"
+        >
+          <Paperclip size={18} />
+        </button>
+
+        <div class="relative">
+          {#if status === "ai-message-in-progress"}
+            <button
+              onclick={stopMsg}
+              class="flex items-center justify-center rounded-full hover:bg-surface-700"
+            >
+              <StopCircle size={18} />
+            </button>
+          {:else}
+            <button
+              onclick={sendMsg}
+              class="flex items-center justify-center rounded-full hover:bg-surface-700"
+              class:opacity-50={disabled ||
+                status !== "can-send-message" ||
+                query.length === 0}
+              disabled={disabled ||
+                status !== "can-send-message" ||
+                query.length === 0}
+            >
+              <Send size={18} />
+            </button>
+          {/if}
         </div>
       </div>
     </div>
