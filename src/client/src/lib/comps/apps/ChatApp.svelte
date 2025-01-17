@@ -15,6 +15,7 @@
   let title: string | undefined = $state();
   let messageIds = $state<string[]>([]);
   let stickToBottomWhenLastMessageChanges = $state(false);
+  let formStatus: MessageFormStatus = $state("can-send-message");
 
   let lastMessageTxt: string | null = null;
 
@@ -24,38 +25,38 @@
 
   $effect(() => {
     if (!lastMessageId) return;
-    
-    const unobserveLastMessage = data.observeMessage(lastMessageId, (msg) => {
-      if (msg.role === "assistant" && msg.inProgress !== true) {
-        formStatus = "can-send-message";
-      }
 
+    const unobserveLastMessage = data.observeMessage(lastMessageId, (msg) => {
+      updateFormStatus(msg);
       if (msg.text !== lastMessageTxt) {
         lastMessageTxt = msg.text;
         scrollToBottom();
       }
     });
-    
+
     return () => {
       unobserveLastMessage();
     };
   });
 
-  let formStatus: MessageFormStatus = $derived.by(() => {
-    if (!lastMessageId) {
-      return "can-send-message";
+  function updateFormStatus(lastMessage: ThreadMessage | undefined) {
+    if (!lastMessage) {
+      formStatus = "can-send-message";
+      return;
     }
 
-    if (data.isMessageInProgress(lastMessageId)) {
-      return "ai-message-in-progress";
+    if (lastMessage.role === "assistant" && lastMessage.inProgress) {
+      formStatus = "ai-message-in-progress";
+      return;
     }
 
-    if (data.getMessageRole(lastMessageId) === "user") {
-      return "disabled";
+    if (lastMessage.role === "user") {
+      formStatus = "disabled";
+      return;
     }
 
-    return "can-send-message";
-  });
+    formStatus = "can-send-message";
+  }
 
   onMount(() => {
     const unobserveTitle = data.observe((data) => {
@@ -117,7 +118,7 @@
   >
     <div class="w-full max-w-3xl mx-auto px-4">
       {#each messageIds as messageId (messageId)}
-        <ChatAppMessage messageId={messageId} {data} />
+        <ChatAppMessage {messageId} {data} />
       {/each}
     </div>
   </div>
