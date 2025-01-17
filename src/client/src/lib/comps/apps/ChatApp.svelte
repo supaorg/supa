@@ -116,14 +116,14 @@
     bind:this={scrollableElement}
     id={mainScrollableId}
   >
-    <div class="w-full max-w-3xl mx-auto px-4">
+    <div class="w-full max-w-4xl mx-auto px-4">
       {#each messageIds as messageId (messageId)}
         <ChatAppMessage {messageId} {data} />
       {/each}
     </div>
   </div>
   <div class="min-h-min">
-    <section class="max-w-3xl mx-auto py-2 px-2">
+    <section class="max-w-4xl mx-auto py-2 px-2">
       <SendMessageForm onSend={sendMsg} onStop={stopMsg} status={formStatus} />
     </section>
   </div>
