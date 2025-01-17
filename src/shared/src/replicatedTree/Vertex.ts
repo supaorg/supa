@@ -53,6 +53,10 @@ export class Vertex {
     return this.tree.getChildren(this.id);
   }
 
+  get childrenIds(): string[] {
+    return this.tree.getChildrenIds(this.id);
+  }
+
   getAsTypedObject<T>(): T {
     return this.getProperties() as T;
   }

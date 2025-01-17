@@ -78,6 +78,26 @@ export class ChatAppData {
     return msgs;
   }
 
+  get messageIds(): string[] {
+    const ids: string[] = [];
+    let targetVertex = this.messagesVertex;
+
+    if (!targetVertex) {
+      return [];
+    }
+
+    while (true) {
+      const children = (targetVertex as Vertex).childrenIds;
+      if (children.length === 0) break;
+      
+      const childId = children[0];
+      ids.push(childId);
+      targetVertex = this.appTree.tree.getVertex(childId);
+    }
+
+    return ids;
+  }
+
   triggerEvent(eventName: string, data: any) {
     this.appTree.triggerEvent(eventName, data);
   }
@@ -213,5 +233,14 @@ export class ChatAppData {
     }
 
     return vertex.getProperty("inProgress") === true;
+  }
+
+  getMessageRole(messageId: string): "user" | "assistant" | undefined {
+    const vertex = this.appTree.tree.getVertex(messageId);
+    if (!vertex) {
+      return undefined;
+    }
+
+    return vertex.getProperty("role") as "user" | "assistant";
   }
 }

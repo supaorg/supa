@@ -13,20 +13,44 @@
 
   let scrollableElement = $state<HTMLElement | undefined>(undefined);
   let title: string | undefined = $state();
-  let messages = $state<ThreadMessage[]>([]);
+  let messageIds = $state<string[]>([]);
   let stickToBottomWhenLastMessageChanges = $state(false);
 
+  let lastMessageTxt: string | null = null;
+
+  let lastMessageId = $derived.by(() =>
+    messageIds.length > 0 ? messageIds[messageIds.length - 1] : undefined,
+  );
+
+  $effect(() => {
+    if (!lastMessageId) return;
+    
+    const unobserveLastMessage = data.observeMessage(lastMessageId, (msg) => {
+      if (msg.role === "assistant" && msg.inProgress !== true) {
+        formStatus = "can-send-message";
+      }
+
+      if (msg.text !== lastMessageTxt) {
+        lastMessageTxt = msg.text;
+        scrollToBottom();
+      }
+    });
+    
+    return () => {
+      unobserveLastMessage();
+    };
+  });
+
   let formStatus: MessageFormStatus = $derived.by(() => {
-    if (messages.length === 0) {
+    if (!lastMessageId) {
       return "can-send-message";
     }
 
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage.role === "assistant" && lastMessage.inProgress) {
+    if (data.isMessageInProgress(lastMessageId)) {
       return "ai-message-in-progress";
     }
 
-    if (lastMessage.role === "user") {
+    if (data.getMessageRole(lastMessageId) === "user") {
       return "disabled";
     }
 
@@ -34,22 +58,23 @@
   });
 
   onMount(() => {
-    const unobserve = data.observe((data) => {
+    const unobserveTitle = data.observe((data) => {
       title = data.title as string;
     });
 
-    messages = data.messages;
+    messageIds = data.messageIds;
 
     const unobserveNewMessages = data.observeNewMessages((msgs) => {
-      if (msgs.length > messages.length) {
+      const newIds = data.messageIds;
+      if (newIds.length > messageIds.length) {
         scrollToBottom();
       }
 
-      messages = msgs;
+      messageIds = newIds;
     });
 
     return () => {
-      unobserve();
+      unobserveTitle();
       unobserveNewMessages();
     };
   });
@@ -91,8 +116,8 @@
     id={mainScrollableId}
   >
     <div class="w-full max-w-3xl mx-auto px-4">
-      {#each messages as message (message.id)}
-        <ChatAppMessage messageId={message.id} {data} />
+      {#each messageIds as messageId (messageId)}
+        <ChatAppMessage messageId={messageId} {data} />
       {/each}
     </div>
   </div>
