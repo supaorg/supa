@@ -54,11 +54,18 @@ export interface Texts {
     placeholder: string;
   }
 
+  modelSelection: {
+    manageProviders: string;
+    done: string;
+    backToSelection: string;
+  }
+
   settingsPage: {
     title: string;
     appearance: {
       title: string;
       theme: string;
+      language: string;
     };
     providers: {
       title: string;

@@ -1,6 +1,8 @@
-import { createTexts } from "@shared/localization/getTexts";
+import { createTexts, type SupportedLanguage } from "@shared/localization/getTexts";
 import type { Texts } from "@shared/localization/texts";
-import { writable } from "svelte/store";
+import { persisted } from "svelte-persisted-store";
+import { derived } from "svelte/store";
 
-// @TODO: implement inserting a target language
-export const txtStore = writable<Texts>(createTexts());
+export const currentLanguage = persisted<SupportedLanguage>("language", "en");
+
+export const txtStore = derived(currentLanguage, ($lang) => createTexts($lang));

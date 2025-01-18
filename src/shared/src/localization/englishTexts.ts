@@ -57,11 +57,18 @@ export const englishTexts: Texts = {
     placeholder: "Select configuration..."
   },
 
+  modelSelection: {
+    manageProviders: "Manage model providers",
+    done: "Done",
+    backToSelection: "Back to selecting a model"
+  },
+
   settingsPage: {
     title: "Settings",
     appearance: {
       title: "Appearance",
-      theme: "Theme"
+      theme: "Theme",
+      language: "Language"
     },
     providers: {
       title: "Model Providers"

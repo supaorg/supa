@@ -1,6 +1,7 @@
 <script lang="ts">
   import ModelProviderSelector from "../models/ModelProviderSelector.svelte";
   import ModelProviders from "../models/ModelProviders.svelte";
+  import { txtStore } from "$lib/stores/txtStore";
 
   let {
     selectedModel,
@@ -21,16 +22,16 @@
   <div class="grid gap-4">
     <button
       class="btn variant-ghost-surface"
-      onclick={() => (status = "managing")}>Manage model providers</button
+      onclick={() => (status = "managing")}>{$txtStore.modelSelection.manageProviders}</button
     >
-    <button class="btn variant-filled" onclick={onRequestClose}>Done</button>
+    <button class="btn variant-filled" onclick={onRequestClose}>{$txtStore.modelSelection.done}</button>
   </div>
 {:else}
   <ModelProviders />
   <div class="grid">
     <button
       class="btn variant-ghost-surface"
-      onclick={() => (status = "selecting")}>Back to selecting a model</button
+      onclick={() => (status = "selecting")}>{$txtStore.modelSelection.backToSelection}</button
     >
   </div>
 {/if}
