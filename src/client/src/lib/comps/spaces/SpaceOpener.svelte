@@ -5,12 +5,13 @@
     createNewLocalSpaceAndConnect,
     loadLocalSpaceAndConnect,
   } from "$lib/spaces/LocalSpaceSync";
+  import { txtStore } from "$lib/stores/txtStore";
 
   let { onSpaceSetup }: { onSpaceSetup: (spaceId: string) => void | undefined } = $props();
 
   async function createSpaceDialog() {
     const path = await open({
-      title: "Select a folder for a new space",
+      title: $txtStore.spacesPage.opener.dialogCreateTitle,
       directory: true,
     });
 
@@ -26,13 +27,13 @@
       onSpaceSetup?.(space.getId());
     } catch (e) {
       console.error(e);
-      message("Failed to create space", { kind: "error" });
+      message($txtStore.spacesPage.opener.errorCreate, { kind: "error" });
     }
   }
 
   async function openSpaceDialog() {
     const path = await open({
-      title: "Select a folder with a space",
+      title: $txtStore.spacesPage.opener.dialogOpenTitle,
       directory: true,
     });
 
@@ -48,7 +49,7 @@
       onSpaceSetup?.(space.getId());
     } catch (e) {
       console.error(e);
-      message("Failed to open space", { kind: "error" });
+      message($txtStore.spacesPage.opener.errorOpen, { kind: "error" });
     }
   }
 </script>
@@ -56,24 +57,22 @@
 <div>
   <div class="flex items-center justify-between mt-4">
     <div>
-      <h3 class="text-lg font-semibold">Create a new space</h3>
+      <h3 class="text-lg font-semibold">{$txtStore.spacesPage.opener.createTitle}</h3>
       <p class="text-sm">
-        Choose a folder for your new space. It could be local folder or a folder
-        synced with iCloud, Dropbox, Google Drive, etc. Make sure the folder is
-        empty.
+        {$txtStore.spacesPage.opener.createDescription}
       </p>
     </div>
     <button class="btn variant-ringed-primary" onclick={createSpaceDialog}
-      >Create</button
+      >{$txtStore.spacesPage.opener.createButton}</button
     >
   </div>
   <div class="flex items-center justify-between mt-4">
     <div>
-      <h3 class="text-lg font-semibold">Open a space</h3>
-      <p class="text-sm">Open a folder that contains your space.</p>
+      <h3 class="text-lg font-semibold">{$txtStore.spacesPage.opener.openTitle}</h3>
+      <p class="text-sm">{$txtStore.spacesPage.opener.openDescription}</p>
     </div>
     <button class="btn variant-ringed-primary" onclick={openSpaceDialog}
-      >Open</button
+      >{$txtStore.spacesPage.opener.openButton}</button
     >
   </div>
 </div>

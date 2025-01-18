@@ -22,6 +22,7 @@ import type { Texts } from "../texts";
 
 export const englishTexts: Texts = {
   basics: {
+    supa: "Supa",
     name: "Name",
     button: "Button",
     description: "Description",
@@ -30,6 +31,14 @@ export const englishTexts: Texts = {
     loading: "Loading...",
     thinking: "Thinking...",
     model: "Model",
+    apps: "Apps",
+  },
+
+  messageForm: {
+    placeholder: "Write a message...",
+    attachFile: "Attach file",
+    send: "Send message",
+    stop: "Stop generation"
   },
 
   appPage: {
@@ -56,5 +65,38 @@ export const englishTexts: Texts = {
 
   settingsPage: {
     title: "Settings",
+    appearance: {
+      title: "Appearance",
+      theme: "Theme"
+    },
+    providers: {
+      title: "Model Providers"
+    },
+    spaces: {
+      title: "Spaces",
+      spaceCount: (count: number) => `You have ${count === 1 ? '1 space' : `${count} spaces`}`,
+      manageButton: "Manage"
+    },
+    developers: {
+      title: "For developers",
+      toggleDevMode: "Toggle Dev Mode"
+    }
+  },
+
+  spacesPage: {
+    title: "Your Spaces",
+    description: "A space is where your AI apps and other data is stored. You can have multiple spaces and switch between them. For example, one can be for work and another personal.",
+    opener: {
+      createTitle: "Create a new space",
+      createDescription: "Choose a folder for your new space. It could be local folder or a folder synced with iCloud, Dropbox, Google Drive, etc. Make sure the folder is empty.",
+      createButton: "Create",
+      openTitle: "Open a space",
+      openDescription: "Open a folder that contains your space.",
+      openButton: "Open",
+      errorCreate: "Failed to create space",
+      errorOpen: "Failed to open space",
+      dialogCreateTitle: "Select a folder for a new space",
+      dialogOpenTitle: "Select a folder with a space"
+    }
   }
 };

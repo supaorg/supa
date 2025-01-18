@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
   import SpaceList from "$lib/comps/spaces/SpaceList.svelte";
+  import { txtStore } from "$lib/stores/txtStore";
 
   function handleSpaceSetup(spaceId: string) {
     goto(`/`);
@@ -10,11 +11,9 @@
 </script>
 
 <CenteredPage>
-  <h2 class="h2">Your Spaces</h2>
+  <h2 class="h2">{$txtStore.spacesPage.title}</h2>
   <p class="mb-6">
-    A space is where your AI apps and other data is stored. You can have
-    multiple spaces and switch between them. For example, one can be for work
-    and another personal.
+    {$txtStore.spacesPage.description}
   </p>
   <SpaceList />
   <SpaceOpener onSpaceSetup={handleSpaceSetup} />

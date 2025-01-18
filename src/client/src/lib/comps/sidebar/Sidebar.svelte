@@ -5,6 +5,7 @@
   import AppTrees from "./AppTrees.svelte";
   import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
   import SidebarPageLink from "./SidebarPageLink.svelte";
+  import { txtStore } from "$lib/stores/txtStore";
 </script>
 
 <div class="min-h-min py-2 px-2">
@@ -16,7 +17,7 @@
           <LayoutGrid size={18} />
         </span>
       </span>
-      <span class="flex-grow text-left">Apps</span>
+      <span class="flex-grow text-left">{$txtStore.basics.apps}</span>
     </span>
   </SidebarPageLink>
 </div>

@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import { focusTrap } from "$lib/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
+  import { txtStore } from "$lib/stores/txtStore";
 
   interface SendMessageFormProps {
     onSend: (msg: string) => void;
@@ -19,7 +20,7 @@
     onStop = () => {},
     onHeightChange = () => {},
     isFocused = true,
-    placeholder = "Write a message...",
+    placeholder = $txtStore.messageForm.placeholder,
     status = "can-send-message",
     disabled = false,
   }: SendMessageFormProps = $props();
@@ -104,6 +105,7 @@
       <div class="flex items-center justify-between p-2">
         <button
           class="flex items-center justify-center rounded-lg text-token-text-primary"
+          aria-label={$txtStore.messageForm.attachFile}
         >
           <Paperclip size={18} />
         </button>
@@ -113,6 +115,7 @@
             <button
               onclick={stopMsg}
               class="flex items-center justify-center rounded-full hover:bg-surface-700"
+              aria-label={$txtStore.messageForm.stop}
             >
               <StopCircle size={18} />
             </button>
@@ -126,6 +129,7 @@
               disabled={disabled ||
                 status !== "can-send-message" ||
                 query.length === 0}
+              aria-label={$txtStore.messageForm.send}
             >
               <Send size={18} />
             </button>
