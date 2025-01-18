@@ -81,23 +81,23 @@ export default class Space {
     return rootVertex;
   }
 
-  get name(): string {
-    const name = this.tree.getVertexProperty(this.tree.rootVertexId, 'name');
+  get name(): string | undefined {
+    const name = this.tree.getVertexProperty(this.tree.rootVertexId, '_n');
     if (!name) {
-      throw new Error("Space name is not set");
+      return undefined;
     }
 
     return name as string;
   }
 
   set name(name: string) {
-    this.tree.setVertexProperty(this.tree.rootVertexId, 'name', name);
+    this.tree.setVertexProperty(this.tree.rootVertexId, '_n', name);
   }
 
   get createdAt(): Date {
     const createdAt = this.tree.getVertexProperty(this.tree.rootVertexId, '_c');
     if (!createdAt) {
-      throw new Error("Space createdAt is not set");
+      //throw new Error("Space createdAt is not set");
     }
 
     return new Date(createdAt as string);
