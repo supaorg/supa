@@ -22,6 +22,8 @@ export interface Texts {
   appPage: {
     title: string;
     buttonNewConfig: string;
+    chatsTitle: string;
+    contactMessage: string;
   }
 
   appConfigPage: {
@@ -38,6 +40,18 @@ export interface Texts {
     gotoNewConfig: string;
     errorValidationRequired: string;
     errorAppConfigLoadFailure: string;
+    tableCell: {
+      deleteButton: string;
+      visibilityLabel: string;
+      deleteLabel: string;
+    };
+    defaultConfigMessage: string;
+    defaultConfigGotoNew: string;
+    description: string;
+  }
+
+  appConfigDropdown: {
+    placeholder: string;
   }
 
   settingsPage: {

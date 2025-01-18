@@ -4,6 +4,7 @@
   import { Combobox } from "@skeletonlabs/skeleton-svelte";
   import { ChatAppData } from "@shared/spaces/ChatAppData";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { txtStore } from "$lib/stores/txtStore";
 
   let { data }: { data: ChatAppData } = $props();
 
@@ -42,7 +43,7 @@
     <Combobox
       data={comboboxData}
       bind:value={selectedConfig}
-      placeholder="Select configuration..."
+      placeholder={$txtStore.appConfigDropdown.placeholder}
     />
   </div>
 {/if}

@@ -1,24 +1,4 @@
-import type { Texts } from "../texts";
-
-/*
-  We can write procedural translations like this:
-  
-  function pluralize(count: number, one: string, many: string): string {
-    return count === 1 ? one : many;
-  }
-
-  export const russianTexts: Partial<Texts> = {
-    basics: {
-      name: "Имя",
-      // Other translations...
-    },
-    appPage: {
-      title: "Приложения",
-      buttonNewConfig: (count: number) => pluralize(count, "Новая конфигурация чата", "Новые конфигурации чата"),
-    },
-    // Other sections...
-  };  
-*/
+import type { Texts } from "./texts";
 
 export const englishTexts: Texts = {
   basics: {
@@ -44,6 +24,8 @@ export const englishTexts: Texts = {
   appPage: {
     title: "Apps",
     buttonNewConfig: "New Chat Config",
+    chatsTitle: "Chats",
+    contactMessage: "An ability to create other types of apps is coming at some point. Write at <a class=\"anchor\" href=\"mailto:hi@supa.cloud\">hi@supa.cloud</a> if you have ideas or suggestions for an app."
   },
 
   appConfigPage: {
@@ -61,6 +43,18 @@ export const englishTexts: Texts = {
     gotoNewConfig: "Go here if you want to create a new chat config",
     errorValidationRequired: "This field is required",
     errorAppConfigLoadFailure: "Failed to load app config",
+    tableCell: {
+      deleteButton: "Delete",
+      visibilityLabel: "Toggle app visibility",
+      deleteLabel: "Delete app configuration"
+    },
+    defaultConfigMessage: "This is the configuration of the default chat app. You can only change the model it uses.<br /><a href=\"/apps/new-config\" class=\"anchor\">{defaultConfigGotoNew}</a> if you want to create a new chat app configuration.",
+    defaultConfigGotoNew: "Go here",
+    description: "You can create your own system prompts (instructions) based on the default chat app. It will be possible to create other type of apps with tools and external APIs in future versions of Supamind."
+  },
+
+  appConfigDropdown: {
+    placeholder: "Select configuration..."
   },
 
   settingsPage: {

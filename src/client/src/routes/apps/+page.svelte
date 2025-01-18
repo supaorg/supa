@@ -36,7 +36,7 @@
 <CenteredPage>
   <h2 class="h2 pb-6">{$txtStore.appPage.title}</h2>
   <div class="card p-4 space-y-4 mb-4">
-    <h3 class="h3">Chats</h3>
+    <h3 class="h3">{$txtStore.appPage.chatsTitle}</h3>
     <table class="table-auto w-full">
       <tbody>
         {#each appConfigs as config (config.id)}
@@ -50,9 +50,6 @@
     >
   </div>
   <div class="card p-4">
-    An ability to create other types of apps is coming at some point. Write at <a
-      class="anchor"
-      href="mailto:hi@supa.cloud">hi@supa.cloud</a
-    > if you have ideas or suggestions for an app.
+    {@html $txtStore.appPage.contactMessage}
   </div>
 </CenteredPage>

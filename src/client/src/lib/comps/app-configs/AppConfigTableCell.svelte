@@ -1,8 +1,9 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { AppConfig } from "@shared/models";
-  import { Switch, Popover } from '@skeletonlabs/skeleton-svelte';
+  import { Switch, Popover, Tooltip } from '@skeletonlabs/skeleton-svelte';
   import { TrashIcon } from "lucide-svelte";
+  import { txtStore } from "$lib/stores/txtStore";
 
   let { config }: { config: AppConfig } = $props();
 
@@ -38,12 +39,19 @@
       ><strong>{config.name}</strong><br />{config.description}</a
     ></td
   >
-  <td
-    ><Switch
-      name={"visible-" + config.id}
-      bind:checked={isVisible}
-    /></td
-  >
+  <td>
+    <Tooltip contentBase="card bg-surface-200-800 p-2">
+      {#snippet trigger()}
+        <Switch
+          name={"visible-" + config.id}
+          bind:checked={isVisible}
+        />
+      {/snippet}
+      {#snippet content()}
+        {$txtStore.appConfigPage.tableCell.visibilityLabel}
+      {/snippet}
+    </Tooltip>
+  </td>
   <td>
     {#if !isDefault}
       <Popover
@@ -55,17 +63,31 @@
         arrowBackground="!bg-surface-200 dark:!bg-surface-800"
       >
         {#snippet trigger()}
-          <TrashIcon class="w-4" />
+          <Tooltip contentBase="card bg-surface-200-800 p-2">
+            {#snippet trigger()}
+              <TrashIcon class="w-4" />
+            {/snippet}
+            {#snippet content()}
+              {$txtStore.appConfigPage.tableCell.deleteLabel}
+            {/snippet}
+          </Tooltip>
         {/snippet}
         
         {#snippet content()}
           <div class="btn-group-vertical variant-filled">
-            <button class="btn variant-filled" onclick={deleteAppConfig}>Delete</button>
+            <button class="btn variant-filled" onclick={deleteAppConfig}>{$txtStore.appConfigPage.tableCell.deleteButton}</button>
           </div>
         {/snippet}
       </Popover>
     {:else}
-      <div><TrashIcon class="w-4 opacity-30" /></div>
+      <Tooltip contentBase="card bg-surface-200-800 p-2">
+        {#snippet trigger()}
+          <div><TrashIcon class="w-4 opacity-30" /></div>
+        {/snippet}
+        {#snippet content()}
+          {$txtStore.appConfigPage.tableCell.deleteLabel}
+        {/snippet}
+      </Tooltip>
     {/if}
   </td>
 </tr>

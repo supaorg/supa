@@ -17,6 +17,13 @@
   let instructions = $state("");
   let targetLLM = $state("auto");
 
+  let defaultConfigMessage = $derived(
+    $txtStore.appConfigPage.defaultConfigMessage.replace(
+      '{defaultConfigGotoNew}', 
+      $txtStore.appConfigPage.defaultConfigGotoNew
+    )
+  );
+
   $effect(() => {
     if (configId) {
       const config = $currentSpaceStore?.getAppConfig(configId);
@@ -75,19 +82,9 @@
   {/if}
 </h2>
 <form class="space-y-4" bind:this={formElement}>
-  <!--
-    <p class="text-sm">
-      You can create you own system prompts (instructions) based on the default
-      chat app. It will be posssible to create other type of apps with tools
-      and external APIs in the future versions of Supamind.
-    </p>
-    -->
   {#if configId === "default"}
     <p>
-      This is the configuration of the default chat app. You can only change the
-      model it uses.<br />
-      <a href="/apps/new-config" class="anchor">Go here</a> if you want to create
-      a new chat app configuration.
+      {@html defaultConfigMessage}
     </p>
   {/if}
   <label class="label">

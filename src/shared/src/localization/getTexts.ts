@@ -1,4 +1,4 @@
-import { englishTexts } from "./languages/englishTexts";
+import { englishTexts } from "./englishTexts";
 import type { Texts } from "./texts";
 
 export function createTexts(language?: Partial<Texts>): Texts {
