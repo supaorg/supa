@@ -1,8 +1,0 @@
-{
-  "name": "supa-shared",
-  "version": "1.0.0",
-  "description": "Shared code between the client and the server of Supa",
-  "dependencies": {
-    "aiwrapper": "^0.0.24"
-  }
-}

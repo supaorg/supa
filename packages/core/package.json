@@ -1,0 +1,8 @@
+{
+  "name": "supa-core",
+  "version": "1.0.0",
+  "description": "Core code for Supa that can be used on clients, servers, and inside other services",
+  "dependencies": {
+    "aiwrapper": "^0.0.24"
+  }
+}

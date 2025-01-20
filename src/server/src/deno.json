@@ -1,8 +1,0 @@
-{
-  "imports": {
-    "@shared/": "../../shared/src/"
-  },
-  "tasks": {
-    "dev": "deno run --watch --allow-all main.ts"
-  }
-}
