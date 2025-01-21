@@ -17,3 +17,4 @@ export { default as MarkdownHr } from './MarkdownHr.svelte';
 export { default as MarkdownStrong } from './MarkdownStrong.svelte';
 export { default as MarkdownImage } from './MarkdownImage.svelte';
 export { default as MarkdownSpace } from './MarkdownSpace.svelte';
+export { default as MarkdownTeX } from './MarkdownTeX.svelte';

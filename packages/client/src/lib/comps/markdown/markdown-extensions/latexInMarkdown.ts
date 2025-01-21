@@ -2,7 +2,7 @@ import type { MarkedExtension, TokenizerAndRendererExtension } from "marked";
 
 const inlineRule =
   /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1(?=[\s?!\.,:？！。，：]|$)/;
-const blockRule = /^(\${1,2})\n((?:\\[^]|[^\\])+?)\n\1(?:\n|$)/;
+const blockRule = /^(\${2})(?:\n|)((?:\\[^]|[^\\])+?)(?:\n|)\$\$(?:\n|$)/;
 
 export const inlineLatexMarkedExtension: TokenizerAndRendererExtension = {
   name: "inlineTex",
@@ -44,9 +44,30 @@ export const inlineLatexMarkedExtension: TokenizerAndRendererExtension = {
 export const blockLatexMarkedExtension: TokenizerAndRendererExtension = {
   name: "blockTex",
   level: "block",
+  start(src: string) {
+    let index;
+    let indexSrc = src;
+
+    while (indexSrc) {
+      index = indexSrc.indexOf("$$");
+      if (index === -1) {
+        return;
+      }
+      
+      if (index === 0 || indexSrc.charAt(index - 1) === "\n") {
+        const possibleKatex = indexSrc.substring(index);
+        if (possibleKatex.match(blockRule)) {
+          return index;
+        }
+      }
+
+      indexSrc = indexSrc.substring(index + 2).replace(/^\$+/, "");
+    }
+  },
   tokenizer(src: string) {
     const match = src.match(blockRule);
     if (match) {
+      console.log("BLOCK KATEX tokenizer match:", match);
       return {
         type: "blockTex",
         raw: match[0],

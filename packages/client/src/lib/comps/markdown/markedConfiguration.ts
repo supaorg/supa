@@ -18,6 +18,7 @@ import {
   MarkdownStrong,
   MarkdownTable,
   MarkdownText,
+  MarkdownTeX,
 } from './markdown-components';
 
 //import type { Component } from 'svelte' @TODO - consider using it
@@ -64,6 +65,8 @@ export const defaultRenderers = (): Renderers => ({
   image: MarkdownImage,
   space: MarkdownSpace,
   escape: MarkdownSpace,
+  inlineTex: MarkdownTeX,
+  blockTex: MarkdownTeX,
 })
 
 export const defaultOptions = (): MarkdownOptions => ({
