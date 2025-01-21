@@ -18,3 +18,4 @@ export { default as MarkdownStrong } from './MarkdownStrong.svelte';
 export { default as MarkdownImage } from './MarkdownImage.svelte';
 export { default as MarkdownSpace } from './MarkdownSpace.svelte';
 export { default as MarkdownTeX } from './MarkdownTeX.svelte';
+export { default as MarkdownTeXBlock } from './MarkdownTeXBlock.svelte';
