@@ -1,10 +1,10 @@
 <script lang="ts">
-  import MarkdownMessage from "../markdown/MarkdownMessage.svelte";
   import { User, Sparkles, CircleAlert } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
   import { onMount } from "svelte";
   import MessageDate from "./MessageDate.svelte";
+  import Markdown from "../markdown/Markdown.svelte";
 
   let { messageId, data }: { messageId: string; data: ChatAppData } = $props();
 
@@ -79,9 +79,7 @@
         {#if message.role === "user"}
           {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
         {:else}
-          <MarkdownMessage
-            source={message.text ? message.text : "Loading..."}
-          />
+          <Markdown source={message.text ? message.text : "Loading..."} />
         {/if}
 
         {#if canRetry}

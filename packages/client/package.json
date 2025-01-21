@@ -15,17 +15,17 @@
   "license": "MIT",
   "dependencies": {
     "@floating-ui/dom": "1.6.11",
-    "@magidoc/plugin-svelte-marked": "^4.2.1",
     "@tailwindcss/forms": "^0.5.9",
     "@tailwindcss/typography": "^0.5.15",
     "@tauri-apps/api": "^2.2.0",
     "@tauri-apps/plugin-dialog": "^2.0.0",
     "@tauri-apps/plugin-fs": "^2.0.0",
     "@tauri-apps/plugin-shell": "^2.0.0",
+    "github-slugger": "^2.0.0",
     "highlight.js": "11.10.0",
+    "katex": "^0.16.21",
     "lucide-svelte": "^0.453.0",
-    "marked": "^12.0.0",
-    "svelte-katex": "^0.1.2",
+    "marked": "^15.0.6",
     "svelte-persisted-store": "^0.12.0"
   },
   "devDependencies": {
@@ -38,6 +38,7 @@
     "@types/node": "22.7.3",
     "autoprefixer": "10.4.20",
     "postcss": "8.4.47",
+    "shiki": "^2.0.3",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.5",
     "tailwindcss": "3.4.13",

@@ -7,3 +7,67 @@ html,
 body {
   @apply h-full;
 }
+
+.markdown {
+  @apply space-y-4;
+
+  h1 {
+    @apply h1;
+  }
+
+  h2 {
+    @apply h2;
+  }
+
+  h3 {
+    @apply h3;
+  }
+
+  h4 {
+    @apply h4;
+  }
+
+  p {
+    @apply leading-7;
+  }
+
+  ul {
+    @apply list-disc list-inside space-y-2;
+  }
+
+  ol {
+    @apply list-decimal list-inside space-y-2;
+  }
+
+  li {
+    @apply ml-4;
+  }
+
+  a {
+    @apply anchor;
+  }
+
+  blockquote {
+    @apply border-l-4 pl-4 italic;
+  }
+
+  pre {
+    @apply card p-4 overflow-x-auto;
+  }
+
+  code {
+    @apply font-mono rounded px-1;
+  }
+
+  table {
+    @apply table;
+  }
+
+  img {
+    @apply card max-w-full h-auto;
+  }
+
+  hr {
+    @apply hr my-4;
+  }
+}
