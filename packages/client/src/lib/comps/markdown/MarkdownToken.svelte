@@ -41,8 +41,8 @@
     strong: MarkdownStrong,
     image: MarkdownImage,
     space: MarkdownSpace,
-    inlineTex: MarkdownTeX,
-    blockTex: MarkdownTeXBlock,
+    texInline: MarkdownTeX,
+    texBlock: MarkdownTeXBlock,
   } as Record<string, any>;
 </script>
 
