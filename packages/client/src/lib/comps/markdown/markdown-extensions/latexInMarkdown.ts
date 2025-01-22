@@ -5,7 +5,7 @@ const inlineRule =
 const blockRule = /^(\${2})(?:\n|)((?:\\[^]|[^\\])+?)(?:\n|)\$\$(?:\n|$)/;
 
 export const inlineLatexMarkedExtension: TokenizerAndRendererExtension = {
-  name: "inlineTex",
+  name: "texInline",
   level: "inline",
   start(src: string) {
     let index;
@@ -42,7 +42,7 @@ export const inlineLatexMarkedExtension: TokenizerAndRendererExtension = {
 };
 
 export const blockLatexMarkedExtension: TokenizerAndRendererExtension = {
-  name: "blockTex",
+  name: "texBlock",
   level: "block",
   start(src: string) {
     let index;
@@ -67,7 +67,6 @@ export const blockLatexMarkedExtension: TokenizerAndRendererExtension = {
   tokenizer(src: string) {
     const match = src.match(blockRule);
     if (match) {
-      console.log("BLOCK KATEX tokenizer match:", match);
       return {
         type: "blockTex",
         raw: match[0],
