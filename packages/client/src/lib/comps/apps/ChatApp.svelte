@@ -116,7 +116,7 @@
     bind:this={scrollableElement}
     id={mainScrollableId}
   >
-    <div class="w-full max-w-4xl mx-auto px-4">
+    <div class="w-full max-w-4xl mx-auto">
       {#each messageIds as messageId (messageId)}
         <ChatAppMessage {messageId} {data} />
       {/each}
