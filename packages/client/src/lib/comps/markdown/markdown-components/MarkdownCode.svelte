@@ -1,29 +1,6 @@
 <script module>
-  import { createHighlighterCoreSync } from "shiki/core";
-  import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+  import { codeToHtml } from "shiki";
   import { Copy, Plus } from "lucide-svelte";
-  //import { bundledLanguages } from "shiki/langs";
-
-  // Theme
-  import themeDarkPlus from "shiki/themes/dark-plus.mjs";
-
-  // Languages
-  //import console from "shiki/langs/console.mjs";
-  import html from "shiki/langs/html.mjs";
-  import css from "shiki/langs/css.mjs";
-  import js from "shiki/langs/javascript.mjs";
-  import ts from "shiki/langs/typescript.mjs";
-  import json from "shiki/langs/json.mjs";
-  import md from "shiki/langs/markdown.mjs";
-  import python from "shiki/langs/python.mjs";
-  import bash from "shiki/langs/bash.mjs";
-  import sql from "shiki/langs/sql.mjs";
-
-  const shiki = createHighlighterCoreSync({
-    engine: createJavaScriptRegexEngine(),
-    themes: [themeDarkPlus],
-    langs: [html, css, js, ts, json, md, python, bash, sql],
-  });
 </script>
 
 <script lang="ts">
@@ -32,24 +9,33 @@
   let { token }: { token: Tokens.Code } = $props();
   let lang = $derived(token.lang || "plaintext");
   let isCopied = $state(false);
-  let generatedHtml = $derived.by(() => { 
+  let generatedHtml = $derived.by(async () => {
+    return await generatedHighlightedHtml(token.text, token.lang);
+  });
+
+  async function generatedHighlightedHtml(
+    source: string,
+    lang?: string,
+  ): Promise<string | null> {
+    const theme = "github-dark";
+
     try {
-      return shiki.codeToHtml(token.text, {
-        lang,
-        theme: themeDarkPlus,
+      return await codeToHtml(source, {
+        lang: lang || "text",
+        theme,
       });
     } catch (e) {
       // If the language is not supported, fallback to plaintext
       try {
-        return shiki.codeToHtml(token.text, {
-          lang: "plaintext",
-          theme: themeDarkPlus,
+        return await codeToHtml(source, {
+          lang: "text",
+          theme,
         });
       } catch (e) {
         return null;
       }
     }
-  });
+  }
 
   async function copyCode() {
     await navigator.clipboard.writeText(token.text);
@@ -61,12 +47,13 @@
 </script>
 
 <div class="relative">
-  <div class="flex items-center py-2 text-xs justify-between h-9">
+  <div class="flex items-center py-2 text-xs justify-between h-9 opacity-70">
     <span>{lang}</span>
-    <button 
-      class="flex gap-1 items-center btn btn-sm" 
+    <button
+      class="flex gap-1 items-center"
       onclick={copyCode}
-      aria-label="Copy">
+      aria-label="Copy"
+    >
       {#if isCopied}
         <Plus size={14} />
         Copied
@@ -76,11 +63,16 @@
       {/if}
     </button>
   </div>
-  <div class="">
-    {#if generatedHtml}
-      {@html generatedHtml}
+
+  {#await generatedHtml}
+    <pre><code>{token.text}</code></pre>
+  {:then html}
+    {#if html}
+      {@html html}
     {:else}
       <pre><code>{token.text}</code></pre>
     {/if}
-  </div>
+  {:catch error}
+    Error: {error}
+  {/await}
 </div>

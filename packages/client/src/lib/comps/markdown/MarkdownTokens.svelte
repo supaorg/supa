@@ -1,8 +1,8 @@
 <script lang="ts">
-import type { Token } from 'marked';
-import MarkdownToken from './MarkdownToken.svelte';
+  import type { Token } from "marked";
+  import MarkdownToken from "./MarkdownToken.svelte";
 
-let { tokens } : { tokens: Token[] | null } = $props();
+  let { tokens }: { tokens: Token[] | null } = $props();
 </script>
 
 {#if tokens}
