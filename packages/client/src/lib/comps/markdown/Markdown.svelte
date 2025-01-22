@@ -11,7 +11,7 @@
 </script>
 
 <script lang="ts">
-  import { type TokensList, Lexer } from "marked";
+  import { Lexer } from "marked";
   import MarkdownTokens from "./MarkdownTokens.svelte";
 
   let { source }: { source: string } = $props();

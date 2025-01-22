@@ -1,3 +1,7 @@
+<script module>
+  import "katex/dist/katex.min.css";
+</script>
+
 <script lang="ts">
   import katex from "katex";
   import type { Tokens } from "marked";
