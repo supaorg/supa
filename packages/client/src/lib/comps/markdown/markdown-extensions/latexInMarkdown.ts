@@ -32,7 +32,7 @@ export const inlineLatexMarkedExtension: TokenizerAndRendererExtension = {
     const match = src.match(inlineRule);
     if (match) {
       return {
-        type: "inlineTex",
+        type: "texInline",
         raw: match[0],
         text: match[2].trim(),
         displayMode: match[1].length === 2,
@@ -68,7 +68,7 @@ export const blockLatexMarkedExtension: TokenizerAndRendererExtension = {
     const match = src.match(blockRule);
     if (match) {
       return {
-        type: "blockTex",
+        type: "texBlock",
         raw: match[0],
         text: match[2].trim(),
         displayMode: match[1].length === 2,
