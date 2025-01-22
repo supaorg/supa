@@ -1,12 +1,13 @@
 <script module>
   import { createHighlighterCoreSync } from "shiki/core";
   import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+  //import { bundledLanguages } from "shiki/langs";
 
   // Theme
   import themeDarkPlus from "shiki/themes/dark-plus.mjs";
 
   // Languages
-  import console from "shiki/langs/console.mjs";
+  //import console from "shiki/langs/console.mjs";
   import html from "shiki/langs/html.mjs";
   import css from "shiki/langs/css.mjs";
   import js from "shiki/langs/javascript.mjs";
@@ -20,7 +21,7 @@
   const shiki = createHighlighterCoreSync({
     engine: createJavaScriptRegexEngine(),
     themes: [themeDarkPlus],
-    langs: [console, html, css, js, ts, json, md, python, bash, sql],
+    langs: [html, css, js, ts, json, md, python, bash, sql],
   });
 </script>
 
@@ -29,21 +30,31 @@
 
   let { token }: { token: Tokens.Code } = $props();
   let lang = $derived(token.lang || "plaintext");
-  let generatedHtml = $state("");
-
-  $effect(() => {
+  let generatedHtml = $derived.by(() => { 
     try {
-      generatedHtml = shiki.codeToHtml(token.text, {
+      return shiki.codeToHtml(token.text, {
         lang,
         theme: themeDarkPlus,
       });
     } catch (e) {
-      // Fallback if language is not supported
-      generatedHtml = `<pre><code>${token.text}</code></pre>`;
+      // If the language is not supported, fallback to plaintext
+      try {
+        return shiki.codeToHtml(token.text, {
+          lang: "plaintext",
+          theme: themeDarkPlus,
+        });
+      } catch (e) {
+        return null;
+      }
     }
   });
+
 </script>
 
 <div class="">
-  {@html generatedHtml}
+  {#if generatedHtml}
+    {@html generatedHtml}
+  {:else}
+    <pre><code>{token.text}</code></pre>
+  {/if}
 </div>
