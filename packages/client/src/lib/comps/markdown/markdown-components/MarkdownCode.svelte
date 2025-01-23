@@ -7,7 +7,7 @@
   import type { Tokens } from "marked";
 
   let { token }: { token: Tokens.Code } = $props();
-  let lang = $derived(token.lang || "plaintext");
+  let lang = $derived(token.lang || "text");
   let isCopied = $state(false);
   let generatedHtml = $derived.by(async () => {
     return await generatedHighlightedHtml(token.text, token.lang);
@@ -46,11 +46,15 @@
   }
 </script>
 
-<div class="relative">
-  <div class="flex items-center py-2 text-xs justify-between h-9 opacity-70">
-    <span>{lang}</span>
+<div class="relative group" class:has-lang={lang !== "text"}>
+  {#if lang !== "text"}
+    <div class="absolute left-4 top-3 z-10 flex items-center">
+      <span class="text-xs opacity-70 flex items-center">{lang}</span>
+    </div>
+  {/if}
+  <div class="absolute right-4 top-3 z-10 flex items-center">
     <button
-      class="flex gap-1 items-center"
+      class="flex gap-1 items-center text-xs opacity-70 hover:opacity-100"
       onclick={copyCode}
       aria-label="Copy"
     >
@@ -59,11 +63,9 @@
         Copied
       {:else}
         <Copy size={14} />
-        Copy
       {/if}
     </button>
   </div>
-
   {#await generatedHtml}
     <pre><code>{token.text}</code></pre>
   {:then html}
@@ -76,3 +78,9 @@
     Error: {error}
   {/await}
 </div>
+
+<style>
+  .has-lang :global(pre) {
+    padding-top: 2.5rem !important;
+  }
+</style>
