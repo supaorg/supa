@@ -1,6 +1,6 @@
 <script module>
   import { codeToHtml } from "shiki";
-  import { Copy, Plus } from "lucide-svelte";
+  import { Copy, Check } from "lucide-svelte";
 </script>
 
 <script lang="ts">
@@ -46,7 +46,7 @@
   }
 </script>
 
-<div class="relative group" class:has-lang={lang !== "text"}>
+<div class="relative group {lang !== 'text' ? '[&_pre]:!pt-10' : '[&_pre]:!pr-10'}">
   {#if lang !== "text"}
     <div class="absolute left-4 top-3 z-10 flex items-center">
       <span class="text-xs opacity-70 flex items-center">{lang}</span>
@@ -59,8 +59,7 @@
       aria-label="Copy"
     >
       {#if isCopied}
-        <Plus size={14} />
-        Copied
+        <Check size={14} />
       {:else}
         <Copy size={14} />
       {/if}
@@ -78,9 +77,3 @@
     Error: {error}
   {/await}
 </div>
-
-<style>
-  .has-lang :global(pre) {
-    padding-top: 2.5rem !important;
-  }
-</style>
