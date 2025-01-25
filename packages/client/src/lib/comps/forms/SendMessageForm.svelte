@@ -7,6 +7,9 @@
   import { draftMessages } from "$lib/stores/draftMessages";
   import type { Writable } from "svelte/store";
 
+  const TEXTAREA_BASE_HEIGHT = 40; // px
+  const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
+
   interface SendMessageFormProps {
     onSend: (msg: string) => void;
     onStop?: () => void;
@@ -64,14 +67,18 @@
   function adjustTextareaHeight() {
     if (!textareaElement) return;
     
-    // Reset height to allow proper scrollHeight calculation
-    textareaElement.style.height = 'auto';
+    // Reset height to initial value to allow proper scrollHeight calculation
+    textareaElement.style.height = `${TEXTAREA_BASE_HEIGHT}px`;
     
     // Get the scroll height which represents the height needed to show all content
     const scrollHeight = textareaElement.scrollHeight;
     
-    // Set the height to match content
-    textareaElement.style.height = `${scrollHeight}px`;
+    // Only expand if content needs more space
+    if (scrollHeight > TEXTAREA_BASE_HEIGHT) {
+      const lineHeight = TEXTAREA_LINE_HEIGHT * 16; // assuming 16px font size
+      const maxHeight = maxLines * lineHeight;
+      textareaElement.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+    }
   }
 
   function handleKeydown(event: KeyboardEvent) {
@@ -136,9 +143,9 @@
     >
       <textarea
         bind:this={textareaElement}
-        class="block w-full resize-none border-0 bg-transparent p-2 text-token-text-primary placeholder:opacity-80 outline-none focus:ring-0"
-        style="line-height: 20px; min-height: 40px; max-height: {maxLines * 20}px; overflow-y: auto;"
-        {placeholder}
+        class="block w-full resize-none border-0 bg-transparent p-2 text-token-text-primary leading-normal placeholder:opacity-80 outline-none focus:ring-0"
+        style="height: {TEXTAREA_BASE_HEIGHT}px; overflow-y: auto;"
+        placeholder={placeholder}
         bind:value={query}
         onkeydown={handleKeydown}
         oninput={handleInput}
