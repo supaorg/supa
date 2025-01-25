@@ -93,10 +93,14 @@
   function handleInput() {
     adjustTextareaHeight();
     
-    // Save draft as user types
-    if (threadId && query) {
+    // Save or clear draft based on content
+    if (threadId) {
       draftStore.update(drafts => {
-        drafts[threadId] = query;
+        if (query) {
+          drafts[threadId] = query;
+        } else {
+          delete drafts[threadId];
+        }
         return drafts;
       });
     }
