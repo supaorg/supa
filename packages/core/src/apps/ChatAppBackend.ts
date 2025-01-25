@@ -1,10 +1,10 @@
 import { type AppConfig, type ThreadMessage } from "../models";
 import Space from "../spaces/Space";
-import { AgentServices } from "../agents/AgentServices.ts";
-import { SimpleChatAgent } from "../agents/SimpleChatAgent.ts";
-import { ThreadTitleAgent } from "../agents/ThreadTitleAgent.ts";
+import { AgentServices } from "../agents/AgentServices";
+import { SimpleChatAgent } from "../agents/SimpleChatAgent";
+import { ThreadTitleAgent } from "../agents/ThreadTitleAgent";
 import { ChatAppData } from "../spaces/ChatAppData";
-import AppTree from "../spaces/AppTree.ts";
+import AppTree from "../spaces/AppTree";
 
 export default class ChatAppBackend {
   private data: ChatAppData;
@@ -60,8 +60,17 @@ export default class ChatAppBackend {
   }
 
   private async replyToMessage(messages: ThreadMessage[]) {
-    const config: AppConfig | undefined = this.data.configId ?
+    let config: AppConfig | undefined = this.data.configId ?
       this.space.getAppConfig(this.data.configId) : undefined;
+
+    // If no config is selected, try to use the default config
+    if (!config) {
+      config = this.space.getAppConfig("default");
+      if (config) {
+        // Update the app tree to use default config
+        this.data.configId = "default";
+      }
+    }
 
     if (!config) {
       throw new Error("No config found");

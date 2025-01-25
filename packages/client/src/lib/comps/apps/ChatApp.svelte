@@ -124,7 +124,12 @@
   </div>
   <div class="min-h-min">
     <section class="max-w-4xl mx-auto py-2 px-2">
-      <SendMessageForm onSend={sendMsg} onStop={stopMsg} status={formStatus} />
+      <SendMessageForm 
+        onSend={sendMsg} 
+        onStop={stopMsg} 
+        status={formStatus} 
+        threadId={data.threadId}
+      />
     </section>
   </div>
 </div>

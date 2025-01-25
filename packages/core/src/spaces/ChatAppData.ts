@@ -252,4 +252,8 @@ export class ChatAppData {
 
     return vertex.getProperty(property);
   }
+
+  get threadId(): string {
+    return this.appTree.tree.rootVertexId;
+  }
 }

@@ -4,6 +4,7 @@
   import { focusTrap } from "$lib/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
   import { txtStore } from "$lib/stores/txtStore";
+  import { draftMessages } from "$lib/stores/draftMessages";
 
   interface SendMessageFormProps {
     onSend: (msg: string) => void;
@@ -13,6 +14,7 @@
     placeholder?: string;
     status?: MessageFormStatus;
     disabled?: boolean;
+    threadId?: string;
   }
 
   let {
@@ -23,16 +25,35 @@
     placeholder = $txtStore.messageForm.placeholder,
     status = "can-send-message",
     disabled = false,
+    threadId,
   }: SendMessageFormProps = $props();
 
   let query = $state("");
   let isTextareaFocused = $state(false);
   let textareaElement: HTMLTextAreaElement;
 
+  // Load draft message if exists
   onMount(() => {
+    if (threadId && $draftMessages[threadId]) {
+      query = $draftMessages[threadId];
+      if (textareaElement) {
+        adjustTextareaHeight(textareaElement);
+      }
+    }
+
     if (isFocused) {
       textareaElement?.focus();
     }
+
+    // Clean up draft when component is destroyed
+    return () => {
+      if (threadId && query) {
+        draftMessages.update(drafts => {
+          drafts[threadId] = query;
+          return drafts;
+        });
+      }
+    };
   });
 
   function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
@@ -58,6 +79,14 @@
     const textarea = event.target as HTMLTextAreaElement;
 
     adjustTextareaHeight(textarea);
+
+    // Save draft as user types
+    if (threadId && query) {
+      draftMessages.update(drafts => {
+        drafts[threadId] = query;
+        return drafts;
+      });
+    }
   }
 
   async function sendMsg() {
@@ -66,6 +95,14 @@
     }
 
     onSend(query);
+
+    // Clear draft when message is sent
+    if (threadId) {
+      draftMessages.update(drafts => {
+        delete drafts[threadId];
+        return drafts;
+      });
+    }
 
     query = "";
   }
