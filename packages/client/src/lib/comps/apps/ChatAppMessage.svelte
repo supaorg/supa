@@ -5,12 +5,30 @@
   import { onMount } from "svelte";
   import MessageDate from "./MessageDate.svelte";
   import Markdown from "../markdown/Markdown.svelte";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
   let { messageId, data }: { messageId: string; data: ChatAppData } = $props();
 
   let message: ThreadMessage | undefined = $state();
   let canRetry = $state(false);
   let isLast = $state(false);
+  let configName = $state<string | undefined>(undefined);
+
+  // Effect to update config name if config still exists
+  $effect(() => {
+    if (message?.role === "assistant") {
+      const savedConfigId = data.getMessageProperty(messageId, "configId");
+      if (savedConfigId && $currentSpaceStore) {
+        const config = $currentSpaceStore.getAppConfig(savedConfigId);
+        if (config) {
+          configName = config.name;
+          return;
+        }
+      }
+      // If config doesn't exist anymore, use the saved name
+      configName = data.getMessageProperty(messageId, "configName");
+    }
+  });
 
   onMount(() => {
     const unobserve = data.observeMessage(messageId, (msg) => {
@@ -66,7 +84,7 @@
           {#if message.role === "user"}
             <p class="font-bold">You</p>
           {:else if message.role === "assistant"}
-            <p class="font-bold">AI</p>
+            <p class="font-bold">{configName || "AI"}</p>
           {:else}
             <p class="font-bold">Error</p>
           {/if}

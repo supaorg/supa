@@ -243,4 +243,13 @@ export class ChatAppData {
 
     return vertex.getProperty("role") as "user" | "assistant";
   }
+
+  getMessageProperty(messageId: string, property: string): any {
+    const vertex = this.appTree.tree.getVertex(messageId);
+    if (!vertex) {
+      return undefined;
+    }
+
+    return vertex.getProperty(property);
+  }
 }

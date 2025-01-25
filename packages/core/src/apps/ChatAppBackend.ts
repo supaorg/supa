@@ -85,6 +85,8 @@ export default class ChatAppBackend {
     this.appTree.tree.setVertexProperty(messageToUse.id, "role", "assistant");
     this.appTree.tree.setVertexProperty(messageToUse.id, "text", "thinking...");
     this.appTree.tree.setVertexProperty(messageToUse.id, "inProgress", true);
+    this.appTree.tree.setVertexProperty(messageToUse.id, "configId", config.id);
+    this.appTree.tree.setVertexProperty(messageToUse.id, "configName", config.name);
 
     try {
       // If we're retrying an error message, exclude it from the input
