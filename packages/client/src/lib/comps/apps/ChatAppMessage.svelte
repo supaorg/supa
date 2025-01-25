@@ -78,7 +78,7 @@
         {/if}
       </div>
     </div>
-    <div class="flex-1">
+    <div class="flex-1 min-w-0">
       <div class="flex items-center justify-between gap-2 mt-2">
         <div class="flex items-center gap-2">
           {#if message.role === "user"}
@@ -97,7 +97,9 @@
         {#if message.role === "user"}
           {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
         {:else}
-          <Markdown source={message.text ? message.text : "Loading..."} />
+          <div class="min-w-0">
+            <Markdown source={message.text ? message.text : "Loading..."} />
+          </div>
         {/if}
 
         {#if canRetry}

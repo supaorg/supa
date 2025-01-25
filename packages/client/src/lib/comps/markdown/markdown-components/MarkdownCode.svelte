@@ -22,14 +22,14 @@
     try {
       return await codeToHtml(source, {
         lang: lang || "text",
-        theme,
+        theme
       });
     } catch (e) {
       // If the language is not supported, fallback to plaintext
       try {
         return await codeToHtml(source, {
           lang: "text",
-          theme,
+          theme
         });
       } catch (e) {
         return null;
@@ -46,7 +46,7 @@
   }
 </script>
 
-<div class="relative group {lang !== 'text' ? '[&_pre]:!pt-10' : '[&_pre]:!pr-10'}">
+<div class="relative group min-w-0 {lang !== 'text' ? '[&_pre]:!pt-10' : '[&_pre]:!pr-10'}">
   {#if lang !== "text"}
     <div class="absolute left-4 top-3 z-10 flex items-center">
       <span class="text-xs opacity-70 flex items-center">{lang}</span>
@@ -65,15 +65,17 @@
       {/if}
     </button>
   </div>
-  {#await generatedHtml}
-    <pre><code>{token.text}</code></pre>
-  {:then html}
-    {#if html}
-      {@html html}
-    {:else}
-      <pre><code>{token.text}</code></pre>
-    {/if}
-  {:catch error}
-    Error: {error}
-  {/await}
+  <div class="min-w-0">
+    {#await generatedHtml}
+      <pre class="overflow-x-auto"><code class="block min-w-fit">{token.text}</code></pre>
+    {:then html}
+      {#if html}
+        {@html html}
+      {:else}
+        <pre class="overflow-x-auto"><code class="block min-w-fit">{token.text}</code></pre>
+      {/if}
+    {:catch error}
+      Error: {error}
+    {/await}
+  </div>
 </div>
