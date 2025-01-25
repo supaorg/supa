@@ -4,6 +4,7 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
+  import { newThreadDrafts } from "$lib/stores/newThreadDrafts";
 
   let {
     appConfig,
@@ -17,7 +18,17 @@
       return;
     }
 
+    // Clear draft when sending
+    newThreadDrafts.update(drafts => {
+      delete drafts[appConfig.id];
+      return drafts;
+    });
+
     newThread(msg);
+  }
+
+  function onClose() {
+    onRequestClose();
   }
 
   async function newThread(message: string = "") {
@@ -34,9 +45,15 @@
     chatAppData.newMessage("user", message);
 
     goto(`/?t=${newTree.tree.rootVertexId}`);
-    onRequestClose();
+    onClose();
   }
 </script>
 
 <h3 class="h3">{appConfig.name}</h3>
-<SendMessageForm {onSend} {placeholder} />
+<SendMessageForm 
+  onSend={onSend} 
+  {placeholder} 
+  threadId={appConfig.id} 
+  draftStore={newThreadDrafts}
+  onClose={onClose}
+/>

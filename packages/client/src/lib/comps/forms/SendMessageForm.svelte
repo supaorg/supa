@@ -5,27 +5,32 @@
   import { type MessageFormStatus } from "./messageFormStatus";
   import { txtStore } from "$lib/stores/txtStore";
   import { draftMessages } from "$lib/stores/draftMessages";
+  import type { Writable } from "svelte/store";
 
   interface SendMessageFormProps {
     onSend: (msg: string) => void;
     onStop?: () => void;
+    onClose?: () => void;
     onHeightChange?: (height: number) => void;
     isFocused?: boolean;
     placeholder?: string;
     status?: MessageFormStatus;
     disabled?: boolean;
     threadId?: string;
+    draftStore?: Writable<Record<string, string>>;
   }
 
   let {
     onSend,
     onStop = () => {},
+    onClose = () => {},
     onHeightChange = () => {},
     isFocused = true,
     placeholder = $txtStore.messageForm.placeholder,
     status = "can-send-message",
     disabled = false,
     threadId,
+    draftStore = draftMessages,
   }: SendMessageFormProps = $props();
 
   let query = $state("");
@@ -34,8 +39,8 @@
 
   // Load draft message if exists
   onMount(() => {
-    if (threadId && $draftMessages[threadId]) {
-      query = $draftMessages[threadId];
+    if (threadId && $draftStore[threadId]) {
+      query = $draftStore[threadId];
       if (textareaElement) {
         adjustTextareaHeight(textareaElement);
       }
@@ -48,11 +53,12 @@
     // Clean up draft when component is destroyed
     return () => {
       if (threadId && query) {
-        draftMessages.update(drafts => {
+        draftStore.update(drafts => {
           drafts[threadId] = query;
           return drafts;
         });
       }
+      onClose();
     };
   });
 
@@ -82,7 +88,7 @@
 
     // Save draft as user types
     if (threadId && query) {
-      draftMessages.update(drafts => {
+      draftStore.update(drafts => {
         drafts[threadId] = query;
         return drafts;
       });
@@ -98,7 +104,7 @@
 
     // Clear draft when message is sent
     if (threadId) {
-      draftMessages.update(drafts => {
+      draftStore.update(drafts => {
         delete drafts[threadId];
         return drafts;
       });
