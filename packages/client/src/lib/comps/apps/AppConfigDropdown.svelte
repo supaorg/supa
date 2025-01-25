@@ -39,7 +39,7 @@
 </script>
 
 {#if selectedConfig}
-  <div class="w-[150px]">
+  <div class="w-[150px] relative z-10">
     <Combobox
       data={comboboxData}
       bind:value={selectedConfig}
