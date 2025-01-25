@@ -14,7 +14,7 @@
   let scrollableElement = $state<HTMLElement | undefined>(undefined);
   let title: string | undefined = $state();
   let messageIds = $state<string[]>([]);
-  let stickToBottomWhenLastMessageChanges = $state(false);
+  let shouldAutoScroll = $state(true);
   let formStatus: MessageFormStatus = $state("can-send-message");
 
   let lastMessageTxt: string | null = null;
@@ -23,6 +23,16 @@
     messageIds.length > 0 ? messageIds[messageIds.length - 1] : undefined,
   );
 
+  function isAtBottom() {
+    if (!scrollableElement) return false;
+    const threshold = 50;
+    return scrollableElement.scrollHeight - scrollableElement.scrollTop - scrollableElement.clientHeight <= threshold;
+  }
+
+  function handleScroll() {
+    shouldAutoScroll = isAtBottom();
+  }
+
   $effect(() => {
     if (!lastMessageId) return;
 
@@ -30,6 +40,9 @@
       updateFormStatus(msg);
       if (msg.text !== lastMessageTxt) {
         lastMessageTxt = msg.text;
+        if (msg.role === 'assistant' && isAtBottom()) {
+          shouldAutoScroll = true;
+        }
         scrollToBottom();
       }
     });
@@ -86,7 +99,7 @@
 
   function scrollToBottom() {
     tick().then(() => {
-      if (scrollableElement) {
+      if (scrollableElement && shouldAutoScroll) {
         scrollableElement.scrollTo(0, scrollableElement.scrollHeight);
       }
     });
@@ -115,6 +128,7 @@
     class="flex-grow overflow-y-auto pt-2"
     bind:this={scrollableElement}
     id={mainScrollableId}
+    onscroll={handleScroll}
   >
     <div class="w-full max-w-4xl mx-auto">
       {#each messageIds as messageId (messageId)}
