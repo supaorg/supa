@@ -11,26 +11,26 @@
     onSend: (msg: string) => void;
     onStop?: () => void;
     onClose?: () => void;
-    onHeightChange?: (height: number) => void;
     isFocused?: boolean;
     placeholder?: string;
     status?: MessageFormStatus;
     disabled?: boolean;
     threadId?: string;
     draftStore?: Writable<Record<string, string>>;
+    maxLines?: number;
   }
 
   let {
     onSend,
     onStop = () => {},
     onClose = () => {},
-    onHeightChange = () => {},
     isFocused = true,
     placeholder = $txtStore.messageForm.placeholder,
     status = "can-send-message",
     disabled = false,
     threadId,
     draftStore = draftMessages,
+    maxLines = Infinity,
   }: SendMessageFormProps = $props();
 
   let query = $state("");
@@ -41,9 +41,6 @@
   onMount(() => {
     if (threadId && $draftStore[threadId]) {
       query = $draftStore[threadId];
-      if (textareaElement) {
-        adjustTextareaHeight(textareaElement);
-      }
     }
 
     if (isFocused) {
@@ -62,30 +59,31 @@
     };
   });
 
-  function adjustTextareaHeight(textarea: HTMLTextAreaElement) {
-    textarea.style.height = "1px"; // Temporarily shrink to get accurate scrollHeight
-    const scrollHeight = textarea.scrollHeight;
-    textarea.style.height = scrollHeight + "px";
-
-    onHeightChange(scrollHeight);
+  function adjustTextareaHeight() {
+    if (!textareaElement) return;
+    
+    // Reset height to allow proper scrollHeight calculation
+    textareaElement.style.height = 'auto';
+    
+    // Get the scroll height which represents the height needed to show all content
+    const scrollHeight = textareaElement.scrollHeight;
+    
+    // Set the height to match content
+    textareaElement.style.height = `${scrollHeight}px`;
   }
 
-  function handleKeydownInChatInput(event: KeyboardEvent) {
+  function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Enter" && !event.shiftKey) {
       sendMsg();
       event.preventDefault();
+      return;
     }
-
-    const textarea = event.target as HTMLTextAreaElement;
-
-    adjustTextareaHeight(textarea);
+    adjustTextareaHeight();
   }
 
-  function handleKeyupInChatInput(event: KeyboardEvent) {
-    const textarea = event.target as HTMLTextAreaElement;
-
-    adjustTextareaHeight(textarea);
-
+  function handleInput() {
+    adjustTextareaHeight();
+    
     // Save draft as user types
     if (threadId && query) {
       draftStore.update(drafts => {
@@ -111,6 +109,7 @@
     }
 
     query = "";
+    adjustTextareaHeight();
   }
 
   async function stopMsg() {
@@ -135,11 +134,12 @@
     >
       <textarea
         bind:this={textareaElement}
-        class="block h-10 w-full resize-none border-0 bg-transparent p-2 text-token-text-primary placeholder:opacity-80 outline-none focus:ring-0"
+        class="block w-full resize-none border-0 bg-transparent p-2 text-token-text-primary placeholder:opacity-80 outline-none focus:ring-0"
+        style="line-height: 20px; min-height: 40px; max-height: {maxLines * 20}px; overflow-y: auto;"
         {placeholder}
         bind:value={query}
-        onkeydown={handleKeydownInChatInput}
-        onkeyup={handleKeyupInChatInput}
+        onkeydown={handleKeydown}
+        oninput={handleInput}
         onfocus={() => (isTextareaFocused = true)}
         onblur={() => (isTextareaFocused = false)}
       ></textarea>
