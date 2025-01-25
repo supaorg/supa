@@ -41,6 +41,8 @@
   onMount(() => {
     if (threadId && $draftStore[threadId]) {
       query = $draftStore[threadId];
+      // Adjust height after loading draft content
+      setTimeout(() => adjustTextareaHeight(), 0);
     }
 
     if (isFocused) {
