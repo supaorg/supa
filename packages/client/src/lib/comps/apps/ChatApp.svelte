@@ -23,6 +23,10 @@
     messageIds.length > 0 ? messageIds[messageIds.length - 1] : undefined,
   );
 
+  let isEditingTitle = $state(false);
+
+  let titleInput: HTMLInputElement;
+
   function isAtBottom() {
     if (!scrollableElement) return false;
     const threshold = 50;
@@ -71,9 +75,31 @@
     formStatus = "can-send-message";
   }
 
+  function adjustInputWidth() {
+    if (!titleInput) return;
+    // Create a temporary span to measure text
+    const span = document.createElement('span');
+    // Copy the input's font styles to the span for accurate measurement
+    const styles = window.getComputedStyle(titleInput);
+    span.style.font = styles.font;
+    span.style.padding = styles.padding;
+    span.style.visibility = 'hidden';
+    span.style.position = 'absolute';
+    span.style.whiteSpace = 'pre';
+    // Add some padding for cursor space
+    span.textContent = titleInput.value + 'W';
+    document.body.appendChild(span);
+    const width = span.offsetWidth;
+    document.body.removeChild(span);
+    // Set the input width
+    titleInput.style.width = `${width}px`;
+  }
+
   onMount(() => {
     const unobserveTitle = data.observe((data) => {
       title = data.title as string;
+      // Adjust width after title updates
+      setTimeout(adjustInputWidth, 0);
     });
 
     messageIds = data.messageIds;
@@ -114,13 +140,39 @@
   async function stopMsg() {
     data.triggerEvent("stop-message", {});
   }
+
+  function updateTitle(newTitle: string) {
+    if (newTitle.trim() !== "") {
+      data.rename(newTitle);
+    }
+  }
 </script>
 
 <div class="flex flex-col w-full h-full overflow-hidden">
   <div class="min-h-min px-2">
     <div class="flex flex-1 gap-4 items-center py-2">
-      <h3 class="text-lg pl-2">{title ? title : "New thread"}</h3>
-      <div class="flex-grow"></div>
+      <div class="flex-1 min-w-0">
+        <input
+          bind:this={titleInput}
+          type="text"
+          value={title ? title : "New thread"}
+          class="text-lg pl-2 bg-transparent border-0 rounded outline-none transition-colors overflow-hidden text-ellipsis"
+          class:ring={isEditingTitle}
+          class:ring-primary-300-700={isEditingTitle}
+          onfocus={() => isEditingTitle = true}
+          onblur={(e) => {
+            isEditingTitle = false;
+            updateTitle(e.currentTarget.value);
+          }}
+          onkeydown={(e) => {
+            if (e.key === "Enter") {
+              e.currentTarget.blur();
+            }
+            adjustInputWidth();
+          }}
+          oninput={adjustInputWidth}
+        />
+      </div>
       <AppConfigDropdown {data} />
     </div>
   </div>

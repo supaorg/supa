@@ -57,6 +57,13 @@ export class ChatAppData {
     this.referenceInSpace.setProperty("title", title);
   }
 
+  rename(newTitle: string) {
+    if (newTitle.trim() === "") return;
+    
+    this.title = newTitle;
+    this.space.setAppTreeName(this.threadId, newTitle);
+  }
+
   get messages(): ThreadMessage[] {
     const msgs: ThreadMessage[] = [];
     let targetVertex = this.messagesVertex;
