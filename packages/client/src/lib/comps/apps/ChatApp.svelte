@@ -129,6 +129,7 @@
         onStop={stopMsg} 
         status={formStatus} 
         threadId={data.threadId}
+        maxLines={10}
       />
     </section>
   </div>
