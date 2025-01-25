@@ -21,6 +21,7 @@
     threadId?: string;
     draftStore?: Writable<Record<string, string>>;
     maxLines?: number;
+    attachEnabled?: boolean;
   }
 
   let {
@@ -34,6 +35,7 @@
     threadId,
     draftStore = draftMessages,
     maxLines = Infinity,
+    attachEnabled = false,
   }: SendMessageFormProps = $props();
 
   let query = $state("");
@@ -161,6 +163,8 @@
       <div class="flex items-center justify-between p-2">
         <button
           class="flex items-center justify-center rounded-lg text-token-text-primary"
+          class:opacity-50={!attachEnabled}
+          disabled={!attachEnabled}
           aria-label={$txtStore.messageForm.attachFile}
         >
           <Paperclip size={18} />
