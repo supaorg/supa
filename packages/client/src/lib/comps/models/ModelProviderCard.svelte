@@ -56,7 +56,7 @@
   <a
     href={provider.url}
     target="_blank"
-    class="w-16 h-16 bg-white flex flex-shrink-0 items-center justify-center rounded-token"
+    class="w-16 h-16 bg-white flex flex-shrink-0 items-center justify-center rounded"
   >
     <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
   </a>

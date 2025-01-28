@@ -73,7 +73,7 @@
     onkeydown={(e) => e.key === 'Enter' && onProviderClick()}
   >
     <div
-      class="w-8 h-8 bg-white flex items-center justify-center rounded-token"
+      class="w-8 h-8 bg-white flex items-center justify-center rounded"
     >
       <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
     </div>

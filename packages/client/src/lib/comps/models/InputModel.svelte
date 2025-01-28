@@ -90,7 +90,7 @@
       class="flex p-4 gap-4 items-center cursor-pointer w-full"
       onclick={onRequestChange}
     >
-      <div class="w-8 h-8 flex items-center justify-center rounded-token">
+      <div class="w-8 h-8 flex items-center justify-center rounded">
         <Sparkles size={18} />
       </div>
       <div class="">
@@ -106,7 +106,7 @@
       onclick={onRequestChange}
     >
       <div
-        class="w-8 h-8 bg-white flex items-center justify-center rounded-token"
+        class="w-8 h-8 bg-white flex items-center justify-center rounded"
       >
         <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
       </div>

@@ -28,7 +28,7 @@
     class="flex p-4 gap-4 items-center cursor-pointer w-full"
     on:click={onProviderClick}
   >
-    <div class="w-8 h-8 flex items-center justify-center rounded-token">
+    <div class="w-8 h-8 flex items-center justify-center rounded">
       <Sparkles size={18} />
     </div>
     <div class="flex flex-col space-y-4">

@@ -45,7 +45,7 @@
     {#if config.visible}
       <li>
         <button
-          class="w-full flex px-2 py-2 gap-2 hover:bg-surface-100-900"
+          class="w-full flex px-2 py-2 gap-2 rounded hover:bg-surface-100-900"
           onclick={() => startNewThread(config)}
         >
           <span class="flex-shrink-0 w-6 h-6">
