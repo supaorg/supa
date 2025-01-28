@@ -17,21 +17,23 @@
   let status: Status = $state("selecting");
 </script>
 
-{#if status === "selecting"}
-  <ModelProviderSelector {selectedModel} {onModelSelect} />
-  <div class="grid gap-4">
-    <button
-      class="btn variant-ghost-surface"
-      onclick={() => (status = "managing")}>{$txtStore.modelSelection.manageProviders}</button
-    >
-    <button class="btn variant-filled" onclick={onRequestClose}>{$txtStore.modelSelection.done}</button>
-  </div>
-{:else}
-  <ModelProviders />
-  <div class="grid">
-    <button
-      class="btn variant-ghost-surface"
-      onclick={() => (status = "selecting")}>{$txtStore.modelSelection.backToSelection}</button
-    >
-  </div>
-{/if}
+<div class="md:min-w-[500px]">
+  {#if status === "selecting"}
+    <ModelProviderSelector {selectedModel} {onModelSelect} />
+    <div class="grid gap-4 mt-4">
+      <button
+        class="btn preset-outlined-surface-500"
+        onclick={() => (status = "managing")}>{$txtStore.modelSelection.manageProviders}</button
+      >
+      <button class="btn preset-filled-surface-500" onclick={onRequestClose}>{$txtStore.modelSelection.done}</button>
+    </div>
+  {:else}
+    <ModelProviders />
+    <div class="grid">
+      <button
+        class="btn preset-outlined-surface-500"
+        onclick={() => (status = "selecting")}>{$txtStore.modelSelection.backToSelection}</button
+      >
+    </div>
+  {/if}
+</div>

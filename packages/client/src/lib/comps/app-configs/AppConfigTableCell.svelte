@@ -74,8 +74,8 @@
         {/snippet}
         
         {#snippet content()}
-          <div class="btn-group-vertical variant-filled">
-            <button class="btn variant-filled" onclick={deleteAppConfig}>{$txtStore.appConfigPage.tableCell.deleteButton}</button>
+          <div class="btn-group-vertical preset-filled-surface-500">
+            <button class="btn preset-filled-surface-500" onclick={deleteAppConfig}>{$txtStore.appConfigPage.tableCell.deleteButton}</button>
           </div>
         {/snippet}
       </Popover>

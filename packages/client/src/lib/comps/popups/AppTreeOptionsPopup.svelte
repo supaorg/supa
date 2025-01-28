@@ -37,8 +37,8 @@
     {/snippet}
 
     {#snippet content()}
-      <div class="btn-group-vertical variant-filled">
-        <button class="btn variant-filled" onclick={deleteThread}>Delete</button
+      <div class="btn-group-vertical preset-filled-surface-500">
+        <button class="btn preset-filled-surface-500" onclick={deleteThread}>Delete</button
         >
       </div>
     {/snippet}

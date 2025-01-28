@@ -58,7 +58,7 @@
   }
 </script>
 
-<div class="grid grid-cols-1 gap-4">
+<div class="grid grid-cols-1 gap-2">
   {#if setupProviders.length > 0}
     <AutoModelSelectCard
       selected={selectedPair?.providerId === "auto"}

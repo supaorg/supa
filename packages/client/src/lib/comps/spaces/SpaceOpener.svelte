@@ -62,7 +62,7 @@
         {$txtStore.spacesPage.opener.createDescription}
       </p>
     </div>
-    <button class="btn variant-ringed-primary" onclick={createSpaceDialog}
+    <button class="btn preset-outlined-primary-500" onclick={createSpaceDialog}
       >{$txtStore.spacesPage.opener.createButton}</button
     >
   </div>
@@ -71,7 +71,7 @@
       <h3 class="text-lg font-semibold">{$txtStore.spacesPage.opener.openTitle}</h3>
       <p class="text-sm">{$txtStore.spacesPage.opener.openDescription}</p>
     </div>
-    <button class="btn variant-ringed-primary" onclick={openSpaceDialog}
+    <button class="btn preset-outlined-primary-500" onclick={openSpaceDialog}
       >{$txtStore.spacesPage.opener.openButton}</button
     >
   </div>

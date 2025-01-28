@@ -58,7 +58,7 @@
           Cancel
         </button>
         <button
-          class="btn variant-filled"
+          class="btn preset-filled-surface-500"
           onclick={handleRename}
           disabled={newName.trim() === ""}
         >

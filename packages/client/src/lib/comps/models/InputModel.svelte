@@ -120,7 +120,7 @@
   <div>
     <button
       type="button"
-      class="btn variant-filled"
+      class="btn preset-filled-surface-500"
       on:invalid={onInputInvalid}
       onclick={onRequestChange}>Select a model</button
     >

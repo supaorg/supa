@@ -61,6 +61,6 @@
       <hr />
     {/if}
 
-    <a href="/spaces" class="btn variant-filled w-full">Manage spaces</a>
+    <a href="/spaces" class="btn preset-filled-surface-500 w-full">Manage spaces</a>
   {/snippet}
 </Popover>

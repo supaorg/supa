@@ -30,7 +30,7 @@
   </div>
   {#if showHowForProvider}
     <div
-      class="absolute card shadow-lg w-full h-full top-0 left-0 overflow-hidden"
+      class="absolute card preset-filled-surface-100-900 border-[1px] border-surface-200-800 shadow-lg w-full h-full top-0 left-0 overflow-hidden"
     >
       <div class="h-full overflow-y-auto p-4 space-y-4">
         <h4 class="h4 mb-4">How to setup {showHowForProvider.name}</h4>
@@ -133,6 +133,36 @@
               >
             </li>
           </ol>
+        {:else if showHowForProvider.name === "DeepSeek"}
+          <p>
+            You will need to enter a key that will allow you to use DeepSeek's
+            models.
+          </p>
+          <ol class="list">
+            <li>
+              <span>1.</span>
+              <span class="flex-auto"
+                >Sign up or login for DeepSeek: <Link
+                  href="https://platform.deepseek.com/"
+                  >https://platform.deepseek.com/</Link
+                ></span
+              >
+            </li>
+            <li>
+              <span>2.</span>
+              <span class="flex-auto"
+                >Go to <Link href="https://platform.deepseek.com/api"
+                  >https://platform.deepseek.com/api</Link
+                > and create an API key</span
+              >
+            </li>
+            <li>
+              <span>3.</span>
+              <span class="flex-auto"
+                >Paste the key here and wait for it to validate.</span
+              >
+            </li>
+          </ol>
         {:else}
           <p>
             You will need to install and run Ollama to use its models. You can
@@ -176,7 +206,7 @@
           />
         {/if}
         <button
-          class="btn variant-ringed mt-4"
+          class="btn preset-outlined-surface-500 mt-4"
           onclick={() => {
             showHowForProvider = null;
           }}>Ok</button

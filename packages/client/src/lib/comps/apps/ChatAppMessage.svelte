@@ -103,7 +103,7 @@
         {/if}
 
         {#if canRetry}
-          <button class="btn variant-filled" onclick={retry}>Retry</button>
+          <button class="btn preset-filled-surface-500" onclick={retry}>Retry</button>
         {/if}
       </div>
     </div>

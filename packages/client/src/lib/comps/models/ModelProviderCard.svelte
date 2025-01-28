@@ -65,23 +65,23 @@
       ><a href={provider.url} target="_blank" class="font-semibold"
         >{provider.name}</a
       >{#if state === "connected"}<span
-          class="ml-4 badge variant-filled-primary">Connected</span
+          class="ml-4 badge preset-filled-primary-500">Connected</span
         >{/if}
     </span>
     {#if state === "disconnected"}
       <div class="flex flex-grow gap-2">
         <button
-          class="btn btn-md variant-filled flex-grow"
+          class="btn btn-md preset-filled-surface-500 flex-grow"
           on:click={() => (state = "connecting")}>Connect</button
         >
         <button
-          class="btn btn-md variant-ringed"
+          class="btn btn-md preset-outlined-surface-500"
           on:click={() => onHow(provider)}>How?</button
         >
       </div>
     {:else if state === "invalid-key"}
       <button
-        class="btn btn-md variant-filled"
+        class="btn btn-md preset-filled-surface-500"
         on:click={() => (state = "connecting")}>Re-Connect</button
       >
     {:else if state === "connecting"}
@@ -108,7 +108,7 @@
         />
       {/if}
     {:else if state === "connected"}
-      <button class="btn btn-md variant-ringed" on:click={disconnect}
+      <button class="btn btn-md preset-outlined-surface-500" on:click={disconnect}
         >Disconnect</button
       >
     {:else if state === "loading"}

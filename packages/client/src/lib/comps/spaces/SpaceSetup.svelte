@@ -76,7 +76,7 @@
             folder is empty.
           </p>
         </div>
-        <button class="btn variant-ringed-primary" on:click={createSpaceDialog}
+        <button class="btn preset-outlined-primary-500" on:click={createSpaceDialog}
           >Create</button
         >
       </div>
@@ -85,7 +85,7 @@
           <h3 class="text-lg font-semibold">Open a space</h3>
           <p class="text-sm">Open a folder that contains your space.</p>
         </div>
-        <button class="btn variant-ringed-primary" on:click={openSpaceDialog}
+        <button class="btn preset-outlined-primary-500" on:click={openSpaceDialog}
           >Open</button
         >
       </div>
