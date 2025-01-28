@@ -20,9 +20,9 @@
 </script>
 
 <div
-  class="rounded-token {selected
-    ? 'border border-primary-200-700-token'
-    : 'border border-surface-300-600-token'}"
+  class="rounded {selected
+    ? 'border border-primary-500'
+    : 'border border-surface-500'}"
 >
   <button
     class="flex p-4 gap-4 items-center cursor-pointer w-full"

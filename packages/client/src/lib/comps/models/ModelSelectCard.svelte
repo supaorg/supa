@@ -50,17 +50,18 @@
   }
 
   function onChangeModel(model: string) {
-    onSelect(provider.id, model);
-    modelId = model;
-    prevSelectedModelId = model;
+    const finalModel = model === "auto" && provider.defaultModel ? provider.defaultModel : model;
+    onSelect(provider.id, finalModel);
+    modelId = finalModel;
+    prevSelectedModelId = finalModel;
     showModels = false;
   }
 </script>
 
 <div
-  class="rounded-token {selected
-    ? 'border border-primary-200-700-token'
-    : 'border border-surface-300-600-token'}"
+  class="rounded {selected
+    ? 'border border-primary-500'
+    : 'border border-surface-500'}"
 >
   <div
     role="button"
@@ -74,22 +75,29 @@
     >
       <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
     </div>
-    <div class="flex flex-col space-y-4">
-      <div>
+    <div class="flex-1">
+      <span class="font-semibold">
+        {provider.name}
+      </span>
+      {#if selected && !showModels && modelId !== provider.defaultModel}
         <span class="font-semibold">
-          {provider.name}
+          — {modelId}&nbsp;
         </span>
-        {#if selected && !showModels}
-          <span class="font-semibold">
-            — {modelId}&nbsp;
-          </span>
-          <button
-            class="btn btn-sm variant-filled"
-            onclick={() => (showModels = true)}>Change</button
-          >
-        {/if}
-      </div>
+      {/if}
     </div>
+    {#if selected}
+      {#if !showModels}
+        <button
+          class="btn btn-sm preset-outlined-surface-500"
+          onclick={() => (showModels = true)}>{modelId === provider.defaultModel ? 'Choose model' : 'Change'}</button
+        >
+      {:else}
+        <button
+          class="btn btn-sm preset-outlined-surface-500"
+          onclick={() => (showModels = false)}>Done</button
+        >
+      {/if}
+    {/if}
   </div>
   <div>
     {#if selected}
@@ -98,9 +106,11 @@
           <select 
             class="select" 
             size={models.length}
+            value={modelId === provider.defaultModel ? 'auto' : modelId}
             onchange={(e) => onChangeModel(e.currentTarget.value)}
           >
-            {#each models as model}
+            <option value="auto">{provider.defaultModel || 'Default'} (default)</option>
+            {#each models.filter(model => model !== provider.defaultModel) as model}
               <option value={model}>{model}</option>
             {/each}
           </select>
