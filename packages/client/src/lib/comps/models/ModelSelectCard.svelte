@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { ModelProvider, ModelProviderConfig } from "@core/models";
   import { onMount } from "svelte";
+  import type { ModelProvider, ModelProviderConfig } from "@core/models";
   import { getProviderModels } from "@core/tools/providerModels";
 
   let {
@@ -16,7 +16,7 @@
     onSelect: (providerId: string, model: string) => void;
     modelId: string | null;
   } = $props();
-  
+
   let prevSelectedModelId: string | null = null;
   let models = $state<string[]>([]);
   let showModels = $state(false);
@@ -62,9 +62,12 @@
     ? 'border border-primary-200-700-token'
     : 'border border-surface-300-600-token'}"
 >
-  <button
+  <div
+    role="button"
+    tabindex="0"
     class="flex p-4 gap-4 items-center cursor-pointer w-full"
     onclick={onProviderClick}
+    onkeydown={(e) => e.key === 'Enter' && onProviderClick()}
   >
     <div
       class="w-8 h-8 bg-white flex items-center justify-center rounded-token"
@@ -87,12 +90,16 @@
         {/if}
       </div>
     </div>
-  </button>
+  </div>
   <div>
     {#if selected}
       {#if showModels}
         <div class="p-4">
-          <select class="select" size={models.length}>
+          <select 
+            class="select" 
+            size={models.length}
+            onchange={(e) => onChangeModel(e.currentTarget.value)}
+          >
             {#each models as model}
               <option value={model}>{model}</option>
             {/each}

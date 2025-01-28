@@ -85,8 +85,7 @@ export class AgentServices {
   > {
     const providerConfigs = this.space.getModelProviderConfigs();
 
-    // First, openai, then groq, then anthropic
-    const providerOrder = ["openai", "groq", "anthropic"];
+    const providerOrder = ["openai", "anthropic", "deepseek", "groq", "ollama"];
     for (const provider of providerOrder) {
       const providerConfig = providerConfigs.find((p) => p.id === provider);
       if (providerConfig) {
