@@ -41,19 +41,21 @@
         models.includes(provider.defaultModel)
       ) {
         modelId = provider.defaultModel;
-      } else {
+      } else if (models.length > 0) {
         modelId = models[0];
+      } else {
+        modelId = provider.defaultModel || "";
       }
     }
 
-    onSelect(provider.id, modelId);
+    onSelect(provider.id, modelId || "");
   }
 
   function onChangeModel(model: string) {
     const finalModel = model === "auto" && provider.defaultModel ? provider.defaultModel : model;
-    onSelect(provider.id, finalModel);
-    modelId = finalModel;
-    prevSelectedModelId = finalModel;
+    onSelect(provider.id, finalModel || provider.defaultModel || "");
+    modelId = finalModel || provider.defaultModel || "";
+    prevSelectedModelId = finalModel || provider.defaultModel || "";
     showModels = false;
   }
 </script>
@@ -79,7 +81,7 @@
       <span class="font-semibold">
         {provider.name}
       </span>
-      {#if selected && !showModels && modelId !== provider.defaultModel}
+      {#if selected && !showModels && modelId && modelId !== provider.defaultModel}
         <span class="font-semibold">
           — {modelId}&nbsp;
         </span>
@@ -89,7 +91,7 @@
       {#if !showModels}
         <button
           class="btn btn-sm preset-outlined-surface-500"
-          onclick={() => (showModels = true)}>{modelId === provider.defaultModel ? 'Choose model' : 'Change'}</button
+          onclick={() => (showModels = true)}>{(!modelId || modelId === provider.defaultModel) ? 'Choose model' : 'Change'}</button
         >
       {:else}
         <button
@@ -106,11 +108,11 @@
           <select 
             class="select" 
             size={models.length}
-            value={modelId === provider.defaultModel ? 'auto' : modelId}
+            value={(!modelId || modelId === provider.defaultModel) ? 'auto' : modelId}
             onchange={(e) => onChangeModel(e.currentTarget.value)}
           >
             <option value="auto">{provider.defaultModel || 'Default'} (default)</option>
-            {#each models.filter(model => model !== provider.defaultModel) as model}
+            {#each models.filter(model => model !== provider.defaultModel && model) as model}
               <option value={model}>{model}</option>
             {/each}
           </select>

@@ -35,13 +35,13 @@
   let error = $state("");
 
   function validate() {
-    if (!value) {
+    if (required && !value) {
       inputElement.setCustomValidity("Choose a model");
       return;
     }
 
-    if (value !== "auto" && value.split("/").length !== 2) {
-      inputElement.setCustomValidity("Invalid model:" + value);
+    if (value && value !== "auto" && (!providerId || !model || value.split("/").length !== 2)) {
+      inputElement.setCustomValidity("Invalid model: " + value);
       return;
     }
 
@@ -66,7 +66,9 @@
       return;
     }
 
-    [providerId, model] = value.split("/");
+    const parts = value.split("/");
+    providerId = parts[0] || "";
+    model = parts[1] || "";
 
     if (providerId === "auto") {
       provider = null;
@@ -77,7 +79,6 @@
     }
 
     provider = providers.find((p) => p.id === providerId) ?? null;
-
     validate();
   }
 </script>
@@ -110,7 +111,7 @@
         <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
       </div>
       <div class="">
-        <span class="font-semibold">{provider.name} — {model}</span>
+        <span class="font-semibold">{provider.name}{model ? ` — ${model}` : ''}</span>
       </div>
     </button>
   </div>
