@@ -18,6 +18,7 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
 
     const lang = await this.services.lang(this.config.targetLLM);
 
+    // @TODO: move this to localized texts file
     let systemPrompt = this.config.instructions + "\n\n" +
       "Preferably use markdown for formatting. If you write code examples: use tick marks for inline code and triple tick marks for code blocks." +
       "\n\n" +

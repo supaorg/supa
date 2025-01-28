@@ -10,6 +10,8 @@ export function validateKey(
       return validateKey_groq(key, signal);
     case "anthropic":
       return validateKey_anthropic(key, signal);
+    case "deepseek":
+      return validateKey_deepseek(key, signal);
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
@@ -84,4 +86,11 @@ async function validateKey_anthropic(
   } catch (_) {
     return false;
   }
+}
+
+async function validateKey_deepseek(
+  key: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  return validateKey_openaiLikeApi("https://api.deepseek.com/v1", key, signal);
 }

@@ -12,6 +12,8 @@ export function getProviderModels(
       return getProviderModels_anthropic(key, signal);
     case "ollama":
       return getProviderModels_ollama();
+    case "deepseek":
+      return getProviderModels_deepseek(key, signal);
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
@@ -97,6 +99,34 @@ async function getProviderModels_ollama(): Promise<string[]> {
     return data.models.map((model: { name: string }) => model.name);
   } catch (err) {
     console.error("Fetch error:", err);
+    return [];
+  }
+}
+
+async function getProviderModels_deepseek(key: string, signal?: AbortSignal): Promise<string[]> {
+  try {
+    const res = await fetch("https://api.deepseek.com/v1/models", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${key}`,
+      },
+      signal,
+    });
+
+    const data = await res.json();
+
+    if (!data.data) {
+      console.error("DeepSeek error:", data);
+      return [];
+    }
+
+    return data.data.map((model: { id: string }) => model.id);
+  } catch (err) {
+    if (err.name === "AbortError") {
+      console.log("Fetch aborted");
+    } else {
+      console.error("Fetch error:", err);
+    }
     return [];
   }
 }

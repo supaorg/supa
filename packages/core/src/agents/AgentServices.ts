@@ -53,6 +53,11 @@ export class AgentServices {
         return Lang.ollama({
           model: "llama3",
         });
+      case "deepseek":
+        return Lang.deepseek({
+          apiKey: await this.getKey(modelProvider),
+          model: modelName,
+        });
       default:
         throw new Error("Invalid model provider");
     }

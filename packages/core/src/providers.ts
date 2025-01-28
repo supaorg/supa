@@ -26,6 +26,14 @@ export const providers: ModelProvider[] = [
     defaultModel: "claude-3-5-sonnet-20240620"
   },
   {
+    id: "deepseek",
+    name: "DeepSeek",
+    access: "cloud",
+    url: "https://deepseek.com/",
+    logoUrl: "/providers/deepseek.png",
+    defaultModel: "deepseek-chat"
+  },
+  {
     id: "ollama",
     name: "Ollama",
     access: "local",

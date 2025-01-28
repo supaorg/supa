@@ -7,10 +7,15 @@
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
   import { providers } from "@core/providers";
 
-  let showHowForProvider: ModelProvider | null = null;
+  let showHowForProvider: ModelProvider | null = $state(null);
 
-  export let onConnect: (provider: ModelProvider) => void = () => {};
-  export let onDisconnect: (provider: ModelProvider) => void = () => {};
+  let {
+    onConnect,
+    onDisconnect,
+  }: {
+    onConnect?: (provider: ModelProvider) => void;
+    onDisconnect?: (provider: ModelProvider) => void;
+  } = $props();
 
   function onHow(provider: ModelProvider) {
     showHowForProvider = provider;
@@ -172,14 +177,14 @@
         {/if}
         <button
           class="btn variant-ringed mt-4"
-          on:click={() => {
+          onclick={() => {
             showHowForProvider = null;
           }}>Ok</button
         >
       </div>
       <button
         class="absolute top-4 right-4"
-        on:click={() => {
+        onclick={() => {
           showHowForProvider = null;
         }}><XCircle size={18} /></button
       >
