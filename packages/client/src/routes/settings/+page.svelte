@@ -7,8 +7,6 @@
   import { currentLanguage } from "$lib/stores/txtStore";
   import { SUPPORTED_LANGUAGES, LANGUAGE_NAMES } from "@core/localization/getTexts";
   import { txtStore } from "$lib/stores/txtStore";
-
-  $: spaceCount = $spaceStore.length === 1 ? "1 space" : `${$spaceStore.length} spaces`;
 </script>
 
 <CenteredPage>

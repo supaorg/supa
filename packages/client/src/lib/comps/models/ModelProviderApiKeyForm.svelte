@@ -9,18 +9,28 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { validateKey } from "@core/tools/providerKeyValidators";
 
-  export let id: string;
-  export let onValidKey: (key: string) => void;
-  export let onBlur: (key: string) => void = () => {};
-  export let autofocus = true;
+  let {
+    id,
+    onValidKey,
+    onBlur = () => {},
+    autofocus = true,
+  } = $props<{
+    id: string;
+    onValidKey: (key: string) => void;
+    onBlur?: (key: string) => void;
+    autofocus?: boolean;
+  }>();
 
-  let apiKey = "";
-  let apiKeyIsValid = false;
-  let inputElement: HTMLInputElement;
+  let apiKey = $state("");
+  let apiKeyIsValid = $state(false);
+  let inputElement = $state<HTMLInputElement | null>(null);
   let timeout: any;
-  let checkingKey = false;
+  let checkingKey = $state(false);
+  let config = $state<ModelProviderConfig | null>(null);
 
-  let config: ModelProviderConfig | null;
+  let showWarning = $derived(
+    !checkingKey && !apiKeyIsValid && apiKey.length > 6,
+  );
 
   async function saveCloudProviderWithApiKey(apiKey: string) {
     config = {
@@ -36,9 +46,9 @@
     checkingKey = true;
     clearTimeout(timeout);
     timeout = setTimeout(async () => {
-      let apiKeyIsValid = await validateKey(id, apiKey);
+      apiKeyIsValid = await validateKey(id, apiKey);
       if (apiKeyIsValid) {
-        saveCloudProviderWithApiKey(apiKey);
+        await saveCloudProviderWithApiKey(apiKey);
         onValidKey(apiKey);
       }
       checkingKey = false;
@@ -54,10 +64,6 @@
       inputElement.focus();
     }
   });
-
-  let showWarning = false;
-
-  $: showWarning = !checkingKey && !apiKeyIsValid && apiKey.length > 6;
 </script>
 
 <div

@@ -12,12 +12,20 @@
     | "invalid-key"
     | "connecting"
     | "connected";
-  let state: State = "disconnected";
+    
+  let state = $state<State>("disconnected");
 
-  export let provider: ModelProvider;
-  export let onConnect: (provider: ModelProvider) => void = () => {};
-  export let onDisconnect: (provider: ModelProvider) => void = () => {};
-  export let onHow: (provider: ModelProvider) => void = () => {};
+  let {
+    provider,
+    onConnect = () => {},
+    onDisconnect = () => {},
+    onHow = () => {},
+  }: {
+    provider: ModelProvider;
+    onConnect?: (provider: ModelProvider) => void;
+    onDisconnect?: (provider: ModelProvider) => void;
+    onHow?: (provider: ModelProvider) => void;
+  } = $props();
 
   onMount(async () => {
     await checkProvider();
@@ -72,17 +80,17 @@
       <div class="flex flex-grow gap-2">
         <button
           class="btn btn-md preset-filled-surface-500 flex-grow"
-          on:click={() => (state = "connecting")}>Connect</button
+          onclick={() => (state = "connecting")}>Connect</button
         >
         <button
           class="btn btn-md preset-outlined-surface-500"
-          on:click={() => onHow(provider)}>How?</button
+          onclick={() => onHow(provider)}>How?</button
         >
       </div>
     {:else if state === "invalid-key"}
       <button
         class="btn btn-md preset-filled-surface-500"
-        on:click={() => (state = "connecting")}>Re-Connect</button
+        onclick={() => (state = "connecting")}>Re-Connect</button
       >
     {:else if state === "connecting"}
       {#if provider.access === "cloud"}
@@ -108,7 +116,7 @@
         />
       {/if}
     {:else if state === "connected"}
-      <button class="btn btn-md preset-outlined-surface-500" on:click={disconnect}
+      <button class="btn btn-md preset-outlined-surface-500" onclick={disconnect}
         >Disconnect</button
       >
     {:else if state === "loading"}

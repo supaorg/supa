@@ -1,12 +1,14 @@
 <script lang="ts">
   import type { ModelProviderLocalConfig } from "@core/models";
   import { onMount } from "svelte";
-  //import { currentWorkspaceStore } from "$lib/stores/workspaceStore";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
-  export let id: string;
-  export let onConnect = () => {};
+  let { id, onConnect = () => {} } = $props<{
+    id: string;
+    onConnect?: () => void;
+  }>();
 
-  let isNotOnline = false;
+  let isNotOnline = $state(false);
 
   async function saveLocalProvider() {
     const config = {
@@ -14,8 +16,7 @@
       type: "local",
     } as ModelProviderLocalConfig;
 
-    // @TODO: implement saving provider to space
-    //$currentWorkspaceStore?.saveModelProviderConfig(config);
+    $currentSpaceStore?.saveModelProviderConfig(config);
   }
 
   async function checkIfOnline() {
@@ -24,7 +25,7 @@
       if (res.status !== 200) {
         isNotOnline = true;
       } else {
-        saveLocalProvider();
+        await saveLocalProvider();
         onConnect();
       }
     } catch (e) {
