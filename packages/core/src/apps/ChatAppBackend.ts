@@ -124,7 +124,14 @@ export default class ChatAppBackend {
       if (lastMessage?.role !== "error") {
         messages.push({ ...messageToUse, text: response });
       }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      this.appTree.tree.setVertexProperty(messageToUse.id, "role", "error");
+      this.appTree.tree.setVertexProperty(messageToUse.id, "text", errorMessage);
+      this.appTree.tree.setVertexProperty(messageToUse.id, "inProgress", false);
+    }
 
+    try {
       const newTitle = await threadTitleAgent.input({
         messages,
         title: this.data.title
@@ -135,11 +142,9 @@ export default class ChatAppBackend {
       }
 
       this.space.setAppTreeName(this.appTreeId, this.data.title);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      this.appTree.tree.setVertexProperty(messageToUse.id, "role", "error");
-      this.appTree.tree.setVertexProperty(messageToUse.id, "text", errorMessage);
-      this.appTree.tree.setVertexProperty(messageToUse.id, "inProgress", false);
+    }
+    catch (error) {
+      console.error("Error while updating title", error);
     }
   }
 }
