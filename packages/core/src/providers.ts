@@ -15,7 +15,7 @@ export const providers: ModelProvider[] = [
     access: "cloud",
     url: "https://groq.com/",
     logoUrl: "/providers/groq.png",
-    defaultModel: "llama-3.1-70b-versatile"
+    defaultModel: "llama-3.3-70b-versatile"
   },
   {
     id: "anthropic",

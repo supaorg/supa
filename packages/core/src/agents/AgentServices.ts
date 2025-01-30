@@ -9,7 +9,7 @@ export class AgentServices {
     this.space = space;
   }
 
-  async lang(model?: string): Promise<LanguageModel> {
+  async lang(model?: string): Promise<LanguageModel> {    
     let modelProvider: string;
     let modelName: string;
 
@@ -51,7 +51,7 @@ export class AgentServices {
         });
       case "ollama":
         return Lang.ollama({
-          model: "llama3",
+          model: modelName,
         });
       case "deepseek":
         return Lang.deepseek({
