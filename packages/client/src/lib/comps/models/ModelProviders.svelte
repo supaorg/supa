@@ -4,7 +4,6 @@
   import { XCircle } from "lucide-svelte/icons";
   import Link from "../basic/Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
-  import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
   import { providers } from "@core/providers";
 
   let showHowForProvider: ModelProvider | null = $state(null);
@@ -31,7 +30,6 @@
   {#if showHowForProvider}
     <div
       class="absolute card preset-filled-surface-100-900 border-[1px] border-surface-200-800 shadow-lg w-full h-full top-0 left-0 overflow-hidden z-50"
-      onclick={(e) => e.stopPropagation()}
     >
       <div class="h-full overflow-y-auto p-4 space-y-4">
         <h4 class="h5 mb-4">How to setup {showHowForProvider.name}</h4>
@@ -198,13 +196,6 @@
             id={showHowForProvider.id}
             autofocus={false}
             onValidKey={() => {
-              showHowForProvider = null;
-            }}
-          />
-        {:else if showHowForProvider.name === "Ollama"}
-          <ModelProviderOllamaConnector
-            id={showHowForProvider.id}
-            onConnect={() => {
               showHowForProvider = null;
             }}
           />
