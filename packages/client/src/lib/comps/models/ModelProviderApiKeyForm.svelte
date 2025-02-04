@@ -67,12 +67,12 @@
 </script>
 
 <div
-  class="relative input-group variant-form-material"
+  class="relative"
   class:input-success={apiKeyIsValid}
   class:input-warning={showWarning}
 >
   <input
-    class="w-full"
+    class="input w-full"
     type="password"
     bind:value={apiKey}
     bind:this={inputElement}

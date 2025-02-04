@@ -33,7 +33,7 @@
       class="absolute card preset-filled-surface-100-900 border-[1px] border-surface-200-800 shadow-lg w-full h-full top-0 left-0 overflow-hidden"
     >
       <div class="h-full overflow-y-auto p-4 space-y-4">
-        <h4 class="h4 mb-4">How to setup {showHowForProvider.name}</h4>
+        <h4 class="h5 mb-4">How to setup {showHowForProvider.name}</h4>
         {#if showHowForProvider.name === "OpenAI"}
           <p>
             You will need to enter a key that will allow you to use OpenAI's
@@ -166,7 +166,7 @@
         {:else}
           <p>
             You will need to install and run Ollama to use its models. You can
-            run it locally and then point to the address it's running.
+            run it locally and Supa will connect to it.
           </p>
           <ol class="list">
             <li>
