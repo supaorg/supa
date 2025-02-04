@@ -82,7 +82,7 @@
   class:input-warning={showWarning}
 >
   <input
-    class="input w-full"
+    class="input w-full transition-all duration-200 {checkingKey ? 'focus:ring-primary-500/50 animate-[pulse_1.5s_ease-in-out_infinite]' : showWarning ? 'focus:ring-warning-500' : ''}"
     type="password"
     bind:value={apiKey}
     bind:this={inputElement}
@@ -90,18 +90,16 @@
     onblur={handleBlur}
   />
   {#if apiKeyIsValid}
-    <span class="absolute right-8"
-      ><CheckCircle size={18} class="w-6 mt-2 ml-2 mr-2" /></span
-    >
-  {:else if checkingKey}
-    <span class="absolute right-8"><ProgressRing value={null} /></span>
+    <span class="absolute right-9 top-1/2 -translate-y-1/2">
+      <CheckCircle size={18} class="text-success-500" />
+    </span>
   {:else if showWarning}
-    <span class="absolute right-8"
-      ><CircleAlert size={18} class="w-6 mt-2 ml-2 mr-2" /></span
-    >
+    <span class="absolute right-9 top-1/2 -translate-y-1/2">
+      <CircleAlert size={18} class="text-warning-500" />
+    </span>
   {/if}
   <button
-    class="absolute right-2 top-1/2 -translate-y-1/2"
+    class="absolute right-2.5 top-1/2 -translate-y-1/2"
     onclick={onClose}
   >
     <XCircle size={18} />

@@ -27,7 +27,11 @@
       return;
     }
 
-    if (value && !value.startsWith("auto") && (!providerId || !model || value.split("/").length !== 2)) {
+    if (
+      value &&
+      !value.startsWith("auto") &&
+      (!providerId || !model || value.split("/").length !== 2)
+    ) {
       inputElement.setCustomValidity("Invalid model: " + value);
       return;
     }
@@ -92,13 +96,13 @@
       class="flex p-4 gap-4 items-center cursor-pointer w-full"
       onclick={onRequestChange}
     >
-      <div
-        class="w-8 h-8 bg-white flex items-center justify-center rounded"
-      >
+      <div class="w-8 h-8 bg-white flex items-center justify-center rounded">
         <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
       </div>
       <div class="">
-        <span class="font-semibold">{provider.name}{model ? ` — ${model}` : ''}</span>
+        <span class="font-semibold"
+          >{provider.name}{model ? ` — ${model}` : ""}</span
+        >
       </div>
     </button>
   </div>
@@ -115,7 +119,7 @@
   -->
 {:else}
   <div class="input variant-form-material">
-    <ProgressRing value={null} />
+    <ProgressRing value={null} size="size-14" />
   </div>
 {/if}
 {#if error}

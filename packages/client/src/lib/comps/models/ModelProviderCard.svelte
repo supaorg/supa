@@ -118,9 +118,9 @@
     <div class="flex items-center gap-2">
       <a href={provider.url} target="_blank" class="font-semibold">{provider.name}</a>
       {#if status === "connected"}
-        <span class="badge preset-filled-primary-500">Connected</span>
+        <span class="badge preset-filled-success-500">Connected</span>
       {:else if status === "invalid-key"}
-        <span class="badge preset-filled-error-500">Invalid Key</span>
+        <span class="badge preset-filled-warning-500">Invalid Key</span>
       {/if}
     </div>
 
@@ -136,7 +136,7 @@
           </button>
         {:else if provider.access === "local"}
           <button
-            class="btn btn-md preset-filled-surface-500 flex-grow"
+            class="btn btn-md preset-outlined-surface-500 flex-grow"
             onclick={() => (isEditing = true)}
           >
             Configure
@@ -155,7 +155,7 @@
           {/if}
         {:else if status !== "connected"}
           <button
-            class="btn btn-md preset-filled-surface-500 flex-grow"
+            class="btn btn-md preset-filled-primary-500 flex-grow"
             disabled={isChecking}
             onclick={() => (isEditing = true)}
           >

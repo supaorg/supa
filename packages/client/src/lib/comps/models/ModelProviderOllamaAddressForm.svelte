@@ -1,7 +1,7 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { ModelProviderLocalConfig } from "@core/models";
-  import { XCircle } from "lucide-svelte/icons";
+  import { XCircle, CheckCircle, CircleAlert } from "lucide-svelte/icons";
 
   let {
     id,
@@ -21,6 +21,7 @@
   let address = $state(defaultAddress);
   let inputElement = $state<HTMLInputElement | null>(null);
   let checkingAddress = $state(false);
+  let addressIsInvalid = $state(false);
 
   let timeout: number;
 
@@ -30,6 +31,7 @@
       // If address is empty, use default
       const addressToCheck = address || defaultAddress;
       const res = await fetch(`${addressToCheck}/api/tags`);
+      addressIsInvalid = false;
       if (res.status === 200) {
         const config: ModelProviderLocalConfig = {
           id,
@@ -42,7 +44,7 @@
         return true;
       }
     } catch (e) {
-      // Address is not valid
+      addressIsInvalid = true;
     } finally {
       checkingAddress = false;
     }
@@ -76,7 +78,11 @@
 
 <div class="relative">
   <input
-    class="input w-full"
+    class="input w-full transition-all duration-200 {checkingAddress
+      ? 'focus:ring-primary-500/50 animate-[pulse_1.5s_ease-in-out_infinite]'
+      : addressIsInvalid
+        ? 'focus:ring-warning-500'
+        : ''}"
     type="text"
     bind:value={address}
     bind:this={inputElement}
@@ -85,11 +91,20 @@
     onkeydown={handleKeyDown}
     placeholder={address ? "" : defaultAddress}
   />
+  {#if !checkingAddress && !addressIsInvalid}
+    <span class="absolute right-9 top-1/2 -translate-y-1/2">
+      <CheckCircle size={18} class="text-success-500" />
+    </span>
+  {:else if addressIsInvalid}
+    <span class="absolute right-9 top-1/2 -translate-y-1/2">
+      <CircleAlert size={18} class="text-warning-500" />
+    </span>
+  {/if}
   <button
-    class="absolute right-2 top-1/2 -translate-y-1/2"
+    class="absolute right-2.5 top-1/2 -translate-y-1/2"
     onclick={async () => {
       // Try to save if address is valid before closing
-      if (!await checkAndSaveAddress()) {
+      if (!(await checkAndSaveAddress())) {
         onClose();
       }
     }}
