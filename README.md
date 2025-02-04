@@ -4,7 +4,7 @@
   <img src="packages/client/src-tauri/icons/Square310x310Logo.png" style="width: 25%; height: auto;">
 </p>
 
-Supa is like ChatGPT but open source. It allows you to use the best AI models from different companies, keeps data private, and doesn't require a subscription.
+Supa is like ChatGPT but open source. It allows to use the best AI models from different companies, keeps data private, and doesn't require a subscription.
 
 > 🚧 Work in progress towards v1.
 

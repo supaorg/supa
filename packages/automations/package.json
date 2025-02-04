@@ -1,0 +1,10 @@
+{
+  "name": "@supa/automations",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "translate-app": "deno run --allow-all src/translate-app.ts",
+    "translate-docs": "deno run --allow-all src/translate-docs.ts"
+  }
+}

@@ -1,0 +1,1 @@
+console.log("@TODO: make me translate the app");

@@ -5,3 +5,8 @@ _cache
 deno.lock
 .env
 jwt.key
+
+env.json
+
+.windsurf
+.cursorrules
