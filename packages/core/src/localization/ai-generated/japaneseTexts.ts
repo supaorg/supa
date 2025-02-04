@@ -1,6 +1,6 @@
 import type { Texts } from "../texts";
 
-export const japaneseTexts: Texts = {
+export const japaneseTexts: Partial<Texts> = {
   basics: {
     supa: "Supa",
     name: "名前",

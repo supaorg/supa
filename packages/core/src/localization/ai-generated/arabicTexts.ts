@@ -3,7 +3,7 @@ import type { Texts } from "../texts";
 // TODO: This file requires RTL (Right-to-Left) support in the UI
 // RTL implementation needed for proper Arabic text display and layout
 
-export const arabicTexts: Texts = {
+export const arabicTexts: Partial<Texts> = {
   basics: {
     supa: "Supa",
     name: "الاسم",

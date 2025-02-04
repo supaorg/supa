@@ -1,6 +1,6 @@
 import type { Texts } from "../texts";
 
-export const hindiTexts: Texts = {
+export const hindiTexts: Partial<Texts> = {
   basics: {
     supa: "Supa",
     name: "नाम",

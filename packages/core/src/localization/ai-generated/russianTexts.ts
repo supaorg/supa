@@ -24,7 +24,7 @@ function pluralize(count: number, one: string, few: string, many: string): strin
   return many;
 }
 
-export const russianTexts: Texts = {
+export const russianTexts: Partial<Texts> = {
   basics: {
     supa: "Супа",
     name: "Имя",

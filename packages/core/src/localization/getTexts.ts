@@ -25,24 +25,33 @@ export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
 };
 
 export function createTexts(lang: SupportedLanguage = "en"): Texts {
-  switch (lang) {
-    case "ar":
-      return arabicTexts;
-    case "es":
-      return spanishTexts;
-    case "hi":
-      return hindiTexts;
-    case "ja":
-      return japaneseTexts;
-    case "ko":
-      return koreanTexts;
-    case "ru":
-      return russianTexts;
-    case "tr":
-      return turkishTexts;
-    case "zh":
-      return chineseTexts;
-    default:
-      return englishTexts;
+  if (lang === "en") {
+    return englishTexts;
   }
+
+  const localizedTexts = (() => {
+    switch (lang) {
+      case "ar":
+        return arabicTexts;
+      case "es":
+        return spanishTexts;
+      case "hi":
+        return hindiTexts;
+      case "ja":
+        return japaneseTexts;
+      case "ko":
+        return koreanTexts;
+      case "ru":
+        return russianTexts;
+      case "tr":
+        return turkishTexts;
+      case "zh":
+        return chineseTexts;
+      default:
+        return englishTexts;
+    }
+  })();
+
+  // Use English as base and override with localized texts
+  return { ...englishTexts, ...localizedTexts };
 }
