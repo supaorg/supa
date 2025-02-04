@@ -141,16 +141,18 @@
           >
             Configure
           </button>
-          <button
-            class="btn btn-md preset-outlined-surface-500"
-            onclick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onHow(provider);
-            }}
-          >
-            How?
-          </button>
+          {#if status !== "connected"}
+            <button
+              class="btn btn-md preset-outlined-surface-500"
+              onclick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onHow(provider);
+              }}
+            >
+              How?
+            </button>
+          {/if}
         {:else if status !== "connected"}
           <button
             class="btn btn-md preset-filled-surface-500 flex-grow"
