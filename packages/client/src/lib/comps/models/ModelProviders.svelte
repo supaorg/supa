@@ -31,6 +31,7 @@
   {#if showHowForProvider}
     <div
       class="absolute card preset-filled-surface-100-900 border-[1px] border-surface-200-800 shadow-lg w-full h-full top-0 left-0 overflow-hidden z-50"
+      onclick={(e) => e.stopPropagation()}
     >
       <div class="h-full overflow-y-auto p-4 space-y-4">
         <h4 class="h5 mb-4">How to setup {showHowForProvider.name}</h4>
@@ -210,14 +211,18 @@
         {/if}
         <button
           class="btn preset-outlined-surface-500 mt-4"
-          onclick={() => {
+          onclick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             showHowForProvider = null;
           }}>Ok</button
         >
       </div>
       <button
         class="absolute top-4 right-4"
-        onclick={() => {
+        onclick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
           showHowForProvider = null;
         }}><XCircle size={18} /></button
       >

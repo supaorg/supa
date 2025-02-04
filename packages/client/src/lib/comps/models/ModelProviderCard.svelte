@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { ModelProvider } from "@core/models";
+  import type { ModelProvider, ModelProviderLocalConfig } from "@core/models";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
-  import { onMount } from "svelte";
-  import { ProgressRing } from "@skeletonlabs/skeleton-svelte";
-  import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
+  import ModelProviderOllamaAddressForm from "./ModelProviderOllamaAddressForm.svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { onMount } from "svelte";
+  import { checkOllamaStatus } from "./ollama";
 
   type ProviderStatus =
     | "disconnected"
@@ -32,7 +32,6 @@
 
   onMount(() => {
     checkConfigurationAndStatus();
-    // Check provider status every 30 seconds
     checkInterval = setInterval(checkConfigurationAndStatus, 30000);
     return () => {
       if (checkInterval) clearInterval(checkInterval);
@@ -41,14 +40,37 @@
 
   async function checkConfigurationAndStatus() {
     // First check if the provider is configured
-    const config = $currentSpaceStore?.getModelProviderConfig(provider.id);
+    const config = $currentSpaceStore?.getModelProviderConfig(provider.id) as ModelProviderLocalConfig | undefined;
     isConfigured = !!config;
 
+    // For Ollama, check if it's running
+    if (provider.name === "Ollama") {
+      isChecking = true;
+      try {
+        const isRunning = await checkOllamaStatus(config);
+        if (isRunning) {
+          status = "connected";
+          onConnect(provider);
+        } else {
+          status = "disconnected";
+          onDisconnect(provider);
+        }
+      } catch (e) {
+        status = "disconnected";
+        onDisconnect(provider);
+      } finally {
+        isChecking = false;
+      }
+      return;
+    }
+
+    // For other providers
     if (!isConfigured) {
       status = "disconnected";
       return;
     }
 
+    // For cloud providers, check their status
     isChecking = true;
     try {
       const providerStatus = await $currentSpaceStore?.getModelProviderStatus(
@@ -112,6 +134,23 @@
           >
             Disconnect
           </button>
+        {:else if provider.access === "local"}
+          <button
+            class="btn btn-md preset-filled-surface-500 flex-grow"
+            onclick={() => (isEditing = true)}
+          >
+            Configure
+          </button>
+          <button
+            class="btn btn-md preset-outlined-surface-500"
+            onclick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onHow(provider);
+            }}
+          >
+            How?
+          </button>
         {:else if status !== "connected"}
           <button
             class="btn btn-md preset-filled-surface-500 flex-grow"
@@ -122,7 +161,11 @@
           </button>
           <button
             class="btn btn-md preset-outlined-surface-500"
-            onclick={() => onHow(provider)}
+            onclick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onHow(provider);
+            }}
           >
             How?
           </button>
@@ -144,11 +187,16 @@
           }}
         />
       {:else if provider.name === "Ollama"}
-        <ModelProviderOllamaConnector
+        <ModelProviderOllamaAddressForm
           id={provider.id}
-          onConnect={() => {
+          onValidAddress={(address) => {
             isEditing = false;
             checkConfigurationAndStatus();
+          }}
+          onBlur={(address) => {
+            if (!address) {
+              isEditing = false;
+            }
           }}
         />
       {/if}
