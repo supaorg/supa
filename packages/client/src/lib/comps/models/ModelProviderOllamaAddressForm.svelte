@@ -78,7 +78,7 @@
 
 <div class="relative">
   <input
-    class="input w-full transition-all duration-200 {checkingAddress
+    class="input w-full pr-16 transition-all duration-200 {checkingAddress
       ? 'focus:ring-primary-500/50 animate-[pulse_1.5s_ease-in-out_infinite]'
       : addressIsInvalid
         ? 'focus:ring-warning-500'

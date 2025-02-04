@@ -82,7 +82,7 @@
   class:input-warning={showWarning}
 >
   <input
-    class="input w-full transition-all duration-200 {checkingKey ? 'focus:ring-primary-500/50 animate-[pulse_1.5s_ease-in-out_infinite]' : showWarning ? 'focus:ring-warning-500' : ''}"
+    class="input w-full pr-16 transition-all duration-200 {checkingKey ? 'focus:ring-primary-500/50 animate-[pulse_1.5s_ease-in-out_infinite]' : showWarning ? 'focus:ring-warning-500' : ''}"
     type="password"
     bind:value={apiKey}
     bind:this={inputElement}
