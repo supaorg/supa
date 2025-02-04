@@ -1,16 +1,19 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { ModelProviderLocalConfig } from "@core/models";
+  import { XCircle } from "lucide-svelte/icons";
 
   let {
     id,
     onValidAddress,
     onBlur = () => {},
+    onClose = () => {},
     autofocus = true,
   } = $props<{
     id: string;
     onValidAddress: (address: string) => void;
     onBlur?: (address: string) => void;
+    onClose?: () => void;
     autofocus?: boolean;
   }>();
 
@@ -34,6 +37,7 @@
           };
           $currentSpaceStore?.saveModelProviderConfig(config);
           onValidAddress(address);
+          onClose();
         }
       } catch (e) {
         // Address is not valid
@@ -64,4 +68,10 @@
     onblur={handleBlur}
     placeholder="http://localhost:11434"
   />
+  <button
+    class="absolute right-2 top-1/2 -translate-y-1/2"
+    onclick={onClose}
+  >
+    <XCircle size={18} />
+  </button>
 </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ProgressRing } from "@skeletonlabs/skeleton-svelte";
-  import { CheckCircle, CircleAlert } from "lucide-svelte/icons";
+  import { CheckCircle, CircleAlert, XCircle } from "lucide-svelte/icons";
   import { onMount } from "svelte";
   import type {
     ModelProviderCloudConfig,
@@ -13,11 +13,13 @@
     id,
     onValidKey,
     onBlur = () => {},
+    onClose = () => {},
     autofocus = true,
   } = $props<{
     id: string;
     onValidKey: (key: string) => void;
     onBlur?: (key: string) => void;
+    onClose?: () => void;
     autofocus?: boolean;
   }>();
 
@@ -54,6 +56,7 @@
         if (apiKeyIsValid) {
           if (saveCloudProviderWithApiKey(apiKey)) {
             onValidKey(apiKey);
+            onClose();
           }
         }
       } finally {
@@ -87,14 +90,20 @@
     onblur={handleBlur}
   />
   {#if apiKeyIsValid}
-    <span class="absolute right-0"
+    <span class="absolute right-8"
       ><CheckCircle size={18} class="w-6 mt-2 ml-2 mr-2" /></span
     >
   {:else if checkingKey}
-    <span class="absolute right-0"><ProgressRing value={null} /></span>
+    <span class="absolute right-8"><ProgressRing value={null} /></span>
   {:else if showWarning}
-    <span class="absolute right-0"
+    <span class="absolute right-8"
       ><CircleAlert size={18} class="w-6 mt-2 ml-2 mr-2" /></span
     >
   {/if}
+  <button
+    class="absolute right-2 top-1/2 -translate-y-1/2"
+    onclick={onClose}
+  >
+    <XCircle size={18} />
+  </button>
 </div>

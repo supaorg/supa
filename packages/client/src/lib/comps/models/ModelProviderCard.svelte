@@ -185,6 +185,9 @@
               isEditing = false;
             }
           }}
+          onClose={() => {
+            isEditing = false;
+          }}
         />
       {:else if provider.name === "Ollama"}
         <ModelProviderOllamaAddressForm
@@ -197,6 +200,9 @@
             if (!address) {
               isEditing = false;
             }
+          }}
+          onClose={() => {
+            isEditing = false;
           }}
         />
       {/if}
