@@ -30,7 +30,7 @@
   </div>
   {#if showHowForProvider}
     <div
-      class="absolute card preset-filled-surface-100-900 border-[1px] border-surface-200-800 shadow-lg w-full h-full top-0 left-0 overflow-hidden"
+      class="absolute card preset-filled-surface-100-900 border-[1px] border-surface-200-800 shadow-lg w-full h-full top-0 left-0 overflow-hidden z-50"
     >
       <div class="h-full overflow-y-auto p-4 space-y-4">
         <h4 class="h5 mb-4">How to setup {showHowForProvider.name}</h4>
@@ -163,7 +163,7 @@
               >
             </li>
           </ol>
-        {:else}
+        {:else if showHowForProvider.name === "Ollama"}
           <p>
             You will need to install and run Ollama to use its models. You can
             run it locally and Supa will connect to it.
@@ -185,9 +185,12 @@
             </li>
             <li>
               <span>3.</span>
-              <span class="flex-auto">Go back here after you start it.</span>
+              <span class="flex-auto">Go back here after you start it.</span
+              >
             </li>
           </ol>
+        {:else}
+          <p>No setup instructions available for this provider.</p>
         {/if}
         {#if showHowForProvider.access === "cloud"}
           <ModelProviderApiKeyForm
