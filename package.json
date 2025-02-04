@@ -1,5 +1,6 @@
 {
   "name": "supa",
+  "description": "This is the root package of Supa. It does't have its own dependencies. Its only purpose is to serve for shortcut commands, such as `npm install` to install all dependencies in client and core packages",
   "private": true,
   "dependencies": {},
   "devDependencies": {},
@@ -7,7 +8,6 @@
     "preinstall": "cd packages/client && npm install && cd ../core && npm install",
     "dev": "cd packages/client && npm run tauri dev",
     "build": "cd packages/client && npm run build",
-    "translate-app": "cd packages/automations && npm run translate-app",
-    "release": "npm run build && cd packages/automations && npm run publish-build"
+    "translate-app": "cd packages/automations && npm run translate-app"
   }
 }

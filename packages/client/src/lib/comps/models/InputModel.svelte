@@ -14,19 +14,6 @@
 
   function onRequestChange() {
     openState = true;
-    /*
-    popupStore.trigger({
-      type: "component",
-      component: "selectModel",
-      meta: {
-        selectedModel: value ? value : null,
-        onModelSelect: (model: string) => {
-          value = model;
-          update();
-        },
-      },
-    });
-    */
   }
 
   let providerId = $state("");

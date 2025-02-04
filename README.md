@@ -14,7 +14,7 @@ Supa is like ChatGPT but open source. It allows to use the best AI models from d
 Pay as you go, either for API costs from AI providers or the actual compute if you run models yourself.
 
 ### Best AI Models
-Choose and quickly switch between AI models. Connect Supa to providers like OpenAI, Anthropic, or Groq—or run AI locally.
+Choose and quickly switch between AI models. Connect Supa to providers like OpenAI, Anthropic, DeepSeek, or Groq—or run AI locally.
 
 ### Private & Local
 Your data stays with you. Store everything on your file system, and optionally sync with Dropbox or iCloud to use Supa across multiple devices.
