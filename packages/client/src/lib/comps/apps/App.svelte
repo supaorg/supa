@@ -4,9 +4,12 @@
   import SpaceInspectorWindow from "../space-inspector/SpaceInspectorWindow.svelte";
   import DevPanel from "../dev/DevPanel.svelte";
   import { isDevMode, spaceInspectorOpen } from "$lib/stores/devMode";
+  import OllamaAutoConfig from "../models/OllamaAutoConfig.svelte";
 
   let { children }: { children: Snippet } = $props();
 </script>
+
+<OllamaAutoConfig />
 
 {#if $isDevMode && $spaceInspectorOpen}
   <SpaceInspectorWindow />

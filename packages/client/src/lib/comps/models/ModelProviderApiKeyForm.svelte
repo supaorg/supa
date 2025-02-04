@@ -32,26 +32,33 @@
     !checkingKey && !apiKeyIsValid && apiKey.length > 6,
   );
 
-  async function saveCloudProviderWithApiKey(apiKey: string) {
+  function saveCloudProviderWithApiKey(apiKey: string) {
+    if (!$currentSpaceStore) return false;
+    
     config = {
       id: id,
       type: "cloud",
       apiKey,
     } as ModelProviderCloudConfig;
 
-    $currentSpaceStore?.saveModelProviderConfig(config);
+    $currentSpaceStore.saveModelProviderConfig(config);
+    return true;
   }
 
   async function handleApiKeyChange() {
     checkingKey = true;
     clearTimeout(timeout);
     timeout = setTimeout(async () => {
-      apiKeyIsValid = await validateKey(id, apiKey);
-      if (apiKeyIsValid) {
-        await saveCloudProviderWithApiKey(apiKey);
-        onValidKey(apiKey);
+      try {
+        apiKeyIsValid = await validateKey(id, apiKey);
+        if (apiKeyIsValid) {
+          if (saveCloudProviderWithApiKey(apiKey)) {
+            onValidKey(apiKey);
+          }
+        }
+      } finally {
+        checkingKey = false;
       }
-      checkingKey = false;
     }, 500);
   }
 

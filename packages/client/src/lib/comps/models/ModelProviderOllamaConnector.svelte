@@ -9,6 +9,7 @@
   }>();
 
   let isNotOnline = $state(false);
+  let isConnecting = $state(true);
 
   async function saveLocalProvider() {
     const config = {
@@ -16,17 +17,21 @@
       type: "local",
     } as ModelProviderLocalConfig;
 
-    $currentSpaceStore?.saveModelProviderConfig(config);
+    if ($currentSpaceStore) {
+      await $currentSpaceStore.saveModelProviderConfig(config);
+      onConnect();
+    }
   }
 
   async function checkIfOnline() {
+    isConnecting = true;
     try {
       const res = await fetch("http://localhost:11434/api/tags");
       if (res.status !== 200) {
         isNotOnline = true;
       } else {
+        isNotOnline = false;
         await saveLocalProvider();
-        onConnect();
       }
     } catch (e) {
       isNotOnline = true;
@@ -34,6 +39,8 @@
       setTimeout(() => {
         checkIfOnline();
       }, 250);
+    } finally {
+      isConnecting = false;
     }
   }
 
@@ -43,10 +50,12 @@
 </script>
 
 {#if isNotOnline}
-  <div>
+  <div class="text-error-500">
     Ollama is not running yet. Make sure you start it and it runs at
     http://localhost:11434/
   </div>
+{:else if isConnecting}
+  <div>Connecting to Ollama...</div>
 {:else}
-  <div>Connecting...</div>
+  <div class="text-success-500">Connected to Ollama</div>
 {/if}

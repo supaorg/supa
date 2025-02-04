@@ -6,14 +6,15 @@
   import ModelProviderOllamaConnector from "./ModelProviderOllamaConnector.svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
-  type State =
-    | "loading"
+  type ProviderStatus =
     | "disconnected"
     | "invalid-key"
-    | "connecting"
     | "connected";
     
-  let state = $state<State>("disconnected");
+  let status: ProviderStatus = $state("disconnected");
+  let isEditing = $state(false);
+  let isConfigured = $state(false);
+  let isChecking = $state(false);
 
   let {
     provider,
@@ -27,30 +28,53 @@
     onHow?: (provider: ModelProvider) => void;
   } = $props();
 
-  onMount(async () => {
-    await checkProvider();
+  let checkInterval: number;
+
+  onMount(() => {
+    checkConfigurationAndStatus();
+    // Check provider status every 30 seconds
+    checkInterval = setInterval(checkConfigurationAndStatus, 30000);
+    return () => {
+      if (checkInterval) clearInterval(checkInterval);
+    };
   });
 
-  async function checkProvider() {
-    state = "loading";
+  async function checkConfigurationAndStatus() {
+    // First check if the provider is configured
+    const config = $currentSpaceStore?.getModelProviderConfig(provider.id);
+    isConfigured = !!config;
 
-    const status = await $currentSpaceStore?.getModelProviderStatus(
-      provider.id,
-    );
+    if (!isConfigured) {
+      status = "disconnected";
+      return;
+    }
 
-    if (status === "valid") {
-      state = "connected";
-      onConnect(provider);
-    } else if (status === "invalid") {
-      state = "invalid-key";
-    } else {
-      state = "disconnected";
+    isChecking = true;
+    try {
+      const providerStatus = await $currentSpaceStore?.getModelProviderStatus(
+        provider.id,
+      );
+
+      if (providerStatus === "valid") {
+        status = "connected";
+        onConnect(provider);
+      } else if (providerStatus === "invalid") {
+        status = "invalid-key";
+        onDisconnect(provider);
+      } else {
+        status = "disconnected";
+        onDisconnect(provider);
+      }
+    } catch (error) {
+      status = "disconnected";
       onDisconnect(provider);
+    } finally {
+      isChecking = false;
     }
   }
 
   function disconnect() {
-    state = "disconnected";
+    status = "disconnected";
     onDisconnect(provider);
     $currentSpaceStore?.deleteModelProviderConfig(provider.id);
   }
@@ -58,8 +82,8 @@
 
 <div
   class="card p-4 flex gap-4"
-  class:border-token={state === "connected" || state === "invalid-key"}
-  class:border-error-100-800-token={state === "invalid-key"}
+  class:border-token={status === "connected"}
+  class:border-error-100-800-token={status === "invalid-key"}
 >
   <a
     href={provider.url}
@@ -69,40 +93,53 @@
     <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
   </a>
   <div class="flex flex-col flex-grow space-y-4">
-    <span
-      ><a href={provider.url} target="_blank" class="font-semibold"
-        >{provider.name}</a
-      >{#if state === "connected"}<span
-          class="ml-4 badge preset-filled-primary-500">Connected</span
-        >{/if}
-    </span>
-    {#if state === "disconnected"}
+    <div class="flex items-center gap-2">
+      <a href={provider.url} target="_blank" class="font-semibold">{provider.name}</a>
+      {#if status === "connected"}
+        <span class="badge preset-filled-primary-500">Connected</span>
+      {:else if status === "invalid-key"}
+        <span class="badge preset-filled-error-500">Invalid Key</span>
+      {/if}
+    </div>
+
+    {#if !isEditing}
       <div class="flex flex-grow gap-2">
-        <button
-          class="btn btn-md preset-filled-surface-500 flex-grow"
-          onclick={() => (state = "connecting")}>Connect</button
-        >
-        <button
-          class="btn btn-md preset-outlined-surface-500"
-          onclick={() => onHow(provider)}>How?</button
-        >
+        {#if status === "connected" && provider.access !== "local"}
+          <button 
+            class="btn btn-md preset-outlined-surface-500" 
+            disabled={isChecking}
+            onclick={disconnect}
+          >
+            Disconnect
+          </button>
+        {:else if status !== "connected"}
+          <button
+            class="btn btn-md preset-filled-surface-500 flex-grow"
+            disabled={isChecking}
+            onclick={() => (isEditing = true)}
+          >
+            Connect
+          </button>
+          <button
+            class="btn btn-md preset-outlined-surface-500"
+            onclick={() => onHow(provider)}
+          >
+            How?
+          </button>
+        {/if}
       </div>
-    {:else if state === "invalid-key"}
-      <button
-        class="btn btn-md preset-filled-surface-500"
-        onclick={() => (state = "connecting")}>Re-Connect</button
-      >
-    {:else if state === "connecting"}
+    {:else}
       {#if provider.access === "cloud"}
         <ModelProviderApiKeyForm
           id={provider.id}
           onValidKey={(key) => {
-            state = "connected";
-            onConnect?.(provider);
+            isEditing = false;
+            status = "connected";
+            onConnect(provider);
           }}
           onBlur={(key) => {
             if (!key) {
-              state = "disconnected";
+              isEditing = false;
             }
           }}
         />
@@ -110,17 +147,11 @@
         <ModelProviderOllamaConnector
           id={provider.id}
           onConnect={() => {
-            state = "connected";
-            onConnect?.(provider);
+            isEditing = false;
+            checkConfigurationAndStatus();
           }}
         />
       {/if}
-    {:else if state === "connected"}
-      <button class="btn btn-md preset-outlined-surface-500" onclick={disconnect}
-        >Disconnect</button
-      >
-    {:else if state === "loading"}
-      <div class="w-full"><ProgressRing value={null} /></div>
     {/if}
   </div>
 </div>
