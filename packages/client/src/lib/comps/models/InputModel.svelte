@@ -40,7 +40,7 @@
       return;
     }
 
-    if (value && value !== "auto" && (!providerId || !model || value.split("/").length !== 2)) {
+    if (value && !value.startsWith("auto") && (!providerId || !model || value.split("/").length !== 2)) {
       inputElement.setCustomValidity("Invalid model: " + value);
       return;
     }
