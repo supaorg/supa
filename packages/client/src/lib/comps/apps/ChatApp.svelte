@@ -15,19 +15,21 @@
   let messageIds = $state<string[]>([]);
   let shouldAutoScroll = $state(true);
   let formStatus: MessageFormStatus = $state("can-send-message");
-
-  let lastMessageTxt: string | null = null;
-
+  let isProgrammaticScroll = $state(true);
+  let isEditingTitle = $state(false);
   let lastMessageId = $derived.by(() =>
     messageIds.length > 0 ? messageIds[messageIds.length - 1] : undefined,
   );
 
-  let isEditingTitle = $state(false);
+  
 
+  let lastMessageTxt: string | null = null;
   let titleInput: HTMLInputElement;
+  let programmaticScrollTimeout: (() => void) | undefined;
 
   function isAtBottom() {
     if (!scrollableElement) return false;
+
     const threshold = 3;
     return (
       scrollableElement.scrollHeight -
@@ -38,7 +40,10 @@
   }
 
   function handleScroll() {
-    shouldAutoScroll = isAtBottom();
+    // We only detect when the user scrolls (not when it's scrolled programmatically)
+    if (!isProgrammaticScroll) {
+      shouldAutoScroll = isAtBottom();
+    }
   }
 
   $effect(() => {
@@ -109,10 +114,7 @@
 
     const unobserveNewMessages = data.observeNewMessages((msgs) => {
       const newIds = data.messageIds;
-      if (newIds.length > messageIds.length) {
-        scrollOnlyIfAutoscroll();
-      }
-
+      scrollToBottom();
       messageIds = newIds;
     });
 
@@ -132,7 +134,13 @@
       return;
     }
 
+    isProgrammaticScroll = true;
     scrollableElement.scrollTo(0, scrollableElement.scrollHeight);
+    // Reset the flag after the scroll animation would have completed
+    programmaticScrollTimeout?.();
+    programmaticScrollTimeout = timeout(() => {
+      isProgrammaticScroll = false;
+    }, 100);
   }
 
   function scrollOnlyIfAutoscroll() {
