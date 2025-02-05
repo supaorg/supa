@@ -94,6 +94,7 @@ async function getProviderModels_anthropic(key: string, signal?: AbortSignal): P
 
 async function getProviderModels_ollama(): Promise<string[]> {
   try {
+    // @TODO: allow to use different addresses
     const response = await fetch("http://localhost:11434/api/tags");
     const data = await response.json();
     return data.models.map((model: { name: string }) => model.name);
