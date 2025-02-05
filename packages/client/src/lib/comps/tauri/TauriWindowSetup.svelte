@@ -6,6 +6,7 @@
     PhysicalPosition,
   } from "@tauri-apps/api/window";
   import { onMount } from "svelte";
+  import { timeout } from "@core/tools/timeout";
   import {
     tauriWindowStore,
     type TauriWindow,
@@ -14,10 +15,10 @@
   const appWindow = getCurrentWindow();
 
   // With this function, we make sure that we don't save the window setup too often when multiple events are fired in a short time
-  let timeoutId: any;
+  let cancelTimeout: (() => void) | null = null;
   function saveWindowSetupAfterTinyDelay() {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
+    if (cancelTimeout) cancelTimeout();
+    cancelTimeout = timeout(() => {
       saveWindowSetup();
     }, 50);
   }

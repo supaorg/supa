@@ -2,6 +2,7 @@
   import { ProgressRing } from "@skeletonlabs/skeleton-svelte";
   import { CheckCircle, CircleAlert, XCircle } from "lucide-svelte/icons";
   import { onMount } from "svelte";
+  import { timeout } from "@core/tools/timeout";
   import type {
     ModelProviderCloudConfig,
     ModelProviderConfig,
@@ -26,7 +27,7 @@
   let apiKey = $state("");
   let apiKeyIsValid = $state(false);
   let inputElement = $state<HTMLInputElement | null>(null);
-  let timeout: any;
+  let cancelTimeout: (() => void) | null = null;
   let checkingKey = $state(false);
   let config = $state<ModelProviderConfig | null>(null);
 
@@ -49,8 +50,8 @@
 
   async function handleApiKeyChange() {
     checkingKey = true;
-    clearTimeout(timeout);
-    timeout = setTimeout(async () => {
+    if (cancelTimeout) cancelTimeout();
+    cancelTimeout = timeout(async () => {
       try {
         apiKeyIsValid = await validateKey(id, apiKey);
         if (apiKeyIsValid) {

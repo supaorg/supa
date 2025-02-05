@@ -1,6 +1,7 @@
 <script module>
   import { codeToHtml } from "shiki";
   import { Copy, Check } from "lucide-svelte";
+  import { timeout } from "@core/tools/timeout";
 </script>
 
 <script lang="ts">
@@ -40,7 +41,7 @@
   async function copyCode() {
     await navigator.clipboard.writeText(token.text);
     isCopied = true;
-    setTimeout(() => {
+    timeout(() => {
       isCopied = false;
     }, 2000);
   }

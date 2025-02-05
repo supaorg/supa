@@ -2,6 +2,7 @@
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import ChatAppMessage from "./ChatAppMessage.svelte";
   import { onMount, tick } from "svelte";
+  import { timeout } from "@core/tools/timeout";
   import AppConfigDropdown from "./AppConfigDropdown.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { ThreadMessage } from "@core/models";
@@ -99,7 +100,7 @@
     const unobserveTitle = data.observe((data) => {
       title = data.title as string;
       // Adjust width after title updates
-      setTimeout(adjustInputWidth, 0);
+      timeout(adjustInputWidth, 0);
     });
 
     messageIds = data.messageIds;

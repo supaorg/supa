@@ -2,6 +2,7 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { ModelProviderLocalConfig } from "@core/models";
   import { XCircle, CheckCircle, CircleAlert } from "lucide-svelte/icons";
+  import { timeout } from "@core/tools/timeout";
 
   let {
     id,
@@ -23,7 +24,7 @@
   let checkingAddress = $state(false);
   let addressIsInvalid = $state(false);
 
-  let timeout: number;
+  let cancelTimeout: (() => void) | null = null;
 
   async function checkAndSaveAddress() {
     checkingAddress = true;
@@ -52,8 +53,8 @@
   }
 
   function handleAddressChange() {
-    clearTimeout(timeout);
-    timeout = setTimeout(async () => {
+    if (cancelTimeout) cancelTimeout();
+    cancelTimeout = timeout(async () => {
       await checkAndSaveAddress();
     }, 500); // Debounce for 500ms
   }

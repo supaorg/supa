@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Send, StopCircle, Paperclip } from "lucide-svelte";
   import { onMount } from "svelte";
+  import { timeout } from "@core/tools/timeout";
   import { focusTrap } from "$lib/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
   import { txtStore } from "$lib/stores/txtStore";
@@ -47,7 +48,7 @@
     if (threadId && $draftStore[threadId]) {
       query = $draftStore[threadId];
       // Adjust height after loading draft content
-      setTimeout(() => adjustTextareaHeight(), 0);
+      timeout(() => adjustTextareaHeight(), 0);
     }
 
     if (isFocused) {
