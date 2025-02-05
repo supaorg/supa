@@ -8,8 +8,6 @@
   import type { ThreadMessage } from "@core/models";
   import type { MessageFormStatus } from "../forms/messageFormStatus";
 
-  const mainScrollableId = "chat-messanges-scrollable";
-
   let { data }: { data: ChatAppData } = $props();
 
   let scrollableElement = $state<HTMLElement | undefined>(undefined);
@@ -30,8 +28,13 @@
 
   function isAtBottom() {
     if (!scrollableElement) return false;
-    const threshold = 50;
-    return scrollableElement.scrollHeight - scrollableElement.scrollTop - scrollableElement.clientHeight <= threshold;
+    const threshold = 3;
+    return (
+      scrollableElement.scrollHeight -
+        scrollableElement.scrollTop -
+        scrollableElement.clientHeight <=
+      threshold
+    );
   }
 
   function handleScroll() {
@@ -45,10 +48,9 @@
       updateFormStatus(msg);
       if (msg.text !== lastMessageTxt) {
         lastMessageTxt = msg.text;
-        if (msg.role === 'assistant' && isAtBottom()) {
-          shouldAutoScroll = true;
+        if (msg.role === "assistant") {
+          scrollOnlyIfAutoscroll();
         }
-        scrollToBottom();
       }
     });
 
@@ -79,16 +81,16 @@
   function adjustInputWidth() {
     if (!titleInput) return;
     // Create a temporary span to measure text
-    const span = document.createElement('span');
+    const span = document.createElement("span");
     // Copy the input's font styles to the span for accurate measurement
     const styles = window.getComputedStyle(titleInput);
     span.style.font = styles.font;
     span.style.padding = styles.padding;
-    span.style.visibility = 'hidden';
-    span.style.position = 'absolute';
-    span.style.whiteSpace = 'pre';
+    span.style.visibility = "hidden";
+    span.style.position = "absolute";
+    span.style.whiteSpace = "pre";
     // Add some padding for cursor space
-    span.textContent = titleInput.value + 'W';
+    span.textContent = titleInput.value + "W";
     document.body.appendChild(span);
     const width = span.offsetWidth;
     document.body.removeChild(span);
@@ -108,10 +110,14 @@
     const unobserveNewMessages = data.observeNewMessages((msgs) => {
       const newIds = data.messageIds;
       if (newIds.length > messageIds.length) {
-        scrollToBottom();
+        scrollOnlyIfAutoscroll();
       }
 
       messageIds = newIds;
+    });
+
+    tick().then(() => {
+      scrollToBottom();
     });
 
     return () => {
@@ -120,22 +126,25 @@
     };
   });
 
-  $effect(() => {
-    scrollToBottom();
-  });
-
   function scrollToBottom() {
-    tick().then(() => {
-      if (scrollableElement && shouldAutoScroll) {
-        scrollableElement.scrollTo(0, scrollableElement.scrollHeight);
-      }
-    });
+    if (!scrollableElement) {
+      console.warn("scrollable element not found");
+      return;
+    }
+
+    scrollableElement.scrollTo(0, scrollableElement.scrollHeight);
+  }
+
+  function scrollOnlyIfAutoscroll() {
+    if (shouldAutoScroll) {
+      scrollToBottom();
+    }
   }
 
   async function sendMsg(query: string) {
-    const msg = data.newMessage("user", query);
-    //data.askForReply(msg.id);
-    scrollToBottom();
+    data.newMessage("user", query);
+
+    timeout(scrollToBottom, 100);
   }
 
   async function stopMsg() {
@@ -160,7 +169,7 @@
           class="text-lg pl-2 bg-transparent border-0 rounded outline-none transition-colors overflow-hidden text-ellipsis"
           class:ring={isEditingTitle}
           class:ring-primary-300-700={isEditingTitle}
-          onfocus={() => isEditingTitle = true}
+          onfocus={() => (isEditingTitle = true)}
           onblur={(e) => {
             isEditingTitle = false;
             updateTitle(e.currentTarget.value);
@@ -180,7 +189,6 @@
   <div
     class="flex-grow overflow-y-auto pt-2"
     bind:this={scrollableElement}
-    id={mainScrollableId}
     onscroll={handleScroll}
   >
     <div class="w-full max-w-4xl mx-auto">
@@ -191,10 +199,10 @@
   </div>
   <div class="min-h-min">
     <section class="max-w-4xl mx-auto py-2 px-2">
-      <SendMessageForm 
-        onSend={sendMsg} 
-        onStop={stopMsg} 
-        status={formStatus} 
+      <SendMessageForm
+        onSend={sendMsg}
+        onStop={stopMsg}
+        status={formStatus}
         threadId={data.threadId}
         maxLines={10}
       />
