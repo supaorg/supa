@@ -4,8 +4,8 @@
   import { providers } from "@core/providers";
   import type { ModelProviderLocalConfig } from "@core/models";
   import { checkOllamaStatus } from "./ollama";
+  import { interval } from "@core/tools/interval";
 
-  let checkInterval: number;
   let isChecking = false;
 
   async function checkAndConfigureOllama() {
@@ -49,12 +49,6 @@
 
     // Check every 5 seconds - more frequent for Ollama since it's a local service
     // that users might start/stop more frequently
-    checkInterval = setInterval(checkAndConfigureOllama, 5000);
-
-    return () => {
-      if (checkInterval) {
-        clearInterval(checkInterval);
-      }
-    };
+    return interval(checkAndConfigureOllama, 5000);
   });
 </script>

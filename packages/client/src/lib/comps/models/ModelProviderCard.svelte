@@ -7,6 +7,7 @@
   import { checkOllamaStatus } from "./ollama";
   import { Tooltip } from '@skeletonlabs/skeleton-svelte';
   import { CircleAlert } from "lucide-svelte/icons";
+  import { interval } from "@core/tools/interval";
 
   type ProviderStatus =
     | "disconnected"
@@ -32,14 +33,12 @@
     onHow?: (provider: ModelProvider) => void;
   } = $props();
 
-  let checkInterval: number;
+  let cancelInterval: () => void;
 
   onMount(() => {
     checkConfigurationAndStatus();
-    checkInterval = setInterval(checkConfigurationAndStatus, 30000);
-    return () => {
-      if (checkInterval) clearInterval(checkInterval);
-    };
+    cancelInterval = interval(checkConfigurationAndStatus, 30000);
+    return cancelInterval;
   });
 
   async function checkConfigurationAndStatus() {

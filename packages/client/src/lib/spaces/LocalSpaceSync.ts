@@ -20,6 +20,7 @@ import uuid from "@core/uuid/uuid";
 import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "@core/replicatedTree/operations";
 import AppTree from "@core/spaces/AppTree";
 import perf from "@core/tools/perf";
+import { interval } from "@core/tools/interval";
 
 const opsParserWorker = new Worker(new URL('./opsParser.worker.ts', import.meta.url));
 
@@ -104,11 +105,11 @@ async function decryptSecrets(encryptedData: string, key: string): Promise<Recor
 export class LocalSpaceSync {
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
   private connected = false;
-  private saveOpsTimer: ReturnType<typeof setInterval> | null = null;
+  private saveOpsTimer: (() => void) | null = null;
   private savingOpsToFile = false;
   private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
   private saveOpsIntervalMs = 500;
-  private saveSecretsTimer: ReturnType<typeof setInterval> | null = null;
+  private saveSecretsTimer: (() => void) | null = null;
   private saveSecretsIntervalMs = 1000;
   private backend: Backend;
 
@@ -161,14 +162,10 @@ export class LocalSpaceSync {
     }, { recursive: true });
 
     // Save pending ops every n milliseconds
-    this.saveOpsTimer = setInterval(() => {
-      this.saveOps();
-    }, this.saveOpsIntervalMs);
+    this.saveOpsTimer = interval(() => this.saveOps(), this.saveOpsIntervalMs);
 
     // Save secrets every n milliseconds
-    this.saveSecretsTimer = setInterval(() => {
-      this.checkIfSecretsNeedToBeSaved();
-    }, this.saveSecretsIntervalMs);
+    this.saveSecretsTimer = interval(() => this.checkIfSecretsNeedToBeSaved(), this.saveSecretsIntervalMs);
 
     this.connected = true;
   }
@@ -184,12 +181,12 @@ export class LocalSpaceSync {
     }
 
     if (this.saveOpsTimer) {
-      clearInterval(this.saveOpsTimer);
+      this.saveOpsTimer();
       this.saveOpsTimer = null;
     }
 
     if (this.saveSecretsTimer) {
-      clearInterval(this.saveSecretsTimer);
+      this.saveSecretsTimer();
       this.saveSecretsTimer = null;
     }
 
