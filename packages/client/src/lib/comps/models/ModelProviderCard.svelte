@@ -5,6 +5,8 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { onMount } from "svelte";
   import { checkOllamaStatus } from "./ollama";
+  import { Tooltip } from '@skeletonlabs/skeleton-svelte';
+  import { CircleAlert } from "lucide-svelte/icons";
 
   type ProviderStatus =
     | "disconnected"
@@ -15,6 +17,8 @@
   let isEditing = $state(false);
   let isConfigured = $state(false);
   let isChecking = $state(false);
+  let validationError = $state<string | null>(null);
+  let showValidationWarning = $derived(status === "invalid-key" as ProviderStatus);
 
   let {
     provider,
@@ -82,9 +86,11 @@
         onConnect(provider);
       } else if (providerStatus === "invalid") {
         status = "invalid-key";
+        validationError = "API key validation failed. The key might be invalid or expired.";
         onDisconnect(provider);
       } else {
         status = "disconnected";
+        validationError = "Connection failed. Please check your network.";
         onDisconnect(provider);
       }
     } catch (error) {
@@ -97,6 +103,8 @@
 
   function disconnect() {
     status = "disconnected";
+    isConfigured = false;
+    validationError = null;
     onDisconnect(provider);
     $currentSpaceStore?.deleteModelProviderConfig(provider.id);
   }
@@ -104,8 +112,8 @@
 
 <div
   class="card p-4 flex gap-4"
-  class:border-token={status === "connected"}
-  class:border-error-100-800-token={status === "invalid-key"}
+  class:border-token={isConfigured && !showValidationWarning}
+  class:border-warning-500={showValidationWarning}
 >
   <a
     href={provider.url}
@@ -117,23 +125,41 @@
   <div class="flex flex-col flex-grow space-y-4">
     <div class="flex items-center gap-2">
       <a href={provider.url} target="_blank" class="font-semibold">{provider.name}</a>
-      {#if status === "connected"}
-        <span class="badge preset-filled-success-500">Connected</span>
-      {:else if status === "invalid-key"}
-        <span class="badge preset-filled-warning-500">Invalid Key</span>
+      {#if isConfigured}
+        <div class="flex items-center gap-1">
+          <span class="badge {showValidationWarning ? 'preset-filled-warning-500' : 'preset-filled-success-500'} {isChecking ? 'animate-pulse' : ''}">Connected</span>
+          {#if showValidationWarning}
+            <Tooltip 
+              positioning={{ placement: 'top' }}
+              triggerBase="underline"
+              contentBase="card preset-filled p-4"
+              openDelay={200}
+            >
+              {#snippet trigger()}
+                <CircleAlert size={14} class="text-warning-500" />
+              {/snippet}
+              {#snippet content()}
+                <div class="text-sm max-w-[200px]">
+                  {validationError || 'Validation failed. Check your API key or connection.'}
+                </div>
+              {/snippet}
+            </Tooltip>
+          {/if}
+        </div>
       {/if}
     </div>
 
     {#if !isEditing}
       <div class="flex flex-grow gap-2">
-        {#if status === "connected" && provider.access !== "local"}
-          <button 
-            class="btn btn-md preset-outlined-surface-500" 
-            disabled={isChecking}
-            onclick={disconnect}
-          >
-            Disconnect
-          </button>
+        {#if isConfigured}
+          {#if provider.access !== "local"}
+            <button 
+              class="btn btn-md preset-outlined-surface-500" 
+              onclick={disconnect}
+            >
+              Disconnect
+            </button>
+          {/if}
         {:else if provider.access === "local"}
           <button
             class="btn btn-md preset-outlined-surface-500 flex-grow"
@@ -141,22 +167,19 @@
           >
             Configure
           </button>
-          {#if status !== "connected"}
-            <button
-              class="btn btn-md preset-outlined-surface-500"
-              onclick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onHow(provider);
-              }}
-            >
-              How?
-            </button>
-          {/if}
-        {:else if status !== "connected"}
+          <button
+            class="btn btn-md preset-outlined-surface-500"
+            onclick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onHow(provider);
+            }}
+          >
+            How?
+          </button>
+        {:else}
           <button
             class="btn btn-md preset-filled-primary-500 flex-grow"
-            disabled={isChecking}
             onclick={() => (isEditing = true)}
           >
             Connect
@@ -179,6 +202,7 @@
           id={provider.id}
           onValidKey={(key) => {
             isEditing = false;
+            isConfigured = true;
             status = "connected";
             onConnect(provider);
           }}
