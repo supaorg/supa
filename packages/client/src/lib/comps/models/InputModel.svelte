@@ -23,6 +23,7 @@
 
   function validate() {
     if (required && !value) {
+      error = "Choose a model";
       inputElement.setCustomValidity("Choose a model");
       return;
     }
@@ -32,12 +33,13 @@
       !value.startsWith("auto") &&
       (!providerId || !model || value.split("/").length !== 2)
     ) {
+      error = "Invalid model: " + value;
       inputElement.setCustomValidity("Invalid model: " + value);
       return;
     }
 
-    inputElement.setCustomValidity("");
     error = "";
+    inputElement.setCustomValidity("");
   }
 
   function onInputInvalid() {
@@ -48,7 +50,7 @@
     update();
   });
 
-  async function update() {
+  function update() {
     if (!value) {
       provider = null;
       providerId = "";
