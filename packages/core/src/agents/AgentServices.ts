@@ -1,7 +1,7 @@
 import { Lang, LanguageModel } from 'aiwrapper';
 import { providers } from "../providers.ts";
 import Space from '../spaces/Space.ts';
-import { getProviderModels } from '@core/tools/providerModels.js';
+import { getProviderModels } from '../tools/providerModels.ts';
 
 export class AgentServices {
   readonly space: Space;
@@ -14,6 +14,10 @@ export class AgentServices {
     let modelProvider: string;
     let modelName: string;
 
+    // @TODO: consider supporing auto provider and specified model, eg: auto/deepseek-r1
+
+    // When a model is specified, split it into provider and model name
+    // e.g model = openai/o3 or ollama/auto
     if (model && !model.startsWith("auto")) {
       const modelSplit = model.split("/");
       if (modelSplit.length !== 2) {
@@ -22,6 +26,20 @@ export class AgentServices {
 
       modelProvider = modelSplit[0];
       modelName = modelSplit[1];
+
+      // If the provider is set but the model is "auto", find a model within the provider
+      // e.g model = ollama/auto
+      if (modelName.endsWith("auto")) {
+        const models = await getProviderModels(modelProvider, "");
+        if (models.length === 0) {
+          throw new Error(`No models found for provider ${modelProvider}`);
+        }
+        // @TODO: consider picking the most capable model from the list of known models,
+        // for that we can have a bit list of known models and just find the first one available in a provider
+        modelName = models[0]; // Use the first available model
+      }
+    // When no provider is specified, find the most capable model from a provider
+    // model = "/auto"
     } else {
       const mostCapableModel = await this.getMostCapableModel();
 
@@ -59,7 +77,7 @@ export class AgentServices {
           model: modelName,
         });
       default:
-        throw new Error("Invalid model provider");
+        throw new Error("Invalid model provider: " + modelProvider);
     }
   }
 

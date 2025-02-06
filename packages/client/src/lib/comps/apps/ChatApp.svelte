@@ -9,7 +9,6 @@
   import type { MessageFormStatus } from "../forms/messageFormStatus";
 
   let { data }: { data: ChatAppData } = $props();
-
   let scrollableElement = $state<HTMLElement | undefined>(undefined);
   let title: string | undefined = $state();
   let messageIds = $state<string[]>([]);
@@ -20,8 +19,6 @@
   let lastMessageId = $derived.by(() =>
     messageIds.length > 0 ? messageIds[messageIds.length - 1] : undefined,
   );
-
-  
 
   let lastMessageTxt: string | null = null;
   let titleInput: HTMLInputElement;
