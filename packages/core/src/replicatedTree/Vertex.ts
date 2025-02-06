@@ -3,7 +3,7 @@ import type { ReplicatedTree } from "./ReplicatedTree";
 import type { TreeVertexProperty, VertexChangeEvent, VertexPropertyType } from "./treeTypes";
 
 /**
- * A wrapper class for TreeVertex that provides a more convenient API
+ * A wrapper class for VertexState that provides a more convenient API
  * for working with vertices in a ReplicatedTree.
  */
 export class Vertex {
