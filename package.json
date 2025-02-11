@@ -2,12 +2,17 @@
   "name": "supa",
   "description": "This is the root package of Supa. It does't have its own dependencies. Its only purpose is to serve for shortcut commands, such as `npm install` to install all dependencies in client and core packages",
   "private": true,
-  "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "airul": "^0.1.10"
+  },
   "scripts": {
     "preinstall": "cd packages/client && npm install && cd ../core && npm install",
     "dev": "cd packages/client && npm run tauri dev",
     "build": "cd packages/client && npm run tauri build",
-    "translate-app": "cd packages/automations && npm run translate-app"
+    "translate-app": "cd packages/automations && npm run translate-app",
+    "rules": "airul generate",
+    "rules:comment": "# Generate AI rules from documentation",
+    "pregenerate": "[ -f .airulrc.json ] || airul init",
+    "postinstall": "echo \"\nRun 'npm run rules' to generate AI rules from your documentation\""
   }
 }

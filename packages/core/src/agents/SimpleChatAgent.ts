@@ -33,6 +33,8 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
     }
     */
 
+    // @TODO: add meta data to messages with the current date, model, config name, etc
+
     const remappedMessages = [
       { role: "system", content: systemPrompt },
       ...messages.map((m) => ({
