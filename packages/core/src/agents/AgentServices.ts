@@ -1,4 +1,4 @@
-import { Lang, LanguageModel } from 'aiwrapper';
+import { Lang, LanguageProvider } from 'aiwrapper';
 import { providers } from "../providers.ts";
 import Space from '../spaces/Space.ts';
 import { getProviderModels } from '../tools/providerModels.ts';
@@ -10,7 +10,7 @@ export class AgentServices {
     this.space = space;
   }
 
-  async lang(model?: string): Promise<LanguageModel> {
+  async lang(model?: string): Promise<LanguageProvider> {
     let modelProvider: string;
     let modelName: string;
 

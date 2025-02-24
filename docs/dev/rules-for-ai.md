@@ -259,6 +259,12 @@ For styles use Tailwind with Skeleton for components. Here's an example of Skele
 </main>
 ```
 
+# Git commits
+Use imperative mood and include type.
+Examples:
+feat(auth): add user login
+fix(payment): resolve gateway timeout
+
 ## New in SvelteKit 5:
 ### Runes
 #### Reactivity
