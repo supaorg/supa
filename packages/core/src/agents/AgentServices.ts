@@ -3,6 +3,41 @@ import { providers } from "../providers.ts";
 import Space from '../spaces/Space.ts';
 import { getProviderModels } from '../tools/providerModels.ts';
 
+// Helper function to safely check if Lang.models is available and working
+function isLangModelsAvailable(): boolean {
+  try {
+    // Check if Lang.models exists and has the expected methods
+    return !!(Lang && Lang.models && typeof Lang.models.getProviders === 'function');
+  } catch (error) {
+    console.warn("Lang.models is not available:", error);
+    return false;
+  }
+}
+
+// Helper function to safely get providers
+function safeGetProviders(): string[] {
+  try {
+    if (isLangModelsAvailable()) {
+      return Lang.models.getProviders();
+    }
+  } catch (error) {
+    console.warn("Error getting providers:", error);
+  }
+  return [];
+}
+
+// Helper function to safely get models from a provider
+function safeGetModelsFromProvider(provider: string): any[] {
+  try {
+    if (isLangModelsAvailable()) {
+      return Lang.models.fromProvider(provider);
+    }
+  } catch (error) {
+    console.warn(`Error getting models from provider ${provider}:`, error);
+  }
+  return [];
+}
+
 export class AgentServices {
   readonly space: Space;
 
@@ -13,8 +48,6 @@ export class AgentServices {
   async lang(model?: string): Promise<LanguageProvider> {
     let modelProvider: string;
     let modelName: string;
-
-    // @TODO: consider supporing auto provider and specified model, eg: auto/deepseek-r1
 
     // When a model is specified, split it into provider and model name
     // e.g model = openai/o3 or ollama/auto
@@ -30,12 +63,27 @@ export class AgentServices {
       // If the provider is set but the model is "auto", find a model within the provider
       // e.g model = ollama/auto
       if (modelName.endsWith("auto")) {
+        // Try to use Lang.models first for cloud providers
+        if (modelProvider !== "ollama" && modelProvider !== "local") {
+          const availableProviders = safeGetProviders();
+          
+          if (availableProviders.includes(modelProvider)) {
+            const models = safeGetModelsFromProvider(modelProvider);
+            
+            if (models && models.length > 0) {
+              // Use the first available model
+              modelName = models[0].id;
+              // Skip the fallback
+              return this.createLanguageProvider(modelProvider, modelName);
+            }
+          }
+        }
+        
+        // Fall back to legacy implementation
         const models = await getProviderModels(modelProvider, "");
         if (models.length === 0) {
           throw new Error(`No models found for provider ${modelProvider}`);
         }
-        // @TODO: consider picking the most capable model from the list of known models,
-        // for that we can have a bit list of known models and just find the first one available in a provider
         modelName = models[0]; // Use the first available model
       }
     // When no provider is specified, find the most capable model from a provider
@@ -51,33 +99,37 @@ export class AgentServices {
       modelName = mostCapableModel.model;
     }
 
-    switch (modelProvider) {
+    return this.createLanguageProvider(modelProvider, modelName);
+  }
+
+  private async createLanguageProvider(provider: string, model: string): Promise<LanguageProvider> {
+    switch (provider) {
       case "openai":
         return Lang.openai({
-          apiKey: await this.getKey(modelProvider),
-          model: modelName,
+          apiKey: await this.getKey(provider),
+          model: model,
         });
       case "groq":
         return Lang.groq({
-          apiKey: await this.getKey(modelProvider),
-          model: modelName,
+          apiKey: await this.getKey(provider),
+          model: model,
         });
       case "anthropic":
         return Lang.anthropic({
-          apiKey: await this.getKey(modelProvider),
-          model: modelName,
+          apiKey: await this.getKey(provider),
+          model: model,
         });
       case "ollama":
         return Lang.ollama({
-          model: modelName,
+          model: model,
         });
       case "deepseek":
         return Lang.deepseek({
-          apiKey: await this.getKey(modelProvider),
-          model: modelName,
+          apiKey: await this.getKey(provider),
+          model: model,
         });
       default:
-        throw new Error("Invalid model provider: " + modelProvider);
+        throw new Error("Invalid model provider: " + provider);
     }
   }
 
@@ -102,7 +154,40 @@ export class AgentServices {
     { provider: string; model: string } | null
   > {
     const providerConfigs = this.space.getModelProviderConfigs();
-
+    
+    // Try to use Lang.models to find the most capable model
+    const availableProviders = safeGetProviders();
+    
+    // Filter to providers that are configured in the space
+    const configuredProviders = providerConfigs
+      .map(config => config.id)
+      .filter(id => availableProviders.includes(id));
+    
+    if (configuredProviders.length > 0) {
+      // Prioritize certain providers
+      const providerOrder = ["openai", "anthropic", "deepseek", "groq", "ollama"];
+      const sortedProviders = configuredProviders.sort((a, b) => {
+        const indexA = providerOrder.indexOf(a);
+        const indexB = providerOrder.indexOf(b);
+        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+      });
+      
+      for (const provider of sortedProviders) {
+        if (provider === "ollama" || provider === "local") {
+          continue; // Skip local providers in this path
+        }
+        
+        const models = safeGetModelsFromProvider(provider);
+        if (models && models.length > 0) {
+          return {
+            provider,
+            model: models[0].id
+          };
+        }
+      }
+    }
+    
+    // Legacy implementation as fallback
     const providerOrder = ["openai", "anthropic", "deepseek", "groq", "ollama"];
     for (const provider of providerOrder) {
       const providerConfig = providerConfigs.find((p) => p.id === provider);

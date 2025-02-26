@@ -2,7 +2,16 @@
   "name": "supa-core",
   "version": "1.0.0",
   "description": "Core code for Supa that can be used on clients, servers, and inside other services",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "dependencies": {
-    "aiwrapper": "^0.1.3"
+    "aiwrapper": "^0.1.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^1.6.1"
   }
 }

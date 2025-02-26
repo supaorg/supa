@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document outlines the integration of the AIModels functionality (available through `Lang.models` in AIWrapper) into Supa, replacing the current model discovery and selection logic with a more robust and standardized approach.
+This document outlines the integration of the AIModels functionality (available through `Lang.models` in AIWrapper) into Supa's core model discovery and selection logic. The integration focuses on replacing provider-specific API calls with standardized model metadata from AIWrapper while maintaining backward compatibility with the current implementation.
+
+This specification intentionally excludes UI enhancements, which can be implemented in a future phase once the core integration is stable. The primary goal is to establish a solid foundation for model discovery and selection that leverages the rich metadata available through `Lang.models` without disrupting the current user experience.
 
 ## Current Architecture
 
@@ -58,158 +60,7 @@ const gpt4Model = Lang.models.id('gpt-4');
 const largeOpenAIModels = Lang.models.fromProvider('openai').withMinContext(100000);
 ```
 
-### 2. Update AgentServices to Use Lang.models and Lang Providers Correctly
-
-```typescript
-// packages/core/src/agents/AgentServices.ts (partial)
-import { Lang, LanguageProvider } from 'aiwrapper';
-import { providers } from "../providers.ts";
-import Space from '../spaces/Space.ts';
-
-export class AgentServices {
-  // ... existing code ...
-
-  async lang(model?: string): Promise<LanguageProvider> {
-    let modelProvider: string;
-    let modelName: string;
-
-    // When a model is specified, split it into provider and model name
-    // e.g model = openai/o3 or ollama/auto
-    if (model && !model.startsWith("auto")) {
-      const modelSplit = model.split("/");
-      if (modelSplit.length !== 2) {
-        throw new Error("Invalid model name");
-      }
-
-      modelProvider = modelSplit[0];
-      modelName = modelSplit[1];
-
-      // If the provider is set but the model is "auto", find a model within the provider
-      // e.g model = ollama/auto
-      if (modelName === "auto") {
-        if (["ollama", "local"].includes(modelProvider)) {
-          // For local providers, use the API to get available models
-          const models = await getProviderModels(modelProvider, "");
-          if (models.length === 0) {
-            throw new Error(`No models found for provider ${modelProvider}`);
-          }
-          modelName = models[0];
-        } else {
-          // For cloud providers, use Lang.models
-          const providerModels = Lang.models.fromProvider(modelProvider);
-          if (providerModels.length === 0) {
-            throw new Error(`No models found for provider ${modelProvider}`);
-          }
-          modelName = providerModels[0].id;
-        }
-      }
-    // When no provider is specified, find the most capable model from a provider
-    } else {
-      const mostCapableModel = await this.getMostCapableModel();
-
-      if (mostCapableModel === null) {
-        throw new Error("No capable model found");
-      }
-
-      modelProvider = mostCapableModel.provider;
-      modelName = mostCapableModel.model;
-    }
-
-    // Get the provider config
-    const providerConfig = this.space.getModelProviderConfig(modelProvider);
-    if (!providerConfig) {
-      throw new Error(`Provider ${modelProvider} not configured`);
-    }
-
-    // Create the language provider instance using Lang[providerId]
-    // This is different from Lang.models which is just metadata
-    const options = {
-      apiKey: providerConfig.apiKey || "",
-      // Add other provider-specific options here
-    };
-
-    // Create and return the LanguageProvider instance
-    return Lang[modelProvider]({
-      ...options,
-      model: modelName,
-    });
-  }
-
-  // Update getMostCapableModel to use Lang.models directly
-  async getMostCapableModel(): Promise<
-    { provider: string; model: string } | null
-  > {
-    const providerConfigs = this.space.getModelProviderConfigs();
-    
-    // Get all available providers with chat-capable models
-    const availableProviders = Lang.models.getProviders();
-    
-    // Define provider preference order
-    const providerOrder = ["openai", "anthropic", "deepseek", "groq", "ollama"];
-    
-    // Sort providers based on preference order
-    const sortedProviders = [...availableProviders].sort((a, b) => {
-      const aIndex = providerOrder.indexOf(a);
-      const bIndex = providerOrder.indexOf(b);
-      
-      // If both providers are in the preference list, sort by preference
-      if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-      }
-      
-      // If only one provider is in the preference list, prioritize it
-      if (aIndex !== -1) return -1;
-      if (bIndex !== -1) return 1;
-      
-      // If neither provider is in the preference list, keep original order
-      return 0;
-    });
-
-    // Try providers in order of preference
-    for (const provider of sortedProviders) {
-      const providerConfig = providerConfigs.find((p) => p.id === provider);
-      if (providerConfig) {
-        const isLocalProvider = providerConfig.type === "local";
-        let model;
-
-        if (isLocalProvider) {
-          // For local providers, use the API to get available models
-          const models = await getProviderModels(provider, "");
-
-          if (!models || models.length === 0) {
-            continue; // Try the next provider
-          }
-
-          model = models[0];
-        } else {
-          // For cloud providers, use Lang.models
-          const providerModels = Lang.models.fromProvider(provider);
-          
-          if (providerModels.length === 0) {
-            continue; // Try the next provider
-          }
-          
-          // Get the first model (or could implement more sophisticated selection)
-          model = providerModels[0].id;
-        }
-
-        return {
-          provider: provider,
-          model: model,
-        };
-      }
-    }
-
-    return null;
-  }
-}
-```
-
-### 3. Enhance Existing Model Selection UI
-
-Instead of creating a new component, we'll enhance the existing model selection UI to leverage `Lang.models`. Here's how we'll modify the current components:
-
-#### 3.1 Update providerModels.ts
+### 2. Update providerModels.ts
 
 ```typescript
 // packages/core/src/tools/providerModels.ts
@@ -224,7 +75,7 @@ export function getProviderModels(
   // Check if this provider is in the list of providers with chat-capable models
   const availableProviders = Lang.models.getProviders();
   
-  if (availableProviders.includes(provider)) {
+  if (availableProviders.includes(provider) && provider !== "ollama" && provider !== "local") {
     const models = Lang.models.fromProvider(provider);
     return Promise.resolve(models.map(model => model.id));
   }
@@ -261,260 +112,146 @@ async function getProviderModels_ollama(): Promise<string[]> {
 // Remove other provider-specific implementations as they're no longer needed
 ```
 
-#### 3.2 Update ModelProviderSelector.svelte
+### 3. Update AgentServices to Use Lang.models and Lang Providers Correctly
 
-```svelte
-<!-- packages/client/src/lib/comps/models/ModelProviderSelector.svelte -->
-<script lang="ts">
-  import { onMount } from "svelte";
-  import { Lang } from 'aiwrapper';
-  import type { ModelProvider, ModelProviderConfig } from "@core/models";
-  import ModelSelectCard from "./ModelSelectCard.svelte";
-  import AutoModelSelectCard from "./AutoModelSelectCard.svelte";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
-  import { providers } from "@core/providers";
+```typescript
+// packages/core/src/agents/AgentServices.ts (partial)
+import { Lang, LanguageProvider } from 'aiwrapper';
+import { providers } from "../providers.ts";
+import Space from '../spaces/Space.ts';
 
-  let {
-    selectedModel,
-    onModelSelect,
-  }: {
-    selectedModel: string | null;
-    onModelSelect: (model: string) => void;
-  } = $props();
+export class AgentServices {
+  // ... existing code ...
 
-  let setupProviders: {
-    provider: ModelProvider;
-    config: ModelProviderConfig;
-  }[] = $state([]);
+  async lang(model?: string): Promise<LanguageProvider> {
+    let modelProvider: string;
+    let modelName: string;
 
-  type SelectedPair = {
-    providerId: string;
-    model: string;
-  };
+    // @TODO: consider supporting auto provider and specified model, eg: auto/deepseek-r1
 
-  let selectedPair: SelectedPair | null = $state(null);
+    // When a model is specified, split it into provider and model name
+    // e.g model = openai/o3 or ollama/auto
+    if (model && !model.startsWith("auto")) {
+      const modelSplit = model.split("/");
+      if (modelSplit.length !== 2) {
+        throw new Error("Invalid model name");
+      }
 
-  onMount(async () => {
-    const configs = $currentSpaceStore?.getModelProviderConfigs();
-    if (!configs) return;
+      modelProvider = modelSplit[0];
+      modelName = modelSplit[1];
 
-    // Get all providers with chat-capable models from Lang.models
-    const availableProviders = Lang.models.getProviders();
-    
-    // Keep the providers that have configs and are available in Lang.models
-    // or are local providers (like Ollama)
-    setupProviders = providers
-      .filter((provider) => 
-        configs.some((config) => config.id === provider.id) && 
-        (availableProviders.includes(provider.id) || provider.type === "local")
-      )
-      .map((provider) => ({
-        provider,
-        config: configs.find((config) => config.id === provider.id)!,
-      }));
-
-    console.log("setupProviders", setupProviders);
-
-    if (selectedModel) {
-      const [providerId, model] = selectedModel.split("/");
-      selectedPair = { providerId, model };
-    }
-  });
-
-  // ... rest of the component ...
-</script>
-
-<!-- ... rest of the template ... -->
-```
-
-#### 3.3 Enhance ModelSelectCard.svelte
-
-```svelte
-<!-- packages/client/src/lib/comps/models/ModelSelectCard.svelte -->
-<script lang="ts">
-  import { onMount } from "svelte";
-  import { Lang } from 'aiwrapper';
-  import type { ModelProvider, ModelProviderConfig } from "@core/models";
-  import { getProviderModels } from "@core/tools/providerModels";
-
-  let {
-    provider,
-    config,
-    selected,
-    onSelect,
-    modelId = $bindable(),
-  }: {
-    provider: ModelProvider;
-    config: ModelProviderConfig;
-    selected: boolean;
-    onSelect: (providerId: string, model: string) => void;
-    modelId: string | null;
-  } = $props();
-
-  let prevSelectedModelId: string | null = null;
-  let models = $state<string[]>([]);
-  let showModels = $state(false);
-  let showAdvancedFilters = $state(false);
-  
-  // New state for advanced filtering
-  let minContextSize = $state(0);
-  let selectedCapabilities = $state<string[]>([]);
-  let filteredModels = $state<any[]>([]);
-  
-  // Available capabilities to filter by (beyond chat)
-  const availableCapabilities = ['img-in', 'img-out', 'function-out', 'json-out'];
-
-  onMount(async () => {
-    // Get basic model IDs as before
-    models = await getProviderModels(
-      provider.id,
-      config.type !== "cloud" ? "" : config.apiKey,
-    );
-    
-    // Also get full model objects from Lang.models for advanced filtering
-    updateFilteredModels();
-  });
-  
-  function updateFilteredModels() {
-    // Start with all models from this provider
-    let filtered = Lang.models.fromProvider(provider.id);
-    
-    // Apply context window filter if set
-    if (minContextSize > 0) {
-      filtered = filtered.withMinContext(minContextSize);
-    }
-    
-    // Apply capability filters
-    for (const capability of selectedCapabilities) {
-      filtered = filtered.can(capability);
-    }
-    
-    // Store the filtered models
-    filteredModels = filtered;
-    
-    // If we're using advanced filtering, update the models list
-    if (showAdvancedFilters) {
-      models = filteredModels.map(model => model.id);
-    }
-  }
-  
-  function toggleCapability(capability: string) {
-    if (selectedCapabilities.includes(capability)) {
-      selectedCapabilities = selectedCapabilities.filter(c => c !== capability);
+      // If the provider is set but the model is "auto", find a model within the provider
+      // e.g model = ollama/auto
+      if (modelName.endsWith("auto")) {
+        if (["ollama", "local"].includes(modelProvider)) {
+          // For local providers, use the API to get available models
+          const models = await getProviderModels(modelProvider, "");
+          if (models.length === 0) {
+            throw new Error(`No models found for provider ${modelProvider}`);
+          }
+          modelName = models[0];
+        } else {
+          // For cloud providers, use Lang.models
+          const providerModels = Lang.models.fromProvider(modelProvider);
+          if (providerModels.length === 0) {
+            throw new Error(`No models found for provider ${modelProvider}`);
+          }
+          modelName = providerModels[0].id;
+        }
+      }
+    // When no provider is specified, find the most capable model from a provider
     } else {
-      selectedCapabilities = [...selectedCapabilities, capability];
+      const mostCapableModel = await this.getMostCapableModel();
+
+      if (mostCapableModel === null) {
+        throw new Error("No capable model found");
+      }
+
+      modelProvider = mostCapableModel.provider;
+      modelName = mostCapableModel.model;
     }
-    updateFilteredModels();
+
+    // Get the provider config
+    const providerConfig = this.space.getModelProviderConfig(modelProvider);
+    if (!providerConfig) {
+      throw new Error(`Provider ${modelProvider} not configured`);
+    }
+
+    // Create the language provider instance using Lang[providerId]
+    // Similar to the current switch statement but using dynamic access
+    const options: any = {};
+    
+    if (providerConfig.type === "cloud" && "apiKey" in providerConfig) {
+      options.apiKey = providerConfig.apiKey;
+    } else if (providerConfig.type === "local" && "apiUrl" in providerConfig) {
+      options.baseURL = providerConfig.apiUrl;
+    }
+
+    // Create and return the LanguageProvider instance
+    return Lang[modelProvider]({
+      ...options,
+      model: modelName,
+    });
   }
 
-  // ... existing functions ...
-</script>
+  // Update getMostCapableModel to use Lang.models directly
+  async getMostCapableModel(): Promise<
+    { provider: string; model: string } | null
+  > {
+    const providerConfigs = this.space.getModelProviderConfigs();
+    
+    // Define provider preference order - same as current implementation
+    const providerOrder = ["openai", "anthropic", "deepseek", "groq", "ollama"];
+    
+    // Try providers in order of preference - similar to current implementation
+    for (const provider of providerOrder) {
+      // Skip providers that aren't available in Lang.models (except for local providers)
+      const isLocalProvider = provider === "ollama" || provider === "local";
+      if (!isLocalProvider && !Lang.models.getProviders().includes(provider)) {
+        continue;
+      }
+      
+      const providerConfig = providerConfigs.find((p) => p.id === provider);
+      if (providerConfig) {
+        let model;
 
-<div
-  class="rounded {selected
-    ? 'border border-primary-500'
-    : 'border border-surface-500'}"
->
-  <!-- ... existing provider selection UI ... -->
-  
-  <div>
-    {#if selected}
-      {#if showModels}
-        <div class="p-4 space-y-4">
-          <!-- Toggle for advanced filtering -->
-          {#if provider.id !== "ollama" && provider.id !== "local"}
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-medium">Advanced Filtering</span>
-              <button 
-                class="btn btn-sm preset-outlined-surface-500"
-                onclick={() => {
-                  showAdvancedFilters = !showAdvancedFilters;
-                  updateFilteredModels();
-                }}
-              >
-                {showAdvancedFilters ? 'Simple View' : 'Advanced View'}
-              </button>
-            </div>
-          {/if}
-          
-          <!-- Advanced filtering UI -->
-          {#if showAdvancedFilters}
-            <div class="space-y-4 p-2 bg-surface-200-700-token rounded">
-              <!-- Context window filter -->
-              <div>
-                <label class="text-sm font-medium">Minimum Context Window</label>
-                <div class="flex items-center gap-2">
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="200000" 
-                    step="1000" 
-                    bind:value={minContextSize}
-                    on:change={updateFilteredModels}
-                    class="w-full"
-                  />
-                  <span class="text-sm">{minContextSize === 0 ? 'Any' : minContextSize.toLocaleString()}</span>
-                </div>
-              </div>
-              
-              <!-- Capability filters -->
-              <div>
-                <label class="text-sm font-medium">Additional Capabilities</label>
-                <div class="grid grid-cols-2 gap-2 mt-1">
-                  {#each availableCapabilities as capability}
-                    <label class="flex items-center gap-2">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedCapabilities.includes(capability)}
-                        on:change={() => toggleCapability(capability)}
-                      />
-                      <span class="text-sm">{capability}</span>
-                    </label>
-                  {/each}
-                </div>
-              </div>
-              
-              <!-- Model cards with detailed info -->
-              <div class="space-y-2 max-h-60 overflow-y-auto">
-                {#each filteredModels as model}
-                  <div 
-                    class="p-2 rounded cursor-pointer {modelId === model.id ? 'bg-primary-500/20' : 'bg-surface-300-600-token'}"
-                    onclick={() => onChangeModel(model.id)}
-                  >
-                    <div class="font-medium">{model.name}</div>
-                    <div class="text-xs">Context: {model.context.total.toLocaleString()} tokens</div>
-                    <div class="flex flex-wrap gap-1 mt-1">
-                      {#each model.can as capability}
-                        <span class="text-xs px-1.5 py-0.5 rounded bg-surface-400-500-token">{capability}</span>
-                      {/each}
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            </div>
-          {:else}
-            <!-- Original simple dropdown -->
-            <select
-              class="select rounded-container"
-              size={provider.defaultModel ? models.length : models.length + 1}
-              value={!modelId || modelId === provider.defaultModel
-                ? "auto"
-                : modelId}
-              onchange={(e) => onChangeModel(e.currentTarget.value)}
-            >
-              <option value="auto"
-                >{provider.defaultModel || "Auto"} (default)</option
-              >
-              {#each models.filter((model) => model !== provider.defaultModel && model) as model}
-                <option value={model}>{model}</option>
-              {/each}
-            </select>
-          {/if}
-        </div>
-      {/if}
-    {/if}
-  </div>
-</div>
+        if (isLocalProvider) {
+          // Get available models from local provider
+          const models = await getProviderModels(provider, "");
+
+          if (!models || models.length === 0) {
+            continue; // Try the next provider
+          }
+
+          // Use the first available model
+          model = models[0];
+        } else {
+          // For cloud providers, get the default model from providers.ts
+          // This matches the current implementation
+          model = providers.find((p) => p.id === provider)?.defaultModel;
+
+          if (!model) {
+            // If no default model is found, try to get one from Lang.models
+            const providerModels = Lang.models.fromProvider(provider);
+            
+            if (providerModels.length === 0) {
+              continue; // Try the next provider
+            }
+            
+            model = providerModels[0].id;
+          }
+        }
+
+        return {
+          provider: provider,
+          model: model,
+        };
+      }
+    }
+
+    return null;
+  }
+}
 ```
 
 ## Implementation Phases
@@ -522,40 +259,181 @@ async function getProviderModels_ollama(): Promise<string[]> {
 ### Phase 1: Core Integration
 
 1. Update to the latest AIWrapper version (0.1.3+) to access the `getProviders()` functionality
-2. Update `providerModels.ts` to use `Lang.models` for cloud providers
-3. Update `AgentServices` to use `Lang.models` and `getProviders()` directly
-4. Basic tests to ensure everything works as expected
+2. Update `providerModels.ts` to use `Lang.models` for cloud providers:
+   - Replace provider-specific API calls with `Lang.models` queries
+   - Keep Ollama implementation for local models
+   - Add error handling for cases where providers aren't available
+3. Update `AgentServices` to use `Lang.models` and `getProviders()` directly:
+   - Modify `getMostCapableModel()` to use provider preference order with `Lang.models`
+   - Update `lang()` method to handle both local and cloud providers
+   - Ensure backward compatibility with existing model references
+4. Basic tests to ensure everything works as expected:
+   - Test with each supported provider
+   - Verify that default models are correctly selected
+   - Check that local providers like Ollama still work
 
-### Phase 2: UI Enhancement
+### Phase 2: Testing and Refinement
 
-1. Update `ModelProviderSelector.svelte` to use `Lang.models.getProviders()`
-2. Enhance `ModelSelectCard.svelte` with advanced filtering options
-3. Add model capability and context window information to the UI
-4. Ensure backward compatibility with existing model references
+1. Comprehensive testing with all supported providers:
+   - Test with valid and invalid API keys
+   - Test with providers that have no available models
+   - Test with custom model IDs
+2. Error handling and fallbacks:
+   - Implement graceful fallbacks when preferred providers aren't available
+   - Add clear error messages for configuration issues
+   - Handle network errors when fetching models
+3. Performance optimization:
+   - Consider caching `Lang.models` results if needed
+   - Optimize provider availability checks
+4. Documentation:
+   - Update developer documentation
+   - Document the new model selection logic
 
-### Phase 3: Enhanced Features
+## Error Handling and Edge Cases
 
-1. Add model comparison functionality
-2. Implement "recommended model" suggestions based on use case
-3. Add cost estimation based on token usage and model pricing
+The integration should handle the following edge cases:
+
+1. **Provider Not Available**: If a provider in the preference order isn't available in `Lang.models.getProviders()`, skip it and try the next one.
+
+2. **No Models Found**: If no models are found for a provider, continue to the next provider in the preference order.
+
+3. **Invalid Model Reference**: If a user specifies a model that doesn't exist, provide a clear error message and suggest alternatives.
+
+4. **API Configuration Issues**: Handle cases where API keys are missing or invalid with appropriate error messages.
+
+5. **Network Errors**: Gracefully handle network errors when fetching models from local providers like Ollama.
+
+6. **Custom Models**: Support custom fine-tuned models by checking if they exist in `Lang.models` first, and if not, attempt to use them anyway (the provider will validate).
+
+## Migration Strategy
+
+To ensure a smooth transition from the current implementation to the new AIModels integration, we'll follow these steps:
+
+### 1. Parallel Implementation
+
+Initially, we'll implement the new functionality alongside the existing code:
+
+```typescript
+// Example of parallel implementation in providerModels.ts
+export function getProviderModels(
+  provider: string,
+  key: string,
+  signal?: AbortSignal,
+): Promise<string[]> {
+  // Try the new implementation first
+  try {
+    // For cloud providers, use Lang.models
+    const availableProviders = Lang.models.getProviders();
+    
+    if (availableProviders.includes(provider) && provider !== "ollama" && provider !== "local") {
+      const models = Lang.models.fromProvider(provider);
+      return Promise.resolve(models.map(model => model.id));
+    }
+  } catch (error) {
+    console.warn("AIModels integration failed, falling back to legacy implementation", error);
+    // Fall back to the existing implementation
+  }
+  
+  // Existing implementation as fallback
+  switch (provider) {
+    case "openai":
+      return getProviderModels_openai(key, signal);
+    // ... other cases
+  }
+}
+```
+
+### 2. Feature Flag
+
+Add a feature flag to control which implementation is used:
+
+```typescript
+const USE_AIMODELS = true; // Can be controlled via configuration
+
+export function getProviderModels(
+  provider: string,
+  key: string,
+  signal?: AbortSignal,
+): Promise<string[]> {
+  if (USE_AIMODELS) {
+    // New implementation
+    // ...
+  } else {
+    // Legacy implementation
+    // ...
+  }
+}
+```
+
+### 3. Gradual Rollout
+
+1. Enable the new implementation in development and testing environments
+2. Collect feedback and fix any issues
+3. Enable for a small percentage of users in production
+4. Gradually increase the percentage as confidence grows
+5. Eventually remove the legacy implementation
+
+### 4. Monitoring and Rollback Plan
+
+- Add logging to track any issues with the new implementation
+- Monitor error rates and user feedback
+- Have a clear rollback plan if significant issues are discovered
+- Maintain the legacy implementation until the new one is proven stable
+
+This migration strategy minimizes risk by allowing us to gradually transition to the new implementation while maintaining the ability to fall back to the existing code if needed.
 
 ## Questions and Considerations
 
 1. **Local Models**: Should we still use the provider API for local models like Ollama, or should we rely solely on the models in `Lang.models`?
 2. **Custom Models**: How do we handle custom fine-tuned models that may not be in the `Lang.models` database?
 3. **Performance**: Is there any need to cache results from `Lang.models` queries, or is it already optimized?
-4. **UI Design**: How much model information should we expose to users in the UI?
-5. **Updates**: How frequently is the `Lang.models` database updated with new models from providers?
-6. **Additional Capabilities**: Since all models in `Lang.models` already support chat, what additional capabilities are most important to filter by?
+4. **Updates**: How frequently is the `Lang.models` database updated with new models from providers?
 
 ## Acceptance Criteria
 
-1. Users can select models based on additional capabilities and context window size
-2. The application automatically suggests appropriate models for specific tasks
-3. Model selection is consistent across the application
-4. All model metadata is sourced from `Lang.models`
-5. Backward compatibility is maintained for existing model references
+1. Model discovery works for all supported providers
+2. Model selection is consistent across the application
+3. All model metadata for cloud providers is sourced from `Lang.models`
+4. Backward compatibility is maintained for existing model references
+5. Local providers like Ollama continue to work as expected
 
 ## Conclusion
 
-Integrating the AIModels functionality through direct use of `Lang.models` will provide a more robust and standardized approach to model selection and discovery in Supa. The new `getProviders()` functionality makes it even easier to discover and filter providers with chat-capable models, simplifying our implementation and making it more maintainable. By enhancing the existing UI components rather than creating new ones, we maintain consistency while adding powerful new capabilities. This approach improves the user experience while ensuring a smooth transition from the current implementation. 
+Integrating the AIModels functionality through direct use of `Lang.models` will provide a more robust and standardized approach to model selection and discovery in Supa. The implementation prioritizes:
+
+1. **Maintaining compatibility** with the current implementation, particularly the provider preference order and default model selection
+2. **Enhancing capabilities** by leveraging `Lang.models` for cloud providers while keeping the existing approach for local providers
+3. **Simplifying code** by removing provider-specific implementations for cloud providers
+4. **Providing a foundation** for future enhancements without disrupting the current user experience
+
+This approach ensures a smooth transition from the current implementation while adding valuable standardized model metadata and discovery capabilities. By focusing on core integration without UI changes, we can deliver these improvements with minimal risk and maximum backward compatibility.
+
+## Future Enhancements
+
+Once the core integration is complete and stable, several enhancements could be built on top of it:
+
+### 1. Advanced Model Selection UI
+
+- Add filtering by model capabilities (image input/output, function calling, etc.)
+- Display context window sizes and other model metadata
+- Provide visual comparison between models
+
+### 2. Intelligent Model Recommendations
+
+- Suggest models based on the user's task or prompt content
+- Recommend models based on performance characteristics (speed, quality, cost)
+- Auto-select the most appropriate model for specific use cases
+
+### 3. Cost Optimization
+
+- Display estimated costs for different models
+- Implement cost tracking and budgeting features
+- Suggest more cost-effective alternatives for specific tasks
+
+### 4. Model Capability Discovery
+
+- Allow users to explore what different models can do
+- Provide examples of capabilities like image generation, code completion, etc.
+- Create a model playground to test different capabilities
+
+These future enhancements would build upon the solid foundation established by the core integration, leveraging the rich metadata available through `Lang.models` to provide users with more powerful and intuitive ways to interact with AI models. 

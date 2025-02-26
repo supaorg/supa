@@ -1,8 +1,59 @@
+import { Lang } from 'aiwrapper';
+
+// Helper function to safely check if Lang.models is available and working
+function isLangModelsAvailable(): boolean {
+  try {
+    // Check if Lang.models exists and has the expected methods
+    return !!(Lang && Lang.models && typeof Lang.models.getProviders === 'function');
+  } catch (error) {
+    console.warn("Lang.models is not available:", error);
+    return false;
+  }
+}
+
+// Helper function to safely get providers
+function safeGetProviders(): string[] {
+  try {
+    if (isLangModelsAvailable()) {
+      return Lang.models.getProviders();
+    }
+  } catch (error) {
+    console.warn("Error getting providers:", error);
+  }
+  return [];
+}
+
+// Helper function to safely get models from a provider
+function safeGetModelsFromProvider(provider: string): any[] {
+  try {
+    if (isLangModelsAvailable()) {
+      return Lang.models.fromProvider(provider);
+    }
+  } catch (error) {
+    console.warn(`Error getting models from provider ${provider}:`, error);
+  }
+  return [];
+}
+
 export function getProviderModels(
   provider: string,
   key: string,
   signal?: AbortSignal,
 ): Promise<string[]> {
+  // For cloud providers, try to use Lang.models if available
+  if (provider !== "ollama" && provider !== "local") {
+    const availableProviders = safeGetProviders();
+    
+    if (availableProviders.includes(provider)) {
+      const models = safeGetModelsFromProvider(provider);
+      
+      if (models && models.length > 0) {
+        return Promise.resolve(models.map(model => model.id));
+      }
+    }
+  }
+  
+  // Legacy implementation as fallback
   switch (provider) {
     case "openai":
       return getProviderModels_openai(key, signal);
@@ -54,7 +105,7 @@ async function getProviderModels_openaiLikeApi(
       signal,
     }).then((res) => res.json())
       .then((data) => data.data.map((model: { id: string }) => model.id));
-  } catch (err) {
+  } catch (err: any) {
     if (err.name === "AbortError") {
       console.log("Fetch aborted");
     } else {
@@ -85,8 +136,7 @@ async function getProviderModels_anthropic(key: string, signal?: AbortSignal): P
     }
 
     return data.data.map((model: { id: string }) => model.id);
-    //return ["claude-3-haiku-20240307", "claude-3-opus-20240229", "claude-3-5-sonnet-20240620", "claude-3-sonnet-20240229"];
-  } catch (err) {
+  } catch (err: any) {
     console.error("Fetch error:", err);
     return [];
   }
@@ -98,7 +148,7 @@ async function getProviderModels_ollama(): Promise<string[]> {
     const response = await fetch("http://localhost:11434/api/tags");
     const data = await response.json();
     return data.models.map((model: { name: string }) => model.name);
-  } catch (err) {
+  } catch (err: any) {
     console.error("Fetch error:", err);
     return [];
   }
@@ -122,7 +172,7 @@ async function getProviderModels_deepseek(key: string, signal?: AbortSignal): Pr
     }
 
     return data.data.map((model: { id: string }) => model.id);
-  } catch (err) {
+  } catch (err: any) {
     if (err.name === "AbortError") {
       console.log("Fetch aborted");
     } else {
