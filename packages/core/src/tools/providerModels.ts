@@ -1,55 +1,32 @@
 import { Lang } from 'aiwrapper';
 
-// Helper function to safely check if Lang.models is available and working
-function isLangModelsAvailable(): boolean {
-  try {
-    // Check if Lang.models exists and has the expected methods
-    return !!(Lang && Lang.models && typeof Lang.models.getProviders === 'function');
-  } catch (error) {
-    console.warn("Lang.models is not available:", error);
-    return false;
-  }
-}
-
-// Helper function to safely get providers
-function safeGetProviders(): string[] {
-  try {
-    if (isLangModelsAvailable()) {
-      return Lang.models.getProviders();
-    }
-  } catch (error) {
-    console.warn("Error getting providers:", error);
-  }
-  return [];
-}
-
-// Helper function to safely get models from a provider
-function safeGetModelsFromProvider(provider: string): any[] {
-  try {
-    if (isLangModelsAvailable()) {
-      return Lang.models.fromProvider(provider);
-    }
-  } catch (error) {
-    console.warn(`Error getting models from provider ${provider}:`, error);
-  }
-  return [];
-}
-
 export function getProviderModels(
   provider: string,
   key: string,
   signal?: AbortSignal,
 ): Promise<string[]> {
+  console.log('models for ' + provider);
+  
   // For cloud providers, try to use Lang.models if available
-  if (provider !== "ollama" && provider !== "local") {
-    const availableProviders = safeGetProviders();
-    
-    if (availableProviders.includes(provider)) {
-      const models = safeGetModelsFromProvider(provider);
+  if (provider !== "ollama") {
+    try {
+      // Check if Lang.models is available
+      if (!Lang.models) {
+        throw new Error("Lang.models is not available");
+      } else {
+        console.log(Lang.models);
+      }
+
+      const models = Lang.models.fromProvider(provider);
+
+      console.log('found models for ' + provider + ", " + models);
       
       if (models && models.length > 0) {
         return Promise.resolve(models.map(model => model.id));
       }
+    } catch (error) {
+      console.warn(`Error getting models from provider ${provider}:`, error);
+      // Continue to fallback implementation
     }
   }
   

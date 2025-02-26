@@ -12,6 +12,12 @@ export function validateKey(
       return validateKey_anthropic(key, signal);
     case "deepseek":
       return validateKey_deepseek(key, signal);
+    case "gemini":
+      return validateKey_gemini(key, signal);
+    case "xai":
+      return validateKey_xai(key, signal);
+    case "cohere":
+      return validateKey_cohere(key, signal);
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
@@ -32,8 +38,8 @@ async function validateKey_openaiLikeApi(
     });
 
     return res.ok;
-  } catch (err) {
-    if (err.name === "AbortError") {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "AbortError") {
       console.log("Fetch aborted");
     } else {
       console.error("Fetch error:", err);
@@ -93,4 +99,61 @@ async function validateKey_deepseek(
   signal?: AbortSignal,
 ): Promise<boolean> {
   return validateKey_openaiLikeApi("https://api.deepseek.com/v1", key, signal);
+}
+
+async function validateKey_gemini(
+  key: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  try {
+    // Google AI API uses a different endpoint structure
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${key}`, {
+      method: "GET",
+      signal,
+    });
+    
+    return res.ok;
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "AbortError") {
+      console.log("Fetch aborted");
+    } else {
+      console.error("Fetch error:", err);
+    }
+    
+    return false;
+  }
+}
+
+async function validateKey_xai(
+  key: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  // xAI uses OpenAI-compatible API
+  return validateKey_openaiLikeApi("https://api.x.ai/v1", key, signal);
+}
+
+async function validateKey_cohere(
+  key: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  try {
+    const res = await fetch("https://api.cohere.ai/v1/models", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      signal,
+    });
+    
+    return res.ok;
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "AbortError") {
+      console.log("Fetch aborted");
+    } else {
+      console.error("Fetch error:", err);
+    }
+    
+    return false;
+  }
 }

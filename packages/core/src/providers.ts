@@ -34,6 +34,30 @@ export const providers: ModelProvider[] = [
     defaultModel: "deepseek-chat"
   },
   {
+    id: "google",
+    name: "Google Gemini",
+    access: "cloud",
+    url: "https://gemini.google.com/",
+    logoUrl: "/providers/gemini.png",
+    defaultModel: "gemini-2.0-flash"
+  },
+  {
+    id: "xai",
+    name: "xAI",
+    access: "cloud",
+    url: "https://x.ai/",
+    logoUrl: "/providers/xai.png",
+    defaultModel: "grok-2"
+  },
+  {
+    id: "cohere",
+    name: "Cohere",
+    access: "cloud",
+    url: "https://cohere.com/",
+    logoUrl: "/providers/cohere.png",
+    defaultModel: "command-r-plus"
+  },
+  {
     id: "ollama",
     name: "Ollama",
     access: "local",
