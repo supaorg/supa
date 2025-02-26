@@ -289,6 +289,22 @@ let b = $derived.by( ( ) => {
 for more complex use cases.
 $derived() takes and expression. $derived.by() takes a function.
 
+#### Events
+
+ Whereas in Svelte 4 we use the on: directive to attach an event listener to an element, in Svelte 5 they are properties like any other (in other words - remove the colon):
+
+<script>
+	let count = $state(0);
+
+	function onclick() {
+		count++;
+	}
+</script>
+
+<button {onclick}>
+	clicks: {count}
+</button>
+
 #### Effect
 
 let a = $state(1);
