@@ -21,7 +21,7 @@
   import MarkdownTeX from "./markdown-components/MarkdownTeX.svelte";
   import MarkdownTeXBlock from "./markdown-components/MarkdownTeXBlock.svelte";
 
-  const markdownComponents = {
+  const markdownComponents: Record<string, any> = {
     blockquote: MarkdownBloquote,
     heading: MarkdownHeading,
     list: MarkdownList,
@@ -43,7 +43,7 @@
     space: MarkdownSpace,
     texInline: MarkdownTeX,
     texBlock: MarkdownTeXBlock,
-  } as Record<string, any>;
+  };
 </script>
 
 <script lang="ts">

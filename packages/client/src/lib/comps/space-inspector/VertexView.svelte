@@ -46,6 +46,7 @@
       <button 
         class="btn-icon btn-icon-sm hover:variant-soft"
         onclick={deleteVertex}
+        aria-label="Delete vertex"
       >
         <TrashIcon size={14} />
       </button>
@@ -61,6 +62,7 @@
         class:rotate-180={isExpanded}
         onclick={toggleExpand}
         aria-expanded={isExpanded}
+        aria-label="Toggle expand"
         type="button"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="w-3 h-3">
@@ -75,6 +77,7 @@
       <button
         class="btn-icon btn-icon-sm hover:variant-soft"
         onclick={createNewVertex}
+        aria-label="Add new vertex"
       >
         <Plus size={14} />
       </button>

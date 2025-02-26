@@ -89,6 +89,9 @@
   <div 
     class="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
     on:mousedown={handleResizeStart}
+    role="button"
+    aria-label="Resize window"
+    tabindex="0"
   ></div>
 </div>
 
