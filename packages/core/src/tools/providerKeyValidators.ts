@@ -18,6 +18,8 @@ export function validateKey(
       return validateKey_xai(key, signal);
     case "cohere":
       return validateKey_cohere(key, signal);
+    case "mistral":
+      return validateKey_mistral(key, signal);
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
@@ -156,4 +158,11 @@ async function validateKey_cohere(
     
     return false;
   }
+}
+
+async function validateKey_mistral(
+  key: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  return validateKey_openaiLikeApi("https://api.mistral.ai/v1", key, signal);
 }
