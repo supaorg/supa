@@ -33,7 +33,7 @@
     >
       <div class="h-full overflow-y-auto p-4 space-y-4">
         <h4 class="h5 mb-4">How to setup {showHowForProvider.name}</h4>
-        {#if showHowForProvider.name === "OpenAI"}
+        {#if showHowForProvider.id === "openai"}
           <p>
             You will need to enter a key that will allow you to use OpenAI's
             models.
@@ -72,7 +72,7 @@
               >
             </li>
           </ol>
-        {:else if showHowForProvider.name === "Anthropic"}
+        {:else if showHowForProvider.id === "anthropic"}
           <p>
             You will need to enter a key that will allow you to use Anthropic's
             models.
@@ -102,7 +102,7 @@
               >
             </li>
           </ol>
-        {:else if showHowForProvider.name === "Groq"}
+        {:else if showHowForProvider.id === "groq"}
           <p>
             You will need to enter a key that will allow you to use Groq's
             models.
@@ -132,7 +132,7 @@
               >
             </li>
           </ol>
-        {:else if showHowForProvider.name === "DeepSeek"}
+        {:else if showHowForProvider.id === "deepseek"}
           <p>
             You will need to enter a key that will allow you to use DeepSeek's
             models.
@@ -162,7 +162,125 @@
               >
             </li>
           </ol>
-        {:else if showHowForProvider.name === "Ollama"}
+        {:else if showHowForProvider.id === "google"}
+          <p>
+            You will need to enter a key that will allow you to use Google Gemini
+            models.
+          </p>
+          <ol class="list">
+            <li>
+              <span>1.</span>
+              <span class="flex-auto"
+                >Sign up or login to Google AI Studio: <Link
+                  href="https://makersuite.google.com/"
+                  >https://makersuite.google.com/</Link
+                ></span
+              >
+            </li>
+            <li>
+              <span>2.</span>
+              <span class="flex-auto"
+                >Go to <Link href="https://makersuite.google.com/app/apikey"
+                  >https://makersuite.google.com/app/apikey</Link
+                > and create an API key</span
+              >
+            </li>
+            <li>
+              <span>3.</span>
+              <span class="flex-auto"
+                >Paste the key here and wait for it to validate.</span
+              >
+            </li>
+          </ol>
+        {:else if showHowForProvider.id === "xai"}
+          <p>
+            You will need to enter a key that will allow you to use xAI's
+            models.
+          </p>
+          <ol class="list">
+            <li>
+              <span>1.</span>
+              <span class="flex-auto"
+                >Sign up or login to xAI: <Link
+                  href="https://x.ai/"
+                  >https://x.ai/</Link
+                ></span
+              >
+            </li>
+            <li>
+              <span>2.</span>
+              <span class="flex-auto"
+                >Get your API key from xAI (refer to their documentation for the latest instructions)</span
+              >
+            </li>
+            <li>
+              <span>3.</span>
+              <span class="flex-auto"
+                >Paste the key here and wait for it to validate.</span
+              >
+            </li>
+          </ol>
+        {:else if showHowForProvider.id === "cohere"}
+          <p>
+            You will need to enter a key that will allow you to use Cohere's
+            models.
+          </p>
+          <ol class="list">
+            <li>
+              <span>1.</span>
+              <span class="flex-auto"
+                >Sign up or login to Cohere: <Link
+                  href="https://dashboard.cohere.com/"
+                  >https://dashboard.cohere.com/</Link
+                ></span
+              >
+            </li>
+            <li>
+              <span>2.</span>
+              <span class="flex-auto"
+                >Go to <Link href="https://dashboard.cohere.com/api-keys"
+                  >https://dashboard.cohere.com/api-keys</Link
+                > and create an API key</span
+              >
+            </li>
+            <li>
+              <span>3.</span>
+              <span class="flex-auto"
+                >Paste the key here and wait for it to validate.</span
+              >
+            </li>
+          </ol>
+        {:else if showHowForProvider.id === "mistral"}
+          <p>
+            You will need to enter a key that will allow you to use Mistral's
+            models.
+          </p>
+          <ol class="list">
+            <li>
+              <span>1.</span>
+              <span class="flex-auto"
+                >Sign up or login to Mistral AI: <Link
+                  href="https://console.mistral.ai/"
+                  >https://console.mistral.ai/</Link
+                ></span
+              >
+            </li>
+            <li>
+              <span>2.</span>
+              <span class="flex-auto"
+                >Go to <Link href="https://console.mistral.ai/api-keys/"
+                  >https://console.mistral.ai/api-keys/</Link
+                > and create an API key</span
+              >
+            </li>
+            <li>
+              <span>3.</span>
+              <span class="flex-auto"
+                >Paste the key here and wait for it to validate.</span
+              >
+            </li>
+          </ol>
+        {:else if showHowForProvider.id === "ollama"}
           <p>
             You will need to install and run Ollama to use its models. You can
             run it locally and Supa will connect to it.
