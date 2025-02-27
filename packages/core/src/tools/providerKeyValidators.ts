@@ -12,7 +12,7 @@ export function validateKey(
       return validateKey_anthropic(key, signal);
     case "deepseek":
       return validateKey_deepseek(key, signal);
-    case "gemini":
+    case "google":
       return validateKey_gemini(key, signal);
     case "xai":
       return validateKey_xai(key, signal);

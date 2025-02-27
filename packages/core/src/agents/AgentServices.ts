@@ -103,34 +103,21 @@ export class AgentServices {
   }
 
   private async createLanguageProvider(provider: string, model: string): Promise<LanguageProvider> {
-    switch (provider) {
-      case "openai":
-        return Lang.openai({
-          apiKey: await this.getKey(provider),
-          model: model,
-        });
-      case "groq":
-        return Lang.groq({
-          apiKey: await this.getKey(provider),
-          model: model,
-        });
-      case "anthropic":
-        return Lang.anthropic({
-          apiKey: await this.getKey(provider),
-          model: model,
-        });
-      case "ollama":
-        return Lang.ollama({
-          model: model,
-        });
-      case "deepseek":
-        return Lang.deepseek({
-          apiKey: await this.getKey(provider),
-          model: model,
-        });
-      default:
-        throw new Error("Invalid model provider: " + provider);
+    // Common configuration for API-based providers
+    const options: Record<string, any> = { model };
+    
+    // Add API key for providers that require it (all except ollama)
+    if (provider !== "ollama") {
+      options.apiKey = await this.getKey(provider);
     }
+    
+    // Check if the provider method exists on Lang
+    if (typeof Lang[provider as keyof typeof Lang] === 'function') {
+      // Dynamically call the provider method with the options
+      return Lang[provider as keyof typeof Lang](options);
+    }
+    
+    throw new Error(`Invalid model provider: ${provider}`);
   }
 
   async getKey(provider: string): Promise<string> {
@@ -165,7 +152,7 @@ export class AgentServices {
     
     if (configuredProviders.length > 0) {
       // Prioritize certain providers
-      const providerOrder = ["openai", "anthropic", "deepseek", "groq", "ollama"];
+      const providerOrder = ["openai", "anthropic", "google", "xai", "deepseek", "groq", "mistral", "ollama"];
       const sortedProviders = configuredProviders.sort((a, b) => {
         const indexA = providerOrder.indexOf(a);
         const indexB = providerOrder.indexOf(b);

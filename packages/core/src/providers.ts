@@ -38,7 +38,7 @@ export const providers: ModelProvider[] = [
     name: "Google Gemini",
     access: "cloud",
     url: "https://gemini.google.com/",
-    logoUrl: "/providers/gemini.png",
+    logoUrl: "/providers/google.png",
     defaultModel: "gemini-2.0-flash"
   },
   {
@@ -56,6 +56,14 @@ export const providers: ModelProvider[] = [
     url: "https://cohere.com/",
     logoUrl: "/providers/cohere.png",
     defaultModel: "command-r-plus"
+  },
+  {
+    id: "mistral",
+    name: "Mistral",
+    access: "cloud",
+    url: "https://mistral.ai/",
+    logoUrl: "/providers/mistral.png",
+    defaultModel: "mistral-large-latest"
   },
   {
     id: "ollama",
