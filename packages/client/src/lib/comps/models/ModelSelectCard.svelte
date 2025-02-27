@@ -20,16 +20,31 @@
   let prevSelectedModelId: string | null = null;
   let models = $state<string[]>([]);
   let showModels = $state(false);
+  
+  // Check if this is a custom provider
+  const isCustomProvider = $derived(provider.isCustom === true);
+  // For custom providers, get the model ID from the config
+  const customModelId = $derived(isCustomProvider && 'modelId' in config ? config.modelId as string : null);
 
   onMount(async () => {
-    models = await getProviderModels(
-      provider.id,
-      config.type !== "cloud" ? "" : config.apiKey,
-    );
+    // Only fetch models for non-custom providers
+    if (!isCustomProvider) {
+      models = await getProviderModels(
+        provider.id,
+        config.type !== "cloud" ? "" : config.apiKey,
+      );
+    }
   });
 
   function onProviderClick() {
     if (selected) {
+      return;
+    }
+
+    if (isCustomProvider && customModelId) {
+      // For custom providers, use the model ID from the config
+      modelId = customModelId;
+      onSelect(provider.id, modelId);
       return;
     }
 
@@ -79,13 +94,17 @@
       <span class="font-semibold">
         {provider.name}
       </span>
-      {#if selected && !showModels && modelId && modelId !== provider.defaultModel}
+      {#if isCustomProvider && customModelId}
+        <span class="font-semibold">
+          — {customModelId}&nbsp;
+        </span>
+      {:else if selected && !showModels && modelId && modelId !== provider.defaultModel}
         <span class="font-semibold">
           — {modelId}&nbsp;
         </span>
       {/if}
     </div>
-    {#if selected}
+    {#if selected && !isCustomProvider}
       {#if !showModels}
         <button
           class="btn btn-sm preset-outlined-surface-500"
@@ -103,7 +122,7 @@
     {/if}
   </div>
   <div>
-    {#if selected}
+    {#if selected && !isCustomProvider}
       {#if showModels}
         <div class="p-4 space-y-4">
           <select

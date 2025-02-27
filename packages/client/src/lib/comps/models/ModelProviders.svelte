@@ -1,12 +1,17 @@
 <script lang="ts">
   import type { ModelProvider } from "@core/models";
   import ModelProviderCard from "./ModelProviderCard.svelte";
-  import { XCircle } from "lucide-svelte/icons";
+  import CustomProviderCard from "./CustomProviderCard.svelte";
+  import AddCustomProviderCard from "./AddCustomProviderCard.svelte";
+  import { XCircle } from "lucide-svelte";
   import Link from "../basic/Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import { providers } from "@core/providers";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { getActiveProviders } from "@core/customProviders";
 
   let showHowForProvider: ModelProvider | null = $state(null);
+  let customProviders = $state<ModelProvider[]>([]);
 
   let {
     onConnect,
@@ -19,14 +24,54 @@
   function onHow(provider: ModelProvider) {
     showHowForProvider = provider;
   }
+  
+  function refreshCustomProviders() {
+    if (!$currentSpaceStore) return;
+    
+    const customConfigs = $currentSpaceStore.getCustomProviders();
+    // Get all active providers (built-in + custom)
+    const allProviders = getActiveProviders(customConfigs);
+    // Filter to just the custom ones
+    customProviders = allProviders.filter(p => p.isCustom);
+  }
+  
+  // Load custom providers on mount and when space changes
+  $effect(() => {
+    if ($currentSpaceStore) {
+      refreshCustomProviders();
+    }
+  });
+  
+  function handleCustomProviderAdded() {
+    refreshCustomProviders();
+  }
+  
+  function handleCustomProviderDeleted() {
+    refreshCustomProviders();
+  }
 </script>
 
 <div class="relative">
-  <div class="grid grid-cols-2 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Built-in providers -->
     {#each providers as provider (provider.id)}
       <ModelProviderCard {provider} {onConnect} {onDisconnect} {onHow} />
     {/each}
+    
+    <!-- Custom providers -->
+    {#each customProviders as provider (provider.id)}
+      <CustomProviderCard 
+        {provider} 
+        {onConnect} 
+        {onDisconnect} 
+        onDeleted={handleCustomProviderDeleted} 
+      />
+    {/each}
+    
+    <!-- Add custom provider card -->
+    <AddCustomProviderCard onProviderAdded={handleCustomProviderAdded} />
   </div>
+  
   {#if showHowForProvider}
     <div
       class="absolute card preset-filled-surface-100-900 border-[1px] border-surface-200-800 shadow-lg w-full h-full top-0 left-0 overflow-hidden z-50"

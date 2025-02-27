@@ -1,4 +1,5 @@
 import { Lang } from 'aiwrapper';
+import type { CustomProviderConfig } from '../models';
 
 export function getProviderModels(
   provider: string,
@@ -28,6 +29,21 @@ export function getProviderModels(
       console.warn(`Error getting models from provider ${provider}:`, error);
       // Continue to fallback implementation
     }
+  }
+  
+  // Custom provider (starts with custom-)
+  if (provider.startsWith('custom-')) {
+    // For custom providers, we check if we have the config object
+    if (typeof key === 'object' && key !== null && 'baseApiUrl' in key) {
+      const config = key as CustomProviderConfig;
+      return getProviderModels_customOpenAI(config.baseApiUrl, config.apiKey, signal);
+    }
+    // If no config is provided but we have a key string, use default OpenAI-like endpoints
+    else if (typeof key === 'string' && key) {
+      return Promise.resolve([key]); // Just return the model ID from the config
+    }
+    // No key or config provided
+    return Promise.resolve([]);
   }
   
   // Legacy implementation as fallback
@@ -157,4 +173,13 @@ async function getProviderModels_deepseek(key: string, signal?: AbortSignal): Pr
     }
     return [];
   }
+}
+
+// For custom OpenAI-like providers
+function getProviderModels_customOpenAI(
+  baseUrl: string, 
+  key: string, 
+  signal?: AbortSignal
+): Promise<string[]> {
+  return getProviderModels_openaiLikeApi(baseUrl, key, signal);
 }

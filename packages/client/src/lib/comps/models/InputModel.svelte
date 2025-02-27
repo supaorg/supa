@@ -5,6 +5,8 @@
   import { providers } from "@core/providers";
   import { Modal } from "@skeletonlabs/skeleton-svelte";
   import SelectModelPopup from "../popups/SelectModelPopup.svelte";
+  import { getActiveProviders } from "@core/customProviders";
+  import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
   let { value = $bindable(), required }: { value: string; required?: boolean } =
     $props();
@@ -20,6 +22,17 @@
   let model = $state("");
   let provider = $state<ModelProvider | null>(null);
   let error = $state("");
+  let allProviders = $state<ModelProvider[]>([]);
+
+  // Load all providers including custom ones
+  $effect(() => {
+    if ($currentSpaceStore) {
+      const customProviders = $currentSpaceStore.getCustomProviders() || [];
+      allProviders = getActiveProviders(customProviders);
+    } else {
+      allProviders = [...providers];
+    }
+  });
 
   function validate() {
     if (required && !value) {
@@ -28,13 +41,27 @@
       return;
     }
 
-    if (
-      value &&
-      !value.startsWith("auto") &&
-      (!providerId || !model || value.split("/").length !== 2)
-    ) {
-      error = "Invalid model: " + value;
-      inputElement.setCustomValidity("Invalid model: " + value);
+    // Special case for auto
+    if (value && value.startsWith("auto")) {
+      error = "";
+      inputElement.setCustomValidity("");
+      return;
+    }
+    
+    // Get the provider ID (everything before the first slash)
+    const firstSlashIndex = value.indexOf('/');
+    if (firstSlashIndex === -1) {
+      error = "Invalid model format: " + value;
+      inputElement.setCustomValidity("Invalid model format: " + value);
+      return;
+    }
+    
+    const provId = value.substring(0, firstSlashIndex);
+    
+    // Check if provider exists
+    if (!provId || !allProviders.some(p => p.id === provId)) {
+      error = "Unknown provider: " + provId;
+      inputElement.setCustomValidity("Unknown provider: " + provId);
       return;
     }
 
@@ -59,9 +86,17 @@
       return;
     }
 
-    const parts = value.split("/");
-    providerId = parts[0] || "";
-    model = parts[1] || "";
+    // Get the provider ID (everything before the first slash)
+    const firstSlashIndex = value.indexOf('/');
+    if (firstSlashIndex !== -1) {
+      providerId = value.substring(0, firstSlashIndex);
+      // Everything after the first slash is the model ID
+      model = value.substring(firstSlashIndex + 1);
+    } else {
+      // If no slash found, assume auto
+      providerId = "auto";
+      model = "";
+    }
 
     if (providerId === "auto") {
       provider = null;
@@ -71,7 +106,8 @@
       return;
     }
 
-    provider = providers.find((p) => p.id === providerId) ?? null;
+    // Find provider in all providers including custom ones
+    provider = allProviders.find(p => p.id === providerId) ?? null;
     validate();
   }
 </script>

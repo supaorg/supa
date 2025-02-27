@@ -111,6 +111,22 @@ export class AgentServices {
       options.apiKey = await this.getKey(provider);
     }
     
+    // Handle custom OpenAI-like providers
+    if (provider.startsWith('custom-')) {
+      const config = this.space.getModelProviderConfig(provider);
+      if (!config || !('baseApiUrl' in config)) {
+        throw new Error(`Invalid custom provider configuration for: ${provider}`);
+      }
+      
+      // Create a custom OpenAI-like provider
+      return Lang.openaiLike({
+        apiKey: options.apiKey,
+        model: model,
+        baseURL: config.baseApiUrl as string,
+        headers: ('customHeaders' in config) ? config.customHeaders as Record<string, string> : undefined
+      });
+    }
+    
     // Check if the provider method exists on Lang
     if (typeof Lang[provider as keyof typeof Lang] === 'function') {
       // Dynamically call the provider method with the options
@@ -148,12 +164,16 @@ export class AgentServices {
     // Filter to providers that are configured in the space
     const configuredProviders = providerConfigs
       .map(config => config.id)
-      .filter(id => availableProviders.includes(id));
+      .filter(id => availableProviders.includes(id) || id.startsWith('custom-'));
     
     if (configuredProviders.length > 0) {
       // Prioritize certain providers
       const providerOrder = ["openai", "anthropic", "google", "xai", "deepseek", "groq", "mistral", "ollama"];
       const sortedProviders = configuredProviders.sort((a, b) => {
+        // Custom providers get lower priority than built-in ones
+        if (a.startsWith('custom-') && !b.startsWith('custom-')) return 1;
+        if (!a.startsWith('custom-') && b.startsWith('custom-')) return -1;
+        
         const indexA = providerOrder.indexOf(a);
         const indexB = providerOrder.indexOf(b);
         return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
@@ -162,6 +182,18 @@ export class AgentServices {
       for (const provider of sortedProviders) {
         if (provider === "ollama" || provider === "local") {
           continue; // Skip local providers in this path
+        }
+        
+        // Handle custom providers (they don't have models in Lang.models)
+        if (provider.startsWith('custom-')) {
+          const config = this.space.getModelProviderConfig(provider);
+          if (config && 'modelId' in config) {
+            return {
+              provider,
+              model: config.modelId as string
+            };
+          }
+          continue;
         }
         
         const models = safeGetModelsFromProvider(provider);
@@ -176,6 +208,18 @@ export class AgentServices {
     
     // Legacy implementation as fallback
     const providerOrder = ["openai", "anthropic", "deepseek", "groq", "ollama"];
+    
+    // Check custom providers first before trying the static providers
+    const customProviders = providerConfigs.filter(config => config.id.startsWith('custom-'));
+    for (const config of customProviders) {
+      if ('modelId' in config) {
+        return {
+          provider: config.id,
+          model: config.modelId as string
+        };
+      }
+    }
+    
     for (const provider of providerOrder) {
       const providerConfig = providerConfigs.find((p) => p.id === provider);
       if (providerConfig) {

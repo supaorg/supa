@@ -54,6 +54,8 @@ export type ModelProvider = {
   url: string;
   logoUrl: string;
   defaultModel?: string;
+  isCustom?: boolean;
+  baseApiUrl?: string; // For custom OpenAI-compatible providers
 };
 
 export type ModelProviderAccessType = "cloud" | "local";
@@ -69,5 +71,12 @@ export type ModelProviderLocalConfig = {
   type: "local";
   apiUrl: string;
 }
+
+export type CustomProviderConfig = ModelProviderCloudConfig & {
+  name: string;
+  baseApiUrl: string;
+  modelId: string; // Required model ID for this provider
+  customHeaders?: Record<string, string>;
+};
 
 export type ModelProviderConfig = ModelProviderCloudConfig | ModelProviderLocalConfig;
