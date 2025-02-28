@@ -7,6 +7,7 @@
   import SelectModelPopup from "../popups/SelectModelPopup.svelte";
   import { getActiveProviders } from "@core/customProviders";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { splitModelString, isValidModelString, getProviderId, getModelId } from "@core/utils/modelUtils";
 
   let { value = $bindable(), required }: { value: string; required?: boolean } =
     $props();
@@ -48,17 +49,15 @@
       return;
     }
     
-    // Get the provider ID (everything before the first slash)
-    const firstSlashIndex = value.indexOf('/');
-    if (firstSlashIndex === -1) {
+    // Check if it's a valid format
+    if (!isValidModelString(value)) {
       error = "Invalid model format: " + value;
       inputElement.setCustomValidity("Invalid model format: " + value);
       return;
     }
     
-    const provId = value.substring(0, firstSlashIndex);
-    
-    // Check if provider exists
+    // Get provider ID and check if it exists
+    const provId = getProviderId(value);
     if (!provId || !allProviders.some(p => p.id === provId)) {
       error = "Unknown provider: " + provId;
       inputElement.setCustomValidity("Unknown provider: " + provId);
@@ -86,14 +85,13 @@
       return;
     }
 
-    // Get the provider ID (everything before the first slash)
-    const firstSlashIndex = value.indexOf('/');
-    if (firstSlashIndex !== -1) {
-      providerId = value.substring(0, firstSlashIndex);
-      // Everything after the first slash is the model ID
-      model = value.substring(firstSlashIndex + 1);
+    // Parse the model string
+    const modelParts = splitModelString(value);
+    if (modelParts) {
+      providerId = modelParts.providerId;
+      model = modelParts.modelId;
     } else {
-      // If no slash found, assume auto
+      // If invalid format, assume auto
       providerId = "auto";
       model = "";
     }

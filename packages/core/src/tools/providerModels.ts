@@ -36,6 +36,11 @@ export function getProviderModels(
     // For custom providers, we check if we have the config object
     if (typeof key === 'object' && key !== null && 'baseApiUrl' in key) {
       const config = key as CustomProviderConfig;
+      // If we have a model ID already set in the config, prioritize that
+      if (config.modelId) {
+        return Promise.resolve([config.modelId]); // Return the configured model ID
+      }
+      // Otherwise, try to fetch models from the API
       return getProviderModels_customOpenAI(config.baseApiUrl, config.apiKey, signal);
     }
     // If no config is provided but we have a key string, use default OpenAI-like endpoints

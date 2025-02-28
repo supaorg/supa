@@ -6,6 +6,7 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { providers } from "@core/providers";
   import { getActiveProviders } from "@core/customProviders";
+  import { splitModelString, combineModelString } from "@core/utils/modelUtils";
 
   let {
     selectedModel,
@@ -58,18 +59,18 @@
     console.log("setupProviders", setupProviders);
 
     if (selectedModel) {
-      // For selected model, just use the first slash to split provider and model
-      const firstSlashIndex = selectedModel.indexOf('/');
-      if (firstSlashIndex !== -1) {
-        const providerId = selectedModel.substring(0, firstSlashIndex);
-        const model = selectedModel.substring(firstSlashIndex + 1);
-        selectedPair = { providerId, model };
+      const modelParts = splitModelString(selectedModel);
+      if (modelParts) {
+        selectedPair = { 
+          providerId: modelParts.providerId, 
+          model: modelParts.modelId 
+        };
       }
     }
   });
 
   function getPairString(pair: SelectedPair) {
-    return pair.providerId + "/" + pair.model;
+    return combineModelString(pair.providerId, pair.model);
   }
 
   function onSelect(providerId: string, model: string) {

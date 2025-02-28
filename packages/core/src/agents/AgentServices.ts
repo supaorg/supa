@@ -2,6 +2,7 @@ import { Lang, LanguageProvider } from 'aiwrapper';
 import { providers } from "../providers.ts";
 import Space from '../spaces/Space.ts';
 import { getProviderModels } from '../tools/providerModels.ts';
+import { splitModelString } from '../utils/modelUtils.ts';
 
 // Helper function to safely check if Lang.models is available and working
 function isLangModelsAvailable(): boolean {
@@ -50,15 +51,15 @@ export class AgentServices {
     let modelName: string;
 
     // When a model is specified, split it into provider and model name
-    // e.g model = openai/o3 or ollama/auto
+    // e.g model = openai/o3 or ollama/auto or custom-uuid/openai/gpt-4
     if (model && !model.startsWith("auto")) {
-      const modelSplit = model.split("/");
-      if (modelSplit.length !== 2) {
+      const modelParts = splitModelString(model);
+      if (!modelParts) {
         throw new Error("Invalid model name");
       }
-
-      modelProvider = modelSplit[0];
-      modelName = modelSplit[1];
+      
+      modelProvider = modelParts.providerId;
+      modelName = modelParts.modelId;
 
       // If the provider is set but the model is "auto", find a model within the provider
       // e.g model = ollama/auto
