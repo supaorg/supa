@@ -6,21 +6,15 @@ export function getProviderModels(
   key: string,
   signal?: AbortSignal,
 ): Promise<string[]> {
-  console.log('models for ' + provider);
+  console.log('Get models for ' + provider);
   
   // For cloud providers, try to use Lang.models if available
   if (provider !== "ollama") {
     try {
-      // Check if Lang.models is available
-      if (!Lang.models) {
-        throw new Error("Lang.models is not available");
-      } else {
-        console.log(Lang.models);
-      }
-
       const models = Lang.models.fromProvider(provider);
 
-      console.log('found models for ' + provider + ", " + models);
+      console.log('Found models for ' + provider);
+      console.log(models);
       
       if (models && models.length > 0) {
         return Promise.resolve(models.map(model => model.id));
