@@ -34,18 +34,6 @@
     }
   });
 
-  // Debug console logs
-  $effect(() => {
-    if (message?.role === "assistant") {
-      console.log("Message received in UI:", messageId);
-      console.log("Raw message object:", message);
-      console.log("Thinking property value:", message.thinking);
-      console.log("Thinking property type:", typeof message.thinking);
-      console.log("Thinking property length:", message.thinking ? message.thinking.length : 0);
-      console.log("Has thinking:", hasThinking);
-    }
-  });
-
   onMount(() => {
     const unobserve = data.observeMessage(messageId, (msg) => {
       message = msg;
@@ -117,17 +105,20 @@
             {#if hasThinking}
               <div class="mb-3 mt-1">
                 <button 
-                  class="flex items-center gap-1 py-0.5 text-sm text-surface-500-500-token hover:text-surface-700-300-token group"
+                  class="flex items-center gap-1 py-0.5 text-surface-500-500-token hover:text-surface-700-300-token group"
                   onclick={() => isThinkingExpanded = !isThinkingExpanded}
                 >
-                  <span class="opacity-70 group-hover:opacity-100">Thoughts{thinkingIndicator}</span>
+                  <span class="opacity-70 group-hover:opacity-100">
+                    {#if isAIGenerating}
+                      <span class="animate-pulse">Thinking...</span>
+                    {:else}
+                      Thoughts
+                    {/if}
+                  </span>
                   {#if isThinkingExpanded}
                     <ChevronDown size={12} class="opacity-70 group-hover:opacity-100" />
                   {:else}
                     <ChevronRight size={12} class="opacity-70 group-hover:opacity-100" />
-                  {/if}
-                  {#if isAIGenerating}
-                    <span class="inline-block w-1 h-1 bg-primary-500/70 rounded-full animate-pulse ml-1"></span>
                   {/if}
                 </button>
                 {#if isThinkingExpanded}
