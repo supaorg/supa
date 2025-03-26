@@ -53,9 +53,31 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
           return;
         }
 
-        onStream?.(res.answer);
+        console.log("Raw LLM response:", res);
+        console.log("Has thinking property:", 'thinking' in res);
+        console.log("Thinking type:", typeof res.thinking);
+        console.log("Thinking length:", res.thinking ? res.thinking.length : 0);
+
+        console.log("Streaming response:", {
+          answer: res.answer,
+          thinking: res.thinking ? `${res.thinking.substring(0, 100)}... (${res.thinking.length} chars)` : "No thinking provided by model",
+          finished: res.finished,
+          hasThinking: !!res.thinking
+        });
+
+        onStream?.({
+          text: res.answer,
+          thinking: res.thinking
+        });
       })
         .then((res) => {
+          console.log("Final response:", {
+            answer: res.answer.substring(0, 100) + "...",
+            thinking: res.thinking ? `${res.thinking.substring(0, 100)}... (${res.thinking.length} chars)` : "No thinking provided by model",
+            finished: res.finished,
+            hasThinking: !!res.thinking
+          });
+          
           resolve(res);
         })
         .catch(reject);
@@ -64,7 +86,10 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
     const promptEndPerf = performance.now();
     console.log(`Prompt took ${promptEndPerf - promptStartPerf} milliseconds`);
 
-    return finalResult.answer;
+    return {
+      text: finalResult.answer,
+      thinking: finalResult.thinking
+    };
   }
 
   stop(): void {

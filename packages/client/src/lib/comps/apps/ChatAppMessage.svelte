@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { User, Sparkles, CircleAlert } from "lucide-svelte";
+  import { User, Sparkles, CircleAlert, ChevronDown, ChevronRight } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
   import { onMount } from "svelte";
@@ -13,6 +13,10 @@
   let canRetry = $state(false);
   let isLast = $state(false);
   let configName = $state<string | undefined>(undefined);
+  let isThinkingExpanded = $state(false);
+  let hasThinking = $derived(!!message?.thinking && typeof message.thinking === 'string' && message.thinking.trim().length > 0);
+  let isAIGenerating = $derived(!!message?.inProgress && message?.role === "assistant");
+  let thinkingIndicator = $derived(isAIGenerating ? " ..." : "");
 
   // Effect to update config name if config still exists
   $effect(() => {
@@ -27,6 +31,18 @@
       }
       // If config doesn't exist anymore, use the saved name
       configName = data.getMessageProperty(messageId, "configName");
+    }
+  });
+
+  // Debug console logs
+  $effect(() => {
+    if (message?.role === "assistant") {
+      console.log("Message received in UI:", messageId);
+      console.log("Raw message object:", message);
+      console.log("Thinking property value:", message.thinking);
+      console.log("Thinking property type:", typeof message.thinking);
+      console.log("Thinking property length:", message.thinking ? message.thinking.length : 0);
+      console.log("Has thinking:", hasThinking);
     }
   });
 
@@ -98,7 +114,30 @@
           {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
         {:else}
           <div class="min-w-0">
-            <Markdown source={message.text ? message.text : "Loading..."} />
+            {#if hasThinking}
+              <div class="mb-3 mt-1">
+                <button 
+                  class="flex items-center gap-1 py-0.5 text-sm text-surface-500-500-token hover:text-surface-700-300-token group"
+                  onclick={() => isThinkingExpanded = !isThinkingExpanded}
+                >
+                  <span class="opacity-70 group-hover:opacity-100">Thoughts{thinkingIndicator}</span>
+                  {#if isThinkingExpanded}
+                    <ChevronDown size={12} class="opacity-70 group-hover:opacity-100" />
+                  {:else}
+                    <ChevronRight size={12} class="opacity-70 group-hover:opacity-100" />
+                  {/if}
+                  {#if isAIGenerating}
+                    <span class="inline-block w-1 h-1 bg-primary-500/70 rounded-full animate-pulse ml-1"></span>
+                  {/if}
+                </button>
+                {#if isThinkingExpanded}
+                  <div class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50">
+                    <Markdown source={message.thinking || "..."} />
+                  </div>
+                {/if}
+              </div>
+            {/if}
+            <Markdown source={message.text ? message.text : ""} />
           </div>
         {/if}
 

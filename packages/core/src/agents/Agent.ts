@@ -1,6 +1,10 @@
 import { AgentServices } from "./AgentServices.ts";
 
-export type AgentOutput = string | object;
+export interface AgentOutput {
+  text: string;
+  thinking?: string;
+  // Add more properties in the future as needed
+}
 
 export interface AgentConfig {
   id: string;

@@ -20,6 +20,7 @@ export type ThreadMessage = {
   id: string;
   role: string | null;
   text: string | null;
+  thinking?: string | null;
   inProgress: boolean | null;
   createdAt: number;
   updatedAt: number | null;

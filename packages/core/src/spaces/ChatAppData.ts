@@ -153,15 +153,21 @@ export class ChatAppData {
     });
   }
 
-  newMessage(role: "user" | "assistant" | "error", text: string): ThreadMessage {
+  newMessage(role: "user" | "assistant" | "error", text: string, thinking?: string): ThreadMessage {
     const lastMsgVertex = this.getLastMsgParentVertex();
 
-    const newMessageVertex = this.appTree.tree.newVertex(lastMsgVertex.id, {
+    const properties: Record<string, any> = {
       _n: "message",
       createdAt: Date.now(),
       text,
       role,
-    });
+    };
+
+    if (thinking) {
+      properties.thinking = thinking;
+    }
+
+    const newMessageVertex = this.appTree.tree.newVertex(lastMsgVertex.id, properties);
 
     const props = newMessageVertex.getProperties();
     return {
@@ -216,6 +222,7 @@ export class ChatAppData {
         id: child.id,
         role: props.role as "user" | "assistant",
         text: props.text as string,
+        thinking: props.thinking as string | null,
         createdAt: props.createdAt as number,
         inProgress: props.inProgress as boolean | null,
         updatedAt: props.updatedAt as number | null

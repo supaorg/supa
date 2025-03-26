@@ -35,7 +35,7 @@ export class ThreadTitleAgent extends Agent<AppConfigForChat> {
 
     const answer = result.answerObj as { title: string };
 
-    return answer.title;
+    return { text: answer.title };
   }
 
   stop(): void {
