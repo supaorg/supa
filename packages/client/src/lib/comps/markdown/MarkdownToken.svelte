@@ -1,4 +1,4 @@
-<script module>
+<script module lang="ts">
   import MarkdownBloquote from "./markdown-components/MarkdownBloquote.svelte";
   import MarkdownHeading from "./markdown-components/MarkdownHeading.svelte";
   import MarkdownList from "./markdown-components/MarkdownList.svelte";
