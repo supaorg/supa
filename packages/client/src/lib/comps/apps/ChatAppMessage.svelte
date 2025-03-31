@@ -16,7 +16,6 @@
   let isThinkingExpanded = $state(false);
   let hasThinking = $derived(!!message?.thinking && typeof message.thinking === 'string' && message.thinking.trim().length > 0);
   let isAIGenerating = $derived(!!message?.inProgress && message?.role === "assistant");
-  let thinkingIndicator = $derived(isAIGenerating ? " ..." : "");
 
   // Effect to update config name if config still exists
   $effect(() => {
@@ -103,9 +102,9 @@
         {:else}
           <div class="min-w-0">
             {#if hasThinking}
-              <div class="mb-3 mt-1">
+              <div class="mb-3">
                 <button 
-                  class="flex items-center gap-1 py-0.5 text-surface-500-500-token hover:text-surface-700-300-token group"
+                  class="flex items-center gap-1 text-surface-500-500-token hover:text-surface-700-300-token group"
                   onclick={() => isThinkingExpanded = !isThinkingExpanded}
                 >
                   <span class="opacity-70 group-hover:opacity-100">
@@ -123,7 +122,7 @@
                 </button>
                 {#if isThinkingExpanded}
                   <div class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50">
-                    <Markdown source={message.thinking || "..."} />
+                    <Markdown source={message.thinking || ""} />
                   </div>
                 {/if}
               </div>

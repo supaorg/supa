@@ -8,7 +8,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "aiwrapper": "^0.1.14"
+    "aiwrapper": "^0.1.15"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
