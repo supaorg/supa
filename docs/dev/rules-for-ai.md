@@ -15,6 +15,10 @@ Structure:
 - packages/core/src is the core functionality shared with client; in the future will be used by servers (when we create a server)
 - docs is dev and product documentation
 
+## Updating deps in npm
+Sometimes packages get cached with old versions. In that case remove the cache and `npm run dev` again.
+`rm -rf packages/client/.svelte-kit packages/client/build packages/client/node_modules packages/core/node_modules`
+
 ## Icons
 Use lucide-svelte icons, like this: 
 import { Check } from "lucide-svelte";
