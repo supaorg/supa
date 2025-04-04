@@ -62,7 +62,7 @@
 
 <Modal
   bind:open={newThreadModalIsOpen}
-  contentBase="card bg-surface-100-900 p-4 space-y-4 shadow-xl max-w-screen-sm min-w-[400px] max-h-screen overflow-y-auto"
+  contentBase="card bg-surface-100-900 p-4 space-y-4 shadow-xl max-w-screen-md min-w-[600px] max-h-screen overflow-y-auto"
   backdropClasses="backdrop-blur-sm"
   triggerBase="hidden"
 >
