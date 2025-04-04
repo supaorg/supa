@@ -100,7 +100,7 @@
         {#if message.role === "user"}
           {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
         {:else}
-          <div class="min-w-0">
+          <div class="min-w-0 chat-message">
             {#if hasThinking}
               <div class="mb-3">
                 <button 
@@ -138,3 +138,42 @@
     </div>
   </div>
 {/if}
+
+<style>
+  /* Style for headings inside chat messages */
+  .chat-message :global(h1) {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0.75rem 0;
+  }
+  
+  .chat-message :global(h2) {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin: 0.75rem 0;
+  }
+  
+  .chat-message :global(h3) {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+  }
+  
+  .chat-message :global(h4) {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+  }
+  
+  .chat-message :global(h5) {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0.5rem 0;
+  }
+  
+  .chat-message :global(h6) {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0.5rem 0;
+  }
+</style>
