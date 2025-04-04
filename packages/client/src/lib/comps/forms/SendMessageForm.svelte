@@ -72,15 +72,29 @@
     
     // Reset height to initial value to allow proper scrollHeight calculation
     textareaElement.style.height = `${TEXTAREA_BASE_HEIGHT}px`;
+    textareaElement.style.overflowY = "hidden";
     
     // Get the scroll height which represents the height needed to show all content
     const scrollHeight = textareaElement.scrollHeight;
     
-    // Only expand if content needs more space
+    // Calculate the maximum height based on maxLines
+    const lineHeight = TEXTAREA_LINE_HEIGHT * 16; // assuming 16px font size
+    const maxHeight = maxLines * lineHeight;
+    
     if (scrollHeight > TEXTAREA_BASE_HEIGHT) {
-      const lineHeight = TEXTAREA_LINE_HEIGHT * 16; // assuming 16px font size
-      const maxHeight = maxLines * lineHeight;
+      // Set the height to either the scroll height or max height, whichever is smaller
       textareaElement.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+      
+      // Only show scrollbars if content exceeds max height
+      if (scrollHeight > maxHeight) {
+        textareaElement.style.overflowY = "auto";
+      } else {
+        textareaElement.style.overflowY = "hidden";
+      }
+    } else {
+      // Set to base height and hide scrollbars if content is small
+      textareaElement.style.height = `${TEXTAREA_BASE_HEIGHT}px`;
+      textareaElement.style.overflowY = "hidden";
     }
   }
 
@@ -125,7 +139,15 @@
     }
 
     query = "";
-    adjustTextareaHeight();
+    // Force reset to base height after clearing content
+    if (textareaElement) {
+      textareaElement.style.height = `${TEXTAREA_BASE_HEIGHT}px`;
+      textareaElement.style.overflowY = "hidden"; // Reset overflow to prevent scrollbars
+      // Use timeout to ensure UI updates before recalculating
+      timeout(() => {
+        adjustTextareaHeight();
+      }, 0);
+    }
   }
 
   async function stopMsg() {
@@ -151,7 +173,7 @@
       <textarea
         bind:this={textareaElement}
         class="block w-full resize-none border-0 bg-transparent p-2 text-token-text-primary leading-normal placeholder:opacity-80 outline-none focus:ring-0"
-        style="height: {TEXTAREA_BASE_HEIGHT}px; overflow-y: auto;"
+        style="height: {TEXTAREA_BASE_HEIGHT}px; overflow-y: hidden;"
         placeholder={placeholder}
         bind:value={query}
         onkeydown={handleKeydown}
