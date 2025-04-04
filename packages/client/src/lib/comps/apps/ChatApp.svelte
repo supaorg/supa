@@ -27,7 +27,7 @@
   function isAtBottom() {
     if (!scrollableElement) return false;
 
-    const threshold = 3;
+    const threshold = 0;
     return (
       scrollableElement.scrollHeight -
         scrollableElement.scrollTop -
