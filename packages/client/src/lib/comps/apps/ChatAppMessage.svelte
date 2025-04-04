@@ -69,36 +69,35 @@
 </script>
 
 {#if message}
-  <div class="flex gap-3 px-4 py-2">
-    <div class="flex-shrink-0 mt-1">
-      <div class="w-8 h-8 rounded-full flex items-center justify-center">
-        {#if message.role === "user"}
-          <User size={18} />
-        {:else if message.role === "assistant"}
-          <Sparkles size={18} />
-        {:else}
-          <CircleAlert size={18} />
-        {/if}
-      </div>
-    </div>
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center justify-between gap-2 mt-2">
-        <div class="flex items-center gap-2">
-          {#if message.role === "user"}
-            <p class="font-bold">You</p>
-          {:else if message.role === "assistant"}
-            <p class="font-bold">{configName || "AI"}</p>
+  <div class="flex gap-3 px-4 py-2" class:justify-end={message.role === "user"}>
+    {#if message.role !== "user"}
+      <div class="flex-shrink-0 mt-1">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center">
+          {#if message.role === "assistant"}
+            <Sparkles size={18} />
           {:else}
-            <p class="font-bold">Error</p>
+            <CircleAlert size={18} />
           {/if}
         </div>
-        {#if message.role === "user"}
-          <MessageDate createdAt={message.createdAt} />
-        {/if}
       </div>
+    {/if}
+    <div class="min-w-0 max-w-[85%]" class:ml-auto={message.role === "user"}>
+      {#if message.role !== "user"}
+        <div class="flex items-center justify-between gap-2 mt-2">
+          <div class="flex items-center gap-2">
+            {#if message.role === "assistant"}
+              <p class="font-bold">{configName || "AI"}</p>
+            {:else}
+              <p class="font-bold">Error</p>
+            {/if}
+          </div>
+        </div>
+      {/if}
       <div>
         {#if message.role === "user"}
-          {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
+          <div class="p-3 rounded-lg bg-surface-500/10 dark:bg-surface-500/20">
+            {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
+          </div>
         {:else}
           <div class="min-w-0 chat-message">
             {#if hasThinking}
