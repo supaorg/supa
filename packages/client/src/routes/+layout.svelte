@@ -1,7 +1,7 @@
 <script lang="ts">
   let { children } = $props();
 
-  import "../app.postcss";
+  import "../app.css";
   import Entry from "$lib/comps/Entry.svelte";
   import App from "$lib/comps/apps/App.svelte";
 </script>

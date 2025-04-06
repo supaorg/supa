@@ -1,7 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@tailwind variants;
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton/optional/presets';
+@import '@skeletonlabs/skeleton/themes/cerberus';
+@import '@skeletonlabs/skeleton/themes/rose';
+@custom-variant dark (&:where(.dark, .dark *));
 
 html,
 body {
@@ -56,7 +60,7 @@ body {
   }
 
   code {
-    @apply font-mono rounded;
+    @apply font-mono rounded-base;
   }
 
   table {
