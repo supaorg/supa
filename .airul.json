@@ -5,7 +5,7 @@
     "README.md",
     "docs/dev/for-ai/rules.md",
     "docs/dev/for-ai/svelte.md",
-    "docs/dev/for-ai/tailwind-svelte.md",
+    "docs/dev/for-ai/skeleton.md",
     "package.json"
   ],
   "output": {
