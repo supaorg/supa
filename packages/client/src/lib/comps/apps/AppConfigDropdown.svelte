@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import type { AppConfig } from "@core/models";
-  import { Combobox } from "@skeletonlabs/skeleton-svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { txtStore } from "$lib/stores/txtStore";
@@ -9,10 +8,10 @@
   let { data }: { data: ChatAppData } = $props();
 
   let visibleAppConfigs = $state<AppConfig[]>([]);
-  let selectedConfig = $state<string[] | undefined>(undefined);
-  let comboboxData = $derived.by(() => {
+  let selectedConfig = $state<string>("");
+  let selectData = $derived.by(() => {
     return visibleAppConfigs.map((config) => ({
-      label: config.name,
+      name: config.name,
       value: config.id,
     }));
   });
@@ -23,7 +22,7 @@
     });
 
     if (data.configId) {
-      selectedConfig = [data.configId];
+      selectedConfig = data.configId;
     }
 
     return () => {
@@ -32,18 +31,20 @@
   });
 
   $effect(() => {
-    if (selectedConfig && selectedConfig.length > 0) {
-      data.configId = selectedConfig[0];
+    if (selectedConfig) {
+      data.configId = selectedConfig;
     }
   });
 </script>
 
-{#if selectedConfig}
-  <div class="w-[150px] relative z-10">
-    <Combobox
-      data={comboboxData}
-      bind:value={selectedConfig}
-      placeholder={$txtStore.appConfigDropdown.placeholder}
-    />
-  </div>
-{/if}
+<div class="w-[150px] relative z-10">
+  <select
+    class="select variant-form-material"
+    bind:value={selectedConfig}
+  >
+    <option value="" disabled selected>{$txtStore.appConfigDropdown.placeholder}</option>
+    {#each selectData as option}
+      <option value={option.value}>{option.name}</option>
+    {/each}
+  </select>
+</div>

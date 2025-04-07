@@ -91,7 +91,7 @@
     <span>{$txtStore.basics.name}</span>
     <input
       name="name"
-      class="input variant-form-material"
+      class="input"
       type="text"
       placeholder={$txtStore.appConfigPage.namePlaceholder}
       required
@@ -103,7 +103,7 @@
     <span>{$txtStore.basics.description}</span>
     <input
       name="description"
-      class="input variant-form-material"
+      class="input"
       type="text"
       placeholder={$txtStore.appConfigPage.descriptionPlaceholder}
       required
@@ -115,7 +115,7 @@
     <span>{$txtStore.basics.instructions}</span>
     <textarea
       name="instructions"
-      class="input variant-form-material"
+      class="textarea"
       rows="7"
       placeholder={$txtStore.appConfigPage.instructionsPlaceholder}
       required
@@ -127,7 +127,7 @@
     <span>{$txtStore.basics.model}</span>
     <InputModel bind:value={targetLLM} required />
   </div>
-  <button type="submit" onclick={handleSubmit} class="btn preset-filled-surface-500">
+  <button type="submit" onclick={handleSubmit} class="btn variant-filled">
     {#if isNewApp}
       {$txtStore.appConfigPage.buttonCreate}
     {:else}
