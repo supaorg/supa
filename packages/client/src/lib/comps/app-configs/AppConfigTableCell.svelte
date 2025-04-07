@@ -22,14 +22,10 @@
       $currentSpaceStore?.updateAppConfig(config.id, { visible });
     }
   }
- 
-  function closeDeletePopover() {
-    deletePopoverOpen = false;
-  }
 
   function deleteAppConfig() {
     $currentSpaceStore?.appConfigs.delete(config);
-    closeDeletePopover();
+    deletePopoverOpen = false;
   }
 </script>
 
@@ -44,7 +40,8 @@
       {#snippet trigger()}
         <Switch
           name={"visible-" + config.id}
-          bind:checked={isVisible}
+          checked={isVisible}
+          onCheckedChange={(e) => isVisible = e.checked}
         />
       {/snippet}
       {#snippet content()}
@@ -55,12 +52,15 @@
   <td>
     {#if !isDefault}
       <Popover
-        bind:open={deletePopoverOpen}
+        open={deletePopoverOpen}
+        onOpenChange={(e) => deletePopoverOpen = e.open}
         positioning={{ placement: 'left' }}
         triggerBase=""
         contentBase="card bg-surface-200-800 p-4 space-y-4 max-w-[320px]"
         arrow
         arrowBackground="!bg-surface-200 dark:!bg-surface-800"
+        closeOnInteractOutside={true}
+        closeOnEscape={true}
       >
         {#snippet trigger()}
           <Tooltip contentBase="card bg-surface-200-800 p-2">

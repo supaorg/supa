@@ -174,9 +174,12 @@
 />
 
 <Modal
-  bind:open={openState}
+  open={openState}
+  onOpenChange={(e) => openState = e.open}
   contentBase="card bg-surface-100-900 p-4 space-y-4 shadow-xl max-w-screen-sm min-w-[400px] max-h-screen overflow-y-auto"
   backdropClasses="backdrop-blur-sm"
+  closeOnInteractOutside={true}
+  closeOnEscape={true}
 >
   {#snippet content()}
     <SelectModelPopup

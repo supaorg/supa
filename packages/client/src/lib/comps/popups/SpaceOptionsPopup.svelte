@@ -11,10 +11,6 @@
   } = $props();
   let openState = $state(false);
 
-  function popoverClose() {
-    openState = false;
-  }
-
   function handleRename() {
     openState = false;
     onRename();
@@ -27,12 +23,15 @@
 </script>
 
 <Popover
-  bind:open={openState}
+  open={openState}
+  onOpenChange={(e) => openState = e.open}
   positioning={{ placement: "bottom-end" }}
   triggerBase=""
   contentBase="card bg-surface-200-800 max-w-[320px]"
   arrow
   arrowBackground="!bg-surface-200 dark:!bg-surface-800"
+  closeOnInteractOutside={true}
+  closeOnEscape={true}
 >
   {#snippet trigger()}
     <button class="btn-icon variant-soft">

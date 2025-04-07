@@ -34,12 +34,15 @@
 </script>
 
 <Popover
-  bind:open={openState}
+  open={openState}
+  onOpenChange={(e) => openState = e.open}
   positioning={{ placement: "bottom" }}
   triggerBase="flex-grow"
   contentBase="card bg-surface-200-800 p-2 space-y-4 max-w-[320px]"
   arrow
   arrowBackground="!bg-surface-200 dark:!bg-surface-800"
+  closeOnInteractOutside={true}
+  closeOnEscape={true}
 >
   {#snippet trigger()}
     <div class="flex items-center gap-2">
