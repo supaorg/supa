@@ -43,7 +43,7 @@
     <div class="">
       <button class="btn preset-filled-surface-500 w-full" onclick={handleRename}>Rename</button>
       <!--<button class="btn preset-filled-surface-500 w-full">Reveal in Finder</button>-->
-      <button class="btn variant-filled-error w-full" onclick={handleRemove}>Remove from List</button>
+      <button class="btn preset-filled-error w-full" onclick={handleRemove}>Remove from List</button>
     </div>
   {/snippet}
 </Popover>

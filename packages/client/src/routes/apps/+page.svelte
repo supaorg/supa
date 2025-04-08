@@ -45,7 +45,7 @@
       </tbody>
     </table>
 
-    <a href="/apps/new-config" class="btn mt-2 preset-outlined-primary-500"
+    <a href="/apps/new-config" class="btn mt-2 preset-filled-primary-500"
       >{$txtStore.appPage.buttonNewConfig}</a
     >
   </div>

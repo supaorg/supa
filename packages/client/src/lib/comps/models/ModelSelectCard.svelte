@@ -83,7 +83,7 @@
   <div
     role="button"
     tabindex="0"
-    class="flex p-4 gap-4 items-center cursor-pointer w-full"
+    class="flex p-2 gap-4 items-center cursor-pointer w-full"
     onclick={onProviderClick}
     onkeydown={(e) => e.key === "Enter" && onProviderClick()}
   >
@@ -124,7 +124,7 @@
   <div>
     {#if selected && !isCustomProvider}
       {#if showModels}
-        <div class="p-4 space-y-4">
+        <div class="p-2 space-y-4">
           <select
             class="select rounded-container"
             size={provider.defaultModel ? models.length : models.length + 1}

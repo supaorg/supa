@@ -67,7 +67,7 @@
   {#each trees as tree (tree.peerId)}
     <TreeTestSync {tree} onDuplicate={handleDuplicate} onDelete={handleDelete} />
   {/each}
-  <button on:click={syncTrees} type="button" class="btn variant-filled-primary"
+  <button on:click={syncTrees} type="button" class="btn preset-filled-primary"
     >Sync Trees</button
   >
 </div>

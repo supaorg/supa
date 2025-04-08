@@ -25,7 +25,7 @@
     : 'border border-surface-500'}"
 >
   <button
-    class="flex p-4 gap-4 items-center cursor-pointer w-full"
+    class="flex p-2 gap-4 items-center cursor-pointer w-full"
     on:click={onProviderClick}
   >
     <div class="w-8 h-8 flex items-center justify-center rounded">
