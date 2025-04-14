@@ -3,7 +3,6 @@
 
   import "../app.css";
   import Entry from "$lib/comps/Entry.svelte";
-  import App from "$lib/comps/apps/App.svelte";
 </script>
 
 <svelte:head>
@@ -12,7 +11,5 @@
 </svelte:head>
 
 <Entry>
-  <App>
-    {@render children?.()}
-  </App>
+  {@render children?.()}
 </Entry>

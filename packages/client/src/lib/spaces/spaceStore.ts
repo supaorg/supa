@@ -125,7 +125,7 @@ export function addLocalSpace(space: Space, path: string) {
   const pointer: SpacePointer = {
     id: space.getId(),
     uri: path,
-    name: space.name,
+    name: space.name || null,
     createdAt: space.createdAt,
   }
 
