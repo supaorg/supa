@@ -1,0 +1,3 @@
+[submodule "packages/ttabs"]
+	path = packages/ttabs
+	url = https://github.com/mitkury/ttabs.git
