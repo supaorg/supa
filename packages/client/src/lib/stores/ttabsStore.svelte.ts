@@ -10,10 +10,10 @@ export const ttabs = createTtabs({
   }
 });
 
-let mainColumnId: string | undefined;
-
 ttabs.registerComponent('sidebar', Sidebar);
 ttabs.registerComponent('chat', ChatAppLoader);
+
+let contentGrid: string | undefined;
 
 function setupTtabs() {
   ttabs.resetState();
@@ -23,8 +23,12 @@ function setupTtabs() {
   const sidebarColumn = ttabs.addColumn(row, 20); // allow to add with in pixels "200px"
   ttabs.setComponent(sidebarColumn, 'sidebar'); // should I have the same function for tabs and columns?
 
-  mainColumnId = ttabs.addColumn(row, 80);
-  const panel = ttabs.addPanel(mainColumnId);
+  const parentColumn = ttabs.addColumn(row, 80);
+  contentGrid = ttabs.addGrid(parentColumn);
+  ttabs.updateTile(contentGrid, { dontClean: true });
+  const newRow = ttabs.addRow(contentGrid, 100);
+  const newColumn = ttabs.addColumn(newRow, 100);
+  const panel = ttabs.addPanel(newColumn);
   const tab = ttabs.addTab(panel, "New Tab");
   const tab2 = ttabs.addTab(panel, "New Tab 2");
 
@@ -32,9 +36,8 @@ function setupTtabs() {
 }
 
 export function openChatTab(treeId: string, name: string) {
-  const mainColumn = ttabs.getColumn(mainColumnId!);
-  const panel = ttabs.getPanel(mainColumn.child);
-  const tab = ttabs.addTab(panel.id, name);
+  const grid = ttabs.getGrid(contentGrid!);
+  const tab = ttabs.addTab(grid.id, name);
   ttabs.setComponent(tab, 'chat', { treeId });
   ttabs.setFocusedActiveTab(tab);
 }
