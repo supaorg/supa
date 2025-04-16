@@ -26,8 +26,7 @@
     "katex": "^0.16.21",
     "lucide-svelte": "^0.453.0",
     "marked": "^15.0.6",
-    "svelte-persisted-store": "^0.12.0",
-    "ttabs-svelte": "file:../ttabs/packages/ttabs"
+    "svelte-persisted-store": "^0.12.0"
   },
   "devDependencies": {
     "@skeletonlabs/skeleton": "^3.1.2",

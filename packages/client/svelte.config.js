@@ -11,6 +11,7 @@ const config = {
     adapter: adapter(),
     alias: {
       "@core": "../core/src",
+      "ttabs-svelte": "../ttabs/packages/ttabs/src/lib",
     },
   },
 };
