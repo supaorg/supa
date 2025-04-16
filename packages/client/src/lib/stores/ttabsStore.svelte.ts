@@ -2,8 +2,13 @@ import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
 import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
 import { currentSpaceIdStore } from "$lib/spaces/spaceStore";
 import { createTtabs } from "ttabs-svelte";
+import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
 
-export const ttabs = createTtabs();
+export const ttabs = createTtabs({
+  theme: {
+    ...SKELETON_THEME
+  }
+});
 
 let mainColumnId: string | undefined;
 
