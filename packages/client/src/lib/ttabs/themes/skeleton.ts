@@ -13,7 +13,7 @@ export const SKELETON_THEME: TtabsTheme = {
     '--ttabs-active-tab-bg': 'var(--color-surface-50-950)',
     '--ttabs-active-tab-indicator': 'var(--color-primary-500)',
     '--ttabs-grid-bg': 'var(--color-surface-200-800)',
-    '--ttabs-grid-border': 'var(--default-border-width, 1px) solid var(--color-surface-300-700)',
+    '--ttabs-grid-border': 'none',
     '--ttabs-column-border': 'var(--default-border-width, 1px) solid var(--color-surface-300-700)',
     
     // Text colors
