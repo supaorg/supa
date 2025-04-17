@@ -3,18 +3,49 @@
   import type { VertexChangeEvent } from "@core/replicatedTree/treeTypes";
   import { onMount } from "svelte";
   import AppTreeOptionsPopup from "../popups/AppTreeOptionsPopup.svelte";
-  import { page } from "$app/state";
-  import { openChatTab } from "$lib/stores/ttabsStore.svelte";
+  import { openChatTab, ttabs } from "$lib/stores/ttabsStore.svelte";
 
-  let { id }: { id: string; } = $props();
+  let { id }: { id: string } = $props();
 
   let appTreeId = $state<string | undefined>(undefined);
   let name = $state<string | undefined>(undefined);
 
+  // Track if this vertex item has an open tab
   let isOpen = $derived.by(() => {
-    const openTreeId = page.url.searchParams.get("t");
-    return openTreeId === appTreeId;
+    // A little hack to force the effect to run when ttabs changes
+    const _ = ttabs.tiles;
+    if (!appTreeId) return false;
+
+    const tabId = findTabByTreeId(appTreeId);
+
+    return tabId !== undefined;
   });
+
+  let isActive = $derived.by(() => {
+    if (!isOpen || !ttabs.focusedActiveTab) return false;
+
+    const tabId = findTabByTreeId(appTreeId!);
+    return tabId === ttabs.focusedActiveTab;
+  });
+
+  // @TODO: consider having an array of open tabs in ttabs so it's cheaper to check
+  // Find a tab with a specific treeId
+  function findTabByTreeId(treeId: string): string | undefined {
+    // Search through all tab tiles
+    for (const tileId in ttabs.tiles) {
+      const tile = ttabs.tiles[tileId];
+      if (tile.type === "tab") {
+        const content = ttabs.getTabContent(tile.id);
+        if (
+          content?.componentId === "chat" &&
+          content?.data?.componentProps?.treeId === treeId
+        ) {
+          return tile.id;
+        }
+      }
+    }
+    return undefined;
+  }
 
   onMount(() => {
     const vertex = $currentSpaceStore?.getVertex(id);
@@ -45,17 +76,16 @@
 
 {#if appTreeId}
   <span
-    class={`flex rounded ${isOpen ? "bg-surface-100-900" : "hover:bg-surface-100-900"}`}
+    class={`flex rounded 
+      ${isOpen && !isActive ? "bg-surface-100-900" : ""} 
+      ${isActive ? "bg-primary-100-900" : ""} 
+      ${!isOpen ? "hover:bg-surface-100-900" : ""}`}
   >
-    <button 
-      class="flex-grow py-2 px-2 truncate text-left" 
-      onclick={openChat}
-    >
+    <button class="flex-grow py-2 px-2 truncate text-left" onclick={openChat}>
       <span>{name ?? "New conversation"}</span>
     </button>
-    {#if isOpen}
+    {#if isActive}
       <AppTreeOptionsPopup {appTreeId} />
     {/if}
   </span>
 {/if}
-
