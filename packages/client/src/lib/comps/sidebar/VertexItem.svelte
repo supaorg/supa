@@ -64,6 +64,14 @@
     if (events.some((e) => e.type === "property")) {
       const vertex = $currentSpaceStore?.getVertex(id);
       name = vertex?.getProperty("_n") as string | undefined;
+      
+      // Update any open tab for this conversation with the new name
+      if (appTreeId) {
+        const tabId = findTabByTreeId(appTreeId);
+        if (tabId) {
+          ttabs.updateTile(tabId, { name: name ?? "New chat" });
+        }
+      }
     }
   }
 
