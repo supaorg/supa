@@ -29,15 +29,30 @@ function setupTtabs() {
   const newRow = ttabs.addRow(contentGrid, 100);
   const newColumn = ttabs.addColumn(newRow, 100);
   const panel = ttabs.addPanel(newColumn);
-  const tab = ttabs.addTab(panel, "New Tab");
-  const tab2 = ttabs.addTab(panel, "New Tab 2");
-
-  ttabs.setFocusedActiveTab(tab);
 }
 
 export function openChatTab(treeId: string, name: string) {
   const grid = ttabs.getGrid(contentGrid!);
-  const tab = ttabs.addTab(grid.id, name);
+  let tab: string;
+
+  // Check for a lazy tab and if it exists, update it, otherwise add a new one
+  const lazyTabs = ttabs.getLazyTabs(grid.id);
+  
+  if (lazyTabs.length > 0) {
+    // Reuse the first lazy tab we found
+    const lazyTab = lazyTabs[0];
+    tab = lazyTab.id;
+    
+    // Update the tab name
+    ttabs.updateTile(tab, { 
+      name
+    });
+  } else {
+    // No lazy tabs found, create a new one
+    tab = ttabs.addTab(grid.id, name, true, true);
+  }
+  
+  // Set the component for the tab
   ttabs.setComponent(tab, 'chat', { treeId });
   ttabs.setFocusedActiveTab(tab);
 }
