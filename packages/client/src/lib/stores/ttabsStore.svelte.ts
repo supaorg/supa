@@ -31,11 +31,38 @@ function setupTtabs() {
   const panel = ttabs.addPanel(newColumn);
 }
 
+function findTabByTreeId(treeId: string): string | undefined {
+  // Search through all content tiles to find one with the matching treeId
+  for (const tileId in ttabs.tiles) {
+    const tile = ttabs.tiles[tileId];
+    if (tile.type === 'tab') {
+      const content = ttabs.getTabContent(tile.id);
+      if (
+        content?.componentId === 'chat' && 
+        content?.data?.componentProps?.treeId === treeId
+      ) {
+        return tile.id;
+      }
+    }
+  }
+  return undefined;
+}
+
 export function openChatTab(treeId: string, name: string) {
+  // First, check if a tab with this treeId already exists
+  const existingTabId = findTabByTreeId(treeId);
+  
+  if (existingTabId) {
+    // If tab exists, just activate it
+    ttabs.setFocusedActiveTab(existingTabId);
+    return;
+  }
+  
+  // Original logic for creating a new tab
   const grid = ttabs.getGrid(contentGrid!);
   let tab: string;
-
-  // Check for a lazy tab and if it exists, update it, otherwise add a new one
+  
+  // Check for a lazy tab and if it exists, update it
   const lazyTabs = ttabs.getLazyTabs(grid.id);
   
   if (lazyTabs.length > 0) {
