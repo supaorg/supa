@@ -5,6 +5,7 @@
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
   import { newThreadDrafts } from "$lib/stores/newThreadDrafts";
+  import { openChatTab } from "$lib/stores/ttabsStore.svelte";
 
   let {
     appConfig,
@@ -43,8 +44,7 @@
     );
     const chatAppData = new ChatAppData($currentSpaceStore, newTree);
     chatAppData.newMessage("user", message);
-
-    goto(`/?t=${newTree.tree.rootVertexId}`);
+    openChatTab(newTree.tree.rootVertexId, "New chat");
     onClose();
   }
 </script>

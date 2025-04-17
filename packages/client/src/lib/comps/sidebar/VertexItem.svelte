@@ -69,7 +69,7 @@
 
   function openChat() {
     if (appTreeId) {
-      openChatTab(appTreeId, name ?? "New conversation");
+      openChatTab(appTreeId, name ?? "New chat");
     }
   }
 </script>
@@ -82,7 +82,7 @@
       ${!isOpen ? "hover:bg-surface-100-900" : ""}`}
   >
     <button class="flex-grow py-2 px-2 truncate text-left" onclick={openChat}>
-      <span>{name ?? "New conversation"}</span>
+      <span>{name ?? "New chat"}</span>
     </button>
     {#if isActive}
       <AppTreeOptionsPopup {appTreeId} />
