@@ -8,7 +8,7 @@
   import { txtStore } from "$lib/stores/txtStore";
 </script>
 
-<div class="flex flex-col h-full">
+<div class="flex flex-col h-full select-none">
   <div class="min-h-min py-2 px-2">
     <AppButtons />
     <SidebarPageLink href="/apps">
