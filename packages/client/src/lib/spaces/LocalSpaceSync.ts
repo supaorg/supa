@@ -252,22 +252,32 @@ export class LocalSpaceSync implements SpaceConnection {
     try {
       const splitPath = path.split('/');
 
+      // Extract peer ID from the filename (remove .jsonl extension)
       peerId = splitPath.pop()!.split('.')[0];
 
       if (!peerId) {
         throw new Error("Peer ID not found in the path");
       }
 
-      const treeIdEndPart = splitPath.pop();
-      if (!treeIdEndPart) {
-        throw new Error("Tree ID part 1 not found in the path");
+      // Skip the date directory (YYYY-MM-DD format)
+      const dateDir = splitPath.pop();
+      if (!dateDir || !dateDir.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        throw new Error("Date directory not found in the path");
       }
 
-      const treeIdStartPart = splitPath.pop();
-      if (!treeIdStartPart) {
+      // Extract the second part of the tree ID
+      const treeIdEndPart = splitPath.pop();
+      if (!treeIdEndPart) {
         throw new Error("Tree ID part 2 not found in the path");
       }
 
+      // Extract the first part of the tree ID (2 characters)
+      const treeIdStartPart = splitPath.pop();
+      if (!treeIdStartPart) {
+        throw new Error("Tree ID part 1 not found in the path");
+      }
+      
+      // Combine to get the full tree ID
       treeId = treeIdStartPart + treeIdEndPart;
 
     } catch (e) {
@@ -302,7 +312,6 @@ export class LocalSpaceSync implements SpaceConnection {
 
       appTree.tree.merge(ops);
     }
-
   }
 
   private async tryReadSecretsFromPeer(path: string) {
