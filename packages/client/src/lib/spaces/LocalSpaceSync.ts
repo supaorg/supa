@@ -102,9 +102,17 @@ async function decryptSecrets(encryptedData: string, key: string): Promise<Recor
   }
 }
 
-export class LocalSpaceSync {
+export interface SpaceConnection {
+  get space(): Space;
+  get connected(): boolean;
+  connect(): Promise<void>;
+  disconnect(): Promise<void>;
+}
+
+
+export class LocalSpaceSync implements SpaceConnection {
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
-  private connected = false;
+  private _connected = false;
   private saveOpsTimer: (() => void) | null = null;
   private savingOpsToFile = false;
   private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
@@ -150,16 +158,26 @@ export class LocalSpaceSync {
     this.backend = new Backend(space, true);
   }
 
+  get connected(): boolean {
+    return this._connected;
+  }
+
   async connect(): Promise<void> {
-    if (this.connected) {
+    if (this._connected) {
       return;
     }
 
     await this.loadSecretsFromFile();
 
-    this.unwatchSpaceFsChanges = await watch(this.uri, (event) => {
-      this.handleWatchEvent(event);
-    }, { recursive: true });
+    try {
+      this.unwatchSpaceFsChanges = await watch(this.uri, (event) => {
+        this.handleWatchEvent(event);
+      }, { recursive: true });
+    } catch (error) {
+      console.error("Error setting up watch:", error);
+      // Continue without watching - this will make sync one-way only
+      // but won't break the app completely
+    }
 
     // Save pending ops every n milliseconds
     this.saveOpsTimer = interval(() => this.saveOps(), this.saveOpsIntervalMs);
@@ -167,11 +185,11 @@ export class LocalSpaceSync {
     // Save secrets every n milliseconds
     this.saveSecretsTimer = interval(() => this.checkIfSecretsNeedToBeSaved(), this.saveSecretsIntervalMs);
 
-    this.connected = true;
+    this._connected = true;
   }
 
-  disconnect() {
-    if (!this.connected) {
+  async disconnect(): Promise<void> {
+    if (!this._connected) {
       return;
     }
 
@@ -190,7 +208,7 @@ export class LocalSpaceSync {
       this.saveSecretsTimer = null;
     }
 
-    this.connected = false;
+    this._connected = false;
   }
 
   private async saveOps() {
@@ -417,7 +435,7 @@ export class LocalSpaceSync {
   }
 }
 
-export async function createNewLocalSpaceAndConnect(path: string): Promise<LocalSpaceSync> {
+export async function createNewLocalSpaceAndConnect(path: string): Promise<SpaceConnection> {
   const dirEntries = await readDir(path);
   // Exclude all dot directories (e.g .DS_Store, .git)
   const filteredDirEntries = dirEntries.filter(entry => entry.isDirectory && !entry.name.startsWith('.'));
@@ -443,14 +461,14 @@ export async function createNewLocalSpaceAndConnect(path: string): Promise<Local
   return sync;
 }
 
-export async function loadLocalSpaceAndConnect(path: string): Promise<LocalSpaceSync> {
+export async function loadLocalSpaceAndConnect(path: string): Promise<SpaceConnection> {
   const space = await loadLocalSpace(path);
   const sync = new LocalSpaceSync(space, path);
   await sync.connect();
   return sync;
 }
 
-export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<LocalSpaceSync> {
+export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<SpaceConnection> {
   if (pointer.uri.startsWith("http")) {
     throw new Error("Remote spaces are not implemented yet");
   }

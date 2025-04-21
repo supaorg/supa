@@ -25,7 +25,7 @@
     try {
       const spaceSync = await createNewLocalSpaceAndConnect(path as string);
       const space = spaceSync.space;
-      addLocalSpace(space, path as string);
+      addLocalSpace(spaceSync, path as string);
       currentSpaceIdStore.set(space.getId());
       onSpaceSetup(space.getId());
     } catch (e) {
@@ -48,7 +48,7 @@
       const spaceSync = await loadLocalSpaceAndConnect(path as string);
       const space = spaceSync.space;
       currentSpaceIdStore.set(space.getId());
-      addLocalSpace(space, path as string);
+      addLocalSpace(spaceSync, path as string);
       onSpaceSetup(space.getId());
     } catch (e) {
       console.error(e);

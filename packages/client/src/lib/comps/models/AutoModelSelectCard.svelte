@@ -1,14 +1,8 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import Sparkles from "lucide-svelte/icons/sparkles";
 
   export let selected = false;
   export let onSelect: (providerId: string, model: string) => void;
-
-  let models: string[] = [];
-  let showModels = false;
-
-  onMount(async () => {});
 
   function onProviderClick() {
     if (selected) {
