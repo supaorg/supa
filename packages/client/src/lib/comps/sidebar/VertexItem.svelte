@@ -3,7 +3,7 @@
   import type { VertexChangeEvent } from "@core/replicatedTree/treeTypes";
   import { onMount } from "svelte";
   import AppTreeOptionsPopup from "../popups/AppTreeOptionsPopup.svelte";
-  import { openChatTab, ttabs } from "$lib/stores/ttabsStore.svelte";
+  import { openChatTab, ttabs } from "$lib/ttabs/ttabsLayout";
 
   let { id }: { id: string } = $props();
 

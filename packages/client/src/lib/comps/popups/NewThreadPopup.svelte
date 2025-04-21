@@ -5,7 +5,7 @@
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
   import { newThreadDrafts } from "$lib/stores/newThreadDrafts";
-  import { openChatTab } from "$lib/stores/ttabsStore.svelte";
+  import { openChatTab } from "$lib/ttabs/ttabsLayout";
 
   let {
     appConfig,

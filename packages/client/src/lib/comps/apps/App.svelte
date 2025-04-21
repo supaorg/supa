@@ -4,7 +4,7 @@
   import { isDevMode, spaceInspectorOpen } from "$lib/stores/devMode";
   import OllamaAutoConfig from "../models/OllamaAutoConfig.svelte";
   import { TtabsRoot } from "ttabs-svelte";
-  import { ttabs } from "$lib/stores/ttabsStore.svelte";
+  import { ttabs } from "$lib/ttabs/ttabsLayout";
 </script>
 
 <OllamaAutoConfig />
