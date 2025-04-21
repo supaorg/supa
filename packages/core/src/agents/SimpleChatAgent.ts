@@ -53,31 +53,12 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
           return;
         }
 
-        console.log("Raw LLM response:", res);
-        console.log("Has thinking property:", 'thinking' in res);
-        console.log("Thinking type:", typeof res.thinking);
-        console.log("Thinking length:", res.thinking ? res.thinking.length : 0);
-
-        console.log("Streaming response:", {
-          answer: res.answer,
-          thinking: res.thinking ? `${res.thinking.substring(0, 100)}... (${res.thinking.length} chars)` : "No thinking provided by model",
-          finished: res.finished,
-          hasThinking: !!res.thinking
-        });
-
         onStream?.({
           text: res.answer,
           thinking: res.thinking
         });
       })
-        .then((res) => {
-          console.log("Final response:", {
-            answer: res.answer.substring(0, 100) + "...",
-            thinking: res.thinking ? `${res.thinking.substring(0, 100)}... (${res.thinking.length} chars)` : "No thinking provided by model",
-            finished: res.finished,
-            hasThinking: !!res.thinking
-          });
-          
+        .then((res) => {          
           resolve(res);
         })
         .catch(reject);

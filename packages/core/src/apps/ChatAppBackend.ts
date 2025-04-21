@@ -110,30 +110,17 @@ export default class ChatAppBackend {
           text: m.text,
         }))];
 
-      const initialResponse = await simpleChatAgent.input(messagesForLang, (resp) => {
-        // Now resp is always an object with text property
-        console.log("Stream response in backend:", resp);
-        console.log("Backend thinking type:", typeof resp.thinking);
-        console.log("Backend thinking present:", !!resp.thinking);
-        console.log("Backend thinking length:", resp.thinking ? resp.thinking.length : 0);
-        
+      const initialResponse = await simpleChatAgent.input(messagesForLang, (resp) => {        
         this.appTree.tree.setTransientVertexProperty(messageToUse.id, "text", resp.text);
         if (resp.thinking && resp.thinking.trim().length > 0) {
-          console.log("Setting thinking in vertex:", resp.thinking.substring(0, 100) + "...");
           this.appTree.tree.setTransientVertexProperty(messageToUse.id, "thinking", resp.thinking);
         }
       });
-
-      console.log("Final response:", initialResponse);
-      console.log("Final thinking present:", !!initialResponse.thinking);
-      console.log("Final thinking type:", typeof initialResponse.thinking);
-      console.log("Final thinking length:", initialResponse.thinking ? initialResponse.thinking.length : 0);
 
       // Update the message with the final response
       this.appTree.tree.setVertexProperty(messageToUse.id, "text", initialResponse.text);
       this.appTree.tree.setVertexProperty(messageToUse.id, "inProgress", false);
       if (initialResponse.thinking && initialResponse.thinking.trim().length > 0) {
-        console.log("Setting final thinking in vertex:", initialResponse.thinking.substring(0, 100) + "...");
         this.appTree.tree.setVertexProperty(messageToUse.id, "thinking", initialResponse.thinking);
       }
       this.activeAgent = null;
