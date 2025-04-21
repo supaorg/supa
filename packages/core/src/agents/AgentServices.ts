@@ -64,9 +64,6 @@ export class AgentServices {
   }
 
   private async createLanguageProvider(provider: string, model: string): Promise<LanguageProvider> {
-    console.log("Creating language provider:", provider, "with model:", model);
-    console.log("Provider likely to support thinking:", ["openai", "anthropic", "xai", "mistral"].includes(provider));
-    
     // Common configuration for API-based providers
     const options: Record<string, any> = { model };
 
