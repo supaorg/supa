@@ -22,16 +22,16 @@ let contentGrid: string | undefined;
 function setupTtabs() {
   ttabs.resetState();
   const root = ttabs.rootGridId as string;
-  const row = ttabs.addRow(root, 100);
+  const row = ttabs.addRow(root);
 
-  const sidebarColumn = ttabs.addColumn(row, 20); // allow to add with in pixels "200px"
-  ttabs.setComponent(sidebarColumn, 'sidebar'); // should I have the same function for tabs and columns?
+  const sidebarColumn = ttabs.addColumn(row, "300px");
+  ttabs.setComponent(sidebarColumn, 'sidebar');
 
-  const parentColumn = ttabs.addColumn(row, 80);
+  const parentColumn = ttabs.addColumn(row);
   contentGrid = ttabs.addGrid(parentColumn);
   ttabs.updateTile(contentGrid, { dontClean: true });
-  const newRow = ttabs.addRow(contentGrid, 100);
-  const newColumn = ttabs.addColumn(newRow, 100);
+  const newRow = ttabs.addRow(contentGrid);
+  const newColumn = ttabs.addColumn(newRow);
   const panel = ttabs.addPanel(newColumn);
 }
 
