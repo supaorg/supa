@@ -6,7 +6,7 @@
   import { onMount } from "svelte";
   import type { AppConfig } from "@core/models";
   import type Space from "@core/spaces/Space";
-    import SpagesNavButton from "../SpagesNavButton.svelte";
+  import SpagesNavButton from "../SpagesNavButton.svelte";
 
   let appConfigs = $state<AppConfig[]>([]);
   let currentSpace = $state<Space | null>(null);
@@ -35,8 +35,8 @@
 </script>
 
 <!--<h2 class="h2 pb-6">{$txtStore.appPage.title}</h2>-->
-<div class="card p-4 space-y-4 mb-4">
-  <h3 class="h3">{$txtStore.appPage.chatsTitle}</h3>
+<div class="card space-y-4 mb-4">
+  <!--<h3 class="h3">{$txtStore.appPage.chatsTitle}</h3>-->
   <table class="table-auto w-full">
     <tbody>
       {#each appConfigs as config (config.id)}
@@ -45,10 +45,14 @@
     </tbody>
   </table>
 
-  <SpagesNavButton component="app-config" title="New Config" className="btn mt-2 preset-filled-primary-500">
+  <SpagesNavButton
+    component="app-config"
+    title="New Config"
+    className="btn mt-2 preset-filled-primary-500"
+  >
     {$txtStore.appPage.buttonNewConfig}
   </SpagesNavButton>
 </div>
-<div class="card p-4">
+<div class="card">
   {@html $txtStore.appPage.contactMessage}
 </div>

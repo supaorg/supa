@@ -15,9 +15,9 @@
 <div>
   <!--<h2 class="h2 mb-4">{$txtStore.settingsPage.title}</h2>-->
 
-  <div class="flex flex-col gap-6 w-full max-w-2xl">
+  <div class="flex flex-col gap-6 w-full">
     <div
-      class="card p-4 preset-filled-surface-100-900 border-[1px] border-surface-200-800"
+      class="card p-4 border-[1px] border-surface-200-800"
     >
       <h3 class="h4 mb-4">{$txtStore.settingsPage.appearance.title}</h3>
       <div class="space-y-4">
@@ -34,14 +34,14 @@
     </div>
 
     <div
-      class="card p-4 preset-filled-surface-100-900 border-[1px] border-surface-200-800"
+      class="card p-4 border-[1px] border-surface-200-800"
     >
       <h3 class="h4 mb-4">{$txtStore.settingsPage.providers.title}</h3>
       <ModelProviders />
     </div>
 
     <div
-      class="card p-4 preset-filled-surface-100-900 border-[1px] border-surface-200-800"
+      class="card p-4 border-[1px] border-surface-200-800"
     >
       <h3 class="h4 mb-4">{$txtStore.settingsPage.spaces.title}</h3>
       <p class="mb-4">

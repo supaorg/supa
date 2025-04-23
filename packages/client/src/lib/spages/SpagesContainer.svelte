@@ -26,7 +26,7 @@
 {#if spages.pages.length > 0}
   <!-- Stack of pages -->
   <div
-    class="fixed inset-0 z-[899] flex justify-center items-center p-4 max-h-screen"
+    class="fixed inset-0 z-[899] flex flex-col items-center p-4 pt-20 pb-20 overflow-y-auto"
     in:fly={{ y: 50, duration: 200 }}
     out:fly={{ y: 50, duration: 200 }}
   >
@@ -41,7 +41,7 @@
     ></div>
     {#each spages.pages as page, i (page.id)}
       <div
-        class="relative card bg-surface-50-950 border-1 border-surface-200-800 shadow-xl max-w-[800px] w-full flex flex-col overflow-hidden max-h-screen"
+        class="relative card bg-surface-50-950 border-1 border-surface-200-800 shadow-xl max-w-[800px] w-full flex flex-col overflow-hidden max-h-[calc(100vh-10rem)]"
         style="display: {i === spages.pages.length - 1 ? 'flex' : 'none'};"
       >
         {#if page}
@@ -50,7 +50,7 @@
           {#if Component}
             <!-- Header with title and breadcrumb navigation -->
             <div
-              class="flex justify-between items-center py-2 px-3"
+              class="flex justify-between items-center py-2 px-3 flex-shrink-0"
             >
               <!-- Left section with back button (only visible on sub-pages) -->
               <div class="flex-none">
@@ -105,14 +105,14 @@
             </div>
 
             <!-- Render the component with its props -->
-            <div class="p-4 overflow-y-auto flex-1">
+            <div class="p-3 overflow-y-auto flex-1">
               <Component.component
                 {...Component.defaultProps}
                 {...page.props}
               />
             </div>
           {:else}
-            <div class="p-8 text-error-500 text-center">
+            <div class="p-3 text-error-500 text-center">
               Component not found: {page.componentId}
             </div>
           {/if}
