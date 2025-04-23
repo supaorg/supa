@@ -5,6 +5,8 @@
   import OllamaAutoConfig from "../models/OllamaAutoConfig.svelte";
   import { TtabsRoot } from "ttabs-svelte";
   import { ttabs } from "$lib/ttabs/ttabsLayout";
+  import SpagesContainer from "$lib/spages/SpagesContainer.svelte";
+  import { spages } from "$lib/spages/spagesLayout";
 </script>
 
 <OllamaAutoConfig />
@@ -26,3 +28,5 @@
     </div>
   {/if}
 </div>
+
+<SpagesContainer {spages} />

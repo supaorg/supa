@@ -6,6 +6,7 @@
   import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
   import SidebarPageLink from "./SidebarPageLink.svelte";
   import { txtStore } from "$lib/stores/txtStore";
+  import { openSettings } from "$lib/spages/spagesLayout";
 </script>
 
 <div class="flex flex-col h-full select-none">
@@ -29,9 +30,12 @@
     <div class="flex items-center gap-2">
       <div class="flex-grow"><SpaceSelectorPopup /></div>
       <div class="flex-shrink-0">
-        <SidebarPageLink href="/settings">
+        <button 
+          class="flex-grow py-2 px-2 truncate flex rounded hover:bg-surface-100-900"
+          on:click={openSettings}
+        >
           <Settings size={18} />
-        </SidebarPageLink>
+        </button>
       </div>
     </div>
   </div>
