@@ -6,6 +6,7 @@
   import { onMount } from "svelte";
   import type { AppConfig } from "@core/models";
   import type Space from "@core/spaces/Space";
+    import SpagesNavButton from "../SpagesNavButton.svelte";
 
   let appConfigs = $state<AppConfig[]>([]);
   let currentSpace = $state<Space | null>(null);
@@ -33,23 +34,21 @@
   });
 </script>
 
-<CenteredPage>
-  <h2 class="h2 pb-6">{$txtStore.appPage.title}</h2>
-  <div class="card p-4 space-y-4 mb-4">
-    <h3 class="h3">{$txtStore.appPage.chatsTitle}</h3>
-    <table class="table-auto w-full">
-      <tbody>
-        {#each appConfigs as config (config.id)}
-          <AppConfigTableCell {config} />
-        {/each}
-      </tbody>
-    </table>
+<!--<h2 class="h2 pb-6">{$txtStore.appPage.title}</h2>-->
+<div class="card p-4 space-y-4 mb-4">
+  <h3 class="h3">{$txtStore.appPage.chatsTitle}</h3>
+  <table class="table-auto w-full">
+    <tbody>
+      {#each appConfigs as config (config.id)}
+        <AppConfigTableCell {config} />
+      {/each}
+    </tbody>
+  </table>
 
-    <a href="/apps/new-config" class="btn mt-2 preset-filled-primary-500"
-      >{$txtStore.appPage.buttonNewConfig}</a
-    >
-  </div>
-  <div class="card p-4">
-    {@html $txtStore.appPage.contactMessage}
-  </div>
-</CenteredPage>
+  <SpagesNavButton component="app-config" title="New Config" className="btn mt-2 preset-filled-primary-500">
+    {$txtStore.appPage.buttonNewConfig}
+  </SpagesNavButton>
+</div>
+<div class="card p-4">
+  {@html $txtStore.appPage.contactMessage}
+</div>

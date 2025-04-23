@@ -1,9 +1,10 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { AppConfig } from "@core/models";
-  import { Switch, Popover, Tooltip } from '@skeletonlabs/skeleton-svelte';
+  import { Switch, Popover, Tooltip } from "@skeletonlabs/skeleton-svelte";
   import { TrashIcon } from "lucide-svelte";
   import { txtStore } from "$lib/stores/txtStore";
+  import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
 
   let { config }: { config: AppConfig } = $props();
 
@@ -31,9 +32,14 @@
 
 <tr class="table-row">
   <td class="py-2"
-    ><a href={"/apps/edit-config?id=" + config.id} class="w-full h-full block"
-      ><strong>{config.name}</strong><br />{config.description}</a
-    ></td
+    ><SpagesNavButton
+      component="app-config"
+      title={config.name}
+      className="w-full h-full block text-left"
+      props={{ configId: config.id }}
+    >
+      <strong>{config.name}</strong><br />{config.description}
+    </SpagesNavButton></td
   >
   <td>
     <Tooltip contentBase="card bg-surface-200-800 p-2">
@@ -41,7 +47,7 @@
         <Switch
           name={"visible-" + config.id}
           checked={isVisible}
-          onCheckedChange={(e) => isVisible = e.checked}
+          onCheckedChange={(e) => (isVisible = e.checked)}
         />
       {/snippet}
       {#snippet content()}
@@ -53,8 +59,8 @@
     {#if !isDefault}
       <Popover
         open={deletePopoverOpen}
-        onOpenChange={(e) => deletePopoverOpen = e.open}
-        positioning={{ placement: 'left' }}
+        onOpenChange={(e) => (deletePopoverOpen = e.open)}
+        positioning={{ placement: "left" }}
         triggerBase=""
         contentBase="card bg-surface-200-800 p-4 space-y-4 max-w-[320px]"
         arrow
@@ -72,10 +78,14 @@
             {/snippet}
           </Tooltip>
         {/snippet}
-        
+
         {#snippet content()}
           <div class="btn-group-vertical preset-filled-surface-500">
-            <button class="btn preset-filled-surface-500" onclick={deleteAppConfig}>{$txtStore.appConfigPage.tableCell.deleteButton}</button>
+            <button
+              class="btn preset-filled-surface-500"
+              onclick={deleteAppConfig}
+              >{$txtStore.appConfigPage.tableCell.deleteButton}</button
+            >
           </div>
         {/snippet}
       </Popover>

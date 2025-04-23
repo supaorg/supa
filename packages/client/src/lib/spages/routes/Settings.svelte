@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Lightswitch from "../basic/Lightswitch.svelte";
-  import ModelProviders from "../models/ModelProviders.svelte";
+  import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
+  import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore";
   import { isDevMode } from "$lib/stores/devMode";
   import { currentLanguage } from "$lib/stores/txtStore";

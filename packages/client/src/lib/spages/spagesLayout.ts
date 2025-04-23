@@ -1,6 +1,8 @@
 import { Spages } from './Spages.svelte';
-import Settings from '../comps/settings/Settings.svelte';
-import Spaces from '../comps/settings/Spaces.svelte';
+import Settings from './routes/Settings.svelte';
+import Spaces from './routes/Spaces.svelte';
+import Apps from './routes/Apps.svelte';
+import AppConfigEditing from '$lib/comps/app-configs/AppConfigEditing.svelte';
 
 // Create and export the spages instance
 export const spages = new Spages();
@@ -10,6 +12,14 @@ spages.register('settings', Settings, {
   // Default props if needed
 });
 spages.register('spaces', Spaces, { 
+  // Default props if needed
+});
+
+spages.register('apps', Apps, { 
+  // Default props if needed
+});
+
+spages.register('app-config', AppConfigEditing, { 
   // Default props if needed
 });
 
