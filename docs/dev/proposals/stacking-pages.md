@@ -93,10 +93,10 @@ The Spages system includes a simple but reliable history management system that 
 ```typescript
 export class Spages {
   // Page stack
-  pages = $state<PageEntry[]>([]);
+  pages: PageEntry[] = $state([]);
   
   // Internal history tracking
-  private history = $state<HistoryEntry[]>([]);
+  private history: HistoryEntry[] = $state([]);
   private historyIndex = $state(-1);
   
   type HistoryEntry = {
