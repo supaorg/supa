@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Spages } from './Spages.svelte';
 
-  export let spages: Spages;
+  let { spages }: { spages: Spages } = $props();
   
   // Function to handle breadcrumb navigation
   function handleBreadcrumbClick(pageIndex: number) {
@@ -14,7 +14,7 @@
 
 <div class="spages-container" class:active={spages.pages.length > 0}>
   {#if spages.pages.length > 0}
-    <div class="spages-backdrop" on:click={() => spages.pop()}></div>
+    <div class="spages-backdrop" onclick={() => spages.pop()}></div>
     
     <!-- Stack of pages -->
     <div class="spages-content">
@@ -34,7 +34,7 @@
                     <button
                       class="breadcrumb-item"
                       class:current={index === i}
-                      on:click={() => handleBreadcrumbClick(index)}
+                      onclick={() => handleBreadcrumbClick(index)}
                       disabled={index === i}
                     >
                       {breadcrumb.title || breadcrumb.componentId}
@@ -44,7 +44,7 @@
                 
                 <button 
                   class="spage-close-btn" 
-                  on:click={() => spages.pop()}
+                  onclick={() => spages.pop()}
                   aria-label="Close"
                 >×</button>
               </div>

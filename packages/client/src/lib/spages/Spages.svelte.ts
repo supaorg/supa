@@ -1,4 +1,4 @@
-import { SvelteComponent, type Component } from 'svelte';
+import { type Component } from 'svelte';
 
 /**
  * Represents a component entry in the registry
