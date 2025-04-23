@@ -40,6 +40,10 @@ spages.replace('newPage', props);  // Replace current top page
 spages.clear();                    // Remove all pages
 ```
 
+#### Navigation Methods
+- `pop()`: Removes only the topmost page from the stack, going back one step in history.
+- `popTo()`: Removes multiple pages at once until reaching a specific target page. Essential for breadcrumb navigation where users can click on any point in the navigation trail to jump back multiple steps at once.
+
 ### Component Registration (Similar to ttabs)
 
 ```js
