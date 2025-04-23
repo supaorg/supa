@@ -1,6 +1,8 @@
 <script lang="ts">
   import { Spages } from "./Spages.svelte";
   import { fly, fade } from "svelte/transition";
+  import ChevronLeft from "lucide-svelte/icons/chevron-left";
+  import X from "lucide-svelte/icons/x";
 
   let { spages }: { spages: Spages } = $props();
 
@@ -9,6 +11,14 @@
     if (pageIndex < spages.pages.length - 1) {
       // If not the last page, use popTo to navigate to this page
       spages.popTo(spages.pages[pageIndex].id);
+    }
+  }
+
+  // Function to close all pages
+  function closeAll() {
+    // Close all pages by emptying the stack
+    while (spages.pages.length > 0) {
+      spages.pop();
     }
   }
 </script>
@@ -42,28 +52,58 @@
           {#if Component}
             <!-- Header with title and breadcrumb navigation -->
             <div
-              class="flex justify-between items-center p-4 border-b border-surface-200-800"
+              class="flex justify-between items-center py-2 px-3 border-b border-surface-200-800"
             >
-              <div class="flex items-center flex-wrap gap-1">
-                {#each spages.pages.slice(0, i + 1) as breadcrumb, index}
-                  {#if index > 0}
-                    <span class="text-surface-500 text-sm">›</span>
-                  {/if}
-                  <button
-                    class="bg-transparent border-none text-sm py-1 px-2 rounded text-primary-500 hover:bg-surface-200-800 disabled:hover:bg-transparent disabled:text-surface-900-50 disabled:font-semibold disabled:cursor-default"
-                    onclick={() => handleBreadcrumbClick(index)}
-                    disabled={index === i}
+              <!-- Left section with back button (only visible on sub-pages) -->
+              <div class="flex-none">
+                {#if i > 0}
+                  <button 
+                    class="btn-icon hover:preset-tonal"
+                    onclick={() => spages.pop()}
+                    aria-label="Go back"
                   >
-                    {breadcrumb.title || breadcrumb.componentId}
+                    <ChevronLeft size={18} />
                   </button>
-                {/each}
+                {/if}
               </div>
 
-              <button
-                class="btn-icon hover:preset-tonal"
-                onclick={() => spages.pop()}
-                aria-label="Close">×</button
-              >
+              <!-- Center section with breadcrumbs -->
+              <div class="flex-1 flex justify-center">
+                <ol class="flex items-center gap-4">
+                  {#each spages.pages.slice(0, i + 1) as breadcrumb, index}
+                    {#if index > 0}
+                      <li class="opacity-50" aria-hidden>&rsaquo;</li>
+                    {/if}
+                    {#if index === i}
+                      <li>{breadcrumb.title || breadcrumb.componentId}</li>
+                    {:else}
+                      <li>
+                        <a
+                          class="opacity-60 hover:underline"
+                          href="#"
+                          onclick={(e) => {
+                            e.preventDefault();
+                            handleBreadcrumbClick(index);
+                          }}
+                        >
+                          {breadcrumb.title || breadcrumb.componentId}
+                        </a>
+                      </li>
+                    {/if}
+                  {/each}
+                </ol>
+              </div>
+
+              <!-- Right section with close button -->
+              <div class="flex-none">
+                <button
+                  class="btn-icon hover:preset-tonal"
+                  onclick={closeAll}
+                  aria-label="Close all"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             <!-- Render the component with its props -->
