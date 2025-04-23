@@ -1,3 +1,5 @@
+import { updateTheme } from "$lib/stores/theme.svelte";
+
 export const DARK_MODE_MATCH_MEDIA_STR = "(prefers-color-scheme: dark)"; 
 export const COLOR_SCHEMA_STORAGE_KEY = "colorScheme";
 
@@ -20,6 +22,8 @@ export function updateColorScheme() {
   } else {
     document.documentElement.classList.remove('dark');
   }
+
+  updateTheme();
 }
 
 export function getCurrentColorScheme(): 'dark' | 'light' {

@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { User, Sparkles, CircleAlert, ChevronDown, ChevronRight } from "lucide-svelte";
+  import { Sparkles, CircleAlert, ChevronDown, ChevronRight } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
   import { onMount } from "svelte";
-  import MessageDate from "./MessageDate.svelte";
   import Markdown from "../markdown/Markdown.svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
 

@@ -2,6 +2,7 @@
   import { codeToHtml } from "shiki";
   import { Copy, Check } from "lucide-svelte";
   import { timeout } from "@core/tools/timeout";
+  import { theme } from "$lib/stores/theme.svelte";
 </script>
 
 <script lang="ts">
@@ -10,27 +11,31 @@
   let { token }: { token: Tokens.Code } = $props();
   let lang = $derived(token.lang || "text");
   let isCopied = $state(false);
+
   let generatedHtml = $derived.by(async () => {
-    return await generatedHighlightedHtml(token.text, token.lang);
+    const codeTheme = theme.colorScheme === "dark" ? "github-dark" : "github-light";
+    console.log(codeTheme);
+
+
+    return await generatedHighlightedHtml(token.text, codeTheme, token.lang);
   });
 
   async function generatedHighlightedHtml(
     source: string,
+    codeTheme: string,
     lang?: string,
   ): Promise<string | null> {
-    const theme = "github-dark";
-
     try {
       return await codeToHtml(source, {
         lang: lang || "text",
-        theme
+        theme: codeTheme
       });
     } catch (e) {
       // If the language is not supported, fallback to plaintext
       try {
         return await codeToHtml(source, {
           lang: "text",
-          theme
+          theme: codeTheme
         });
       } catch (e) {
         return null;
