@@ -166,13 +166,13 @@
 <form class="w-full" use:focusTrap={isFocused} onsubmit={handleSubmit}>
   <div class="relative flex w-full items-center">
     <div
-      class="flex w-full flex-col rounded-lg bg-surface-900 transition-colors"
-      class:ring={isTextareaFocused}
+      class="flex w-full flex-col rounded-lg bg-surface-50-950 transition-colors ring"
       class:ring-primary-300-700={isTextareaFocused}
+      class:ring-surface-300-700={!isTextareaFocused}
     >
       <textarea
         bind:this={textareaElement}
-        class="block w-full resize-none border-0 bg-transparent p-2 text-token-text-primary leading-normal placeholder:opacity-80 outline-none focus:ring-0"
+        class="block w-full resize-none border-0 bg-transparent p-2 leading-normal outline-none focus:ring-0"
         style="height: {TEXTAREA_BASE_HEIGHT}px; overflow-y: hidden;"
         placeholder={placeholder}
         bind:value={query}
@@ -185,7 +185,7 @@
       <!-- Bottom toolbar -->
       <div class="flex items-center justify-between p-2">
         <button
-          class="flex items-center justify-center rounded-lg text-token-text-primary"
+          class="flex items-center justify-center rounded-lg"
           class:opacity-50={!attachEnabled}
           disabled={!attachEnabled}
           aria-label={$txtStore.messageForm.attachFile}
