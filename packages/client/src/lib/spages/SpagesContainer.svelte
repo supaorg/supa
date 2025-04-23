@@ -41,7 +41,7 @@
     ></div>
     {#each spages.pages as page, i (page.id)}
       <div
-        class="relative card bg-surface-50-950 border-1 border-surface-200-800 shadow-xl max-w-[800px] w-full flex flex-col overflow-hidden max-h-[calc(100vh-10rem)]"
+        class="relative card rounded-lg bg-surface-50-950 border-1 border-surface-200-800 shadow-xl max-w-[800px] w-full flex flex-col overflow-hidden max-h-[calc(100vh-10rem)]"
         style="display: {i === spages.pages.length - 1 ? 'flex' : 'none'};"
       >
         {#if page}

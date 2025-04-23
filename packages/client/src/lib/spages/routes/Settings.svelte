@@ -56,7 +56,7 @@
     </div>
 
     <div
-      class="card p-4 preset-filled-surface-100-900 border-[1px] border-surface-200-800"
+      class="card p-4 border-[1px] border-surface-200-800"
     >
       <h3 class="h4 mb-4">{$txtStore.settingsPage.developers.title}</h3>
       <button
