@@ -31,7 +31,7 @@
     out:fly={{ y: 50, duration: 200 }}
   >
     <div
-      class="absolute left-0 top-0 w-full h-full cursor-auto bg-surface-50/60 dark:bg-surface-950/60"
+      class="absolute left-0 top-0 w-full h-full cursor-auto bg-surface-50/80 dark:bg-surface-950/80"
       onclick={closeAll}
       onkeydown={(e) => e.key === "Enter" && closeAll}
       role="button"
@@ -41,7 +41,7 @@
     ></div>
     {#each spages.pages as page, i (page.id)}
       <div
-        class="relative card bg-surface-100-900 shadow-xl max-w-[800px] w-full flex flex-col overflow-hidden max-h-screen"
+        class="relative card bg-surface-50-950 border-1 border-surface-200-800 shadow-xl max-w-[800px] w-full flex flex-col overflow-hidden max-h-screen"
         style="display: {i === spages.pages.length - 1 ? 'flex' : 'none'};"
       >
         {#if page}
@@ -50,7 +50,7 @@
           {#if Component}
             <!-- Header with title and breadcrumb navigation -->
             <div
-              class="flex justify-between items-center py-2 px-3 border-b border-surface-200-800"
+              class="flex justify-between items-center py-2 px-3"
             >
               <!-- Left section with back button (only visible on sub-pages) -->
               <div class="flex-none">
