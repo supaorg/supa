@@ -10,11 +10,9 @@
   }
 </script>
 
-<CenteredPage>
-  <h2 class="h2">{$txtStore.spacesPage.title}</h2>
-  <p class="mb-6">
-    {$txtStore.spacesPage.description}
-  </p>
-  <SpaceList />
-  <SpaceOpener onSpaceSetup={handleSpaceSetup} />
-</CenteredPage>
+<!--<h2 class="h2">{$txtStore.spacesPage.title}</h2>-->
+<p class="mb-6">
+  {$txtStore.spacesPage.description}
+</p>
+<SpaceList />
+<SpaceOpener onSpaceSetup={handleSpaceSetup} />

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Lightswitch from "./basic/Lightswitch.svelte";
-  import ModelProviders from "./models/ModelProviders.svelte";
+  import Lightswitch from "../basic/Lightswitch.svelte";
+  import ModelProviders from "../models/ModelProviders.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore";
   import { isDevMode } from "$lib/stores/devMode";
   import { currentLanguage } from "$lib/stores/txtStore";
@@ -9,10 +9,11 @@
     LANGUAGE_NAMES,
   } from "@core/localization/getTexts";
   import { txtStore } from "$lib/stores/txtStore";
+    import { openSpaces } from "$lib/spages";
 </script>
 
 <div>
-  <h2 class="h2 mb-4">{$txtStore.settingsPage.title}</h2>
+  <!--<h2 class="h2 mb-4">{$txtStore.settingsPage.title}</h2>-->
 
   <div class="flex flex-col gap-6 w-full max-w-2xl">
     <div
@@ -46,9 +47,12 @@
       <p class="mb-4">
         {$txtStore.settingsPage.spaces.spaceCount($spaceStore.length)}
       </p>
-      <a href="/spaces" class="btn preset-filled"
-        >{$txtStore.settingsPage.spaces.manageButton}</a
+      <button
+        class="btn preset-filled"
+        onclick={() => openSpaces()}
       >
+        {$txtStore.settingsPage.spaces.manageButton}
+      </button>
     </div>
 
     <div
@@ -57,7 +61,7 @@
       <h3 class="h4 mb-4">{$txtStore.settingsPage.developers.title}</h3>
       <button
         class="btn preset-filled"
-        on:click={() => ($isDevMode = !$isDevMode)}
+        onclick={() => ($isDevMode = !$isDevMode)}
         >{$txtStore.settingsPage.developers.toggleDevMode}</button
       >
     </div>
