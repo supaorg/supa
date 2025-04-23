@@ -27,8 +27,8 @@
   <!-- Backdrop -->
   <div
     class="fixed inset-0 z-[898] bg-surface-50/60 dark:bg-surface-950/60"
-    onclick={() => spages.pop()}
-    onkeydown={(e) => e.key === "Enter" && spages.pop()}
+    onclick={closeAll}
+    onkeydown={(e) => e.key === "Enter" && closeAll}
     role="button"
     tabindex="0"
     in:fade={{ duration: 100 }}
