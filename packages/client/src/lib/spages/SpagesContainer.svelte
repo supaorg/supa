@@ -24,26 +24,24 @@
 </script>
 
 {#if spages.pages.length > 0}
-  <!-- Backdrop -->
-  <div
-    class="fixed inset-0 z-[898] bg-surface-50/60 dark:bg-surface-950/60"
-    onclick={closeAll}
-    onkeydown={(e) => e.key === "Enter" && closeAll}
-    role="button"
-    tabindex="0"
-    in:fade={{ duration: 100 }}
-    out:fade={{ duration: 100 }}
-  ></div>
-
   <!-- Stack of pages -->
   <div
     class="fixed inset-0 z-[899] flex justify-center items-center p-4 max-h-screen"
     in:fly={{ y: 50, duration: 200 }}
     out:fly={{ y: 50, duration: 200 }}
   >
+    <div
+      class="absolute left-0 top-0 w-full h-full cursor-auto bg-surface-50/60 dark:bg-surface-950/60"
+      onclick={closeAll}
+      onkeydown={(e) => e.key === "Enter" && closeAll}
+      role="button"
+      tabindex="0"
+      in:fade={{ duration: 100 }}
+      out:fade={{ duration: 100 }}
+    ></div>
     {#each spages.pages as page, i (page.id)}
       <div
-        class="card bg-surface-100-900 shadow-xl max-w-[800px] w-full flex flex-col overflow-hidden max-h-screen"
+        class="relative card bg-surface-100-900 shadow-xl max-w-[800px] w-full flex flex-col overflow-hidden max-h-screen"
         style="display: {i === spages.pages.length - 1 ? 'flex' : 'none'};"
       >
         {#if page}
@@ -57,7 +55,7 @@
               <!-- Left section with back button (only visible on sub-pages) -->
               <div class="flex-none">
                 {#if i > 0}
-                  <button 
+                  <button
                     class="btn-icon hover:preset-tonal"
                     onclick={() => spages.pop()}
                     aria-label="Go back"
