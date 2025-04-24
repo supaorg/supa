@@ -203,8 +203,6 @@ export class ChatAppData {
   }
 
   editMessage(messageId: string, newText: string) {
-    console.log("editMessage", messageId, newText);
-
     const vertex = this.appTree.tree.getVertex(messageId);
     if (!vertex) throw new Error("Message " + messageId + " not found");
     const parent = vertex.parent;
@@ -216,16 +214,12 @@ export class ChatAppData {
       createdAt: Date.now(),
       text: newText,
       role: props.role,
+      main: true,
     };
 
-    console.log("Create new message vertex", newProps);
-    const newVertex = this.appTree.tree.newVertex(parent.id, newProps);
+    const newVertex = vertex.parent.newChild(newProps);
     const siblings = parent.children;
 
-    console.log("Set new message vertex as main");
-    newVertex.setProperty("main", true);
-
-    console.log("Set other siblings as non-main");
     for (const sib of siblings) {
       if (sib.id !== newVertex.id && sib.getProperty("main") === true) {
         sib.setProperty("main", false);
