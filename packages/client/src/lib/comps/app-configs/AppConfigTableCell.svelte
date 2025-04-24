@@ -47,6 +47,7 @@
         <Switch
           name={"visible-" + config.id}
           checked={isVisible}
+          controlActive="bg-secondary-500"
           onCheckedChange={(e) => (isVisible = e.checked)}
         />
       {/snippet}
