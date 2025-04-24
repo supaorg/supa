@@ -4,6 +4,7 @@
     CircleAlert,
     ChevronDown,
     ChevronRight,
+    Edit,
   } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
@@ -26,6 +27,8 @@
   let isAIGenerating = $derived(
     !!message?.inProgress && message?.role === "assistant",
   );
+  let isEditing = $state(false);
+  let editText = $state("");
 
   // Effect to update config name if config still exists
   $effect(() => {
@@ -40,6 +43,12 @@
       }
       // If config doesn't exist anymore, use the saved name
       configName = data.getMessageProperty(messageId, "configName");
+    }
+  });
+
+  $effect(() => {
+    if (message?.role === "user" && !isEditing) {
+      editText = message?.text || "";
     }
   });
 
@@ -105,9 +114,30 @@
       {/if}
       <div>
         {#if message.role === "user"}
-          <div class="p-3 rounded-lg bg-surface-500/10 dark:bg-surface-500/20">
-            {@html message.text ? replaceNewlinesWithHtmlBrs(message.text) : ""}
-          </div>
+          {#if isEditing}
+            <div class="p-3 rounded-lg bg-surface-500/10 dark:bg-surface-500/20">
+              <textarea bind:value={editText} rows="3" class="w-full p-2 border rounded resize-none" />
+              <div class="flex gap-2 mt-2 justify-end">
+                <button class="btn" onclick={() => { data.editMessage(messageId, editText); isEditing = false; }}>
+                  Save
+                </button>
+                <button class="btn preset-outline" onclick={() => (isEditing = false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          {:else}
+            <div class="relative p-3 rounded-lg bg-surface-500/10 dark:bg-surface-500/20">
+              {@html replaceNewlinesWithHtmlBrs(message.text || "")} 
+              <button
+                class="absolute top-1 right-1 text-surface-500 hover:text-surface-700"
+                title="Edit message"
+                onclick={() => (isEditing = true)}
+              >
+                <Edit size={16} />
+              </button>
+            </div>
+          {/if}
         {:else}
           <div class="min-w-0 chat-message">
             {#if hasThinking}

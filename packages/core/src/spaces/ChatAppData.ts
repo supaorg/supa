@@ -59,7 +59,7 @@ export class ChatAppData {
 
   rename(newTitle: string) {
     if (newTitle.trim() === "") return;
-    
+
     this.title = newTitle;
     this.space.setAppTreeName(this.threadId, newTitle);
   }
@@ -202,32 +202,35 @@ export class ChatAppData {
     this.triggerEvent("stop-message", { messageId });
   }
 
-  editMessage(messageId: string, newText: string): ThreadMessage {
+  editMessage(messageId: string, newText: string) {
+    console.log("editMessage", messageId, newText);
+
     const vertex = this.appTree.tree.getVertex(messageId);
     if (!vertex) throw new Error("Message " + messageId + " not found");
     const parent = vertex.parent;
     if (!parent) throw new Error("Cannot edit root message");
     const props = vertex.getProperties();
+
     const newProps: Record<string, any> = {
-      ...props,
+      _n: "message",
+      createdAt: Date.now(),
       text: newText,
-      updatedAt: Date.now(),
+      role: props.role,
     };
+
+    console.log("Create new message vertex", newProps);
     const newVertex = this.appTree.tree.newVertex(parent.id, newProps);
     const siblings = parent.children;
-    if (siblings.length > 1) {
-      newVertex.setProperty("main", true);
-      for (const sib of siblings) {
-        if (sib.id !== newVertex.id && sib.getProperty("main") === true) {
-          sib.setProperty("main", false);
-        }
+
+    console.log("Set new message vertex as main");
+    newVertex.setProperty("main", true);
+
+    console.log("Set other siblings as non-main");
+    for (const sib of siblings) {
+      if (sib.id !== newVertex.id && sib.getProperty("main") === true) {
+        sib.setProperty("main", false);
       }
     }
-    const resultProps = newVertex.getProperties();
-    return {
-      id: newVertex.id,
-      ...resultProps,
-    } as ThreadMessage;
   }
 
   switchMain(childId: string): void {
