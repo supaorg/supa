@@ -196,7 +196,7 @@
     >
       <textarea
         bind:this={textareaElement}
-        class="block w-full resize-none border-0 bg-transparent p-2 leading-normal outline-none focus:ring-0"
+        class="block w-full resize-none border-0 bg-transparent py-2 px-4 leading-normal outline-none focus:ring-0"
         style="height: {TEXTAREA_BASE_HEIGHT}px; overflow-y: hidden;"
         {placeholder}
         bind:value={query}
@@ -210,7 +210,7 @@
       <div class="flex items-center justify-between p-2">
         <div class="flex items-center">
           <button
-            class="flex items-center justify-center rounded-lg"
+            class="flex items-center justify-center h-9 w-9 mr-1 p-0"
             class:opacity-50={!attachEnabled}
             disabled={!attachEnabled}
             aria-label={$txtStore.messageForm.attachFile}
@@ -219,11 +219,13 @@
           </button>
         </div>
         <div class="flex items-center gap-1">
-          <AppConfigDropdown {configId} onChange={handleConfigChange} />
+          <div class="px-2 py-0.5 mr-1 flex items-center h-9">
+            <AppConfigDropdown {configId} onChange={handleConfigChange} />
+          </div>
           {#if status === "ai-message-in-progress"}
             <button
               onclick={stopMsg}
-              class="flex items-center justify-center"
+              class="flex items-center justify-center h-9 w-9 p-0"
               aria-label={$txtStore.messageForm.stop}
             >
               <StopCircle size={20} />
@@ -231,7 +233,7 @@
           {:else}
             <button
               onclick={sendMsg}
-              class="flex items-center justify-center"
+              class="flex items-center justify-center h-9 w-9 p-0"
               class:text-primary-500={canSendMessage}
               class:opacity-50={!canSendMessage}
               disabled={!canSendMessage}
