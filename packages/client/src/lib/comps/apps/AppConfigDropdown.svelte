@@ -5,7 +5,7 @@
   import { txtStore } from "$lib/stores/txtStore";
   import { Popover } from "@skeletonlabs/skeleton-svelte";
   import { ChevronUp } from "lucide-svelte";
-    import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
+  import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
 
   let {
     configId = "",
@@ -14,8 +14,11 @@
 
   let visibleAppConfigs = $state<AppConfig[]>([]);
 
-  let openState = $state(false);
+  let currentConfig = $derived.by(() => {
+    return visibleAppConfigs.find((config) => config.id === configId);
+  });
 
+  let openState = $state(false);
 
   onMount(() => {
     const unobserve = $currentSpaceStore?.appConfigs.observe((configs) => {
@@ -34,7 +37,7 @@
 
 <Popover
   open={openState}
-  onOpenChange={(e) => openState = e.open}
+  onOpenChange={(e) => (openState = e.open)}
   positioning={{ placement: "bottom-end" }}
   contentBase="card bg-surface-100-900 p-2 space-y-2 max-w-[320px]"
   arrow
@@ -43,7 +46,9 @@
   closeOnEscape={true}
 >
   {#snippet trigger()}
-    <button class="flex items-center gap-2 px-2 py-1 rounded-container transition-colors border border-secondary-100-900">
+    <button
+      class="flex items-center gap-2 px-2 py-1 rounded-container transition-colors border border-secondary-100-900"
+    >
       <span class="text-left truncate min-w-0">
         {#if visibleAppConfigs.length > 0}
           {#if configId}
@@ -70,13 +75,22 @@
           class:preset-filled-secondary-500={config.id === configId}
           onclick={() => selectConfig(config.id)}
         >
-          <span><strong>{config.name}</strong><br />
-          {config.description}</span>
+          <span
+            ><strong>{config.name}</strong><br />
+            {config.description}</span
+          >
         </button>
       {/each}
     </div>
-    <div class="flex flex-col gap-1 mt-4">
-      <SpagesNavButton className="btn btn-sm w-full text-left justify-start" component="app-config" title="Edit Config" props={{ configId }}>Edit Config</SpagesNavButton>
-    </div>
+    {#if currentConfig}
+      <div class="flex flex-col gap-1 mt-4">
+        <SpagesNavButton
+          className="btn btn-sm w-full text-left justify-start"
+          component="app-config"
+          title="Edit Config"
+          props={{ configId }}>Edit "{currentConfig?.name}" config</SpagesNavButton
+        >
+      </div>
+    {/if}
   {/snippet}
 </Popover>
