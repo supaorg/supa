@@ -21,7 +21,7 @@
   );
 
   let lastMessageTxt: string | null = null;
-  let titleInput: HTMLInputElement;
+  //let titleInput: HTMLInputElement | undefined;
   let programmaticScrollTimeout: (() => void) | undefined;
 
   function isAtBottom() {
@@ -80,6 +80,7 @@
     formStatus = "can-send-message";
   }
 
+  /*
   function adjustInputWidth() {
     if (!titleInput) return;
     // Create a temporary span to measure text
@@ -99,13 +100,16 @@
     // Set the input width
     titleInput.style.width = `${width}px`;
   }
+  */
 
   onMount(() => {
+    /*
     const unobserveTitle = data.observe((data) => {
       title = data.title as string;
       // Adjust width after title updates
       timeout(adjustInputWidth, 0);
     });
+    */
 
     messageIds = data.messageIds;
 
@@ -120,7 +124,7 @@
     });
 
     return () => {
-      unobserveTitle();
+      //unobserveTitle();
       unobserveNewMessages();
     };
   });
@@ -164,6 +168,7 @@
 </script>
 
 <div class="flex flex-col w-full h-full overflow-hidden">
+  <!--
   <div class="min-h-min px-2">
     <div class="flex flex-1 gap-4 items-center py-2">
       <div class="flex-1 min-w-0">
@@ -191,6 +196,7 @@
       <AppConfigDropdown {data} />
     </div>
   </div>
+  -->
   <div
     class="flex-grow overflow-y-auto pt-2"
     bind:this={scrollableElement}
@@ -210,6 +216,7 @@
         status={formStatus}
         threadId={data.threadId}
         maxLines={10}
+        data={data}
       />
     </section>
   </div>

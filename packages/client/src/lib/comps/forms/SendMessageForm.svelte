@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Send, StopCircle, Paperclip } from "lucide-svelte";
+  import AppConfigDropdown from "$lib/comps/apps/AppConfigDropdown.svelte";
   import { onMount } from "svelte";
   import { timeout } from "@core/tools/timeout";
   import { focusTrap } from "$lib/utils/focusTrap";
@@ -11,6 +12,7 @@
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
 
+  import type { ChatAppData } from "@core/spaces/ChatAppData";
   interface SendMessageFormProps {
     onSend: (msg: string) => void;
     onStop?: () => void;
@@ -23,6 +25,7 @@
     draftStore?: Writable<Record<string, string>>;
     maxLines?: number;
     attachEnabled?: boolean;
+    data?: ChatAppData; // Optional chat data for active chats
   }
 
   let {
@@ -37,11 +40,28 @@
     draftStore = draftMessages,
     maxLines = Infinity,
     attachEnabled = false,
+    data = undefined,
   }: SendMessageFormProps = $props();
 
   let query = $state("");
   let isTextareaFocused = $state(false);
   let textareaElement: HTMLTextAreaElement;
+
+  // Config dropdown state
+  let configId = $state("");
+  $effect(() => {
+    if (data && data.configId) {
+      configId = data.configId;
+    }
+  });
+
+  function handleConfigChange(id: string) {
+    if (data) {
+      data.configId = id;
+    } else {
+      configId = id;
+    }
+  }
 
   // Load draft message if exists
   onMount(() => {
@@ -184,14 +204,18 @@
 
       <!-- Bottom toolbar -->
       <div class="flex items-center justify-between p-2">
-        <button
-          class="flex items-center justify-center rounded-lg"
-          class:opacity-50={!attachEnabled}
-          disabled={!attachEnabled}
-          aria-label={$txtStore.messageForm.attachFile}
-        >
-          <Paperclip size={18} />
-        </button>
+        <div class="flex items-center gap-2">
+          <!-- AppConfigDropdown: bottom left before attachment button -->
+          <AppConfigDropdown configId={configId} onChange={handleConfigChange} />
+          <button
+            class="flex items-center justify-center rounded-lg"
+            class:opacity-50={!attachEnabled}
+            disabled={!attachEnabled}
+            aria-label={$txtStore.messageForm.attachFile}
+          >
+            <Paperclip size={18} />
+          </button>
+        </div>
 
         <div class="relative">
           {#if status === "ai-message-in-progress"}

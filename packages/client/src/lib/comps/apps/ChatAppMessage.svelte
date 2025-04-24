@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { Sparkles, CircleAlert, ChevronDown, ChevronRight } from "lucide-svelte";
+  import {
+    Sparkles,
+    CircleAlert,
+    ChevronDown,
+    ChevronRight,
+  } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
   import { onMount } from "svelte";
@@ -13,8 +18,14 @@
   let isLast = $state(false);
   let configName = $state<string | undefined>(undefined);
   let isThinkingExpanded = $state(false);
-  let hasThinking = $derived(!!message?.thinking && typeof message.thinking === 'string' && message.thinking.trim().length > 0);
-  let isAIGenerating = $derived(!!message?.inProgress && message?.role === "assistant");
+  let hasThinking = $derived(
+    !!message?.thinking &&
+      typeof message.thinking === "string" &&
+      message.thinking.trim().length > 0,
+  );
+  let isAIGenerating = $derived(
+    !!message?.inProgress && message?.role === "assistant",
+  );
 
   // Effect to update config name if config still exists
   $effect(() => {
@@ -101,9 +112,9 @@
           <div class="min-w-0 chat-message">
             {#if hasThinking}
               <div class="mb-3">
-                <button 
+                <button
                   class="flex items-center gap-1 text-surface-500-500-token hover:text-surface-700-300-token group"
-                  onclick={() => isThinkingExpanded = !isThinkingExpanded}
+                  onclick={() => (isThinkingExpanded = !isThinkingExpanded)}
                 >
                   <span class="opacity-70 group-hover:opacity-100">
                     {#if isAIGenerating}
@@ -113,13 +124,21 @@
                     {/if}
                   </span>
                   {#if isThinkingExpanded}
-                    <ChevronDown size={12} class="opacity-70 group-hover:opacity-100" />
+                    <ChevronDown
+                      size={12}
+                      class="opacity-70 group-hover:opacity-100"
+                    />
                   {:else}
-                    <ChevronRight size={12} class="opacity-70 group-hover:opacity-100" />
+                    <ChevronRight
+                      size={12}
+                      class="opacity-70 group-hover:opacity-100"
+                    />
                   {/if}
                 </button>
                 {#if isThinkingExpanded}
-                  <div class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50">
+                  <div
+                    class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50"
+                  >
                     <Markdown source={message.thinking || ""} />
                   </div>
                 {/if}
@@ -130,7 +149,9 @@
         {/if}
 
         {#if canRetry}
-          <button class="btn preset-filled-surface-500" onclick={retry}>Retry</button>
+          <button class="btn preset-filled-surface-500" onclick={retry}
+            >Retry</button
+          >
         {/if}
       </div>
     </div>
@@ -138,40 +159,43 @@
 {/if}
 
 <style>
-  /* Style for headings inside chat messages */
-  .chat-message :global(h1) {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin: 0.75rem 0;
-  }
-  
-  .chat-message :global(h2) {
-    font-size: 1.25rem;
-    font-weight: bold;
-    margin: 0.75rem 0;
-  }
-  
-  .chat-message :global(h3) {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin: 0.5rem 0;
-  }
-  
-  .chat-message :global(h4) {
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0.5rem 0;
-  }
-  
-  .chat-message :global(h5) {
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin: 0.5rem 0;
-  }
-  
-  .chat-message :global(h6) {
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin: 0.5rem 0;
+  :global {
+    /* Style for headings inside chat messages */
+    
+    .chat-message h1 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 0.75rem 0;
+    }
+
+    .chat-message h2 {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin: 0.75rem 0;
+    }
+
+    .chat-message h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0.5rem 0;
+    }
+
+    .chat-message h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0.5rem 0;
+    }
+
+    .chat-message h5 {
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin: 0.5rem 0;
+    }
+
+    .chat-message h6 {
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin: 0.5rem 0;
+    }
   }
 </style>

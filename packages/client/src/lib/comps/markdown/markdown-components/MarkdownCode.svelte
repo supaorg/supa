@@ -1,12 +1,12 @@
 <script module>
   import { codeToHtml } from "shiki";
+  import type { Tokens } from "marked";
   import { Copy, Check } from "lucide-svelte";
   import { timeout } from "@core/tools/timeout";
   import { theme } from "$lib/stores/theme.svelte";
 </script>
 
 <script lang="ts">
-  import type { Tokens } from "marked";
 
   let { token }: { token: Tokens.Code } = $props();
   let lang = $derived(token.lang || "text");
@@ -14,9 +14,6 @@
 
   let generatedHtml = $derived.by(async () => {
     const codeTheme = theme.colorScheme === "dark" ? "github-dark" : "github-light";
-    console.log(codeTheme);
-
-
     return await generatedHighlightedHtml(token.text, codeTheme, token.lang);
   });
 
