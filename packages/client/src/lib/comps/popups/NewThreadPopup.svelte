@@ -56,4 +56,5 @@
   threadId={appConfig.id} 
   draftStore={newThreadDrafts}
   onClose={onClose}
+  showConfigSelector={false}
 />

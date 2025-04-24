@@ -8,11 +8,11 @@
   import { txtStore } from "$lib/stores/txtStore";
   import { draftMessages } from "$lib/stores/draftMessages";
   import type { Writable } from "svelte/store";
+  import type { ChatAppData } from "@core/spaces/ChatAppData";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
 
-  import type { ChatAppData } from "@core/spaces/ChatAppData";
   interface SendMessageFormProps {
     onSend: (msg: string) => void;
     onStop?: () => void;
@@ -26,6 +26,7 @@
     maxLines?: number;
     attachEnabled?: boolean;
     data?: ChatAppData; // Optional chat data for active chats
+    showConfigSelector?: boolean;
   }
 
   let {
@@ -41,6 +42,7 @@
     maxLines = Infinity,
     attachEnabled = false,
     data = undefined,
+    showConfigSelector = true,
   }: SendMessageFormProps = $props();
 
   let query = $state("");
@@ -214,7 +216,9 @@
       <!-- Bottom toolbar -->
       <div class="flex items-center justify-between p-2 text-sm">
         <div class="flex items-center gap-2">
-          <AppConfigDropdown {configId} onChange={handleConfigChange} />
+          {#if showConfigSelector}
+            <AppConfigDropdown {configId} onChange={handleConfigChange} />
+          {/if}
           <button
             class="flex items-center justify-center h-9 w-9 p-0"
             class:opacity-50={!attachEnabled}

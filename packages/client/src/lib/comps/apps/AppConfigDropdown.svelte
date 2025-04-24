@@ -24,6 +24,7 @@
     const unobserve = $currentSpaceStore?.appConfigs.observe((configs) => {
       visibleAppConfigs = configs.filter((config) => config.visible);
     });
+
     return () => {
       unobserve?.();
     };
