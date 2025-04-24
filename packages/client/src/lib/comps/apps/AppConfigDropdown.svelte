@@ -35,14 +35,14 @@
   open={openState}
   onOpenChange={(e) => openState = e.open}
   positioning={{ placement: "bottom-end" }}
-  contentBase="card bg-surface-200-800 p-2 space-y-2 max-w-[320px]"
+  contentBase="card bg-surface-100-900 p-2 space-y-2 max-w-[320px]"
   arrow
-  arrowBackground="!bg-surface-200 dark:!bg-surface-800"
+  arrowBackground="!bg-surface-100-900"
   closeOnInteractOutside={true}
   closeOnEscape={true}
 >
   {#snippet trigger()}
-    <button class="flex items-center gap-2 px-2 py-1 rounded-container transition-colors">
+    <button class="flex items-center gap-2 px-2 py-1 rounded-container transition-colors border border-secondary-100-900">
       <span class="text-left truncate min-w-0">
         {#if visibleAppConfigs.length > 0}
           {#if configId}
@@ -58,15 +58,15 @@
           {$txtStore.appConfigDropdown.placeholder}
         {/if}
       </span>
-      <ChevronUp size={18} />
+      <ChevronUp size={18} color="var(--color-secondary-100-900)" />
     </button>
   {/snippet}
   {#snippet content()}
     <div class="flex flex-col gap-1">
-      {#each visibleAppConfigs as config}
+      {#each visibleAppConfigs as config (config.id)}
         <button
           class="btn btn-sm w-full text-left justify-start"
-          class:preset-filled-surface-500={config.id === configId}
+          class:preset-filled-secondary-500={config.id === configId}
           onclick={() => selectConfig(config.id)}
         >
           {config.name}

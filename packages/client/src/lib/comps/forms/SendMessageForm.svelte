@@ -196,7 +196,7 @@
     >
       <textarea
         bind:this={textareaElement}
-        class="block w-full resize-none border-0 bg-transparent py-2 px-4 leading-normal outline-none focus:ring-0"
+        class="block w-full resize-none border-0 bg-transparent p-2 leading-normal outline-none focus:ring-0"
         style="height: {TEXTAREA_BASE_HEIGHT}px; overflow-y: hidden;"
         {placeholder}
         bind:value={query}
@@ -207,10 +207,11 @@
       ></textarea>
 
       <!-- Bottom toolbar -->
-      <div class="flex items-center justify-between p-2">
-        <div class="flex items-center">
+      <div class="flex items-center justify-between p-2 text-sm">
+        <div class="flex items-center gap-2">
+          <AppConfigDropdown {configId} onChange={handleConfigChange} />
           <button
-            class="flex items-center justify-center h-9 w-9 mr-1 p-0"
+            class="flex items-center justify-center h-9 w-9 p-0"
             class:opacity-50={!attachEnabled}
             disabled={!attachEnabled}
             aria-label={$txtStore.messageForm.attachFile}
@@ -218,10 +219,7 @@
             <Paperclip size={20} />
           </button>
         </div>
-        <div class="flex items-center gap-1">
-          <div class="px-2 py-0.5 mr-1 flex items-center h-9">
-            <AppConfigDropdown {configId} onChange={handleConfigChange} />
-          </div>
+        <div class="flex items-center gap-2">
           {#if status === "ai-message-in-progress"}
             <button
               onclick={stopMsg}
