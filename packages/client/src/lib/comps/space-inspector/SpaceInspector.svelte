@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
+    import { ttabs } from "$lib/ttabs/ttabsLayout";
   import VertexView from "./VertexView.svelte";
   import type { Vertex } from "@core/replicatedTree/Vertex";
 
@@ -9,7 +10,12 @@
   let showingAppTree = $state(false);
 
   let currentTreeId = $derived.by(() => {
-    return page.url.searchParams.get("t");
+    const panel = ttabs.getActivePanelTile();
+    if (panel?.activeTab) {
+      const content = ttabs.getTabContent(panel.activeTab);
+      return content?.data?.componentProps?.treeId;
+    }
+    return undefined;
   });
 
   async function onTreeOpen(treeId: string) {
