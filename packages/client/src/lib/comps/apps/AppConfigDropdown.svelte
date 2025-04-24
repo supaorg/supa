@@ -5,6 +5,7 @@
   import { txtStore } from "$lib/stores/txtStore";
   import { Popover } from "@skeletonlabs/skeleton-svelte";
   import { ChevronUp } from "lucide-svelte";
+    import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
 
   let {
     configId = "",
@@ -69,9 +70,13 @@
           class:preset-filled-secondary-500={config.id === configId}
           onclick={() => selectConfig(config.id)}
         >
-          {config.name}
+          <span><strong>{config.name}</strong><br />
+          {config.description}</span>
         </button>
       {/each}
+    </div>
+    <div class="flex flex-col gap-1 mt-4">
+      <SpagesNavButton className="btn btn-sm w-full text-left justify-start" component="app-config" title="Edit Config" props={{ configId }}>Edit Config</SpagesNavButton>
     </div>
   {/snippet}
 </Popover>
