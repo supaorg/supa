@@ -208,9 +208,7 @@
 
       <!-- Bottom toolbar -->
       <div class="flex items-center justify-between p-2">
-        <div class="flex items-center gap-2">
-          <!-- AppConfigDropdown: bottom left before attachment button -->
-          <AppConfigDropdown {configId} onChange={handleConfigChange} />
+        <div class="flex items-center">
           <button
             class="flex items-center justify-center rounded-lg"
             class:opacity-50={!attachEnabled}
@@ -220,8 +218,8 @@
             <Paperclip size={20} />
           </button>
         </div>
-
-        <div class="relative">
+        <div class="flex items-center gap-1">
+          <AppConfigDropdown {configId} onChange={handleConfigChange} />
           {#if status === "ai-message-in-progress"}
             <button
               onclick={stopMsg}
