@@ -47,6 +47,10 @@
   let isTextareaFocused = $state(false);
   let textareaElement: HTMLTextAreaElement;
 
+  let canSendMessage = $derived(
+    !disabled && status === "can-send-message" && query.length > 0,
+  );
+
   // Config dropdown state
   let configId = $state("");
   $effect(() => {
@@ -78,7 +82,7 @@
     // Clean up draft when component is destroyed
     return () => {
       if (threadId && query) {
-        draftStore.update(drafts => {
+        draftStore.update((drafts) => {
           drafts[threadId] = query;
           return drafts;
         });
@@ -89,22 +93,22 @@
 
   function adjustTextareaHeight() {
     if (!textareaElement) return;
-    
+
     // Reset height to initial value to allow proper scrollHeight calculation
     textareaElement.style.height = `${TEXTAREA_BASE_HEIGHT}px`;
     textareaElement.style.overflowY = "hidden";
-    
+
     // Get the scroll height which represents the height needed to show all content
     const scrollHeight = textareaElement.scrollHeight;
-    
+
     // Calculate the maximum height based on maxLines
     const lineHeight = TEXTAREA_LINE_HEIGHT * 16; // assuming 16px font size
     const maxHeight = maxLines * lineHeight;
-    
+
     if (scrollHeight > TEXTAREA_BASE_HEIGHT) {
       // Set the height to either the scroll height or max height, whichever is smaller
       textareaElement.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
-      
+
       // Only show scrollbars if content exceeds max height
       if (scrollHeight > maxHeight) {
         textareaElement.style.overflowY = "auto";
@@ -129,10 +133,10 @@
 
   function handleInput() {
     adjustTextareaHeight();
-    
+
     // Save or clear draft based on content
     if (threadId) {
-      draftStore.update(drafts => {
+      draftStore.update((drafts) => {
         if (query) {
           drafts[threadId] = query;
         } else {
@@ -152,7 +156,7 @@
 
     // Clear draft when message is sent
     if (threadId) {
-      draftStore.update(drafts => {
+      draftStore.update((drafts) => {
         delete drafts[threadId];
         return drafts;
       });
@@ -194,7 +198,7 @@
         bind:this={textareaElement}
         class="block w-full resize-none border-0 bg-transparent p-2 leading-normal outline-none focus:ring-0"
         style="height: {TEXTAREA_BASE_HEIGHT}px; overflow-y: hidden;"
-        placeholder={placeholder}
+        {placeholder}
         bind:value={query}
         onkeydown={handleKeydown}
         oninput={handleInput}
@@ -206,14 +210,14 @@
       <div class="flex items-center justify-between p-2">
         <div class="flex items-center gap-2">
           <!-- AppConfigDropdown: bottom left before attachment button -->
-          <AppConfigDropdown configId={configId} onChange={handleConfigChange} />
+          <AppConfigDropdown {configId} onChange={handleConfigChange} />
           <button
             class="flex items-center justify-center rounded-lg"
             class:opacity-50={!attachEnabled}
             disabled={!attachEnabled}
             aria-label={$txtStore.messageForm.attachFile}
           >
-            <Paperclip size={18} />
+            <Paperclip size={20} />
           </button>
         </div>
 
@@ -221,24 +225,21 @@
           {#if status === "ai-message-in-progress"}
             <button
               onclick={stopMsg}
-              class="flex items-center justify-center rounded-full hover:bg-surface-700"
+              class="flex items-center justify-center"
               aria-label={$txtStore.messageForm.stop}
             >
-              <StopCircle size={18} />
+              <StopCircle size={20} />
             </button>
           {:else}
             <button
               onclick={sendMsg}
-              class="flex items-center justify-center rounded-full hover:bg-surface-700"
-              class:opacity-50={disabled ||
-                status !== "can-send-message" ||
-                query.length === 0}
-              disabled={disabled ||
-                status !== "can-send-message" ||
-                query.length === 0}
+              class="flex items-center justify-center"
+              class:text-primary-500={canSendMessage}
+              class:opacity-50={!canSendMessage}
+              disabled={!canSendMessage}
               aria-label={$txtStore.messageForm.send}
             >
-              <Send size={18} />
+              <Send size={20} />
             </button>
           {/if}
         </div>
