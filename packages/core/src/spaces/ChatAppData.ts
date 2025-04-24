@@ -66,42 +66,50 @@ export class ChatAppData {
 
   get messages(): ThreadMessage[] {
     const msgs: ThreadMessage[] = [];
-    let targetVertex = this.messagesVertex;
-
-    if (!targetVertex) {
+    const start = this.messagesVertex;
+    if (!start) {
       return [];
     }
-
+    let current: Vertex = start;
     while (true) {
-      const newMsgs = this.getChildMessages(targetVertex);
-      if (newMsgs.length === 0) {
-        break;
-      }
-
-      msgs.push(newMsgs[0]);
-      targetVertex = targetVertex.children[0];
+      const children: Vertex[] = current.children;
+      if (children.length === 0) break;
+      const next: Vertex =
+        children.length === 1
+          ? children[0]
+          : (children.find((c: Vertex) => c.getProperty("main") === true) as Vertex) || children[0];
+      const props = next.getProperties();
+      msgs.push({
+        id: next.id,
+        role: props.role as "user" | "assistant",
+        text: props.text as string,
+        thinking: props.thinking as string | undefined,
+        createdAt: props.createdAt as number,
+        inProgress: props.inProgress as boolean,
+        updatedAt: (props.updatedAt as number) || null,
+      });
+      current = next;
     }
-
     return msgs;
   }
 
   get messageIds(): string[] {
     const ids: string[] = [];
-    let targetVertex = this.messagesVertex;
-
-    if (!targetVertex) {
+    const start = this.messagesVertex;
+    if (!start) {
       return [];
     }
-
+    let current: Vertex = start;
     while (true) {
-      const children = (targetVertex as Vertex).childrenIds;
+      const children: Vertex[] = current.children;
       if (children.length === 0) break;
-      
-      const childId = children[0];
-      ids.push(childId);
-      targetVertex = this.appTree.tree.getVertex(childId);
+      const next: Vertex =
+        children.length === 1
+          ? children[0]
+          : (children.find((c: Vertex) => c.getProperty("main") === true) as Vertex) || children[0];
+      ids.push(next.id);
+      current = next;
     }
-
     return ids;
   }
 
@@ -192,6 +200,74 @@ export class ChatAppData {
 
   stopMessage(messageId: string): void {
     this.triggerEvent("stop-message", { messageId });
+  }
+
+  editMessage(messageId: string, newText: string): ThreadMessage {
+    const vertex = this.appTree.tree.getVertex(messageId);
+    if (!vertex) throw new Error("Message " + messageId + " not found");
+    const parent = vertex.parent;
+    if (!parent) throw new Error("Cannot edit root message");
+    const props = vertex.getProperties();
+    const newProps: Record<string, any> = {
+      ...props,
+      text: newText,
+      updatedAt: Date.now(),
+    };
+    const newVertex = this.appTree.tree.newVertex(parent.id, newProps);
+    const siblings = parent.children;
+    if (siblings.length > 1) {
+      newVertex.setProperty("main", true);
+      for (const sib of siblings) {
+        if (sib.id !== newVertex.id && sib.getProperty("main") === true) {
+          sib.setProperty("main", false);
+        }
+      }
+    }
+    const resultProps = newVertex.getProperties();
+    return {
+      id: newVertex.id,
+      ...resultProps,
+    } as ThreadMessage;
+  }
+
+  switchMain(childId: string): void {
+    const child = this.appTree.tree.getVertex(childId);
+    if (!child) throw new Error("Vertex " + childId + " not found");
+    const parent = child.parent;
+    if (!parent) return;
+    for (const sib of parent.children) {
+      sib.setProperty("main", sib.id === childId);
+    }
+  }
+
+  getBranches(messageId: string): ThreadMessage[][] {
+    const vertex = this.appTree.tree.getVertex(messageId);
+    if (!vertex) return [];
+    const branches: ThreadMessage[][] = [];
+    for (const child of vertex.children) {
+      const branch: ThreadMessage[] = [];
+      let current: Vertex | undefined = child;
+      while (current) {
+        const props = current.getProperties();
+        branch.push({
+          id: current.id,
+          role: props.role as "user" | "assistant",
+          text: props.text as string,
+          thinking: props.thinking as string | undefined,
+          createdAt: props.createdAt as number,
+          inProgress: props.inProgress as boolean,
+          updatedAt: (props.updatedAt as number) || null,
+        });
+        const children: Vertex[] = current.children;
+        if (children.length === 0) break;
+        current =
+          children.length === 1
+            ? children[0]
+            : (children.find((c: Vertex) => c.getProperty("main") === true) as Vertex) || children[0];
+      }
+      branches.push(branch);
+    }
+    return branches;
   }
 
   private getLastMsgParentVertex(): Vertex {

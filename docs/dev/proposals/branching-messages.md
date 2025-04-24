@@ -64,9 +64,9 @@ Currently, Supa’s chat supports linear message threads. To enable editing of u
 
 1. **Backend/Model:**
    - No changes needed to the underlying data structure: messages are already stored as a tree (via ReplicatedTree).
-   - Update message fetching logic to traverse the "main" branch at each fork (i.e., follow the child with `main: true`).
-   - When editing, create a new message vertex as a child of the edited message's parent (sibling to the original), mark it as `main: true`, and remove `main` from the previous main at that fork.
-   - All subsequent messages are appended to the new main branch.
+   - Update message fetching logic: if a vertex has multiple children (a fork), follow the child with `main: true`; otherwise traverse the only child.
+   - On edit, create a new sibling under the original parent with the updated content. If this creates a fork (parent now has >1 children), mark the new vertex `main: true` and clear `main` on the previous main; single-child parents don't require a `main` flag.
+   - Append all subsequent messages as siblings under the same parent as the edited message, forming the new branch: edited message → assistant reply → user message → etc.
 
 2. **Frontend:**
    - Add “Edit” option for user messages in `ChatAppMessage.svelte`.
