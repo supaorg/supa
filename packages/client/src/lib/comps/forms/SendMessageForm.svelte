@@ -51,24 +51,20 @@
     !disabled && status === "can-send-message" && query.length > 0,
   );
 
-  // Config dropdown state
   let configId = $state("");
-  $effect(() => {
-    if (data && data.configId) {
-      configId = data.configId;
-    }
-  });
 
   function handleConfigChange(id: string) {
     if (data) {
       data.configId = id;
-    } else {
-      configId = id;
     }
   }
 
   // Load draft message if exists
   onMount(() => {
+    if (data && data.configId) {
+      configId = data.configId;
+    }
+
     if (threadId && $draftStore[threadId]) {
       query = $draftStore[threadId];
       // Adjust height after loading draft content
@@ -79,8 +75,17 @@
       textareaElement?.focus();
     }
 
+    const observeData = data?.observe((d) => {
+      const configIdFromData = d.configId;
+      if (configIdFromData !== configId) {
+        configId = configIdFromData as string;
+      }
+    });
+
     // Clean up draft when component is destroyed
     return () => {
+      observeData?.();
+
       if (threadId && query) {
         draftStore.update((drafts) => {
           drafts[threadId] = query;
