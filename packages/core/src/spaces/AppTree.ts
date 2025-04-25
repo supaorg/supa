@@ -1,12 +1,12 @@
-import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
+import { RepTree } from "../../../reptree/src/index";
 
 type EventCallback = (event: any) => void;
 
 export default class AppTree {
-  readonly tree: ReplicatedTree;
+  readonly tree: RepTree;
   private eventCallbacks: Map<string, Set<EventCallback>> = new Map();
 
-  static isValid(tree: ReplicatedTree): boolean {
+  static isValid(tree: RepTree): boolean {
     /*
     const root = tree.getVertexByPath('/app-tree');
     if (!root) {
@@ -18,7 +18,7 @@ export default class AppTree {
   }
 
   static newAppTree(peerId: string, appId: string): AppTree {
-    const tree = new ReplicatedTree(peerId);
+    const tree = new RepTree(peerId);
 
     const rootId = tree.rootVertexId;
 
@@ -29,7 +29,7 @@ export default class AppTree {
     return new AppTree(tree);
   }
 
-  constructor(tree: ReplicatedTree) {
+  constructor(tree: RepTree) {
     this.tree = tree;
 
     if (!AppTree.isValid(tree)) {

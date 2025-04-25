@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Vertex } from "@core/replicatedTree/Vertex";
-  import type { VertexPropertyType } from "@core/replicatedTree/treeTypes";
+  import type { Vertex } from "reptree/Vertex";
+  import type { VertexPropertyType } from "reptree/treeTypes";
   import { TrashIcon, Plus } from "lucide-svelte";
   import NewPropertyForm from "./NewPropertyForm.svelte";
   

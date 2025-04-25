@@ -22,7 +22,7 @@ Currently, Supa’s chat supports linear message threads. To enable editing of u
 
 ### 1. Message Tree Structure
 
-- **ReplicatedTree already supports parent/children:**
+- **RepTree already supports parent/children:**
   - No schema change is needed; each message vertex already has a parent and can have multiple children.
 
 - **Branching on Edit:**
@@ -63,7 +63,7 @@ Currently, Supa’s chat supports linear message threads. To enable editing of u
 ## Implementation Steps
 
 1. **Backend/Model:**
-   - No changes needed to the underlying data structure: messages are already stored as a tree (via ReplicatedTree).
+   - No changes needed to the underlying data structure: messages are already stored as a tree (via RepTree).
    - Update message fetching logic: if a vertex has multiple children (a fork), follow the child with `main: true`; otherwise traverse the only child.
    - On edit, create a new sibling under the original parent with the updated content. If this creates a fork (parent now has >1 children), mark the new vertex `main: true` and clear `main` on the previous main; single-child parents don't require a `main` flag.
    - Append all subsequent messages as siblings under the same parent as the edited message, forming the new branch: edited message → assistant reply → user message → etc.

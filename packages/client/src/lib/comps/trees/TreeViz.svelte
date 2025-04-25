@@ -1,9 +1,9 @@
 <script lang="ts">
   import { writable } from "svelte/store";
-  import type { ReplicatedTree } from "@core/replicatedTree/ReplicatedTree";
+  import type { RepTree } from "reptree";
   import TreeBlockViz from "./TreeBlockViz.svelte";
 
-  export let tree: ReplicatedTree;
+  export let tree: RepTree;
 
   const treeStores = {
     dragStartVertexIdStore: writable<string | undefined>(undefined),

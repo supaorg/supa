@@ -4,7 +4,7 @@
   import { onMount, tick } from "svelte";
   import { timeout } from "@core/tools/timeout";
   import { ChatAppData } from "@core/spaces/ChatAppData";
-  import type { Vertex } from "@core/replicatedTree/Vertex";
+  import type { Vertex } from "reptree/Vertex";
   import type { ThreadMessage } from "@core/models";
   import type { MessageFormStatus } from "../forms/messageFormStatus";
 

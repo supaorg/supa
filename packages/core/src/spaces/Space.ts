@@ -1,15 +1,15 @@
-import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
+import { RepTree } from "../../../reptree/src/index";
 import AppTree from "./AppTree";
 import type { AppConfig, CustomProviderConfig } from "../models";
-import type { VertexPropertyType } from "../replicatedTree/treeTypes";
+import type { VertexPropertyType } from "../../../reptree/src/index";
 import type { ModelProviderConfig } from "../models";
 import { validateKey } from "../tools/providerKeyValidators";
-import { Vertex } from "../replicatedTree/Vertex";
+import { Vertex } from "../../../reptree/src/index";
 import { AppConfigsData } from "./AppConfigsData";
 import uuid from "../uuid/uuid";
 
 export default class Space {
-  readonly tree: ReplicatedTree;
+  readonly tree: RepTree;
   private secrets: Record<string, string> | undefined;
   private appTrees: Map<string, AppTree> = new Map();
   private newTreeObservers: ((treeId: string) => void)[] = [];
@@ -19,7 +19,7 @@ export default class Space {
 
   readonly appConfigs: AppConfigsData;
 
-  static isValid(tree: ReplicatedTree): boolean {
+  static isValid(tree: RepTree): boolean {
     const apps = tree.getVertexByPath('app-configs');
     if (!apps) {
       return false;
@@ -34,7 +34,7 @@ export default class Space {
   }
 
   static newSpace(peerId: string): Space {
-    const tree = new ReplicatedTree(peerId);
+    const tree = new RepTree(peerId);
 
     const rootId = tree.rootVertexId;
 
@@ -56,7 +56,7 @@ export default class Space {
     return new Space(tree);
   }
 
-  constructor(tree: ReplicatedTree) {
+  constructor(tree: RepTree) {
     this.tree = tree;
 
     // @TODO: or perhaps a migration should be here

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
-  import type { ReplicatedTree } from "@core/replicatedTree/ReplicatedTree";
+  import type { RepTree } from "reptree";
   import TreeTestSyncWrapper from "$lib/comps/test-sync/TreeTestSyncWrapper.svelte";
 
-  let tree: ReplicatedTree | null = null;
+  let tree: RepTree | null = null;
 
   currentSpaceStore.subscribe((space) => {
     if (space) {

@@ -1,5 +1,5 @@
 import type { AppConfig } from "../models";
-import type { Vertex } from "../replicatedTree/Vertex";
+import type { Vertex } from "../../../reptree/src/index";
 
 // @TODO: answer: should I resolve 'id' into vertex id? And same for _n to 'name'?
 

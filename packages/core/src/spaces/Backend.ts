@@ -1,4 +1,3 @@
-import type { VertexOperation } from "../replicatedTree/operations";
 import Space from "./Space";
 import ChatAppBackend from "../apps/ChatAppBackend";
 

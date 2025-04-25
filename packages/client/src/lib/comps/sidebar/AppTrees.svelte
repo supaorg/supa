@@ -2,7 +2,7 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { onMount } from "svelte";
   import VertexItem from "./VertexItem.svelte";
-  import type { VertexChangeEvent } from "@core/replicatedTree/treeTypes";
+  import type { VertexChangeEvent } from "reptree/treeTypes";
   import type Space from "@core/spaces/Space";
 
   let appTreeIds = $state<string[]>([]);

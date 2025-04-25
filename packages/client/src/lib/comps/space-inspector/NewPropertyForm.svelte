@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { VertexPropertyType } from "@core/replicatedTree/treeTypes";
+  import type { VertexPropertyType } from "reptree/treeTypes";
 
   let { onCreate, onCancel }: { 
     onCreate: (key: string, value: VertexPropertyType) => void;

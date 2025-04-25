@@ -1,7 +1,9 @@
 import type { SpacePointer } from "./SpacePointer";
 import Space from "@core/spaces/Space";
 import { Backend } from "@core/spaces/Backend";
-import { ReplicatedTree } from "@core/replicatedTree/ReplicatedTree";
+import { RepTree } from "../../../../reptree/src";
+import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "../../../../reptree/src";
+
 import {
   readDir,
   create,
@@ -17,7 +19,6 @@ import {
   FileHandle
 } from "@tauri-apps/plugin-fs";
 import uuid from "@core/uuid/uuid";
-import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "@core/replicatedTree/operations";
 import AppTree from "@core/spaces/AppTree";
 import perf from "@core/tools/perf";
 import { interval } from "@core/tools/interval";
@@ -49,10 +50,10 @@ async function encryptSecrets(secretsObj: Record<string, string>, key: string): 
   // Convert secrets to string and encrypt
   const secretsString = JSON.stringify(secretsObj);
   const secretsBuffer = encoder.encode(secretsString);
-  
+
   // Generate random IV
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  
+
   const encryptedBuffer = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     cryptoKey,
@@ -63,7 +64,7 @@ async function encryptSecrets(secretsObj: Record<string, string>, key: string): 
   const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
   combined.set(iv);
   combined.set(new Uint8Array(encryptedBuffer), iv.length);
-  
+
   return btoa(String.fromCharCode(...combined));
 }
 
@@ -145,8 +146,8 @@ export class LocalSpaceSync implements SpaceConnection {
           throw new Error("No operations found for space");
         }
 
-        p = perf("2. ReplicatedTree");
-        const tree = new ReplicatedTree(appTreeId, ops);
+        p = perf("2. RepTree");
+        const tree = new RepTree(appTreeId, ops);
         p.stop();
         return new AppTree(tree);
       } catch (error) {
@@ -276,7 +277,7 @@ export class LocalSpaceSync implements SpaceConnection {
       if (!treeIdStartPart) {
         throw new Error("Tree ID part 1 not found in the path");
       }
-      
+
       // Combine to get the full tree ID
       treeId = treeIdStartPart + treeIdEndPart;
 
@@ -342,7 +343,7 @@ export class LocalSpaceSync implements SpaceConnection {
     // Compare the stringified versions of both objects
     const currentSecretsStr = JSON.stringify(secrets, Object.keys(secrets).sort());
     const fileSecretsStr = JSON.stringify(secretsFromFile, Object.keys(secretsFromFile).sort());
-    
+
     if (currentSecretsStr === fileSecretsStr) {
       return;
     }
@@ -353,7 +354,7 @@ export class LocalSpaceSync implements SpaceConnection {
   private async readSecretsFromFile(): Promise<Record<string, string> | undefined> {
     const secretsPath = this.uri + '/secrets';
 
-    try { 
+    try {
       const encryptedContent = await readTextFile(secretsPath);
       return await decryptSecrets(encryptedContent, this.space.getId());
     } catch (error) {
@@ -394,7 +395,7 @@ export class LocalSpaceSync implements SpaceConnection {
     }
   }
 
-  private handleOpAppliedFromSamePeer(tree: ReplicatedTree, op: VertexOperation) {
+  private handleOpAppliedFromSamePeer(tree: RepTree, op: VertexOperation) {
     // Important that we don't save ops from other peers here
     if (op.id.peerId !== tree.peerId) {
       return;
@@ -492,7 +493,7 @@ export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<Space
   return sync;
 }
 
-async function saveTreeOpsFromScratch(tree: ReplicatedTree, spacePath: string) {
+async function saveTreeOpsFromScratch(tree: RepTree, spacePath: string) {
   const opsPath = makePathForOpsBasedOnDate(spacePath, tree.rootVertexId, new Date());
   await mkdir(opsPath, { recursive: true });
 
@@ -559,7 +560,7 @@ async function loadLocalSpace(path: string): Promise<Space> {
     throw new Error("No operations found for space");
   }
 
-  return new Space(new ReplicatedTree(uuid(), ops));
+  return new Space(new RepTree(uuid(), ops));
 }
 
 async function loadAllTreeOps(spacePath: string, treeId: string): Promise<VertexOperation[]> {

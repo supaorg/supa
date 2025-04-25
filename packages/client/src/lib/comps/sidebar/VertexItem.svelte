@@ -1,6 +1,6 @@
 <script lang="ts">
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
-  import type { VertexChangeEvent } from "@core/replicatedTree/treeTypes";
+  import type { VertexChangeEvent } from "reptree/treeTypes";
   import { onMount } from "svelte";
   import AppTreeOptionsPopup from "../popups/AppTreeOptionsPopup.svelte";
   import { openChatTab, ttabs } from "$lib/ttabs/ttabsLayout";

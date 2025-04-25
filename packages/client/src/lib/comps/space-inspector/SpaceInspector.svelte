@@ -3,7 +3,7 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
     import { ttabs } from "$lib/ttabs/ttabsLayout";
   import VertexView from "./VertexView.svelte";
-  import type { Vertex } from "@core/replicatedTree/Vertex";
+  import type { Vertex } from "reptree/Vertex";
 
   let spaceRootVertex = $derived($currentSpaceStore?.rootVertex);
   let appTreeRootVertex = $state<Vertex | undefined>(undefined);

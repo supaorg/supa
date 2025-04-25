@@ -1,11 +1,11 @@
-import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
-import { VertexPropertyType } from "../replicatedTree/treeTypes";
+import { RepTree } from "../../../reptree/src/index";
+import { VertexPropertyType } from "../../../reptree/src/index";
 
 export class SpaceVertex {
-  private tree: ReplicatedTree;
+  private tree: RepTree;
   readonly rootVertexId: string;
 
-  constructor(tree: ReplicatedTree, rootVertexId: string) {
+  constructor(tree: RepTree, rootVertexId: string) {
     this.tree = tree;
     this.rootVertexId = rootVertexId;
   }

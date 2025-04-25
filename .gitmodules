@@ -1,3 +1,6 @@
 [submodule "packages/ttabs"]
 	path = packages/ttabs
 	url = https://github.com/mitkury/ttabs.git
+[submodule "packages/reptree"]
+	path = packages/reptree
+	url = https://github.com/mitkury/reptree.git

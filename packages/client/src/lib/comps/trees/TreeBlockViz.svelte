@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { type Writable, get } from "svelte/store";
-  import type { ReplicatedTree } from "@core/replicatedTree/ReplicatedTree";
+  import type { RepTree } from "reptree";
   import {
     type VertexChangeEvent,
     type TreeVertexProperty,
-  } from "@core/replicatedTree/treeTypes";
+  } from "reptree/treeTypes";
 
-  export let tree: ReplicatedTree;
+  export let tree: RepTree;
   export let vertexId: string;
   export let treeStores: {
     dragStartVertexIdStore: Writable<string | undefined>;
