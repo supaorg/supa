@@ -7,6 +7,8 @@ import AppTree from "./AppTree";
 export class ChatAppData {
   private root: Vertex;
   private referenceInSpace: Vertex;
+  // @TODO temporary: support update callback for message edits/branch switching
+  private updateCallbacks: Set<(vertices: Vertex[]) => void> = new Set();
 
   static createNewChatTree(space: Space, configId: string): AppTree {
     const tree = space.newAppTree("default-chat").tree;
@@ -180,6 +182,8 @@ export class ChatAppData {
         sib.setProperty("main", false);
       }
     }
+    // @TODO temporary: notify subscribers of message update for branch change
+    this.updateCallbacks.forEach(cb => cb(this.messageVertices));
   }
 
   switchMain(childId: string): void {
@@ -190,6 +194,8 @@ export class ChatAppData {
     for (const sib of parent.children) {
       sib.setProperty("main", sib.id === childId);
     }
+
+    this.updateCallbacks.forEach(cb => cb(this.messageVertices));
   }
 
   private getLastMsgParentVertex(): Vertex {
@@ -247,5 +253,14 @@ export class ChatAppData {
 
   get threadId(): string {
     return this.appTree.tree.rootVertexId;
+  }
+
+  /**
+   * Temporary: subscribe to message updates (like edits and branch switches).
+   * Will be replaced once RepTree supports update events.
+   */
+  onUpdate(callback: (vertices: Vertex[]) => void): () => void {
+    this.updateCallbacks.add(callback);
+    return () => this.updateCallbacks.delete(callback);
   }
 }

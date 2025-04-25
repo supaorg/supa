@@ -84,6 +84,10 @@
       scrollToBottom();
       messages = vertices;
     });
+    // @TODO temporary: subscribe to message updates for edits/branch switching
+    const updateObs = data.onUpdate((vertices) => {
+      messages = vertices;
+    });
 
     tick().then(() => {
       scrollToBottom();
@@ -91,6 +95,7 @@
 
     return () => {
       msgsObs();
+      updateObs();
     };
   });
 

@@ -215,7 +215,7 @@
         <button onclick={prevBranch} disabled={branchIndex === 0} class="hover:text-surface-700">
           <ChevronLeft size={14} />
         </button>
-        <span class="text-sm">Branch {branchIndex + 1}/{vertex.parent.children.length}</span>
+        <span class="text-sm">{branchIndex + 1}/{vertex.parent.children.length}</span>
         <button onclick={nextBranch} disabled={branchIndex === vertex.parent.children.length - 1} class="hover:text-surface-700">
           <ChevronRight size={14} />
         </button>
