@@ -19,7 +19,6 @@
   );
 
   let lastMessageTxt: string | null = null;
-  //let titleInput: HTMLInputElement | undefined;
   let programmaticScrollTimeout: (() => void) | undefined;
 
   function isAtBottom() {

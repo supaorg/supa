@@ -37,9 +37,9 @@
   // Effect to update config name if config still exists
   $effect(() => {
     if (message?.role === "assistant") {
-      const savedConfigId = data.getMessageProperty(message.id, "configId");
-      if (savedConfigId && $currentSpaceStore) {
-        const config = $currentSpaceStore.getAppConfig(savedConfigId);
+      const configId = vertex.getProperty("configId");
+      if (configId && $currentSpaceStore) {
+        const config = $currentSpaceStore.getAppConfig(configId);
         if (config) {
           configName = config.name;
           return;
