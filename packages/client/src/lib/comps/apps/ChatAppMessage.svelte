@@ -144,7 +144,7 @@
             <div class="p-3 rounded-lg preset-tonal">
               <textarea bind:value={editText} rows="3" class="w-full p-2 border rounded resize-none"></textarea>
               <div class="flex gap-2 mt-2 justify-end">
-                <button class="btn" onclick={() => { data.editMessage(message.id, editText); isEditing = false; }}>
+                <button class="btn" onclick={() => { data.editMessage(vertex.id, editText); isEditing = false; }}>
                   Save
                 </button>
                 <button class="btn preset-outline" onclick={() => (isEditing = false)}>

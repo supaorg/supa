@@ -159,9 +159,9 @@ export class ChatAppData {
     this.triggerEvent("stop-message", { messageId });
   }
 
-  editMessage(messageId: string, newText: string) {
-    const vertex = this.appTree.tree.getVertex(messageId);
-    if (!vertex) throw new Error("Message " + messageId + " not found");
+  editMessage(messageVertexId: string, newText: string) {
+    const vertex = this.appTree.tree.getVertex(messageVertexId);
+    if (!vertex) throw new Error("Message " + messageVertexId + " not found");
     const parent = vertex.parent;
     if (!parent) throw new Error("Cannot edit root message");
     const props = vertex.getProperties();
