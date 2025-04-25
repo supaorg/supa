@@ -17,10 +17,10 @@ export default class ChatAppBackend {
   constructor(private space: Space, private appTree: AppTree) {
     this.data = new ChatAppData(this.space, appTree);
 
-    this.processMessages(this.data.messages);
+    this.processMessages(this.data.messageVertices.map(v => v.getAsTypedObject<ThreadMessage>()));
 
-    this.data.observeNewMessages((messages) => {
-      this.processMessages(messages);
+    this.data.observeNewMessages((vertices) => {
+      this.processMessages(vertices.map(v => v.getAsTypedObject<ThreadMessage>()));
     });
 
     this.appTree.onEvent('retry-message', (event) => {
@@ -30,7 +30,8 @@ export default class ChatAppBackend {
         return;
       }
 
-      const messages = this.data.messages;
+      const vertices = this.data.messageVertices;
+      const messages = vertices.map(v => v.getAsTypedObject<ThreadMessage>());
       this.replyToMessage(messages);
     });
 
@@ -40,10 +41,10 @@ export default class ChatAppBackend {
       }
 
       // Get the last message and set inProgress to false
-      const messages = this.data.messages;
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage && lastMessage.role === "assistant") {
-        this.appTree.tree.setVertexProperty(lastMessage.id, "inProgress", false);
+      const vertices = this.data.messageVertices;
+      const lastVertex = vertices[vertices.length - 1];
+      if (lastVertex && this.data.getMessageProperty(lastVertex.id, "role") === "assistant") {
+        this.appTree.tree.setVertexProperty(lastVertex.id, "inProgress", false);
       }
 
     });

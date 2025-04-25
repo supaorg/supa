@@ -9,13 +9,14 @@
   } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
+  import type { Vertex } from "@core/replicatedTree/Vertex";
   import { onMount } from "svelte";
   import Markdown from "../markdown/Markdown.svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
-  let { message: propMessage, data }: { message: ThreadMessage; data: ChatAppData } = $props();
+  let { vertex, data }: { vertex: Vertex; data: ChatAppData } = $props();
 
-  let message: ThreadMessage = $state(propMessage);
+  let message: ThreadMessage = $state(vertex.getAsTypedObject<ThreadMessage>());
   let canRetry = $state(false);
   let isLast = $state(false);
   let configName = $state<string | undefined>(undefined);
@@ -56,15 +57,15 @@
   });
 
   onMount(() => {
-    const unobserve = data.observeMessage(propMessage.id, (msg) => {
+    const unobserve = data.observeMessage(vertex.id, (msg) => {
       message = msg;
-      isLast = data.isLastMessage(propMessage.id);
+      isLast = data.isLastMessage(vertex.id);
 
       canRetry =
         isLast &&
         (msg.role === "error" ||
           (isMoreThanOneMinuteOld(msg.createdAt) &&
-            data.isMessageInProgress(propMessage.id)));
+            data.isMessageInProgress(vertex.id)));
     });
 
     return () => {
@@ -85,14 +86,14 @@
 
   async function retry() {
     data.triggerEvent("retry-message", {
-      messageId: propMessage.id,
+      messageId: vertex.id,
     });
   }
 
   // Branch switching state and handlers
   $effect(() => {
     // Use sibling branches so switcher appears on branch start messages, not parent
-    const bs = data.getSiblingBranches(propMessage.id);
+    const bs = data.getSiblingBranches(vertex.id);
     branches = bs;
     const idx = bs.findIndex((b) => data.getMessageProperty(b[0].id, "main") === true);
     branchIndex = idx >= 0 ? idx : 0;

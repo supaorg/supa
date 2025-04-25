@@ -4,12 +4,13 @@
   import { onMount, tick } from "svelte";
   import { timeout } from "@core/tools/timeout";
   import { ChatAppData } from "@core/spaces/ChatAppData";
+  import type { Vertex } from "@core/replicatedTree/Vertex";
   import type { ThreadMessage } from "@core/models";
   import type { MessageFormStatus } from "../forms/messageFormStatus";
 
   let { data }: { data: ChatAppData } = $props();
   let scrollableElement = $state<HTMLElement | undefined>(undefined);
-  let messages = $state<ThreadMessage[]>([]);
+  let messages = $state<Vertex[]>([]);
   let shouldAutoScroll = $state(true);
   let formStatus: MessageFormStatus = $state("can-send-message");
   let isProgrammaticScroll = $state(true);
@@ -78,11 +79,11 @@
   }
 
   onMount(() => {
-    messages = data.messages;
+    messages = data.messageVertices;
 
-    const unobserveNewMessages = data.observeNewMessages((msgs) => {
+    const unobserveNewMessages = data.observeNewMessages((vertices) => {
       scrollToBottom();
-      messages = msgs;
+      messages = vertices;
     });
 
     tick().then(() => {
@@ -133,8 +134,8 @@
     onscroll={handleScroll}
   >
     <div class="w-full max-w-4xl mx-auto">
-      {#each messages as message (message.id)}
-        <ChatAppMessage {message} {data} />
+      {#each messages as vertex (vertex.id)}
+        <ChatAppMessage {vertex} {data} />
       {/each}
     </div>
   </div>

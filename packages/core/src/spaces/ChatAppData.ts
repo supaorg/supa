@@ -1,7 +1,7 @@
 import type { Vertex } from "../replicatedTree/Vertex";
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import type Space from "./Space";
-import type { VertexPropertyType, VertexPropertyType } from "../replicatedTree/treeTypes";
+import type { VertexPropertyType } from "../replicatedTree/treeTypes";
 import type { ThreadMessage } from "../models";
 import AppTree from "./AppTree";
 
@@ -64,12 +64,10 @@ export class ChatAppData {
     this.space.setAppTreeName(this.threadId, newTitle);
   }
 
-  get messages(): ThreadMessage[] {
-    const msgs: ThreadMessage[] = [];
+  get messageVertices(): Vertex[] {
+    const vs: Vertex[] = [];
     const start = this.messagesVertex;
-    if (!start) {
-      return [];
-    }
+    if (!start) return [];
     let current: Vertex = start;
     while (true) {
       const children: Vertex[] = current.children;
@@ -78,19 +76,10 @@ export class ChatAppData {
         children.length === 1
           ? children[0]
           : (children.find((c: Vertex) => c.getProperty("main") === true) as Vertex) || children[0];
-      const props = next.getProperties();
-      msgs.push({
-        id: next.id,
-        role: props.role as "user" | "assistant",
-        text: props.text as string,
-        thinking: props.thinking as string | undefined,
-        createdAt: props.createdAt as number,
-        inProgress: props.inProgress as boolean,
-        updatedAt: (props.updatedAt as number) || null,
-      });
+      vs.push(next);
       current = next;
     }
-    return msgs;
+    return vs;
   }
 
   triggerEvent(eventName: string, data: any) {
@@ -105,18 +94,18 @@ export class ChatAppData {
     });
   }
 
-  observeMessages(callback: (messages: ThreadMessage[]) => void): () => void {
+  observeMessages(callback: (vertices: Vertex[]) => void): () => void {
     // @TODO: observe NOT only new messages but also when messages are updated
     return this.appTree.tree.observeVertexMove((vertex, _) => {
       const text = vertex.getProperty("text");
       if (text) {
-        callback(this.messages);
+        callback(this.messageVertices);
       }
 
     });
   }
 
-  observeNewMessages(callback: (messages: ThreadMessage[]) => void): () => void {
+  observeNewMessages(callback: (vertices: Vertex[]) => void): () => void {
     return this.appTree.tree.observeVertexMove((vertex, isNew) => {
       if (!isNew) {
         return;
@@ -124,7 +113,7 @@ export class ChatAppData {
 
       const text = vertex.getProperty("text");
       if (text) {
-        callback(this.messages);
+        callback(this.messageVertices);
       }
 
     });
