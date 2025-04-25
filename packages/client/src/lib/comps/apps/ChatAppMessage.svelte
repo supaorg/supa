@@ -9,7 +9,7 @@
   } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
-  import type { Vertex } from "reptree/Vertex";
+  import type { Vertex } from "reptree";
   import { onMount } from "svelte";
   import Markdown from "../markdown/Markdown.svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";

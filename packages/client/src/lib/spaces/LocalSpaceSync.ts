@@ -1,8 +1,14 @@
 import type { SpacePointer } from "./SpacePointer";
 import Space from "@core/spaces/Space";
 import { Backend } from "@core/spaces/Backend";
-import { RepTree } from "../../../../reptree/src";
-import { isMoveVertexOp, isSetPropertyOp, newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "../../../../reptree/src";
+import {
+  RepTree,
+  isMoveVertexOp,
+  isSetPropertyOp,
+  newMoveVertexOp,
+  newSetVertexPropertyOp,
+  type VertexOperation
+} from "reptree";
 
 import {
   readDir,

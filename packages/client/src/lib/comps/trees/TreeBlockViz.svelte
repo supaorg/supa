@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onMount} from "svelte";
   import { type Writable, get } from "svelte/store";
-  import type { RepTree } from "reptree";
   import {
+    RepTree,
     type VertexChangeEvent,
     type TreeVertexProperty,
-  } from "reptree/treeTypes";
+  } from "reptree";
 
   export let tree: RepTree;
   export let vertexId: string;

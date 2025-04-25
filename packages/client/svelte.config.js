@@ -11,7 +11,7 @@ const config = {
     adapter: adapter(),
     alias: {
       "@core": "../core/src",
-      "reptree": "../core/src",
+      "reptree": "../reptree/src",
       "ttabs-svelte": "../ttabs/packages/ttabs/src/lib",
     },
   },

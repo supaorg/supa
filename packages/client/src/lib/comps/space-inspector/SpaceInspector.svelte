@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { page } from "$app/state";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
-    import { ttabs } from "$lib/ttabs/ttabsLayout";
+  import { ttabs } from "$lib/ttabs/ttabsLayout";
   import VertexView from "./VertexView.svelte";
-  import type { Vertex } from "reptree/Vertex";
+  import type { Vertex } from "reptree";
 
   let spaceRootVertex = $derived($currentSpaceStore?.rootVertex);
   let appTreeRootVertex = $state<Vertex | undefined>(undefined);
@@ -33,8 +32,8 @@
 
 <ol class="flex items-center gap-4 mb-4 text-sm">
   <li>
-    <button 
-      class="opacity-60 hover:underline" 
+    <button
+      class="opacity-60 hover:underline"
       onclick={showSpace}
       disabled={!showingAppTree}
     >
@@ -44,7 +43,7 @@
   {#if currentTreeId && !showingAppTree}
     <li class="opacity-50" aria-hidden="true">&rsaquo;</li>
     <li>
-      <button 
+      <button
         class="text-blue-500 hover:underline font-medium"
         onclick={() => onTreeOpen(currentTreeId)}
       >
