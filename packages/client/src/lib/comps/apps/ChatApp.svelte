@@ -9,12 +9,12 @@
 
   let { data }: { data: ChatAppData } = $props();
   let scrollableElement = $state<HTMLElement | undefined>(undefined);
-  let messageIds = $state<string[]>([]);
+  let messages = $state<ThreadMessage[]>([]);
   let shouldAutoScroll = $state(true);
   let formStatus: MessageFormStatus = $state("can-send-message");
   let isProgrammaticScroll = $state(true);
   let lastMessageId = $derived.by(() =>
-    messageIds.length > 0 ? messageIds[messageIds.length - 1] : undefined,
+    messages.length > 0 ? messages[messages.length - 1].id : undefined,
   );
 
   let lastMessageTxt: string | null = null;
@@ -78,12 +78,11 @@
   }
 
   onMount(() => {
-    messageIds = data.messageIds;
+    messages = data.messages;
 
     const unobserveNewMessages = data.observeNewMessages((msgs) => {
-      const newIds = data.messageIds;
       scrollToBottom();
-      messageIds = newIds;
+      messages = msgs;
     });
 
     tick().then(() => {
@@ -134,8 +133,8 @@
     onscroll={handleScroll}
   >
     <div class="w-full max-w-4xl mx-auto">
-      {#each messageIds as messageId (messageId)}
-        <ChatAppMessage {messageId} {data} />
+      {#each messages as message (message.id)}
+        <ChatAppMessage {message} {data} />
       {/each}
     </div>
   </div>

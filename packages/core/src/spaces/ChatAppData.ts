@@ -1,7 +1,7 @@
 import type { Vertex } from "../replicatedTree/Vertex";
 import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import type Space from "./Space";
-import type { VertexPropertyType } from "../replicatedTree/treeTypes";
+import type { VertexPropertyType, VertexPropertyType } from "../replicatedTree/treeTypes";
 import type { ThreadMessage } from "../models";
 import AppTree from "./AppTree";
 
@@ -91,26 +91,6 @@ export class ChatAppData {
       current = next;
     }
     return msgs;
-  }
-
-  get messageIds(): string[] {
-    const ids: string[] = [];
-    const start = this.messagesVertex;
-    if (!start) {
-      return [];
-    }
-    let current: Vertex = start;
-    while (true) {
-      const children: Vertex[] = current.children;
-      if (children.length === 0) break;
-      const next: Vertex =
-        children.length === 1
-          ? children[0]
-          : (children.find((c: Vertex) => c.getProperty("main") === true) as Vertex) || children[0];
-      ids.push(next.id);
-      current = next;
-    }
-    return ids;
   }
 
   triggerEvent(eventName: string, data: any) {

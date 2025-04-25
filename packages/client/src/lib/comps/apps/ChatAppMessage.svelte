@@ -13,9 +13,9 @@
   import Markdown from "../markdown/Markdown.svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
 
-  let { messageId, data }: { messageId: string; data: ChatAppData } = $props();
+  let { message: propMessage, data }: { message: ThreadMessage; data: ChatAppData } = $props();
 
-  let message: ThreadMessage | undefined = $state();
+  let message: ThreadMessage = $state(propMessage);
   let canRetry = $state(false);
   let isLast = $state(false);
   let configName = $state<string | undefined>(undefined);
@@ -36,7 +36,7 @@
   // Effect to update config name if config still exists
   $effect(() => {
     if (message?.role === "assistant") {
-      const savedConfigId = data.getMessageProperty(messageId, "configId");
+      const savedConfigId = data.getMessageProperty(message.id, "configId");
       if (savedConfigId && $currentSpaceStore) {
         const config = $currentSpaceStore.getAppConfig(savedConfigId);
         if (config) {
@@ -45,7 +45,7 @@
         }
       }
       // If config doesn't exist anymore, use the saved name
-      configName = data.getMessageProperty(messageId, "configName");
+      configName = data.getMessageProperty(message.id, "configName");
     }
   });
 
@@ -56,15 +56,15 @@
   });
 
   onMount(() => {
-    const unobserve = data.observeMessage(messageId, (msg) => {
+    const unobserve = data.observeMessage(propMessage.id, (msg) => {
       message = msg;
-      isLast = data.isLastMessage(messageId);
+      isLast = data.isLastMessage(propMessage.id);
 
       canRetry =
         isLast &&
         (msg.role === "error" ||
           (isMoreThanOneMinuteOld(msg.createdAt) &&
-            data.isMessageInProgress(messageId)));
+            data.isMessageInProgress(propMessage.id)));
     });
 
     return () => {
@@ -85,14 +85,14 @@
 
   async function retry() {
     data.triggerEvent("retry-message", {
-      messageId: messageId,
+      messageId: propMessage.id,
     });
   }
 
   // Branch switching state and handlers
   $effect(() => {
     // Use sibling branches so switcher appears on branch start messages, not parent
-    const bs = data.getSiblingBranches(messageId);
+    const bs = data.getSiblingBranches(propMessage.id);
     branches = bs;
     const idx = bs.findIndex((b) => data.getMessageProperty(b[0].id, "main") === true);
     branchIndex = idx >= 0 ? idx : 0;
@@ -144,7 +144,7 @@
             <div class="p-3 rounded-lg preset-tonal">
               <textarea bind:value={editText} rows="3" class="w-full p-2 border rounded resize-none" />
               <div class="flex gap-2 mt-2 justify-end">
-                <button class="btn" onclick={() => { data.editMessage(messageId, editText); isEditing = false; }}>
+                <button class="btn" onclick={() => { data.editMessage(message.id, editText); isEditing = false; }}>
                   Save
                 </button>
                 <button class="btn preset-outline" onclick={() => (isEditing = false)}>
