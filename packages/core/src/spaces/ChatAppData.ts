@@ -267,6 +267,17 @@ export class ChatAppData {
     return branches;
   }
 
+  /**
+   * Returns sibling branches for a given message by inspecting its parent's children.
+   */
+  getSiblingBranches(messageId: string): ThreadMessage[][] {
+    const vertex = this.appTree.tree.getVertex(messageId);
+    if (!vertex) return [];
+    const parent = vertex.parent;
+    if (!parent) return [];
+    return this.getBranches(parent.id);
+  }
+
   private getLastMsgParentVertex(): Vertex {
     let targetVertex = this.messagesVertex;
 

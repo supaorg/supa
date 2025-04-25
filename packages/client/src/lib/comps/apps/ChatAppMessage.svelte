@@ -5,6 +5,7 @@
     ChevronDown,
     ChevronRight,
     Edit,
+    ChevronLeft,
   } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
@@ -29,6 +30,8 @@
   );
   let isEditing = $state(false);
   let editText = $state("");
+  let branches = $state<ThreadMessage[][]>([]);
+  let branchIndex = $state(0);
 
   // Effect to update config name if config still exists
   $effect(() => {
@@ -84,6 +87,29 @@
     data.triggerEvent("retry-message", {
       messageId: messageId,
     });
+  }
+
+  // Branch switching state and handlers
+  $effect(() => {
+    // Use sibling branches so switcher appears on branch start messages, not parent
+    const bs = data.getSiblingBranches(messageId);
+    branches = bs;
+    const idx = bs.findIndex((b) => data.getMessageProperty(b[0].id, "main") === true);
+    branchIndex = idx >= 0 ? idx : 0;
+  });
+
+  function prevBranch() {
+    if (branchIndex <= 0) return;
+    branchIndex -= 1;
+    const childId = branches[branchIndex][0].id;
+    data.switchMain(childId);
+  }
+
+  function nextBranch() {
+    if (branchIndex >= branches.length - 1) return;
+    branchIndex += 1;
+    const childId = branches[branchIndex][0].id;
+    data.switchMain(childId);
   }
 </script>
 
@@ -184,6 +210,17 @@
           >
         {/if}
       </div>
+      {#if branches.length > 1}
+      <div class="flex items-center gap-1 mb-2 text-surface-500">
+        <button onclick={prevBranch} disabled={branchIndex === 0} class="hover:text-surface-700">
+          <ChevronLeft size={14} />
+        </button>
+        <span class="text-sm">Branch {branchIndex + 1}/{branches.length}</span>
+        <button onclick={nextBranch} disabled={branchIndex === branches.length - 1} class="hover:text-surface-700">
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    {/if}
     </div>
   </div>
 {/if}
