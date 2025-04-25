@@ -39,7 +39,7 @@
 <Popover
   open={openState}
   onOpenChange={(e) => (openState = e.open)}
-  positioning={{ placement: "bottom-end" }}
+  positioning={{ placement: "bottom" }}
   contentBase="card bg-surface-100-900 p-2 space-y-2 max-w-[320px]"
   arrow
   arrowBackground="!bg-surface-100-900"

@@ -9,7 +9,7 @@
 <a 
   {href} 
   class={`flex-grow py-2 px-2 truncate flex rounded ${
-    isActive ? "bg-surface-100-900" : "hover:bg-surface-100-900"
+    isActive ? "bg-surface-100-900" : "hover:preset-tonal"
   }`}
 >
   {@render children()}

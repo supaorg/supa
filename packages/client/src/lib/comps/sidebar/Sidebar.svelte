@@ -16,7 +16,7 @@
     <SpagesNavButton
       component="apps"
       title="Apps"
-      className="w-full flex gap-2 flex-grow py-2 px-2 truncate flex rounded hover:bg-surface-100-900"
+      className="w-full flex gap-2 flex-grow py-2 px-2 truncate flex rounded hover:preset-tonal"
     >
       <span class="w-6 h-6 flex-shrink-0">
         <span class="relative flex h-full items-center justify-center">
@@ -33,7 +33,7 @@
     <div class="flex items-center gap-2">
       <div class="flex-grow"><SpaceSelectorPopup /></div>
       <div class="flex-shrink-0">
-        <SpagesNavButton component="settings" title="Settings" className="flex-grow py-2 px-2 truncate flex rounded hover:bg-surface-100-900">
+        <SpagesNavButton component="settings" title="Settings" className="flex-grow py-2 px-2 truncate flex rounded hover:preset-tonal">
           <Settings size={18} />
         </SpagesNavButton>
       </div>

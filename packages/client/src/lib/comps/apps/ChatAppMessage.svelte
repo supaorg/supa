@@ -115,7 +115,7 @@
       <div>
         {#if message.role === "user"}
           {#if isEditing}
-            <div class="p-3 rounded-lg bg-surface-500/10 dark:bg-surface-500/20">
+            <div class="p-3 rounded-lg preset-tonal">
               <textarea bind:value={editText} rows="3" class="w-full p-2 border rounded resize-none" />
               <div class="flex gap-2 mt-2 justify-end">
                 <button class="btn" onclick={() => { data.editMessage(messageId, editText); isEditing = false; }}>
@@ -127,7 +127,7 @@
               </div>
             </div>
           {:else}
-            <div class="relative p-3 rounded-lg bg-surface-500/10 dark:bg-surface-500/20">
+            <div class="relative p-3 rounded-lg preset-tonal">
               {@html replaceNewlinesWithHtmlBrs(message.text || "")} 
               <button
                 class="absolute top-1 right-1 text-surface-500 hover:text-surface-700"
