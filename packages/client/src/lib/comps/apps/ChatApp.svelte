@@ -43,7 +43,7 @@
   $effect(() => {
     if (!lastMessageId) return;
 
-    const unobserveLastMessage = data.observeMessage(lastMessageId, (msg) => {
+    const msgObs = data.observeMessage(lastMessageId, (msg) => {
       updateFormStatus(msg);
       if (msg.text !== lastMessageTxt) {
         lastMessageTxt = msg.text;
@@ -54,7 +54,7 @@
     });
 
     return () => {
-      unobserveLastMessage();
+      msgObs();
     };
   });
 
@@ -80,7 +80,7 @@
   onMount(() => {
     messages = data.messageVertices;
 
-    const unobserveNewMessages = data.observeNewMessages((vertices) => {
+    const msgsObs = data.observeNewMessages((vertices) => {
       scrollToBottom();
       messages = vertices;
     });
@@ -90,7 +90,7 @@
     });
 
     return () => {
-      unobserveNewMessages();
+      msgsObs();
     };
   });
 

@@ -1,18 +1,12 @@
 import type { Vertex } from "../replicatedTree/Vertex";
-import { ReplicatedTree } from "../replicatedTree/ReplicatedTree";
 import type Space from "./Space";
 import type { VertexPropertyType } from "../replicatedTree/treeTypes";
 import type { ThreadMessage } from "../models";
 import AppTree from "./AppTree";
 
-type ChatJob = {
-
-}
-
 export class ChatAppData {
   private root: Vertex;
   private referenceInSpace: Vertex;
-  //private jobsVertex: Vertex;
 
   static createNewChatTree(space: Space, configId: string): AppTree {
     const tree = space.newAppTree("default-chat").tree;
@@ -26,13 +20,6 @@ export class ChatAppData {
   constructor(private space: Space, private appTree: AppTree) {
     this.root = appTree.tree.getVertex(appTree.tree.rootVertexId)!;
     this.referenceInSpace = space.getVertexReferencingAppTree(appTree.tree.rootVertexId)!;
-
-    /*
-    this.jobsVertex = this.appTree.getVertexByPath("jobs")!;
-    if (!this.jobsVertex) {
-      this.jobsVertex = this.appTree.newNamedVertex(this.appTree.rootVertexId, "jobs");
-    }
-    */
   }
 
   get messagesVertex(): Vertex | undefined {
@@ -101,7 +88,6 @@ export class ChatAppData {
       if (text) {
         callback(this.messageVertices);
       }
-
     });
   }
 
@@ -206,47 +192,6 @@ export class ChatAppData {
     }
   }
 
-  getBranches(messageId: string): ThreadMessage[][] {
-    const vertex = this.appTree.tree.getVertex(messageId);
-    if (!vertex) return [];
-    const branches: ThreadMessage[][] = [];
-    for (const child of vertex.children) {
-      const branch: ThreadMessage[] = [];
-      let current: Vertex | undefined = child;
-      while (current) {
-        const props = current.getProperties();
-        branch.push({
-          id: current.id,
-          role: props.role as "user" | "assistant",
-          text: props.text as string,
-          thinking: props.thinking as string | undefined,
-          createdAt: props.createdAt as number,
-          inProgress: props.inProgress as boolean,
-          updatedAt: (props.updatedAt as number) || null,
-        });
-        const children: Vertex[] = current.children;
-        if (children.length === 0) break;
-        current =
-          children.length === 1
-            ? children[0]
-            : (children.find((c: Vertex) => c.getProperty("main") === true) as Vertex) || children[0];
-      }
-      branches.push(branch);
-    }
-    return branches;
-  }
-
-  /**
-   * Returns sibling branches for a given message by inspecting its parent's children.
-   */
-  getSiblingBranches(messageId: string): ThreadMessage[][] {
-    const vertex = this.appTree.tree.getVertex(messageId);
-    if (!vertex) return [];
-    const parent = vertex.parent;
-    if (!parent) return [];
-    return this.getBranches(parent.id);
-  }
-
   private getLastMsgParentVertex(): Vertex {
     let targetVertex = this.messagesVertex;
 
@@ -263,26 +208,6 @@ export class ChatAppData {
     }
 
     return targetVertex;
-  }
-
-  private getChildMessages(vertex: Vertex): ThreadMessage[] {
-    const messages: ThreadMessage[] = [];
-
-    for (const child of vertex.children) {
-      const props = child.getProperties();
-
-      messages.push({
-        id: child.id,
-        role: props.role as "user" | "assistant",
-        text: props.text as string,
-        thinking: props.thinking as string | null,
-        createdAt: props.createdAt as number,
-        inProgress: props.inProgress as boolean | null,
-        updatedAt: props.updatedAt as number | null
-      });
-    }
-
-    return messages;
   }
 
   isLastMessage(messageId: string): boolean {
