@@ -31,13 +31,19 @@
   );
   let isEditing = $state(false);
   let editText = $state("");
-  let branches = $state<ThreadMessage[][]>([]);
-  let branchIndex = $state(0);
+  // Branch navigation: use siblings under the same parent
+  let branchIndex = $derived.by(() => {
+    const parent = vertex.parent;
+    if (!parent) return 0;
+    const siblings = parent.children;
+    const idx = siblings.findIndex(s => s.id === vertex.id);
+    return idx >= 0 ? idx : 0;
+  });
 
   // Effect to update config name if config still exists
   $effect(() => {
     if (message?.role === "assistant") {
-      const configId = vertex.getProperty("configId");
+      const configId = vertex.getProperty("configId") as string;
       if (configId && $currentSpaceStore) {
         const config = $currentSpaceStore.getAppConfig(configId);
         if (config) {
@@ -90,27 +96,20 @@
     });
   }
 
-  // Branch switching state and handlers
-  $effect(() => {
-    // Use sibling branches so switcher appears on branch start messages, not parent
-    const bs = data.getSiblingBranches(vertex.id);
-    branches = bs;
-    const idx = bs.findIndex((b) => data.getMessageProperty(b[0].id, "main") === true);
-    branchIndex = idx >= 0 ? idx : 0;
-  });
-
+  // Branch switching: use vertex.children and data.switchMain
   function prevBranch() {
-    if (branchIndex <= 0) return;
-    branchIndex -= 1;
-    const childId = branches[branchIndex][0].id;
-    data.switchMain(childId);
+    const parent = vertex.parent;
+    if (!parent || branchIndex <= 0) return;
+    const siblings = parent.children;
+    data.switchMain(siblings[branchIndex - 1].id);
   }
 
   function nextBranch() {
-    if (branchIndex >= branches.length - 1) return;
-    branchIndex += 1;
-    const childId = branches[branchIndex][0].id;
-    data.switchMain(childId);
+    const parent = vertex.parent;
+    if (!parent) return;
+    const siblings = parent.children;
+    if (branchIndex >= siblings.length - 1) return;
+    data.switchMain(siblings[branchIndex + 1].id);
   }
 </script>
 
@@ -211,13 +210,13 @@
           >
         {/if}
       </div>
-      {#if branches.length > 1}
+      {#if vertex.parent && vertex.parent.children.length > 1}
       <div class="flex items-center gap-1 mb-2 text-surface-500">
         <button onclick={prevBranch} disabled={branchIndex === 0} class="hover:text-surface-700">
           <ChevronLeft size={14} />
         </button>
-        <span class="text-sm">Branch {branchIndex + 1}/{branches.length}</span>
-        <button onclick={nextBranch} disabled={branchIndex === branches.length - 1} class="hover:text-surface-700">
+        <span class="text-sm">Branch {branchIndex + 1}/{vertex.parent.children.length}</span>
+        <button onclick={nextBranch} disabled={branchIndex === vertex.parent.children.length - 1} class="hover:text-surface-700">
           <ChevronRight size={14} />
         </button>
       </div>
