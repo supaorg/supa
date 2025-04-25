@@ -9,10 +9,14 @@ Facts:
 - Tailwind is used for CSS utility classes
 - Skeleton is used as a design system and components
 - AIWrapper is used to interact with AI models
+- RepTree is used for sync
+- Ttabs is used for tiling tabs (like in VSCode)
 
 Structure:
 - packages/client/src is the client code (Svelte + Tauri)
 - packages/core/src is the core functionality shared with client; in the future will be used by servers (when we create a server)
+- packages/reptree/src reptree
+- packages/ttabs/src Ttabs
 - docs is dev and product documentation
 
 ## Updating deps in npm
