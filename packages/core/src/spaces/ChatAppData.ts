@@ -178,7 +178,7 @@ export class ChatAppData {
     const siblings = parent.children;
 
     for (const sib of siblings) {
-      if (sib.id !== newVertex.id && sib.getProperty("main") === true) {
+      if (sib.id !== newVertex.id && sib.getProperty("main")) {
         sib.setProperty("main", false);
       }
     }
@@ -199,18 +199,20 @@ export class ChatAppData {
   }
 
   private getLastMsgParentVertex(): Vertex {
-    let targetVertex = this.messagesVertex;
+    // Start from the messages container, creating it if needed
+    const startVertex: Vertex = this.messagesVertex ??
+      this.appTree.tree.newVertex(this.appTree.tree.rootVertexId, { _n: "messages" });
+    let targetVertex = startVertex;
 
-    if (!targetVertex) {
-      // Create messages vertex if it doesn't exist
-      targetVertex = this.appTree.tree.newVertex(this.appTree.tree.rootVertexId, {
-        _n: "messages",
-      });
-    }
-
-    // Get the last message vertex
+    // Get the last message vertex following the 'main' branch
     while (targetVertex.children.length > 0) {
-      targetVertex = targetVertex.children[0];
+      const children: Vertex[] = targetVertex.children;
+      if (children.length === 1) {
+        targetVertex = children[0]!;
+      } else {
+        const mainChild: Vertex | undefined = children.find(c => c.getProperty("main") === true);
+        targetVertex = mainChild ?? children[0]!;
+      }
     }
 
     return targetVertex;
