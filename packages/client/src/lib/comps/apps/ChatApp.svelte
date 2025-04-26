@@ -129,6 +129,25 @@
   async function stopMsg() {
     data.triggerEvent("stop-message", {});
   }
+
+  export async function scrollToMessage(messageId: string) {
+    if (!scrollableElement) {
+      console.warn("scrollToMessage: scrollable element not found");
+      return;
+    }
+    await tick();
+    const el = scrollableElement.querySelector(`[data-vertex-id="${messageId}"]`);
+    if (!el) {
+      console.warn(`scrollToMessage: element with vertex id "${messageId}" not found`);
+      return;
+    }
+    isProgrammaticScroll = true;
+    (el as HTMLElement).scrollIntoView({ block: 'start' });
+    programmaticScrollTimeout?.();
+    programmaticScrollTimeout = timeout(() => {
+      isProgrammaticScroll = false;
+    }, 100);
+  }
 </script>
 
 <div class="flex flex-col w-full h-full overflow-hidden">
@@ -139,7 +158,9 @@
   >
     <div class="w-full max-w-4xl mx-auto">
       {#each messages as vertex (vertex.id)}
-        <ChatAppMessage {vertex} {data} />
+        <div data-vertex-id={vertex.id}>
+          <ChatAppMessage {vertex} {data} />
+        </div>
       {/each}
     </div>
   </div>
