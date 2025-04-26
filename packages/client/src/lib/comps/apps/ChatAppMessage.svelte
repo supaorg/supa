@@ -16,6 +16,7 @@
   import { timeout } from "@core/tools/timeout";
   import Markdown from "../markdown/Markdown.svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
 
   let { vertex, data }: { vertex: Vertex; data: ChatAppData } = $props();
 
@@ -35,38 +36,23 @@
   let isEditing = $state(false);
   let editText = $state("");
 
-  // Controls hover state
-  let isHovered = $state(false);
-  let isControlsHovered = $state(false);
+  let isHoveringOverMessage = $state(false);
+  let showEditAndCopyControls = $state(false);
 
-  // Copy logic
-  let isCopied = $state(false);
   async function copyMessage() {
     await navigator.clipboard.writeText(message?.text || "");
-    isCopied = true;
-    timeout(() => {
-      isCopied = false;
-    }, 2000);
   }
 
-  function showControls() {
-    isHovered = true;
-  }
-  function hideControls() {
-    // Delay to allow moving between bubble and controls
-    timeout(() => {
-      if (!isControlsHovered) isHovered = false;
-    }, 100);
-  }
   function showControlsBar() {
-    isControlsHovered = true;
-    isHovered = true;
+    isHoveringOverMessage = true;
+    showEditAndCopyControls = true;
   }
+
   function hideControlsBar() {
-    isControlsHovered = false;
+    isHoveringOverMessage = false;
     timeout(() => {
-      if (!isHovered) isControlsHovered = false;
-    }, 100);
+      if (!isHoveringOverMessage) showEditAndCopyControls = false;
+    }, 300);
   }
   // Branch navigation: use siblings under the same parent
   let branchIndex = $derived.by(() => {
@@ -150,189 +136,125 @@
   }
 </script>
 
-{#if message}
-  <div class="flex gap-3 px-4 py-2" class:justify-end={message.role === "user"}>
+<div class="flex gap-3 px-4 py-2" class:justify-end={message.role === "user"}>
+  {#if message.role !== "user"}
+    <div class="flex-shrink-0 mt-1">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center">
+        {#if message.role === "assistant"}
+          <Sparkles size={18} />
+        {:else}
+          <CircleAlert size={18} />
+        {/if}
+      </div>
+    </div>
+  {/if}
+  <div class="min-w-0 max-w-[85%]" class:ml-auto={message.role === "user"}>
     {#if message.role !== "user"}
-      <div class="flex-shrink-0 mt-1">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center">
+      <div class="flex items-center justify-between gap-2 mt-2">
+        <div class="flex items-center gap-2">
           {#if message.role === "assistant"}
-            <Sparkles size={18} />
+            <p class="font-bold">{configName || "AI"}</p>
           {:else}
-            <CircleAlert size={18} />
+            <p class="font-bold">Error</p>
           {/if}
         </div>
       </div>
     {/if}
-    <div class="min-w-0 max-w-[85%]" class:ml-auto={message.role === "user"}>
-      {#if message.role !== "user"}
-        <div class="flex items-center justify-between gap-2 mt-2">
-          <div class="flex items-center gap-2">
-            {#if message.role === "assistant"}
-              <p class="font-bold">{configName || "AI"}</p>
-            {:else}
-              <p class="font-bold">Error</p>
-            {/if}
-          </div>
-        </div>
-      {/if}
-      <div>
-        {#if message.role === "user"}
-          {#if isEditing}
-            <div class="p-3 rounded-lg preset-tonal">
-              <textarea
-                bind:value={editText}
-                rows="3"
-                class="w-full p-2 border rounded resize-none"
-              ></textarea>
-              <div class="flex gap-2 mt-2 justify-end">
-                <button
-                  class="btn"
-                  onclick={() => {
-                    data.editMessage(vertex.id, editText);
-                    isEditing = false;
-                  }}
-                >
-                  Save
-                </button>
-                <button
-                  class="btn preset-outline"
-                  onclick={() => (isEditing = false)}
-                >
-                  Cancel
-                </button>
-              </div>
+    <div>
+      {#if message.role === "user"}
+        {#if isEditing}
+          <div class="p-3 rounded-lg preset-tonal">
+            <textarea
+              bind:value={editText}
+              rows="3"
+              class="w-full p-2 border rounded resize-none"
+            ></textarea>
+            <div class="flex gap-2 mt-2 justify-end">
+              <button
+                class="btn"
+                onclick={() => {
+                  data.editMessage(vertex.id, editText);
+                  isEditing = false;
+                }}
+              >
+                Save
+              </button>
+              <button
+                class="btn preset-outline"
+                onclick={() => (isEditing = false)}
+              >
+                Cancel
+              </button>
             </div>
-          {:else}
-            <div
-              class="relative p-3 rounded-lg preset-tonal group cursor-pointer"
-              onmouseenter={showControls}
-              onmouseleave={hideControls}
-            >
-              {@html replaceNewlinesWithHtmlBrs(message.text || "")}
-              <!-- Controls bar below bubble -->
-              {#if isHovered || isControlsHovered}
-                <div
-                  class="absolute left-0 right-0 mt-2 flex justify-center gap-2 z-20"
-                  style="top: 100%;"
-                  onmouseenter={showControlsBar}
-                  onmouseleave={hideControlsBar}
-                >
-                  <button
-                    class="rounded-full p-1 bg-surface-100-900 hover:bg-surface-200-800 transition border border-surface-200-800 shadow"
-                    title="Copy message"
-                    onclick={copyMessage}
-                  >
-                    {#if isCopied}
-                      <Check size={14} />
-                    {:else}
-                      <Copy size={14} />
-                    {/if}
-                  </button>
-                  <button
-                    class="rounded-full p-1 bg-surface-100-900 hover:bg-surface-200-800 transition border border-surface-200-800 shadow"
-                    title="Edit message"
-                    onclick={() => (isEditing = true)}
-                  >
-                    <Edit size={14} />
-                  </button>
-                  {#if vertex.parent && vertex.parent.children.length > 1}
-                    <div
-                      class="flex items-center gap-1 px-2 py-1 rounded-full bg-surface-100-900 border border-surface-200-800"
-                    >
-                      <button
-                        onclick={prevBranch}
-                        disabled={branchIndex === 0}
-                        class="hover:text-surface-700"
-                      >
-                        <ChevronLeft size={14} />
-                      </button>
-                      <span class="text-sm"
-                        >{branchIndex + 1}/{vertex.parent.children.length}</span
-                      >
-                      <button
-                        onclick={nextBranch}
-                        disabled={branchIndex ===
-                          vertex.parent.children.length - 1}
-                        class="hover:text-surface-700"
-                      >
-                        <ChevronRight size={14} />
-                      </button>
-                    </div>
+          </div>
+        {:else}
+          <div
+            class="relative p-3 rounded-lg preset-tonal group"
+            onmouseenter={showControlsBar}
+            onmouseleave={hideControlsBar}
+          >
+            {@html replaceNewlinesWithHtmlBrs(message.text || "")}
+            <div class="absolute right-0 bottom-[-33px]">
+              <ChatAppMessageControls
+                {showEditAndCopyControls}
+                onCopyMessage={() => copyMessage()}
+                onEditMessage={() => (isEditing = true)}
+                {prevBranch}
+                {nextBranch}
+                {branchIndex}
+                branchesNumber={vertex.parent?.children.length || 0}
+              />
+            </div>
+          </div>
+        {/if}
+      {:else}
+        <div class="min-w-0 chat-message">
+          {#if hasThinking}
+            <div class="mb-3">
+              <button
+                class="flex items-center gap-1 text-surface-500-500-token hover:text-surface-700-300-token group"
+                onclick={() => (isThinkingExpanded = !isThinkingExpanded)}
+              >
+                <span class="opacity-70 group-hover:opacity-100">
+                  {#if isAIGenerating}
+                    <span class="animate-pulse">Thinking...</span>
+                  {:else}
+                    Thoughts
                   {/if}
+                </span>
+                {#if isThinkingExpanded}
+                  <ChevronDown
+                    size={12}
+                    class="opacity-70 group-hover:opacity-100"
+                  />
+                {:else}
+                  <ChevronRight
+                    size={12}
+                    class="opacity-70 group-hover:opacity-100"
+                  />
+                {/if}
+              </button>
+              {#if isThinkingExpanded}
+                <div
+                  class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50"
+                >
+                  <Markdown source={message.thinking || ""} />
                 </div>
               {/if}
             </div>
           {/if}
-        {:else}
-          <div class="min-w-0 chat-message">
-            {#if hasThinking}
-              <div class="mb-3">
-                <button
-                  class="flex items-center gap-1 text-surface-500-500-token hover:text-surface-700-300-token group"
-                  onclick={() => (isThinkingExpanded = !isThinkingExpanded)}
-                >
-                  <span class="opacity-70 group-hover:opacity-100">
-                    {#if isAIGenerating}
-                      <span class="animate-pulse">Thinking...</span>
-                    {:else}
-                      Thoughts
-                    {/if}
-                  </span>
-                  {#if isThinkingExpanded}
-                    <ChevronDown
-                      size={12}
-                      class="opacity-70 group-hover:opacity-100"
-                    />
-                  {:else}
-                    <ChevronRight
-                      size={12}
-                      class="opacity-70 group-hover:opacity-100"
-                    />
-                  {/if}
-                </button>
-                {#if isThinkingExpanded}
-                  <div
-                    class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50"
-                  >
-                    <Markdown source={message.thinking || ""} />
-                  </div>
-                {/if}
-              </div>
-            {/if}
-            <Markdown source={message.text ? message.text : ""} />
-          </div>
-        {/if}
-
-        {#if canRetry}
-          <button class="btn preset-filled-surface-500" onclick={retry}
-            >Retry</button
-          >
-        {/if}
-      </div>
-      {#if vertex.parent && vertex.parent.children.length > 1}
-        <div class="flex items-center gap-1 mb-2 text-surface-500">
-          <button
-            onclick={prevBranch}
-            disabled={branchIndex === 0}
-            class="hover:text-surface-700"
-          >
-            <ChevronLeft size={14} />
-          </button>
-          <span class="text-sm"
-            >{branchIndex + 1}/{vertex.parent.children.length}</span
-          >
-          <button
-            onclick={nextBranch}
-            disabled={branchIndex === vertex.parent.children.length - 1}
-            class="hover:text-surface-700"
-          >
-            <ChevronRight size={14} />
-          </button>
+          <Markdown source={message.text ? message.text : ""} />
         </div>
+      {/if}
+
+      {#if canRetry}
+        <button class="btn preset-filled-surface-500" onclick={retry}
+          >Retry</button
+        >
       {/if}
     </div>
   </div>
-{/if}
+</div>
 
 <style>
   :global {
