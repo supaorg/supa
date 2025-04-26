@@ -86,7 +86,7 @@
   <span
     class={`flex rounded 
       ${isOpen && !isActive ? "preset-tonal-secondary" : ""} 
-      ${isActive ? "preset-tonal-primary" : ""} 
+      ${isActive ? "preset-filled-primary-500" : ""} 
       ${!isOpen ? "hover:preset-tonal" : ""}`}
   >
     <button class="flex-grow py-2 px-2 truncate text-left" onclick={openChat}>
