@@ -17,6 +17,7 @@
   import Markdown from "../markdown/Markdown.svelte";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
+  import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
 
   let { vertex, data }: { vertex: Vertex; data: ChatAppData } = $props();
 
@@ -163,30 +164,14 @@
     <div>
       {#if message.role === "user"}
         {#if isEditing}
-          <div class="p-3 rounded-lg preset-tonal">
-            <textarea
-              bind:value={editText}
-              rows="3"
-              class="w-full p-2 border rounded resize-none"
-            ></textarea>
-            <div class="flex gap-2 mt-2 justify-end">
-              <button
-                class="btn"
-                onclick={() => {
-                  data.editMessage(vertex.id, editText);
-                  isEditing = false;
-                }}
-              >
-                Save
-              </button>
-              <button
-                class="btn preset-outline"
-                onclick={() => (isEditing = false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+          <ChatAppMessageEditForm
+            initialValue={editText}
+            onSave={(text) => {
+              data.editMessage(vertex.id, text);
+              isEditing = false;
+            }}
+            onCancel={() => (isEditing = false)}
+          />
         {:else}
           <div
             class="relative p-3 rounded-lg preset-tonal group"
