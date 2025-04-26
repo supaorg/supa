@@ -6,4 +6,4 @@ let { token } = $props<{
 }>();
 </script>
 
-<code class="bg-surface-100-900 p-[3px]">{token.raw.slice(1, token.raw.length - 1)}</code>
+<code class="preset-tonal rounded p-[3px]">{token.raw.slice(1, token.raw.length - 1)}</code>
