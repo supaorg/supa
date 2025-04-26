@@ -3,6 +3,7 @@ import Settings from './routes/Settings.svelte';
 import Spaces from './routes/Spaces.svelte';
 import Apps from './routes/Apps.svelte';
 import AppConfigEditing from '$lib/comps/app-configs/AppConfigEditing.svelte';
+import NewThread from './routes/NewThread.svelte';
 
 // Create and export the spages instance
 export const spages = new Spages();
@@ -21,6 +22,9 @@ spages.register('apps', Apps, {
 
 spages.register('app-config', AppConfigEditing, { 
   // Default props if needed
+});
+
+spages.register('new-thread', NewThread, { 
 });
 
 // Helper functions for common operations
