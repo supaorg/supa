@@ -23,6 +23,7 @@
     { name: "vox", emoji: "👾" },
     { name: "wintry", emoji: "🌨️" },
   ];
+
   import { theme, setThemeName } from "$lib/stores/theme.svelte";
   import { onMount } from "svelte";
 
@@ -43,7 +44,7 @@
   {#each themes as skeletonTheme}
     <button
       data-theme={skeletonTheme.name}
-      class="w-full bg-surface-50-950 p-4 preset-outlined-surface-100-900 rounded-md grid grid-cols-[auto_1fr_auto] items-center gap-4 {theme.themeName ===
+      class="w-full bg-surface-50-950 p-2 preset-outlined-surface-100-900 rounded-md grid grid-cols-[auto_1fr_auto] items-center gap-4 {theme.themeName ===
       skeletonTheme.name
         ? 'border-2 border-primary-500'
         : 'border-2 border-transparent'}"

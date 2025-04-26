@@ -66,7 +66,7 @@
               </div>
 
               <!-- Center section with breadcrumbs -->
-              <div class="flex-1 flex justify-center">
+              <div class="flex-1 flex justify-center text-sm">
                 <ol class="flex items-center gap-4">
                   {#each spages.pages.slice(0, i + 1) as breadcrumb, index}
                     {#if index > 0}

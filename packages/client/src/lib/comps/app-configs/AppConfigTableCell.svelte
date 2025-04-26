@@ -30,12 +30,12 @@
   }
 </script>
 
-<div class="flex items-center gap-2 p-2 rounded">
+<div class="flex gap-4 p-2 rounded">
   <!-- Sorting/drag handle -->
-  <div class="cursor-grab text-gray-400 group-hover:text-primary-500 flex-shrink-0">
+  <div class="cursor-grab flex-shrink-0">
     <Tooltip contentBase="card bg-surface-200-800 p-2">
       {#snippet trigger()}
-        <GripVertical class="w-4 h-4" />
+        <GripVertical class="w-4 h-4 text-surface-200-800" />
       {/snippet}
       {#snippet content()}
         Drag to reorder (not yet implemented)
@@ -53,7 +53,7 @@
           props={{ configId: config.id }}
           className="inline-flex items-center justify-center p-1 mt-0.5"
         >
-          <Pencil class="w-4 h-4 text-gray-500 group-hover:text-primary-600" />
+          <Pencil class="w-4 h-4 group-hover:text-primary-600" />
         </SpagesNavButton>
       {/snippet}
       {#snippet content()}
@@ -68,7 +68,7 @@
         props={{ configId: config.id }}
       >
         <strong class="truncate block">{config.name}</strong>
-        <span class="block text-xs text-gray-500 truncate">{config.description}</span>
+        <span class="block truncate">{config.description}</span>
       </SpagesNavButton>
     </div>
   </div>
@@ -78,12 +78,12 @@
     <Tooltip contentBase="card bg-surface-200-800 p-2">
       {#snippet trigger()}
         <button
-          class="inline-flex items-center justify-center p-1 rounded hover:bg-primary-100 dark:hover:bg-primary-900"
+          class="inline-flex items-center justify-center p-1 rounded"
           title="Start Chat"
           aria-label="Start Chat"
           onclick={() => {/* TODO: implement chat start */}}
         >
-          <MessageCircle class="w-4 h-4 text-gray-500 group-hover:text-primary-600" />
+          <MessageCircle class="w-4 h-4" />
         </button>
       {/snippet}
       {#snippet content()}
