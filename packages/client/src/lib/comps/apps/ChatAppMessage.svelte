@@ -235,7 +235,7 @@
               </div>
             {/if}
             <Markdown source={message.text ? message.text : ""} />
-            <div class="absolute right-0 bottom-[-33px]">
+            <div class="absolute left-3 bottom-[-15px]">
               <ChatAppMessageControls
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
