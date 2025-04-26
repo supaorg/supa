@@ -63,26 +63,3 @@
     {/if}
   {/each}
 </ul>
-
-<!--
-<Modal
-  open={newThreadModalIsOpen}
-  onOpenChange={(e) => newThreadModalIsOpen = e.open}
-  contentBase="card bg-surface-100-900 p-4 space-y-4 shadow-xl max-w-screen-md min-w-[600px] max-h-screen overflow-y-auto"
-  backdropClasses="backdrop-blur-sm"
-  triggerBase="hidden"
-  closeOnInteractOutside={true}
-  closeOnEscape={true}
->
-  {#snippet content()}
-    {#if targetAppConfig}
-      <NewThreadPopup
-        appConfig={targetAppConfig}
-        onRequestClose={() => (newThreadModalIsOpen = false)}
-      />
-    {:else}
-      <div>No app config selected</div>
-    {/if}
-  {/snippet}
-</Modal>
--->

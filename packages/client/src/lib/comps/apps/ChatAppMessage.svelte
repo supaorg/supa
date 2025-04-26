@@ -204,7 +204,7 @@
           />
         {:else}
           <div
-            class="relative p-3 rounded-lg chat-message group"
+            class="relative rounded-lg chat-message group"
             onmouseenter={showControlsBar}
             onmouseleave={hideControlsBar}
           >
@@ -235,7 +235,7 @@
               </div>
             {/if}
             <Markdown source={message.text ? message.text : ""} />
-            <div class="absolute left-3 bottom-[-15px]">
+            <div class="absolute">
               <ChatAppMessageControls
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
