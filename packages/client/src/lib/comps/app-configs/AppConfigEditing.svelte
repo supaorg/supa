@@ -72,7 +72,7 @@
   }
 </script>
 
-<h2 class="h2 pb-6">
+<h3 class="h3 pb-6">
   {#if isNewApp}
     {$txtStore.appConfigPage.newConfigTitle}
   {:else if configId !== "default"}
@@ -80,7 +80,7 @@
   {:else}
     {$txtStore.appConfigPage.defaultConfigTitle}
   {/if}
-</h2>
+</h3>
 <form class="space-y-4" bind:this={formElement}>
   {#if configId === "default"}
     <p>
@@ -127,7 +127,7 @@
     <span>{$txtStore.basics.model}</span>
     <InputModel bind:value={targetLLM} required />
   </div>
-  <button type="submit" onclick={handleSubmit} class="btn preset-filled">
+  <button type="submit" onclick={handleSubmit} class="btn preset-filled-primary-500">
     {#if isNewApp}
       {$txtStore.appConfigPage.buttonCreate}
     {:else}

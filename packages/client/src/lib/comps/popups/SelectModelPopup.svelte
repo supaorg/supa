@@ -25,7 +25,7 @@
         class="btn preset-outlined-surface-500"
         onclick={() => (status = "managing")}>{$txtStore.modelSelection.manageProviders}</button
       >
-      <button class="btn preset-filled-surface-500" onclick={onRequestClose}>{$txtStore.modelSelection.done}</button>
+      <button class="btn preset-filled-primary-500" onclick={onRequestClose}>{$txtStore.modelSelection.done}</button>
     </div>
   {:else}
     <ModelProviders />

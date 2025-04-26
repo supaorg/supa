@@ -15,7 +15,7 @@
 
     <SpagesNavButton
       component="apps"
-      title="Apps"
+      title="Assistants"
       className="w-full flex gap-2 flex-grow py-2 px-2 truncate flex rounded hover:preset-tonal"
     >
       <span class="w-6 h-6 flex-shrink-0">

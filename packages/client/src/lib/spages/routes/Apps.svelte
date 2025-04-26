@@ -34,9 +34,10 @@
   });
 </script>
 
-<!--<h2 class="h2 pb-6">{$txtStore.appPage.title}</h2>-->
-<div class="card space-y-4 mb-4">
-  <!--<h3 class="h3">{$txtStore.appPage.chatsTitle}</h3>-->
+
+<div class="card space-y-4">
+  <h3 class="h3">Your Assistants</h3>
+  <p>You can create and edit your chat assistants here. You will see the assistant buttons in the right top of the sidebar.</p>
   <table class="table-auto w-full">
     <tbody>
       {#each appConfigs as config (config.id)}
@@ -48,11 +49,8 @@
   <SpagesNavButton
     component="app-config"
     title="New Config"
-    className="btn mt-2 preset-filled-primary-500"
+    className="btn preset-filled-primary-500"
   >
     {$txtStore.appPage.buttonNewConfig}
   </SpagesNavButton>
-</div>
-<div class="card">
-  {@html $txtStore.appPage.contactMessage}
 </div>

@@ -107,7 +107,7 @@
     {#if selected && !isCustomProvider}
       {#if !showModels}
         <button
-          class="btn btn-sm preset-outlined-surface-500"
+          class="btn btn-sm preset-filled-primary-500"
           onclick={() => (showModels = true)}
           >{!modelId || modelId === provider.defaultModel
             ? "Choose model"
@@ -115,7 +115,7 @@
         >
       {:else}
         <button
-          class="btn btn-sm preset-outlined-surface-500"
+          class="btn btn-sm preset-filled-primary-500"
           onclick={() => (showModels = false)}>Done</button
         >
       {/if}
