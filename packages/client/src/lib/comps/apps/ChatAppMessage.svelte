@@ -81,7 +81,7 @@
   });
 
   $effect(() => {
-    if (message?.role === "user" && !isEditing) {
+    if (!isEditing) {
       editText = message?.text || "";
     }
   });
@@ -193,43 +193,61 @@
           </div>
         {/if}
       {:else}
-        <div class="min-w-0 chat-message">
-          {#if hasThinking}
-            <div class="mb-3">
-              <button
-                class="flex items-center gap-1 text-surface-500-500-token hover:text-surface-700-300-token group"
-                onclick={() => (isThinkingExpanded = !isThinkingExpanded)}
-              >
-                <span class="opacity-70 group-hover:opacity-100">
-                  {#if isAIGenerating}
-                    <span class="animate-pulse">Thinking...</span>
-                  {:else}
-                    Thoughts
-                  {/if}
-                </span>
-                {#if isThinkingExpanded}
-                  <ChevronDown
-                    size={12}
-                    class="opacity-70 group-hover:opacity-100"
-                  />
-                {:else}
-                  <ChevronRight
-                    size={12}
-                    class="opacity-70 group-hover:opacity-100"
-                  />
-                {/if}
-              </button>
-              {#if isThinkingExpanded}
-                <div
-                  class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50"
+        {#if isEditing}
+          <ChatAppMessageEditForm
+            initialValue={editText}
+            onSave={(text) => {
+              data.editMessage(vertex.id, text);
+              isEditing = false;
+            }}
+            onCancel={() => (isEditing = false)}
+          />
+        {:else}
+          <div
+            class="relative p-3 rounded-lg chat-message group"
+            onmouseenter={showControlsBar}
+            onmouseleave={hideControlsBar}
+          >
+            {#if hasThinking}
+              <div class="mb-3">
+                <button
+                  class="flex items-center gap-1 text-surface-500-500-token hover:text-surface-700-300-token group"
+                  onclick={() => (isThinkingExpanded = !isThinkingExpanded)}
                 >
-                  <Markdown source={message.thinking || ""} />
-                </div>
-              {/if}
+                  <span class="opacity-70 group-hover:opacity-100">
+                    {#if isAIGenerating}
+                      <span class="animate-pulse">Thinking...</span>
+                    {:else}
+                      Thoughts
+                    {/if}
+                  </span>
+                  {#if isThinkingExpanded}
+                    <ChevronDown size={12} class="opacity-70 group-hover:opacity-100" />
+                  {:else}
+                    <ChevronRight size={12} class="opacity-70 group-hover:opacity-100" />
+                  {/if}
+                </button>
+                {#if isThinkingExpanded}
+                  <div class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50">
+                    <Markdown source={message.thinking || ""} />
+                  </div>
+                {/if}
+              </div>
+            {/if}
+            <Markdown source={message.text ? message.text : ""} />
+            <div class="absolute right-0 bottom-[-33px]">
+              <ChatAppMessageControls
+                {showEditAndCopyControls}
+                onCopyMessage={() => copyMessage()}
+                onEditMessage={() => (isEditing = true)}
+                {prevBranch}
+                {nextBranch}
+                {branchIndex}
+                branchesNumber={vertex.parent?.children.length || 0}
+              />
             </div>
-          {/if}
-          <Markdown source={message.text ? message.text : ""} />
-        </div>
+          </div>
+        {/if}
       {/if}
 
       {#if canRetry}

@@ -158,9 +158,7 @@
   >
     <div class="w-full max-w-4xl mx-auto">
       {#each messages as vertex (vertex.id)}
-        <div data-vertex-id={vertex.id}>
-          <ChatAppMessage {vertex} {data} />
-        </div>
+        <ChatAppMessage {vertex} {data} />
       {/each}
     </div>
   </div>
