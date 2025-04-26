@@ -38,13 +38,11 @@
 <div class="card space-y-4">
   <h3 class="h3">Your Assistants</h3>
   <p>You can create and edit your chat assistants here. You will see the assistant buttons in the right top of the sidebar.</p>
-  <table class="table-auto w-full">
-    <tbody>
-      {#each appConfigs as config (config.id)}
-        <AppConfigTableCell {config} />
-      {/each}
-    </tbody>
-  </table>
+  <div class="flex flex-col">
+    {#each appConfigs as config (config.id)}
+      <AppConfigTableCell {config} />
+    {/each}
+  </div>
 
   <SpagesNavButton
     component="app-config"

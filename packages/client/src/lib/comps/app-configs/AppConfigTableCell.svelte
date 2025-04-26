@@ -2,7 +2,7 @@
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { AppConfig } from "@core/models";
   import { Switch, Popover, Tooltip } from "@skeletonlabs/skeleton-svelte";
-  import { TrashIcon } from "lucide-svelte";
+  import { TrashIcon, GripVertical, Pencil, MessageCircle } from "lucide-svelte";
   import { txtStore } from "$lib/stores/txtStore";
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
 
@@ -30,18 +30,69 @@
   }
 </script>
 
-<tr class="table-row">
-  <td class="py-2"
-    ><SpagesNavButton
-      component="app-config"
-      title={config.name}
-      className="w-full h-full block text-left"
-      props={{ configId: config.id }}
-    >
-      <strong>{config.name}</strong><br />{config.description}
-    </SpagesNavButton></td
-  >
-  <td>
+<div class="flex items-center gap-2 p-2 rounded">
+  <!-- Sorting/drag handle -->
+  <div class="cursor-grab text-gray-400 group-hover:text-primary-500 flex-shrink-0">
+    <Tooltip contentBase="card bg-surface-200-800 p-2">
+      {#snippet trigger()}
+        <GripVertical class="w-4 h-4" />
+      {/snippet}
+      {#snippet content()}
+        Drag to reorder (not yet implemented)
+      {/snippet}
+    </Tooltip>
+  </div>
+
+  <!-- Edit icon + Assistant name/description -->
+  <div class="flex items-start gap-2 flex-1 min-w-0 group">
+    <Tooltip contentBase="card bg-surface-200-800 p-2">
+      {#snippet trigger()}
+        <SpagesNavButton
+          component="app-config"
+          title="Edit Assistant"
+          props={{ configId: config.id }}
+          className="inline-flex items-center justify-center p-1 mt-0.5"
+        >
+          <Pencil class="w-4 h-4 text-gray-500 group-hover:text-primary-600" />
+        </SpagesNavButton>
+      {/snippet}
+      {#snippet content()}
+        Edit Assistant
+      {/snippet}
+    </Tooltip>
+    <div class="min-w-0">
+      <SpagesNavButton
+        component="app-config"
+        title={config.name}
+        className="block text-left min-w-0"
+        props={{ configId: config.id }}
+      >
+        <strong class="truncate block">{config.name}</strong>
+        <span class="block text-xs text-gray-500 truncate">{config.description}</span>
+      </SpagesNavButton>
+    </div>
+  </div>
+
+  <!-- Start chat button -->
+  <div>
+    <Tooltip contentBase="card bg-surface-200-800 p-2">
+      {#snippet trigger()}
+        <button
+          class="inline-flex items-center justify-center p-1 rounded hover:bg-primary-100 dark:hover:bg-primary-900"
+          title="Start Chat"
+          aria-label="Start Chat"
+          onclick={() => {/* TODO: implement chat start */}}
+        >
+          <MessageCircle class="w-4 h-4 text-gray-500 group-hover:text-primary-600" />
+        </button>
+      {/snippet}
+      {#snippet content()}
+        Start a chat with this assistant
+      {/snippet}
+    </Tooltip>
+  </div>
+
+  <div>
     <Tooltip contentBase="card bg-surface-200-800 p-2">
       {#snippet trigger()}
         <Switch
@@ -55,8 +106,9 @@
         {$txtStore.appConfigPage.tableCell.visibilityLabel}
       {/snippet}
     </Tooltip>
-  </td>
-  <td>
+  </div>
+
+  <div>
     {#if !isDefault}
       <Popover
         open={deletePopoverOpen}
@@ -100,5 +152,5 @@
         {/snippet}
       </Tooltip>
     {/if}
-  </td>
-</tr>
+  </div>
+</div>
