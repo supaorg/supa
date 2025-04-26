@@ -49,7 +49,7 @@
   }
 </script>
 
-<div class="relative border border-surface-200-800 rounded group min-w-0 {lang !== 'text' ? '[&_pre]:!pt-10' : '[&_pre]:!pr-10'}">
+<div class="relative group min-w-0 {lang !== 'text' ? '[&_pre]:!pt-10' : '[&_pre]:!pr-10'}">
   {#if lang !== "text"}
     <div class="absolute left-4 top-3 z-10 flex items-center">
       <span class="text-xs opacity-70 flex items-center">{lang}</span>
