@@ -50,7 +50,7 @@
           {#if Component}
             <!-- Header with title and breadcrumb navigation -->
             <div
-              class="flex justify-between items-center py-2 px-3 flex-shrink-0"
+              class="flex justify-between items-center p-2 flex-shrink-0"
             >
               <!-- Left section with back button (only visible on sub-pages) -->
               <div class="flex-none">
@@ -105,7 +105,7 @@
             </div>
 
             <!-- Render the component with its props -->
-            <div class="p-3 overflow-y-auto flex-1">
+            <div class="p-3 pt-0 overflow-y-auto flex-1">
               <Component.component
                 {...Component.defaultProps}
                 {...page.props}
