@@ -43,7 +43,7 @@
   }
 </script>
 
-<ul>
+<ul class="space-y-1">
   {#each [...appTreeIds].reverse() as id (id)}
     <li class="relative"><VertexItem {id} /></li>
   {/each}

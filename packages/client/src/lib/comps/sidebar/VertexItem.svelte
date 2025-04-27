@@ -84,12 +84,12 @@
 
 {#if appTreeId}
   <span
-    class={`flex rounded 
+    class={`flex rounded text-sm
       ${isOpen && !isActive ? "preset-tonal-secondary" : ""} 
       ${isActive ? "preset-filled-primary-500" : ""} 
       ${!isOpen ? "hover:preset-tonal" : ""}`}
   >
-    <button class="flex-grow py-2 px-2 truncate text-left" onclick={openChat}>
+    <button class="flex-grow py-1 px-2 truncate text-left" onclick={openChat}>
       <span>{name ?? "New chat"}</span>
     </button>
     {#if isActive}

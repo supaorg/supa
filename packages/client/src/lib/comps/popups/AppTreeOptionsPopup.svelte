@@ -36,7 +36,7 @@
     closeOnEscape={true}
   >
     {#snippet trigger()}
-      <EllipsisVertical size={18} />
+      <EllipsisVertical size={14} />
     {/snippet}
 
     {#snippet content()}
