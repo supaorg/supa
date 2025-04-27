@@ -50,16 +50,16 @@ export const SKELETON_THEME: TtabsTheme = {
     '--ttabs-error-color': 'var(--color-error-500)',
     '--ttabs-error-border': 'var(--default-border-width, 1px) solid var(--color-error-500)',
     '--ttabs-error-padding': 'var(--spacing, 1rem)',
-    '--ttabs-error-border-radius': 'var(--radius-container, 0.5rem)',
+    '--ttabs-error-border-radius': '0',
     
     // Empty state
     '--ttabs-empty-state-color': 'var(--color-surface-500)',
     
     // Utility elements
-    '--ttabs-resizer-hover-color': 'color-mix(in oklab, var(--color-primary-500) 30%, transparent)',
+    '--ttabs-resizer-hover-color': 'var(--color-secondary-500)',
     '--ttabs-drop-indicator-color': 'var(--color-primary-500)',
     '--ttabs-drop-target-outline': '2px dashed color-mix(in oklab, var(--color-primary-500) 50%, transparent)',
-    '--ttabs-split-indicator-color': 'color-mix(in oklab, var(--color-primary-500) 10%, transparent)',
+    '--ttabs-split-indicator-color': 'color-mix(in oklab, var(--color-tertiary-500) 50%, transparent)',
     '--ttabs-row-resizer-size': '6px',
     '--ttabs-row-resizer-offset': '-3px',
     '--ttabs-column-resizer-size': '6px',
@@ -68,8 +68,8 @@ export const SKELETON_THEME: TtabsTheme = {
     '--ttabs-drop-indicator-offset': '-2px',
     
     // Border radius
-    '--ttabs-border-radius': 'var(--radius-container, 0.5rem)',
-    '--ttabs-border-radius-sm': 'var(--radius-base, 0.25rem)'
+    '--ttabs-border-radius': '0',
+    '--ttabs-border-radius-sm': '0'
   },
   
   // Optional classes that can be added
