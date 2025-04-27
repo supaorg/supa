@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Settings from "lucide-svelte/icons/settings";
+  import Settings from "lucide-svelte/icons/settings-2";
   import AppButtons from "./AppButtons.svelte";
   import LayoutGrid from "lucide-svelte/icons/layout-grid";
   import AppTrees from "./AppTrees.svelte";

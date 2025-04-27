@@ -48,7 +48,7 @@
 >
   {#snippet trigger()}
     <button
-      class="flex items-center gap-2 px-2 py-1 rounded-container transition-colors border border-secondary-100-900"
+      class="flex items-center gap-2 px-2 py-1 rounded-container transition-colors preset-outlined-primary-500"
     >
       <span class="text-left truncate min-w-0">
         {#if visibleAppConfigs.length > 0}
@@ -65,7 +65,7 @@
           {$txtStore.appConfigDropdown.placeholder}
         {/if}
       </span>
-      <ChevronUp size={18} color="var(--color-secondary-100-900)" />
+      <ChevronUp size={18} color="var(--color-primary-500)" />
     </button>
   {/snippet}
   {#snippet content()}
