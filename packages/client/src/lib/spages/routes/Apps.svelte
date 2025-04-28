@@ -47,7 +47,7 @@
   <SpagesNavButton
     component="app-config"
     title="New Config"
-    className="btn preset-filled-primary-500"
+    className="btn preset-filled-primary-500 mb-2"
   >
     {$txtStore.appPage.buttonNewConfig}
   </SpagesNavButton>

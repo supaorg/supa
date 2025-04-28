@@ -127,7 +127,7 @@
     <span>{$txtStore.basics.model}</span>
     <InputModel bind:value={targetLLM} required />
   </div>
-  <button type="submit" onclick={handleSubmit} class="btn preset-filled-primary-500">
+  <button type="submit" onclick={handleSubmit} class="btn preset-filled-primary-500 mb-2">
     {#if isNewApp}
       {$txtStore.appConfigPage.buttonCreate}
     {:else}
