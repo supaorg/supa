@@ -7,6 +7,7 @@
   import { ttabs } from "$lib/ttabs/ttabsLayout";
   import SpagesContainer from "$lib/spages/SpagesContainer.svelte";
   import { spages } from "$lib/spages/spagesLayout";
+    import ContextMenuHandler from "../ContextMenuHandler.svelte";
 </script>
 
 <OllamaAutoConfig />
@@ -23,10 +24,14 @@
   </div>
 
   {#if $isDevMode}
-    <div class="w-full border-t border-surface-200-800 bg-surface-100-800-token">
+    <div
+      class="w-full border-t border-surface-200-800 bg-surface-100-800-token"
+    >
       <DevPanel />
     </div>
   {/if}
 </div>
 
 <SpagesContainer {spages} />
+
+<ContextMenuHandler />

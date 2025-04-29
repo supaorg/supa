@@ -1,5 +1,5 @@
 <script lang="ts">
-  import App from "$lib/comps/apps/App.svelte";
+  import Supa from "$lib/comps/apps/Supa.svelte";
 </script>
 
-<App />
+<Supa />
