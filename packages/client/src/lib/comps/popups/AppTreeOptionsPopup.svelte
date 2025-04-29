@@ -12,7 +12,17 @@
   }
 
   function startRenamingThread() {
-    // @TODO: trigger renaming
+    // @TODO: implement renaming
+    popoverClose();
+  }
+
+  function openInNewTab() {
+    // @TODO: implement opening in new tab
+    popoverClose();
+  }
+
+  function duplicateThread() {
+    // @TODO: implement duplication
     popoverClose();
   }
 
@@ -35,8 +45,14 @@
     {/snippet}
 
     {#snippet content()}
-      <div class="btn-group-vertical preset-filled-surface-500">
-        <button class="btn preset-filled-surface-500" onclick={deleteThread}>Delete</button>
+      <div class="flex flex-col gap-1">
+        <button class="btn btn-sm text-left" onclick={openInNewTab}>Open in a new tab</button>
+        <button class="btn btn-sm text-left" onclick={startRenamingThread}>Rename</button>
+        
+        <div class="border-t border-surface-200-800 my-2"></div>
+        
+        <button class="btn btn-sm text-left" onclick={duplicateThread}>Duplicate</button>
+        <button class="btn btn-sm preset-filled-error-500 text-left" onclick={deleteThread}>Delete</button>
       </div>
     {/snippet}
   </ContextMenu>
