@@ -6,7 +6,7 @@
     currentSpaceIdStore,
     getCurrentSpacePointer,
   } from "$lib/spaces/spaceStore";
-  import { Popover } from "@skeletonlabs/skeleton-svelte";
+  import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { openSpaces } from "$lib/spages";
 
   import { ChevronsUpDown } from "lucide-svelte";
@@ -34,16 +34,11 @@
   });
 </script>
 
-<Popover
+<ContextMenu
   open={openState}
   onOpenChange={(e) => openState = e.open}
-  positioning={{ placement: "bottom" }}
-  triggerBase="flex-grow"
-  contentBase="card bg-surface-100-900 p-2 space-y-2 max-w-[320px]"
-  arrow
-  arrowBackground="!bg-surface-100-900"
-  closeOnInteractOutside={true}
-  closeOnEscape={true}
+  placement="bottom"
+  triggerClassNames="flex-grow"
 >
   {#snippet trigger()}
     <div class="flex items-center gap-2">
@@ -69,4 +64,4 @@
       </button>
     </div>
   {/snippet}
-</Popover>
+</ContextMenu>

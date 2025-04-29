@@ -3,7 +3,7 @@
   import type { AppConfig } from "@core/models";
   import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { txtStore } from "$lib/stores/txtStore";
-  import { Popover } from "@skeletonlabs/skeleton-svelte";
+  import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { ChevronUp } from "lucide-svelte";
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
 
@@ -36,15 +36,10 @@
   }
 </script>
 
-<Popover
+<ContextMenu
   open={openState}
   onOpenChange={(e) => (openState = e.open)}
-  positioning={{ placement: "bottom" }}
-  contentBase="card bg-surface-100-900 p-2 space-y-2 max-w-[320px]"
-  arrow
-  arrowBackground="!bg-surface-100-900"
-  closeOnInteractOutside={true}
-  closeOnEscape={true}
+  placement="bottom"
 >
   {#snippet trigger()}
     <button
@@ -94,4 +89,4 @@
       </div>
     {/if}
   {/snippet}
-</Popover>
+</ContextMenu>
