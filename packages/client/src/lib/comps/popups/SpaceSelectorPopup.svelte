@@ -7,6 +7,7 @@
     getCurrentSpacePointer,
   } from "$lib/spaces/spaceStore";
   import { Popover } from "@skeletonlabs/skeleton-svelte";
+  import { openSpaces } from "$lib/spages";
 
   import { ChevronsUpDown } from "lucide-svelte";
   import { onMount } from "svelte";
@@ -38,9 +39,9 @@
   onOpenChange={(e) => openState = e.open}
   positioning={{ placement: "bottom" }}
   triggerBase="flex-grow"
-  contentBase="card bg-surface-200-800 p-2 space-y-4 max-w-[320px]"
+  contentBase="card bg-surface-100-900 p-2 space-y-2 max-w-[320px]"
   arrow
-  arrowBackground="!bg-surface-200 dark:!bg-surface-800"
+  arrowBackground="!bg-surface-100-900"
   closeOnInteractOutside={true}
   closeOnEscape={true}
 >
@@ -51,19 +52,21 @@
     </div>
   {/snippet}
   {#snippet content()}
-    {#if $spacePointersStore.length > 1}
-      <select
-        class="select rounded-container"
-        size={$spacePointersStore.length}
-        bind:value={selectedSpaceId}
-      >
-        {#each $spacePointersStore as pointer (pointer.id)}
-          <option value={pointer.id}>{pointer.name || "Space"}</option>
-        {/each}
-      </select>
-      <hr />
-    {/if}
-
-    <a href="/spaces" class="btn preset-filled-surface-500 w-full">Manage spaces</a>
+    <div class="flex flex-col gap-1">
+      {#each $spacePointersStore as pointer (pointer.id)}
+        <button
+          class="btn btn-sm w-full text-left justify-start"
+          class:preset-filled-secondary-500={pointer.id === selectedSpaceId}
+          onclick={() => selectedSpaceId = pointer.id}
+        >
+          <span><strong>{pointer.name || "Space"}</strong></span>
+        </button>
+      {/each}
+    </div>
+    <div class="flex flex-col gap-1 mt-4">
+      <button class="btn btn-sm w-full text-left justify-start" onclick={() => openSpaces()}>
+        Manage spaces
+      </button>
+    </div>
   {/snippet}
 </Popover>
