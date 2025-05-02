@@ -19,20 +19,21 @@ ttabs.registerComponent('chat', ChatAppLoader);
 
 let contentGrid: string | undefined;
 
+export let sidebarColumn: string | undefined;
+
 function setupTtabs() {
   ttabs.resetState();
   const root = ttabs.rootGridId as string;
   const row = ttabs.addRow(root);
 
-  const sidebarColumn = ttabs.addColumn(row, "300px");
+  sidebarColumn = ttabs.addColumn(row, "300px");
   ttabs.setComponent(sidebarColumn, 'sidebar');
-
   const parentColumn = ttabs.addColumn(row);
   contentGrid = ttabs.addGrid(parentColumn);
   ttabs.updateTile(contentGrid, { dontClean: true });
   const newRow = ttabs.addRow(contentGrid);
   const newColumn = ttabs.addColumn(newRow);
-  const panel = ttabs.addPanel(newColumn);
+  ttabs.addPanel(newColumn);
 }
 
 function findTabByTreeId(treeId: string): string | undefined {

@@ -7,7 +7,8 @@
   import { ttabs } from "$lib/ttabs/ttabsLayout";
   import SpagesContainer from "$lib/spages/SpagesContainer.svelte";
   import { spages } from "$lib/spages/spagesLayout";
-    import ContextMenuHandler from "../ContextMenuHandler.svelte";
+  import ContextMenuHandler from "../ContextMenuHandler.svelte";
+    import SidebarToggle from "../sidebar/SidebarToggle.svelte";
 </script>
 
 <OllamaAutoConfig />
@@ -31,6 +32,8 @@
     </div>
   {/if}
 </div>
+
+<SidebarToggle />
 
 <SpagesContainer {spages} />
 

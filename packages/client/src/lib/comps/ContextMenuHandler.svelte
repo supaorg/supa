@@ -10,6 +10,7 @@
   });
 
   function handleContextMenu(event: MouseEvent) {
+    if (import.meta.env.DEV) return;
     if (window === null) return;
 
     // Check if there's selected text
