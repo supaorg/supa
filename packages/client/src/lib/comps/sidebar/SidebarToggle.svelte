@@ -103,7 +103,7 @@
   <!-- Hover trigger area - only visible when sidebar is closed -->
   {#if !sidebarIsOpen}
     <div
-      class="fixed z-10 w-4 h-screen top-0 left-0 opacity-0"
+      class="fixed z-10 w-4 h-screen top-0 left-0 opacity-0 cursor-auto"
       onmouseenter={handleHoverEnter}
       onmouseleave={handleHoverLeave}
       tabindex="0"
@@ -159,7 +159,10 @@
 <!-- Hoverable sidebar - always rendered but only visible when triggered -->
 {#if !sidebarIsOpen}
   <div 
-    class="hover-sidebar fixed top-0 h-full w-[300px] bg-surface-50-950 border-r border-surface-200-700 shadow-xl z-10"
+    class="hover-sidebar fixed top-0 h-full w-[300px] bg-surface-50-950 transition-all z-10"
+    class:border-r={showHoverSidebar} 
+    class:border-surface-300-700={showHoverSidebar}
+    class:shadow-xl={showHoverSidebar}
     style="left: {showHoverSidebar ? '0' : '-300px'};"
     onmouseenter={handleSidebarEnter}
     onmouseleave={handleSidebarLeave}

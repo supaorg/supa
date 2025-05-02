@@ -31,13 +31,6 @@
     setThemeName(name);
     document.documentElement.setAttribute("data-theme", name);
   }
-
-  onMount(() => {
-    // Ensure the HTML data-theme matches the store value on load
-    if (theme.themeName) {
-      document.documentElement.setAttribute("data-theme", theme.themeName);
-    }
-  });
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
