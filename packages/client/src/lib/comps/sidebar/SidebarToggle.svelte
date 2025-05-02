@@ -22,6 +22,13 @@
       const sidebar = ttabs.getColumn(sidebarColumn);
       sidebarWidth = sidebar.width.value;
       sidebarWidthWhenOpen = sidebar.width.value;
+
+      // Just in case if the sidebar is at 0 width when we mount,
+      // mark it as closed and set the width of the open sidebar to > 0
+      if (sidebarWidthWhenOpen === 0) {
+        sidebarIsOpen = false;
+        sidebarWidthWhenOpen = 300;
+      }
     }
 
     const sub = ttabs.subscribe((tiles) => {

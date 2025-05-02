@@ -9,7 +9,7 @@
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
 </script>
 
-<div class="flex flex-col h-full select-none">
+<div class="flex flex-col h-full">
   <div class="min-h-min py-2 px-2">
     <AppButtons />
 

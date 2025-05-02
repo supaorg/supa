@@ -41,7 +41,7 @@
       bind:value={key}
     />
     <select
-      class="select select-sm text-xs h-6 px-1 flex-1 min-w-[80px]"
+      class="select text-xs h-6 px-1 flex-1 min-w-[80px]"
       bind:value={type}
     >
       <option value="string">String</option>
