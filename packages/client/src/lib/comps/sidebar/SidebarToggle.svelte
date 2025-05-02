@@ -1,6 +1,5 @@
 <script lang="ts">
   import { ttabs, sidebarColumn } from "$lib/ttabs/ttabsLayout";
-  import { ChevronLeft, ChevronRight } from "lucide-svelte";
   import { onMount } from "svelte";
   import type { TileColumn } from "ttabs-svelte";
 
@@ -41,14 +40,18 @@
 </script>
 
 <button
-  class="fixed top-1/2 transform -translate-y-1/2 z-10 bg-surface-200-800 text-surface-900-50 p-1 rounded-r-md shadow-md hover:bg-primary-500 transition-colors"
+  class="fixed top-1/2 transform -translate-y-1/2 z-10 p-0 bg-transparent border-none outline-none cursor-pointer hover:opacity-80 transition-opacity"
   style={sidebarIsOpen ? `left: ${sidebarWidth}px;` : "left: 0;"}
   onclick={toggleSidebar}
   aria-label={sidebarIsOpen ? "Close sidebar" : "Open sidebar"}
 >
   {#if sidebarIsOpen}
-    <ChevronLeft size={20} />
+    <svg width="24" height="48" viewBox="0 0 24 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="transform rotate-180">
+      <path d="M9 36L15 24L9 12" stroke="var(--color-surface-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
   {:else}
-    <ChevronRight size={20} />
+    <svg width="24" height="48" viewBox="0 0 24 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 36L15 24L9 12" stroke="var(--color-surface-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
   {/if}
 </button>
