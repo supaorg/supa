@@ -8,7 +8,7 @@
   import SpagesContainer from "$lib/spages/SpagesContainer.svelte";
   import { spages } from "$lib/spages/spagesLayout";
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
-    import SidebarToggle from "../sidebar/SidebarToggle.svelte";
+  import SidebarToggle from "../sidebar/SidebarToggle.svelte";
 </script>
 
 <OllamaAutoConfig />
