@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import type { TileColumn } from "ttabs-svelte";
   import Sidebar from "./Sidebar.svelte";
-  import { slide } from 'svelte/transition';
+  import { fly } from 'svelte/transition';
 
   let sidebarIsOpen = $state(true);
   let sidebarWidth = $state(0);
@@ -103,7 +103,7 @@
   <!-- Hover trigger area - only visible when sidebar is closed -->
   {#if !sidebarIsOpen}
     <div
-      class="hover-trigger fixed z-10 w-4 h-screen top-0 left-0 opacity-0"
+      class="fixed z-10 w-4 h-screen top-0 left-0 opacity-0"
       onmouseenter={handleHoverEnter}
       onmouseleave={handleHoverLeave}
       tabindex="0"
@@ -112,7 +112,7 @@
   {/if}
 
   <button
-    class="sidebar-toggle fixed top-1/2 transform -translate-y-1/2 z-10 p-0 bg-transparent border-none outline-none cursor-pointer hover:opacity-80 transition-opacity"
+    class="sidebar-toggle fixed top-1/2 transform -translate-y-1/2 z-10 p-0 border-none outline-none cursor-pointer hover:opacity-80 transition-opacity"
     style={sidebarIsOpen ? `left: ${sidebarWidth}px;` : "left: 0;"}
     onclick={toggleSidebar}
     aria-label={sidebarIsOpen ? "Close sidebar" : "Open sidebar"}
@@ -156,22 +156,18 @@
   </button>
 </div>
 
-<!-- Hoverable sidebar that slides out from the left -->
-{#if showHoverSidebar && !sidebarIsOpen}
-  <div
-    class="hover-sidebar fixed top-0 left-0 h-full w-[300px] bg-surface-50-950 border-r border-surface-200-700 shadow-lg z-10"
+<!-- Hoverable sidebar - always rendered but only visible when triggered -->
+{#if !sidebarIsOpen}
+  <div 
+    class="hover-sidebar fixed top-0 h-full w-[300px] bg-surface-50-950 border-r border-surface-200-700 shadow-xl z-10"
+    style="left: {showHoverSidebar ? '0' : '-300px'};"
     onmouseenter={handleSidebarEnter}
     onmouseleave={handleSidebarLeave}
     tabindex="0"
     role="button"
-    transition:slide={{ duration: 200, axis: 'x' }}
+    in:fly={{ x: -300, duration: 300 }}
+    out:fly={{ x: -300, duration: 200 }}
   >
     <Sidebar />
   </div>
 {/if}
-
-<style>
-  .hover-trigger {
-    cursor: pointer;
-  }
-</style>
