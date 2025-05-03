@@ -162,7 +162,7 @@
     class="hover-sidebar fixed top-0 h-full w-[300px] bg-surface-50-950 transition-all z-10"
     class:border-r={showHoverSidebar} 
     class:border-surface-300-700={showHoverSidebar}
-    class:shadow-xl={showHoverSidebar}
+    class:shadow-2xl={showHoverSidebar}
     style="left: {showHoverSidebar ? '0' : '-300px'};"
     onmouseenter={handleSidebarEnter}
     onmouseleave={handleSidebarLeave}
