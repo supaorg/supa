@@ -39,14 +39,14 @@
     bind:value={text}
     rows="2"
     class="w-full resize-none border-0 bg-transparent p-2 leading-normal outline-none focus:ring-0"
-    on:input={handleInput}
-    on:keydown={handleKeydown}
+    oninput={handleInput}
+    onkeydown={handleKeydown}
   ></textarea>
   <div class="flex gap-2 mt-2 justify-end">
-    <button type="button" class="btn preset-outline" on:click={onCancel}>
+    <button type="button" class="btn preset-outline" onclick={onCancel}>
       Cancel
     </button>
-    <button type="button" class="btn" on:click={() => onSave(text)} disabled={text.trim().length === 0}>
+    <button type="button" class="btn" onclick={() => onSave(text)} disabled={text.trim().length === 0}>
       Send
     </button>
   </div>

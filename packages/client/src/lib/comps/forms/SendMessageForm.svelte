@@ -219,14 +219,14 @@
           {#if showConfigSelector}
             <AppConfigDropdown {configId} onChange={handleConfigChange} />
           {/if}
-          <button
-            class="flex items-center justify-center h-9 w-9 p-0"
-            class:opacity-50={!attachEnabled}
-            disabled={!attachEnabled}
-            aria-label={$txtStore.messageForm.attachFile}
-          >
-            <Paperclip size={20} />
-          </button>
+          {#if attachEnabled}
+            <button
+              class="flex items-center justify-center h-9 w-9 p-0"
+              aria-label={$txtStore.messageForm.attachFile}
+            >
+              <Paperclip size={20} />
+            </button>
+          {/if}
         </div>
         <div class="flex items-center gap-2">
           {#if status === "ai-message-in-progress"}
