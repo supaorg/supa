@@ -59,7 +59,10 @@
       {/each}
     </div>
     <div class="flex flex-col gap-1 mt-4">
-      <button class="btn btn-sm w-full text-left justify-start" onclick={() => openSpaces()}>
+      <button class="btn btn-sm w-full text-left justify-start" onclick={() => {
+        openSpaces();
+        openState = false;
+      }}>
         Manage spaces
       </button>
     </div>

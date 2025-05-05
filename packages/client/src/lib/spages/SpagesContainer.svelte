@@ -26,7 +26,7 @@
 {#if spages.pages.length > 0}
   <!-- Stack of pages -->
   <div
-    class="fixed inset-0 z-[899] flex flex-col items-center p-4 pt-20 pb-20 overflow-y-auto"
+    class="fixed inset-0 z-49 flex flex-col items-center p-4 pt-20 pb-20 overflow-y-auto"
     in:fly={{ y: 50, duration: 200 }}
     out:fly={{ y: 50, duration: 200 }}
   >

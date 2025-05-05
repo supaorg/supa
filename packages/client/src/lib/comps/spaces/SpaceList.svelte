@@ -1,15 +1,12 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import {
     spacePointersStore,
     currentSpaceIdStore,
-    getCurrentSpacePointer,
     getLoadedSpaceFromPointer,
     removeSpace,
   } from "$lib/spaces/spaceStore";
   import SpaceOptionsPopup from "$lib/comps/popups/SpaceOptionsPopup.svelte";
   import RenamingPopup from "$lib/comps/popups/RenamingPopup.svelte";
-  import type Space from "@core/spaces/Space";
   import type { SpacePointer } from "$lib/spaces/SpacePointer";
 
   let renamingPopupOpen = $state(false);

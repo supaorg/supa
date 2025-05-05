@@ -10,7 +10,7 @@
   }
 </script>
 
-<!--<h2 class="h2">{$txtStore.spacesPage.title}</h2>-->
+<h3 class="h3 pb-4">{$txtStore.spacesPage.title}</h3>
 <p class="mb-6">
   {$txtStore.spacesPage.description}
 </p>

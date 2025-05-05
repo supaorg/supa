@@ -28,6 +28,7 @@
 </script>
 
 <Popover
+  zIndex="50"
   {open}
   {onOpenChange}
   positioning={{ placement }}
