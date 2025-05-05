@@ -36,7 +36,7 @@ export default class Space {
   static newSpace(peerId: string): Space {
     const tree = new RepTree(peerId);
 
-    const rootId = tree.rootVertexId;
+    const rootId = tree.createRoot().id;
 
     tree.setVertexProperties(rootId, {
       '_n': 'space',
@@ -70,11 +70,11 @@ export default class Space {
   }
 
   getId(): string {
-    return this.tree.rootVertexId;
+    return this.tree.root!.id;
   }
 
   get rootVertex(): Vertex {
-    const rootVertex = this.tree.getVertex(this.tree.rootVertexId);
+    const rootVertex = this.tree.root;
     if (!rootVertex) {
       throw new Error("Root vertex not found");
     }
@@ -83,25 +83,15 @@ export default class Space {
   }
 
   get name(): string | undefined {
-    const name = this.tree.getVertexProperty(this.tree.rootVertexId, '_n');
-    if (!name) {
-      return undefined;
-    }
-
-    return name as string;
+    return this.rootVertex.name;
   }
 
   set name(name: string) {
-    this.tree.setVertexProperty(this.tree.rootVertexId, '_n', name);
+    this.rootVertex.name = name;
   }
 
   get createdAt(): Date {
-    const createdAt = this.tree.getVertexProperty(this.tree.rootVertexId, '_c');
-    if (!createdAt) {
-      //throw new Error("Space createdAt is not set");
-    }
-
-    return new Date(createdAt as string);
+    return this.rootVertex.createdAt;
   }
 
   newAppTree(appId: string): AppTree {

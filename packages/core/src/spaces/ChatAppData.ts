@@ -12,16 +12,28 @@ export class ChatAppData {
 
   static createNewChatTree(space: Space, configId: string): AppTree {
     const tree = space.newAppTree("default-chat").tree;
-    tree.setVertexProperty(tree.rootVertexId, "configId", configId);
-    tree.newNamedVertex(tree.rootVertexId, "messages");
-    tree.newNamedVertex(tree.rootVertexId, "jobs");
+    const root = tree.root;
+
+    if (!root) {
+      throw new Error("Root vertex not found");
+    }
+
+    root.setProperty("configId", configId);
+    root.newNamedChild("messages");
+    root.newNamedChild("jobs");
 
     return new AppTree(tree);
   }
 
   constructor(private space: Space, private appTree: AppTree) {
-    this.root = appTree.tree.getVertex(appTree.tree.rootVertexId)!;
-    this.referenceInSpace = space.getVertexReferencingAppTree(appTree.tree.rootVertexId)!;
+    const root = appTree.tree.root;
+
+    if (!root) {
+      throw new Error("Root vertex not found");
+    }
+
+    this.root = root;
+    this.referenceInSpace = space.getVertexReferencingAppTree(root.id)!;
   }
 
   get messagesVertex(): Vertex | undefined {
@@ -201,8 +213,10 @@ export class ChatAppData {
   private getLastMsgParentVertex(): Vertex {
     // Start from the messages container, creating it if needed
     const startVertex: Vertex = this.messagesVertex ??
-      this.appTree.tree.newVertex(this.appTree.tree.rootVertexId, { _n: "messages" });
+      this.root.newNamedChild("messages");
     let targetVertex = startVertex;
+
+
 
     // Get the last message vertex following the 'main' branch
     while (targetVertex.children.length > 0) {
@@ -254,7 +268,7 @@ export class ChatAppData {
   }
 
   get threadId(): string {
-    return this.appTree.tree.rootVertexId;
+    return this.root.id;
   }
 
   /**

@@ -19,12 +19,9 @@ export default class AppTree {
 
   static newAppTree(peerId: string, appId: string): AppTree {
     const tree = new RepTree(peerId);
-
-    const rootId = tree.rootVertexId;
-
-    tree.setVertexProperty(rootId, '_n', 'app-tree');
-    tree.setVertexProperty(rootId, 'appId', appId);
-    tree.setVertexProperty(rootId, 'createdAt', new Date().toISOString());
+    const root = tree.createRoot();
+    root.name = 'app-tree';
+    root.setProperty('appId', appId);
 
     return new AppTree(tree);
   }
@@ -38,11 +35,11 @@ export default class AppTree {
   }
 
   getId(): string {
-    return this.tree.rootVertexId;
+    return this.tree.root!.id;
   }
 
   getAppId(): string {
-    const appId = this.tree.getVertexProperty(this.tree.rootVertexId, 'appId');
+    const appId = this.tree.root!.getProperty('appId');
     if (!appId) {
       throw new Error("App ID is not set");
     }
@@ -51,7 +48,7 @@ export default class AppTree {
   }
 
   getVersion(): string {
-    const version = this.tree.getVertexProperty(this.tree.rootVertexId, 'version');
+    const version = this.tree.root!.getProperty('version');
     if (!version) {
       throw new Error("Version is not set");
     }
@@ -60,12 +57,7 @@ export default class AppTree {
   }
 
   get createdAt(): Date {
-    const createdAt = this.tree.getVertexProperty(this.tree.rootVertexId, '_c');
-    if (!createdAt) {
-      throw new Error("App tree createdAt is not set");
-    }
-
-    return new Date(createdAt as string);
+    return this.tree.root!.createdAt;
   }
 
   onEvent(eventName: string, callback: EventCallback): () => void {

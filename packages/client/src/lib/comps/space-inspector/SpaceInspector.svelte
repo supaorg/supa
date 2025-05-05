@@ -20,7 +20,7 @@
   async function onTreeOpen(treeId: string) {
     const appTree = await $currentSpaceStore?.loadAppTree(treeId);
     if (appTree) {
-      appTreeRootVertex = appTree.tree.rootVertex;
+      appTreeRootVertex = appTree.tree.root;
       showingAppTree = true;
     }
   }
