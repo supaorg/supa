@@ -92,46 +92,6 @@ $effect(() => {
 
 - **Update flow**: any mutation to `pointers`, `currentSpaceId`, or `config` triggers a Dexie write via `$effect`. No manual CRUD wrappers are strictly necessary.
 
-### 5. Ops Caching Integration
-
-- Define the entry:
-  ```ts
-  export interface OpEntry {
-    id?: number;                 // Dexie auto PK
-    spaceId: string;
-    treeId: string;
-    op: VertexOperation;         // includes op.id with clock & peerId
-  }
-  ```
-
-- Write ops in `LocalSpaceSync.addOpsToSave`:
-  ```ts
-  import { db } from './localDb.svelte.ts';
-  // after persisting to disk
-  ops.forEach(op => {
-    db.ops.add({ spaceId: this.space.getId(), treeId, op });
-  });
-  ```
-
-- Load by space or tree, then sort in memory by RepTree ID:
-  ```ts
-  // fetch ops for a specific tree
-  let cached = await db.ops
-    .where('[spaceId+treeId]')
-    .equals([spaceId, treeId])
-    .toArray();
-  // fetch all ops for a space (across all trees)
-  // let cached = await db.ops.where('spaceId').equals(spaceId).toArray();
-  cached.sort((a, b) => {
-    const { clock: aC, peerId: aP } = a.op.id;
-    const { clock: bC, peerId: bP } = b.op.id;
-    return aC !== bC ? aC - bC : aP.localeCompare(bP);
-  });
-  this.space.tree.merge(cached.map(e => e.op));
-  ```
-
-- No explicit index on `op.id` needed; we rely on the RepTree `op.id` for ordering.
-
 ## Refactor Plan: spaceStore.ts → spaces.svelte.ts
 1. Rename `packages/client/src/lib/spaces/spaceStore.ts` to `spaces.svelte.ts` (in same directory) to enable Svelte Runes compilation.
 2. Remove imports from `svelte/store` and `svelte-persisted-store`; import `{ $state, $effect, $derived }` from `'svelte/runes'` and Dexie.
