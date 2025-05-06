@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import type { CustomProviderConfig } from "@core/models";
   import { XCircle, PlusCircle } from "lucide-svelte";
   
@@ -23,15 +23,15 @@
   
   // Load existing provider data if we're editing
   $effect(() => {
-    if (!providerId || !$currentSpaceStore) return;
+    if (!providerId || !spaceStore.currentSpace) return;
     
-    const config = $currentSpaceStore?.getModelProviderConfig(providerId) as CustomProviderConfig | undefined;
+    const config = spaceStore.currentSpace?.getModelProviderConfig(providerId) as CustomProviderConfig | undefined;
     if (!config) return;
     
     name = config.name;
     baseApiUrl = config.baseApiUrl;
     modelId = config.modelId;
-    apiKey = $currentSpaceStore?.getServiceApiKey(providerId) || "";
+    apiKey = spaceStore.currentSpace?.getServiceApiKey(providerId) || "";
     
     if (config.customHeaders) {
       try {
@@ -99,8 +99,10 @@
     }
   }
   
-  async function handleSubmit() {
-    if (!validate() || !$currentSpaceStore) return;
+  async function handleSubmit(e: SubmitEvent) {
+    e.preventDefault();
+
+    if (!validate() || !spaceStore.currentSpace) return;
     
     isSubmitting = true;
     try {
@@ -115,11 +117,11 @@
       let id: string;
       if (providerId) {
         // Update existing provider
-        $currentSpaceStore.updateCustomProvider(providerId, config);
+        spaceStore.currentSpace.updateCustomProvider(providerId, config);
         id = providerId;
       } else {
         // Add new provider
-        id = $currentSpaceStore.addCustomProvider(config);
+        id = spaceStore.currentSpace.addCustomProvider(config) || "";
       }
       
       onSave(id);
@@ -135,7 +137,7 @@
 <div class="card p-4 space-y-4">
   <h3 class="h4">{providerId ? 'Edit' : 'Add'} Custom OpenAI-compatible Provider</h3>
   
-  <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+  <form onsubmit={handleSubmit} class="space-y-4">
     <!-- Provider Name -->
     <label class="label">
       <span class="label-text">Provider Name*</span>
@@ -207,7 +209,7 @@ Content-Type: application/json"
       <button 
         type="button" 
         class="btn preset-outlined-surface-500"
-        on:click={onCancel}
+        onclick={onCancel}
       >
         Cancel
       </button>

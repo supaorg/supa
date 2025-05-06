@@ -7,7 +7,7 @@
   import Link from "../basic/Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import { providers } from "@core/providers";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { getActiveProviders } from "@core/customProviders";
 
   let showHowForProvider: ModelProvider | null = $state(null);
@@ -26,9 +26,9 @@
   }
   
   function refreshCustomProviders() {
-    if (!$currentSpaceStore) return;
+    if (!spaceStore.currentSpace) return;
     
-    const customConfigs = $currentSpaceStore.getCustomProviders();
+    const customConfigs = spaceStore.currentSpace.getCustomProviders();
     // Get all active providers (built-in + custom)
     const allProviders = getActiveProviders(customConfigs);
     // Filter to just the custom ones
@@ -37,7 +37,7 @@
   
   // Load custom providers on mount and when space changes
   $effect(() => {
-    if ($currentSpaceStore) {
+    if (spaceStore.currentSpace) {
       refreshCustomProviders();
     }
   });

@@ -1,10 +1,9 @@
 <script lang="ts">
-  import type { ModelProvider, ModelProviderConfig, CustomProviderConfig } from "@core/models";
+  import type { ModelProvider, ModelProviderConfig } from "@core/models";
   import { onMount } from "svelte";
   import ModelSelectCard from "./ModelSelectCard.svelte";
   import AutoModelSelectCard from "./AutoModelSelectCard.svelte";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
-  import { providers } from "@core/providers";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { getActiveProviders } from "@core/customProviders";
   import { splitModelString, combineModelString } from "@core/utils/modelUtils";
 
@@ -29,11 +28,11 @@
   let selectedPair: SelectedPair | null = $state(null);
 
   onMount(async () => {
-    const configs = $currentSpaceStore?.getModelProviderConfigs();
+    const configs = spaceStore.currentSpace?.getModelProviderConfigs();
     if (!configs) return;
 
     // Get custom providers
-    const customProviders = $currentSpaceStore?.getCustomProviders() || [];
+    const customProviders = spaceStore.currentSpace?.getCustomProviders() || [];
     
     // Get all active providers (built-in + custom)
     const allProviders = getActiveProviders(customProviders);

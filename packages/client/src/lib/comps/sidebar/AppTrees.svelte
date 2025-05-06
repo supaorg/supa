@@ -9,20 +9,6 @@
   let currentSpace: Space | null = $state(null);
   let appTreesUnobserve: (() => void) | undefined;
 
-  onMount(() => {
-    console.log("currentSpace (from onMount)", spaceStore.currentSpace);
-
-    if (currentSpace === spaceStore.currentSpace) {
-      return;
-    }
-
-    setCurrentSpace();
-
-    return () => {
-      appTreesUnobserve?.();
-    };
-  });
-
   $effect(() => {
     console.log("currentSpace (from $effect)", spaceStore.currentSpace);
 
@@ -30,15 +16,11 @@
       return;
     }
 
-    setCurrentSpace();
-  });
-
-  function setCurrentSpace() {
     appTreesUnobserve?.();
 
     currentSpace = spaceStore.currentSpace;
 
-    console.log("currentSpace (from setCurrentSpace)", currentSpace)
+    console.log("currentSpace (from setCurrentSpace)", currentSpace);
 
     if (currentSpace) {
       appTreeIds = [...(currentSpace.getAppTreeIds() ?? [])];
@@ -49,7 +31,13 @@
     } else {
       appTreeIds = [];
     }
-  }
+
+    return () => {
+      appTreesUnobserve?.();
+    };
+  });
+
+  function setCurrentSpace() {}
 
   function onAppTreeChange(events: VertexChangeEvent[]) {
     if (events.some((e) => e.type === "children")) {

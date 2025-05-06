@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { CustomProviderConfig, ModelProvider } from "@core/models";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { onMount } from "svelte";
   import { Tooltip } from '@skeletonlabs/skeleton-svelte';
   import { CircleAlert, Edit, Trash2 } from "lucide-svelte";
@@ -39,7 +39,7 @@
 
   async function checkConfigurationAndStatus() {
     // Check if the provider is configured
-    const config = $currentSpaceStore?.getModelProviderConfig(provider.id);
+    const config = spaceStore.currentSpace?.getModelProviderConfig(provider.id);
     isConfigured = !!config;
 
     if (!isConfigured) {
@@ -50,7 +50,7 @@
     // For cloud providers, check their status
     isChecking = true;
     try {
-      const providerStatus = await $currentSpaceStore?.getModelProviderStatus(
+      const providerStatus = await spaceStore.currentSpace?.getModelProviderStatus(
         provider.id,
       );
 
@@ -79,7 +79,7 @@
     isConfigured = false;
     validationError = null;
     onDisconnect(provider);
-    $currentSpaceStore?.deleteModelProviderConfig(provider.id);
+    spaceStore.currentSpace?.deleteModelProviderConfig(provider.id);
   }
   
   function deleteProvider() {
@@ -88,8 +88,8 @@
       return;
     }
     
-    if ($currentSpaceStore) {
-      $currentSpaceStore.removeCustomProvider(provider.id);
+    if (spaceStore.currentSpace) {
+      spaceStore.currentSpace.removeCustomProvider(provider.id);
       onDeleted(provider.id);
     }
     confirmingDelete = false;
@@ -153,7 +153,7 @@
         <div class="flex gap-2">
           <button 
             class="btn btn-sm preset-outlined-surface-500" 
-            on:click={() => isEditing = true}
+            onclick={() => isEditing = true}
             title="Edit provider"
           >
             <Edit size={16} />
@@ -161,7 +161,7 @@
           </button>
           <button 
             class="btn btn-sm preset-outlined-error-500" 
-            on:click={deleteProvider}
+            onclick={deleteProvider}
             title="Delete provider"
           >
             <Trash2 size={16} />
@@ -174,13 +174,13 @@
           <div class="flex gap-2">
             <button 
               class="btn btn-sm preset-filled-error-500" 
-              on:click={deleteProvider}
+              onclick={deleteProvider}
             >
               Confirm Delete
             </button>
             <button 
               class="btn btn-sm preset-outlined-surface-500" 
-              on:click={cancelDelete}
+              onclick={cancelDelete}
             >
               Cancel
             </button>

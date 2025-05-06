@@ -1,10 +1,5 @@
 <script lang="ts">
-  import {
-    spacePointersStore,
-    currentSpaceIdStore,
-    getLoadedSpaceFromPointer,
-    removeSpace,
-  } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import SpaceOptionsPopup from "$lib/comps/popups/SpaceOptionsPopup.svelte";
   import RenamingPopup from "$lib/comps/popups/RenamingPopup.svelte";
   import type { SpacePointer } from "$lib/spaces/SpacePointer";
@@ -13,7 +8,7 @@
   let spaceToRename = $state<SpacePointer | null>(null);
 
   function selectSpace(spaceId: string) {
-    currentSpaceIdStore.set(spaceId);
+    spaceStore.currentSpaceId = spaceId;
   }
 
   function handleRename(newName: string) {
@@ -21,15 +16,15 @@
       return;
     }
 
-    const space = getLoadedSpaceFromPointer(spaceToRename);
+    const space = spaceStore.getLoadedSpaceFromPointer(spaceToRename);
     if (space) {
       space.name = newName;
     }
 
-    const updatedPointers = $spacePointersStore.map((space) =>
+    const updatedPointers = spaceStore.pointers.map((space) =>
       space.id === spaceToRename?.id ? { ...space, name: newName } : space,
     );
-    spacePointersStore.set(updatedPointers);
+    spaceStore.pointers = updatedPointers;
     spaceToRename = null;
   }
 
@@ -39,16 +34,16 @@
   }
 
   function handleRemoveSpace(space: SpacePointer) {
-    removeSpace(space.id);
+    spaceStore.removeSpace(space.id);
   }
 </script>
 
-{#if $spacePointersStore.length > 0}
+{#if spaceStore.pointers.length > 0}
   <div class="space-y-2">
-    {#each $spacePointersStore as space (space.id)}
+    {#each spaceStore.pointers as space (space.id)}
       <div
         class="p-4 rounded-lg bg-surface-200-800-token border-2 {space.id ===
-        $currentSpaceIdStore
+        spaceStore.currentSpaceId
           ? 'border-primary-500'
           : 'border-surface-100-900'} hover:bg-surface-300-600-token cursor-pointer flex items-center justify-between"
       >

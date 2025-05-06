@@ -6,7 +6,7 @@
   import { Modal } from "@skeletonlabs/skeleton-svelte";
   import SelectModelPopup from "../popups/SelectModelPopup.svelte";
   import { getActiveProviders } from "@core/customProviders";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { splitModelString, isValidModelString, getProviderId, getModelId } from "@core/utils/modelUtils";
 
   let { value = $bindable(), required }: { value: string; required?: boolean } =
@@ -27,8 +27,8 @@
 
   // Load all providers including custom ones
   $effect(() => {
-    if ($currentSpaceStore) {
-      const customProviders = $currentSpaceStore.getCustomProviders() || [];
+    if (spaceStore.currentSpace) {
+      const customProviders = spaceStore.currentSpace.getCustomProviders() || [];
       allProviders = getActiveProviders(customProviders);
     } else {
       allProviders = [...providers];

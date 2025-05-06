@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { providers } from "@core/providers";
   import type { ModelProviderLocalConfig } from "@core/models";
   import { checkOllamaStatus } from "./ollama";
@@ -9,7 +9,7 @@
   let isChecking = false;
 
   async function checkAndConfigureOllama() {
-    if (isChecking || !$currentSpaceStore) return;
+    if (isChecking || !spaceStore.currentSpace) return;
 
     isChecking = true;
     try {
@@ -17,7 +17,7 @@
       const ollamaProvider = providers.find((p) => p.id === "ollama");
       if (!ollamaProvider) return;
 
-      const existingConfig = $currentSpaceStore.getModelProviderConfig(
+      const existingConfig = spaceStore.currentSpace?.getModelProviderConfig(
         "ollama",
       ) as ModelProviderLocalConfig | undefined;
       if (existingConfig) return;
@@ -34,7 +34,7 @@
           type: "local",
           apiUrl: address,
         };
-        $currentSpaceStore.saveModelProviderConfig(config);
+        spaceStore.currentSpace?.saveModelProviderConfig(config);
       }
     } catch (e) {
       // Ollama is not running, we'll check again later

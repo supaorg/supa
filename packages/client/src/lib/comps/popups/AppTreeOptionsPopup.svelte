@@ -2,7 +2,7 @@
   import { EllipsisVertical } from "lucide-svelte";
   import { goto } from "$app/navigation";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
 
   let { appTreeId }: { appTreeId: string } = $props();
   let openState = $state(false);
@@ -27,7 +27,7 @@
   }
 
   async function deleteThread() {
-    $currentSpaceStore?.deleteAppTree(appTreeId);
+    spaceStore.currentSpace?.deleteAppTree(appTreeId);
     goto("/");
     popoverClose();
   }

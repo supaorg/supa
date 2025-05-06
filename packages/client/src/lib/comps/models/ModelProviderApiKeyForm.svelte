@@ -7,7 +7,7 @@
     ModelProviderCloudConfig,
     ModelProviderConfig,
   } from "@core/models";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { validateKey } from "@core/tools/providerKeyValidators";
 
   let {
@@ -36,7 +36,7 @@
   );
 
   function saveCloudProviderWithApiKey(apiKey: string) {
-    if (!$currentSpaceStore) return false;
+    if (!spaceStore.currentSpace) return false;
     
     config = {
       id: id,
@@ -44,7 +44,7 @@
       apiKey,
     } as ModelProviderCloudConfig;
 
-    $currentSpaceStore.saveModelProviderConfig(config);
+    spaceStore.currentSpace?.saveModelProviderConfig(config);
     return true;
   }
 

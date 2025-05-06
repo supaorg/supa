@@ -2,7 +2,7 @@
   import type { ModelProvider, ModelProviderLocalConfig } from "@core/models";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import ModelProviderOllamaAddressForm from "./ModelProviderOllamaAddressForm.svelte";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { onMount } from "svelte";
   import { checkOllamaStatus } from "./ollama";
   import { Tooltip } from '@skeletonlabs/skeleton-svelte';
@@ -43,7 +43,7 @@
 
   async function checkConfigurationAndStatus() {
     // First check if the provider is configured
-    const config = $currentSpaceStore?.getModelProviderConfig(provider.id) as ModelProviderLocalConfig | undefined;
+    const config = spaceStore.currentSpace?.getModelProviderConfig(provider.id) as ModelProviderLocalConfig | undefined;
     isConfigured = !!config;
 
     // For Ollama, check if it's running
@@ -76,7 +76,7 @@
     // For cloud providers, check their status
     isChecking = true;
     try {
-      const providerStatus = await $currentSpaceStore?.getModelProviderStatus(
+      const providerStatus = await spaceStore.currentSpace?.getModelProviderStatus(
         provider.id,
       );
 
@@ -105,7 +105,7 @@
     isConfigured = false;
     validationError = null;
     onDisconnect(provider);
-    $currentSpaceStore?.deleteModelProviderConfig(provider.id);
+    spaceStore.currentSpace?.deleteModelProviderConfig(provider.id);
   }
 </script>
 
