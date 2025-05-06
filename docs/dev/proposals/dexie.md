@@ -70,27 +70,83 @@ class LocalDb extends Dexie {
 }
 export const db = new LocalDb();
 
-// initial load
+// initial load with error handling
 (async () => {
-  pointers = await db.pointers.toArray();
-  currentSpaceId = (await db.config.get('currentSpaceId')) as string | null;
-  const entries = await db.config.toArray();
-  config = Object.fromEntries(entries.map(e => [e.key, e.value]));
+  try {
+    pointers = await db.pointers.toArray();
+    const currentSpaceIdEntry = await db.config.get('currentSpaceId');
+    currentSpaceId = currentSpaceIdEntry ? currentSpaceIdEntry.value as string : null;
+    
+    const entries = await db.config.toArray();
+    config = Object.fromEntries(entries.map(e => [e.key, e.value]));
+    
+    console.log('Successfully loaded database');
+  } catch (error) {
+    console.error('Failed to load database:', error);
+    // Initialize with empty state
+    pointers = [];
+    currentSpaceId = null;
+    config = {};
+    
+    // Optional: attempt recovery
+    try {
+      await db.delete();
+      await db.open();
+      console.log('Database reset after error');
+    } catch (recoveryError) {
+      console.error('Failed to recover database:', recoveryError);
+    }
+  }
 })();
 
-// sync pointers and currentSpaceId to Dexie
-$effect(() => db.pointers.bulkPut(pointers));
-$effect(() => db.config.bulkPut(
-  Object.entries(config).map(([key, value]) => ({ key, value }))
-));
+// sync pointers and currentSpaceId to Dexie with error handling
+$effect(() => {
+  try {
+    db.pointers.bulkPut(pointers);
+  } catch (error) {
+    console.error('Failed to sync pointers to database:', error);
+  }
+});
+
+$effect(() => {
+  try {
+    db.config.bulkPut(
+      Object.entries(config).map(([key, value]) => ({ key, value }))
+    );
+  } catch (error) {
+    console.error('Failed to sync config to database:', error);
+  }
+});
+
 $effect(() => {
   if (currentSpaceId !== null) {
-    db.config.put({ key: 'currentSpaceId', value: currentSpaceId });
+    try {
+      db.config.put({ key: 'currentSpaceId', value: currentSpaceId });
+    } catch (error) {
+      console.error('Failed to sync currentSpaceId to database:', error);
+    }
   }
 });
 ```
 
 - **Update flow**: any mutation to `pointers`, `currentSpaceId`, or `config` triggers a Dexie write via `$effect`. No manual CRUD wrappers are strictly necessary.
+
+## IndexedDB Limitations
+
+While the operations we'll be storing are lightweight, it's important to be aware of the following IndexedDB limitations:
+
+1. **Storage Limits**:
+   - Chrome/Chromium-based browsers: ~80% of available disk space per origin
+   - Firefox: ~2GB per origin
+   - Safari: ~1GB per origin, sometimes less on iOS
+   - Mobile browsers generally have stricter limits
+
+2. **Browser Support Edge Cases**:
+   - Private browsing modes often have restricted or ephemeral storage
+   - Some mobile browsers may clear storage under memory pressure
+   - Safari has historically had more IndexedDB issues than other browsers
+
+These limitations should not be problematic for our use case with lightweight operations, unless we accumulate an extremely large number of operations over time.
 
 ## Refactor Plan: spaceStore.ts → spaces.svelte.ts
 1. Rename `packages/client/src/lib/spaces/spaceStore.ts` to `spaces.svelte.ts` (in same directory) to enable Svelte Runes compilation.
