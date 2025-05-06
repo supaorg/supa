@@ -1,13 +1,5 @@
 import Dexie from 'dexie';
-
-// Schema definitions
-export interface SpacePointer {
-  id: string;
-  uri: string;
-  name: string | null;
-  createdAt: Date;
-  lastPageUrl?: string;
-}
+import type { SpacePointer } from './spaces/SpacePointer';
 
 export interface ConfigEntry {
   key: string;
@@ -22,7 +14,7 @@ class LocalDb extends Dexie {
   constructor() {
     super('localDb');
     this.version(1).stores({
-      pointers: '&id, uri, name, createdAt, lastPageUrl',
+      pointers: '&id, uri, name, createdAt',
       config: '&key',
     });
   }
@@ -62,7 +54,27 @@ export async function getAllConfig(): Promise<Record<string, unknown>> {
 
 export async function savePointers(pointers: SpacePointer[]): Promise<void> {
   try {
-    await db.pointers.bulkPut(pointers);
+    // Ensure all pointers have serializable createdAt dates
+    const serializablePointers = pointers.map(pointer => {
+      // Make a copy of the pointer to avoid modifying the original
+      const serializedPointer = { ...pointer };
+      
+      // Ensure createdAt is a proper Date object
+      // If it's already a Date, use it; otherwise try to create a new Date from it
+      if (!(serializedPointer.createdAt instanceof Date)) {
+        try {
+          serializedPointer.createdAt = new Date(serializedPointer.createdAt);
+        } catch (dateError) {
+          console.error('Failed to convert createdAt to Date:', dateError);
+          // Fallback to current date if conversion fails
+          serializedPointer.createdAt = new Date();
+        }
+      }
+      
+      return serializedPointer;
+    });
+    
+    await db.pointers.bulkPut(serializablePointers);
   } catch (error) {
     console.error('Failed to save pointers to database:', error);
   }

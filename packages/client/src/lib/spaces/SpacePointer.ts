@@ -3,5 +3,4 @@ export type SpacePointer = {
   uri: string;
   name: string | null;
   createdAt: Date;
-  lastPageUrl?: string;
 }

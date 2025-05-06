@@ -1,6 +1,6 @@
 import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./LocalSpaceSync";
-import type { SpacePointer } from '../localDb';
+import type { SpacePointer } from "./SpacePointer";
 
 class SpacesState {
   pointers: SpacePointer[] = $state([]);
