@@ -307,7 +307,7 @@ export class LocalSpaceSync implements SpaceConnection {
       return;
     }
 
-    if (treeId === this.space.tree.rootVertexId) {
+    if (treeId === this.space.tree.root!.id) {
       this.space.tree.merge(ops);
     } else {
       const appTree = this.space.getAppTree(treeId);
@@ -407,7 +407,7 @@ export class LocalSpaceSync implements SpaceConnection {
       return;
     }
 
-    const treeId = tree.rootVertexId;
+    const treeId = tree.root!.id;
 
     let ops = this.treeOpsToSave.get(treeId);
     if (!ops) {
@@ -472,7 +472,7 @@ export async function createNewLocalSpaceAndConnect(path: string): Promise<Space
   const sync = new LocalSpaceSync(space, path);
   const ops = space.tree.getAllOps();
   // Add ops that created the space tree
-  sync.addOpsToSave(space.tree.rootVertexId, ops);
+  sync.addOpsToSave(space.tree.root!.id, ops);
   await sync.connect();
   return sync;
 }
@@ -500,7 +500,7 @@ export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<Space
 }
 
 async function saveTreeOpsFromScratch(tree: RepTree, spacePath: string) {
-  const opsPath = makePathForOpsBasedOnDate(spacePath, tree.rootVertexId, new Date());
+  const opsPath = makePathForOpsBasedOnDate(spacePath, tree.root!.id, new Date());
   await mkdir(opsPath, { recursive: true });
 
   const opsJSONLines = turnOpsIntoJSONLines(tree.popLocalOps());
