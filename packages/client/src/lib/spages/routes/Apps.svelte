@@ -3,27 +3,17 @@
   import { txtStore } from "$lib/stores/txtStore";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { AppConfig } from "@core/models";
-  import type Space from "@core/spaces/Space";
   import SpagesNavButton from "../SpagesNavButton.svelte";
 
   let appConfigs = $state<AppConfig[]>([]);
-  let currentSpace = $state<Space | null>(null);
   let appConfigUnobserve: (() => void) | undefined;
 
   $effect(() => {
-    const space = spaceStore.currentSpace;
-
-    if (currentSpace === space) {
-      return;
-    }
-
-    appConfigUnobserve?.();
-
-    currentSpace = space;
-
-    appConfigUnobserve = space?.appConfigs.observe((configs) => {
-      appConfigs = configs;
-    });
+    appConfigUnobserve = spaceStore.currentSpace?.appConfigs.observe(
+      (configs) => {
+        appConfigs = configs;
+      }
+    );
 
     return () => {
       appConfigUnobserve?.();

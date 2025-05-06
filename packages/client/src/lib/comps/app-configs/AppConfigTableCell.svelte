@@ -13,20 +13,12 @@
 
   let { config }: { config: AppConfig } = $props();
 
-  let isVisible: boolean = $state(
-    config.visible !== undefined ? config.visible : true
-  );
   let isDefault = $derived(config.id === "default");
   let deletePopoverOpen = $state(false);
 
-  $effect(() => {
-    setAppConfigVisibility(isVisible);
-  });
-
-  function setAppConfigVisibility(visible: boolean) {
-    if (visible !== config.visible) {
-      spaceStore.currentSpace?.updateAppConfig(config.id, { visible });
-    }
+  function toggleVisibility() {
+    const oppositeVisible = config.visible === undefined ? true : !config.visible;
+    spaceStore.currentSpace?.updateAppConfig(config.id, { visible: oppositeVisible });
   }
 
   function deleteAppConfig() {
@@ -104,9 +96,9 @@
       {#snippet trigger()}
         <Switch
           name={"visible-" + config.id}
-          checked={isVisible}
+          checked={config.visible !== undefined ? config.visible : true}
           controlActive="bg-secondary-500"
-          onCheckedChange={(e) => (isVisible = e.checked)}
+          onCheckedChange={(_) => toggleVisibility()}
         />
       {/snippet}
       {#snippet content()}
