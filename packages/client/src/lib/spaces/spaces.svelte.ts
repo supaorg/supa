@@ -11,17 +11,16 @@ export class SpacesState {
   currentSpaceId: string | null = $state(null);
   spaceStore: SpaceConnection[] = $state([]);
   config: Record<string, unknown> = $state({});
-  initialized: boolean = $state(false);
 
-  currentSpace = $derived(() => {
+  currentSpace = $derived.by(() => {
     return this.spaceStore.find(conn => conn.space.getId() === this.currentSpaceId)?.space || null;
   });
 
-  currentSpaceConnection = $derived(() => {
+  currentSpaceConnection = $derived.by(() => {
     return this.spaceStore.find(conn => conn.space.getId() === this.currentSpaceId) || null;
   });
 
-  currentPointer = $derived(() => {
+  currentPointer = $derived.by(() => {
     return this.pointers.find(p => p.id === this.currentSpaceId) || null;
   });
   
@@ -154,22 +153,6 @@ export class SpacesState {
   getSpaceConnectionById(spaceId: string): SpaceConnection | null {
     return this.spaceStore.find(conn => conn.space.getId() === spaceId) || null;
   }
-
-  /**
-   * Update the lastPageUrl for the current space pointer
-   * @param url The URL to set as the last page URL
-   */
-  updateLastPageUrl(url: string): void {
-    const pointer = this.pointers.find(p => p.id === this.currentSpaceId);
-    if (pointer) {
-      const updatedPointer = { ...pointer, lastPageUrl: url };
-      this.pointers = this.pointers.map(p => p.id === pointer.id ? updatedPointer : p);
-    }
-  }
 }
 
-// Create and export a singleton instance of SpacesState
 export const spaceStore = new SpacesState();
-
-// Export common methods for backward compatibility
-export const loadSpacesAndConnectToCurrent = spaceStore.loadSpacesAndConnectToCurrent.bind(spaceStore);

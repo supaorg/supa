@@ -1,7 +1,10 @@
-<script>
+<script lang="ts">
   import { spaceStore } from "./spaces.svelte";
   import { initializeDatabase, savePointers, saveCurrentSpaceId, saveConfig } from "../localDb";
   import { onMount } from "svelte";
+  
+  // Add callback prop for space loading status
+  let { onSpaceLoad } = $props<{ onSpaceLoad?: (hasSpaces: boolean) => void }>()
   
   // Initialize data from database on mount
   let initialized = $state(false);
@@ -18,14 +21,15 @@
         config
       });
       
-      // Connect to spaces
-      const pointer = await spaceStore.loadSpacesAndConnectToCurrent();
-
-      console.log("Pointer", pointer);
+      await spaceStore.loadSpacesAndConnectToCurrent();
       
-      // Mark as initialized
-      spaceStore.initialized = true;
       initialized = true;
+      
+      // Call the onSpaceLoad callback if provided
+      if (onSpaceLoad) {
+        console.log("SpaceStoreEffects: onSpaceLoad", spaceStore.currentSpaceConnection);
+        onSpaceLoad(spaceStore.currentSpaceConnection !== null);
+      }
     } catch (error) {
       console.error('Failed to initialize space state from database:', error);
     }
@@ -33,19 +37,19 @@
   
   // Effects for persisting state changes
   $effect(() => {
-    if (initialized && spaceStore.initialized) {
+    if (initialized) {
       savePointers(spaceStore.pointers);
     }
   });
 
   $effect(() => {
-    if (initialized && spaceStore.initialized && spaceStore.currentSpaceId !== null) {
+    if (initialized && spaceStore.currentSpaceId !== null) {
       saveCurrentSpaceId(spaceStore.currentSpaceId);
     }
   });
 
   $effect(() => {
-    if (initialized && spaceStore.initialized) {
+    if (initialized) {
       saveConfig(spaceStore.config);
     }
   });

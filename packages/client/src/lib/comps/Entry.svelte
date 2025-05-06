@@ -17,39 +17,14 @@
   onMount(() => {
     console.log("Mounting Entry");
 
-    const initializeApp = async () => {
-      if (!isTauri()) {
-        throw new Error(
-          "We don't support regular browsers yet. We have to run this from Tauri",
-        );
-      }
-      
-      // Wait for initialization to complete (handled by SpaceStoreEffects)
-      const checkInitialization = () => {
-        if (spaceStore.initialized) {
-          // SpaceStoreEffects has completed initialization
-          currentConnection = spaceStore.currentSpaceConnection;
-          
-          if (currentConnection) {
-            status = "ready";
-          } else {
-            status = "needsSpace";
-          }
-        } else {
-          // Check again in a bit
-          setTimeout(checkInitialization, 100);
-        }
-      };
-      
-      checkInitialization();
-    };
-
-    initializeApp();
+    if (!isTauri()) {
+      throw new Error(
+        "We don't support regular browsers yet. We have to run this from Tauri"
+      );
+    }
 
     return () => {
-      if (currentConnection && currentConnection.connected) {
-        currentConnection.disconnect();
-      }
+      spaceStore.disconnectAllSpaces();
     };
   });
 
@@ -60,8 +35,13 @@
   }
 </script>
 
-<!-- Always include SpaceStoreEffects for database operations -->
-<SpaceStoreEffects />
+
+<SpaceStoreEffects
+  onSpaceLoad={(hasSpaces) => {
+    currentConnection = spaceStore.currentSpaceConnection;
+    status = hasSpaces ? "ready" : "needsSpace";
+  }}
+/>
 
 {#if status === "initializing"}
   <Loading />
