@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onMount } from "svelte";
   import Loading from "$lib/comps/basic/Loading.svelte";
   import TauriWindowSetup from "$lib/comps/tauri/TauriWindowSetup.svelte";
   import { isTauri } from "$lib/tauri/isTauri";
-  import { loadSpacesAndConnectToCurrent } from "$lib/spaces/spaceStore";
+  import {spaceStore } from "$lib/spaces/spaces.svelte";
   import SpaceSetup from "$lib/comps/spaces/SpaceSetup.svelte";
-  import { page } from "$app/state";
-  import { setLastPageUrlInSpace } from "$lib/spaces/spaceStore";
   import type { SpaceConnection } from "$lib/spaces/LocalSpaceSync";
 
   type Status = "initializing" | "needsSpace" | "ready";
@@ -14,11 +12,6 @@
   let { children } = $props();
   let status: Status = $state("initializing");
   let currentConnection: SpaceConnection | null = $state(null);
-
-  $effect(() => {
-    // @TODO: no need to with ttabs
-    setLastPageUrlInSpace(page.url.pathname + page.url.search);
-  });
 
   onMount(() => {
     console.log("Mounting Entry");
@@ -30,7 +23,7 @@
         );
       }
 
-      currentConnection = await loadSpacesAndConnectToCurrent();
+      currentConnection = await spaceStore.loadSpacesAndConnectToCurrent();
 
       if (currentConnection) {
         status = "ready";
