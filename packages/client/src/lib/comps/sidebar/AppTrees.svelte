@@ -1,40 +1,55 @@
 <script lang="ts">
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
-  import { onMount } from "svelte";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import VertexItem from "./VertexItem.svelte";
   import type { VertexChangeEvent } from "reptree/treeTypes";
   import type Space from "@core/spaces/Space";
+  import { onMount } from "svelte";
 
-  let appTreeIds = $state<string[]>([]);
-  let currentSpace = $state<Space | null>(null);
+  let appTreeIds: string[] = $state([]);
+  let currentSpace: Space | null = $state(null);
   let appTreesUnobserve: (() => void) | undefined;
 
   onMount(() => {
-    const currentSpaceSub = currentSpaceStore.subscribe((space) => {
-      if (currentSpace === space) {
-        return;
-      }
+    console.log("currentSpace (from onMount)", spaceStore.currentSpace);
 
-      appTreesUnobserve?.();
+    if (currentSpace === spaceStore.currentSpace) {
+      return;
+    }
 
-      currentSpace = space;
-
-      if (currentSpace) {
-        appTreeIds = [...(currentSpace.getAppTreeIds() ?? [])];
-        appTreesUnobserve = currentSpace.tree.observe(
-          currentSpace.appTreesVertex.id,
-          onAppTreeChange,
-        );
-      } else {
-        appTreeIds = [];
-      }
-    });
+    setCurrentSpace();
 
     return () => {
-      currentSpaceSub?.();
       appTreesUnobserve?.();
     };
   });
+
+  $effect(() => {
+    console.log("currentSpace (from $effect)", spaceStore.currentSpace);
+
+    if (currentSpace === spaceStore.currentSpace) {
+      return;
+    }
+
+    setCurrentSpace();
+  });
+
+  function setCurrentSpace() {
+    appTreesUnobserve?.();
+
+    currentSpace = spaceStore.currentSpace;
+
+    console.log("currentSpace (from setCurrentSpace)", currentSpace)
+
+    if (currentSpace) {
+      appTreeIds = [...(currentSpace.getAppTreeIds() ?? [])];
+      appTreesUnobserve = currentSpace.tree.observe(
+        currentSpace.appTreesVertex.id,
+        onAppTreeChange
+      );
+    } else {
+      appTreeIds = [];
+    }
+  }
 
   function onAppTreeChange(events: VertexChangeEvent[]) {
     if (events.some((e) => e.type === "children")) {

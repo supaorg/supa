@@ -4,7 +4,6 @@
   import LayoutGrid from "lucide-svelte/icons/layout-grid";
   import AppTrees from "./AppTrees.svelte";
   import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
-  import SidebarPageLink from "./SidebarPageLink.svelte";
   import { txtStore } from "$lib/stores/txtStore";
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
 </script>

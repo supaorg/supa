@@ -1,6 +1,6 @@
 <script lang="ts">
   import { message, open } from "@tauri-apps/plugin-dialog";
-  import { addLocalSpace, currentSpaceIdStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import {
     createNewLocalSpaceAndConnect,
     loadLocalSpaceAndConnect,
@@ -22,8 +22,8 @@
     try {
       const spaceSync = await createNewLocalSpaceAndConnect(path as string);
       const space = spaceSync.space;
-      addLocalSpace(spaceSync, path as string);
-      currentSpaceIdStore.set(space.getId());
+      spaceStore.addLocalSpace(spaceSync, path as string);
+      spaceStore.currentSpaceId = space.getId();
       onSpaceSetup?.(space.getId());
     } catch (e) {
       console.error(e);
@@ -44,8 +44,11 @@
     try {
       const spaceSync = await loadLocalSpaceAndConnect(path as string);
       const space = spaceSync.space;
-      currentSpaceIdStore.set(space.getId());
-      addLocalSpace(spaceSync, path as string);
+      spaceStore.currentSpaceId = space.getId();
+      spaceStore.addLocalSpace(spaceSync, path as string);
+
+      console.log("Current space (after opening)", spaceStore.currentSpace);
+
       onSpaceSetup?.(space.getId());
     } catch (e) {
       console.error(e);

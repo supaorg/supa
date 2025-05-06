@@ -2,28 +2,16 @@ import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./LocalSpaceSync";
 import type { SpacePointer } from '../localDb';
 
-/**
- * Spaces state management class using Svelte 5 runes
- */
-export class SpacesState {
-  // Core state with runes
+class SpacesState {
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $state(null);
-  spaceStore: SpaceConnection[] = $state([]);
+  connections: SpaceConnection[] = $state([]);
   config: Record<string, unknown> = $state({});
 
-  currentSpace = $derived.by(() => {
-    return this.spaceStore.find(conn => conn.space.getId() === this.currentSpaceId)?.space || null;
-  });
+  currentSpace = $derived(this.connections.find(conn => conn.space.getId() === this.currentSpaceId)?.space || null);
+  currentSpaceConnection = $derived(this.connections.find(conn => conn.space.getId() === this.currentSpaceId) || null);
+  currentPointer = $derived(this.pointers.find(p => p.id === this.currentSpaceId) || null);
 
-  currentSpaceConnection = $derived.by(() => {
-    return this.spaceStore.find(conn => conn.space.getId() === this.currentSpaceId) || null;
-  });
-
-  currentPointer = $derived.by(() => {
-    return this.pointers.find(p => p.id === this.currentSpaceId) || null;
-  });
-  
   /**
    * Initialize with data loaded from elsewhere
    * @param data The data to initialize the state with
@@ -44,9 +32,9 @@ export class SpacesState {
    * @returns The current space connection or null if none.
    */
   async loadSpacesAndConnectToCurrent(): Promise<SpaceConnection | null> {
-    if (this.spaceStore.length > 0) {
+    if (this.connections.length > 0) {
       // Find if any of the existing connections are connected
-      const connectedConnection = this.spaceStore.find(conn => conn.connected);
+      const connectedConnection = this.connections.find(conn => conn.connected);
       if (connectedConnection) {
         console.error("Spaces already loaded. Can do it only once. Returning the connected one.");
         return connectedConnection;
@@ -77,7 +65,7 @@ export class SpacesState {
       this.currentSpaceId = currentConnection.space.getId();
     }
 
-    this.spaceStore = connections;
+    this.connections = connections;
 
     return currentConnection;
   }
@@ -86,7 +74,7 @@ export class SpacesState {
    * Add a local space to the stores
    */
   addLocalSpace(connection: SpaceConnection, path: string): void {
-    this.spaceStore = [...this.spaceStore, connection];
+    this.connections = [...this.connections, connection];
 
     const pointer: SpacePointer = {
       id: connection.space.getId(),
@@ -102,7 +90,7 @@ export class SpacesState {
    * Get a loaded space from a pointer
    */
   getLoadedSpaceFromPointer(pointer: SpacePointer): Space | null {
-    const connection = this.spaceStore.find((conn) => conn.space.getId() === pointer.id);
+    const connection = this.connections.find((conn) => conn.space.getId() === pointer.id);
     return connection ? connection.space : null;
   }
 
@@ -111,7 +99,7 @@ export class SpacesState {
    */
   async removeSpace(pointerId: string): Promise<void> {
     // Get the connection so we can disconnect it
-    const connection = this.spaceStore.find(conn => conn.space.getId() === pointerId);
+    const connection = this.connections.find(conn => conn.space.getId() === pointerId);
 
     // Disconnect the space first if it exists and is connected
     if (connection && connection.connected) {
@@ -122,7 +110,7 @@ export class SpacesState {
     this.pointers = this.pointers.filter(p => p.id !== pointerId);
 
     // Remove from loaded space connections
-    this.spaceStore = this.spaceStore.filter(conn => conn.space.getId() !== pointerId);
+    this.connections = this.connections.filter(conn => conn.space.getId() !== pointerId);
 
     // If this was the current space, try to select another one
     if (this.currentSpaceId === pointerId) {
@@ -138,7 +126,7 @@ export class SpacesState {
   async disconnectAllSpaces(): Promise<void> {
     const disconnectPromises: Promise<void>[] = [];
 
-    for (const connection of this.spaceStore) {
+    for (const connection of this.connections) {
       if (connection.connected) {
         disconnectPromises.push(connection.disconnect());
       }
@@ -151,7 +139,7 @@ export class SpacesState {
    * Get a space connection by space ID.
    */
   getSpaceConnectionById(spaceId: string): SpaceConnection | null {
-    return this.spaceStore.find(conn => conn.space.getId() === spaceId) || null;
+    return this.connections.find(conn => conn.space.getId() === spaceId) || null;
   }
 }
 

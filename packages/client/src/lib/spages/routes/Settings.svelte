@@ -53,7 +53,7 @@
     <div class="card p-4 border-[1px] border-surface-200-800">
       <h3 class="h4 mb-4">{$txtStore.settingsPage.spaces.title}</h3>
       <p class="mb-4">
-        {$txtStore.settingsPage.spaces.spaceCount(spaceStore.spaceStore.length)}
+        {$txtStore.settingsPage.spaces.spaceCount(spaceStore.connections.length)}
       </p>
       <button class="btn preset-filled" onclick={() => openSpaces()}>
         {$txtStore.settingsPage.spaces.manageButton}

@@ -13,7 +13,6 @@
 
   let { children } = $props();
   let status: Status = $state("initializing");
-  let currentConnection: SpaceConnection | null = $state(null);
   let initialized = $state(false);
 
   onMount(() => {
@@ -50,18 +49,17 @@
         config
       });
       
-      await spaceStore.loadSpacesAndConnectToCurrent();
+      const connection = await spaceStore.loadSpacesAndConnectToCurrent();
+
+      console.log("Current space", spaceStore.currentSpace);
 
       setupTtabs();
       
       initialized = true;
       
-      // Update application state based on space availability
-      currentConnection = spaceStore.currentSpaceConnection;
-      
       // Only change status after loading is complete
-      status = currentConnection ? "ready" : "needsSpace";
-      console.log("Entry: space loaded", currentConnection, "status:", status);
+      status = connection ? "ready" : "needsSpace";
+      console.log("Entry: space loaded", connection, "status:", status);
     } catch (error) {
       console.error('Failed to initialize space state from database:', error);
       // Keep initializing state on error? Or maybe add an error state?
