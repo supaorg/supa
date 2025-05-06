@@ -1,80 +1,44 @@
 import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./LocalSpaceSync";
-import { 
-  db, 
-  type SpacePointer,
-  initializeDatabase,
-  savePointers,
-  saveCurrentSpaceId,
-  saveConfig
-} from '../localDb';
+import type { SpacePointer } from '../localDb';
 
 /**
  * Spaces state management class using Svelte 5 runes
  */
 export class SpacesState {
-  // Core state
+  // Core state with runes
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $state(null);
   spaceStore: SpaceConnection[] = $state([]);
   config: Record<string, unknown> = $state({});
   initialized: boolean = $state(false);
-  
-  // Derived state
-  get currentSpace(): Space | null {
+
+  currentSpace = $derived(() => {
     return this.spaceStore.find(conn => conn.space.getId() === this.currentSpaceId)?.space || null;
-  }
-  
-  get currentSpaceConnection(): SpaceConnection | null {
+  });
+
+  currentSpaceConnection = $derived(() => {
     return this.spaceStore.find(conn => conn.space.getId() === this.currentSpaceId) || null;
-  }
-  
-  get currentPointer(): SpacePointer | null {
+  });
+
+  currentPointer = $derived(() => {
     return this.pointers.find(p => p.id === this.currentSpaceId) || null;
+  });
+  
+  /**
+   * Initialize with data loaded from elsewhere
+   * @param data The data to initialize the state with
+   */
+  setInitialState(data: {
+    pointers: SpacePointer[],
+    currentSpaceId: string | null,
+    config: Record<string, unknown>
+  }) {
+    this.pointers = data.pointers;
+    this.currentSpaceId = data.currentSpaceId;
+    this.config = data.config;
   }
 
-  /*
-  // Set up effects for persisting state
-  $effect(() => {
-    if (this.initialized) {
-      savePointers(this.pointers);
-    }
-  });
-  
-  $effect(() => {
-    if (this.initialized && this.currentSpaceId !== null) {
-      saveCurrentSpaceId(this.currentSpaceId);
-    }
-  });
-  
-  $effect(() => {
-    if (this.initialized) {
-      saveConfig(this.config);
-    }
-  });
-  */
-  
-  constructor() {
-    this.initialize();
-  }
-  
-  private async initialize() {
-    try {
-      const { pointers, currentSpaceId, config } = await initializeDatabase();
-      
-      // Set initial state
-      this.pointers = pointers;
-      this.currentSpaceId = currentSpaceId;
-      this.config = config;
-      
-      // Connect to spaces
-      await this.loadSpacesAndConnectToCurrent();
-      this.initialized = true;
-    } catch (error) {
-      console.error('Failed to initialize space state:', error);
-    }
-  }
-  
   /**
    * Create space connections from pointers and return the current one.
    * Use it only once on startup.
@@ -149,7 +113,7 @@ export class SpacesState {
   async removeSpace(pointerId: string): Promise<void> {
     // Get the connection so we can disconnect it
     const connection = this.spaceStore.find(conn => conn.space.getId() === pointerId);
-    
+
     // Disconnect the space first if it exists and is connected
     if (connection && connection.connected) {
       await connection.disconnect();
@@ -174,13 +138,13 @@ export class SpacesState {
    */
   async disconnectAllSpaces(): Promise<void> {
     const disconnectPromises: Promise<void>[] = [];
-    
+
     for (const connection of this.spaceStore) {
       if (connection.connected) {
         disconnectPromises.push(connection.disconnect());
       }
     }
-    
+
     await Promise.all(disconnectPromises);
   }
 
