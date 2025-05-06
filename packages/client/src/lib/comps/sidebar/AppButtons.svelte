@@ -2,33 +2,17 @@
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { AppConfig } from "@core/models";
   import { MessageCircle } from "lucide-svelte";
-  import type Space from "@core/spaces/Space";
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
 
-  let newThreadModalIsOpen = $state(false);
-  let targetAppConfig = $state<AppConfig | undefined>(undefined);
   let appConfigs = $state<AppConfig[]>([]);
-  let currentSpace = $state<Space | null>(null);
   let appConfigUnobserve: (() => void) | undefined;
 
-  function startNewThread(appConfig: AppConfig) {
-    newThreadModalIsOpen = true;
-    targetAppConfig = appConfig;
-  }
-
   $effect(() => {
-    if (currentSpace === spaceStore.currentSpace) {
-      return;
-    }
-
-    appConfigUnobserve?.();
-    currentSpace = spaceStore.currentSpace;
-
-    console.log("currentSpace", currentSpace);
-
-    appConfigUnobserve = currentSpace?.appConfigs.observe((configs) => {
-      appConfigs = configs;
-    });
+    appConfigUnobserve = spaceStore.currentSpace?.appConfigs.observe(
+      (configs) => {
+        appConfigs = configs;
+      }
+    );
 
     return () => {
       appConfigUnobserve?.();
