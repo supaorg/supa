@@ -60,14 +60,11 @@ export const currentPointer = $derived(
 class LocalDb extends Dexie {
   pointers!: Dexie.Table<SpacePointer, string>;
   config!: Dexie.Table<ConfigEntry, string>;
-  ops!: Dexie.Table<OpEntry, number>;
   constructor() {
     super('localDb');
     this.version(1).stores({
       pointers: '&id, uri, name, createdAt, lastPageUrl',
       config: '&key',
-      // auto PK + index on spaceId + compound index for spaceId+treeId
-      ops: '++id, spaceId, [spaceId+treeId]'
     });
   }
 }
