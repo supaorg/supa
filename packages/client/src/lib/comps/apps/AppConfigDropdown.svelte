@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import type { AppConfig } from "@core/models";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import { txtStore } from "$lib/stores/txtStore";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { ChevronUp } from "lucide-svelte";
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
 
   let {
     configId = "",
@@ -21,7 +21,7 @@
   let openState = $state(false);
 
   onMount(() => {
-    const unobserve = $currentSpaceStore?.appConfigs.observe((configs) => {
+    const unobserve = spaceStore.currentSpace?.appConfigs.observe((configs) => {
       visibleAppConfigs = configs.filter((config) => config.visible);
     });
 

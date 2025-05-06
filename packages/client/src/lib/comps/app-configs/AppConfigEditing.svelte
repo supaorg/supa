@@ -3,7 +3,7 @@
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
   import uuid from "@core/uuid/uuid";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
 
   let {
     configId,
@@ -26,7 +26,7 @@
 
   $effect(() => {
     if (configId) {
-      const config = $currentSpaceStore?.getAppConfig(configId);
+      const config = spaceStore.currentSpace?.getAppConfig(configId);
       if (config) {
         name = config.name;
         description = config.description;
@@ -52,7 +52,7 @@
     }
 
     if (!configId) {
-      $currentSpaceStore?.insertIntoArray("app-configs", {
+      spaceStore.currentSpace?.insertIntoArray("app-configs", {
         id: uuid(),
         name: name,
         description: description,
@@ -62,7 +62,7 @@
 
       goto("/apps");
     } else {
-      $currentSpaceStore?.updateAppConfig(configId, {
+      spaceStore.currentSpace?.updateAppConfig(configId, {
         name: name,
         description: description,
         instructions: instructions,

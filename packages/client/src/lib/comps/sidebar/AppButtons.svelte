@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import type { AppConfig } from "@core/models";
   import Pen from "lucide-svelte/icons/pen";
   import { MessageCircle } from "lucide-svelte";
@@ -20,24 +20,22 @@
     targetAppConfig = appConfig;
   }
 
-  onMount(() => {
-    const currentSpaceSub = currentSpaceStore.subscribe((space) => {
-      if (currentSpace === space) {
-        return;
-      }
+  $effect(() => {
+    if (currentSpace === spaceStore.currentSpace) {
+      return;
+    }
 
-      appConfigUnobserve?.();
+    appConfigUnobserve?.();
+    currentSpace = spaceStore.currentSpace;
 
-      currentSpace = space;
+    console.log("currentSpace", currentSpace);
 
-      appConfigUnobserve = currentSpace?.appConfigs.observe((configs) => {
-        appConfigs = configs;
-      });
+    appConfigUnobserve = currentSpace?.appConfigs.observe((configs) => {
+      appConfigs = configs;
     });
 
     return () => {
       appConfigUnobserve?.();
-      currentSpaceSub?.();
     };
   });
 </script>

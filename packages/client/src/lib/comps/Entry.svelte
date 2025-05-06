@@ -7,6 +7,7 @@
   import SpaceSetup from "$lib/comps/spaces/SpaceSetup.svelte";
   import type { SpaceConnection } from "$lib/spaces/LocalSpaceSync";
   import { initializeDatabase, savePointers, saveCurrentSpaceId, saveConfig } from "$lib/localDb";
+  import { setupTtabs } from "$lib/ttabs/ttabsLayout";
 
   type Status = "initializing" | "needsSpace" | "ready";
 
@@ -50,6 +51,8 @@
       });
       
       await spaceStore.loadSpacesAndConnectToCurrent();
+
+      setupTtabs();
       
       initialized = true;
       

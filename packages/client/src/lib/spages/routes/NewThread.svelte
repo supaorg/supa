@@ -1,6 +1,6 @@
 <script lang="ts">
   import SendMessageForm from "../../comps/forms/SendMessageForm.svelte";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
   import { newThreadDrafts } from "$lib/stores/newThreadDrafts";
@@ -38,18 +38,18 @@
       throw new Error("App config not found");
     }
 
-    if (!$currentSpaceStore) {
+    if (!spaceStore.currentSpaceConnection) {
       throw new Error("Space or app config not found");
     }
 
     // Create new app tree
     const newTree = ChatAppData.createNewChatTree(
-      $currentSpaceStore,
+      spaceStore.currentSpaceConnection.space,
       appConfig.id,
     );
-    const chatAppData = new ChatAppData($currentSpaceStore, newTree);
+    const chatAppData = new ChatAppData(spaceStore.currentSpaceConnection.space, newTree);
     chatAppData.newMessage("user", message);
-    openChatTab(newTree.tree.rootVertexId, "New chat");
+    openChatTab(newTree.tree.root!.id, "New chat");
     onClose();
   }
 </script>

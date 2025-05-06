@@ -1,7 +1,7 @@
 <script lang="ts">
   import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { isDevMode } from "$lib/stores/devMode";
   import { currentLanguage } from "$lib/stores/txtStore";
   import {
@@ -53,7 +53,7 @@
     <div class="card p-4 border-[1px] border-surface-200-800">
       <h3 class="h4 mb-4">{$txtStore.settingsPage.spaces.title}</h3>
       <p class="mb-4">
-        {$txtStore.settingsPage.spaces.spaceCount($spaceStore.length)}
+        {$txtStore.settingsPage.spaces.spaceCount(spaceStore.spaceStore.length)}
       </p>
       <button class="btn preset-filled" onclick={() => openSpaces()}>
         {$txtStore.settingsPage.spaces.manageButton}

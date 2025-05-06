@@ -1,6 +1,6 @@
 import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
 import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
-import { currentSpaceIdStore } from "$lib/spaces/spaceStore";
+import { spaceStore } from "$lib/spaces/spaces.svelte";
 import { createTtabs, type TtabsTheme } from "ttabs-svelte";
 import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
 import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
@@ -21,7 +21,7 @@ let contentGrid: string | undefined;
 
 export let sidebarColumn: string | undefined;
 
-function setupTtabs() {
+export function setupTtabs() {
   ttabs.resetState();
   const root = ttabs.rootGridId as string;
   const row = ttabs.addRow(root);
@@ -89,7 +89,20 @@ export function openChatTab(treeId: string, name: string) {
   ttabs.setFocusedActiveTab(tab);
 }
 
-currentSpaceIdStore.subscribe((spaceId) => {
-  console.log("Setup ttabs for space", spaceId);
-  setupTtabs();
+/*
+$effect(() => {
+
 });
+
+const destroy = $effect.root(() => {
+	$effect(() => {
+    const spaceId = spaceStore.currentSpaceId;
+    console.log("Setup ttabs for space", spaceId);
+    setupTtabs();
+	});
+
+	return () => {
+		// cleanup
+	};
+});
+*/

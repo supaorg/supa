@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
   import type { AppConfig } from "@core/models";
   import { Switch, Popover, Tooltip } from "@skeletonlabs/skeleton-svelte";
   import { TrashIcon, GripVertical, Pencil, MessageCircle } from "lucide-svelte";
   import { txtStore } from "$lib/stores/txtStore";
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
 
   let { config }: { config: AppConfig } = $props();
 
@@ -20,12 +20,12 @@
 
   function setAppConfigVisibility(visible: boolean) {
     if (visible !== config.visible) {
-      $currentSpaceStore?.updateAppConfig(config.id, { visible });
+      spaceStore.currentSpace?.updateAppConfig(config.id, { visible });
     }
   }
 
   function deleteAppConfig() {
-    $currentSpaceStore?.appConfigs.delete(config);
+    spaceStore.currentSpace?.appConfigs.delete(config);
     deletePopoverOpen = false;
   }
 </script>

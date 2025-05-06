@@ -2,7 +2,7 @@
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
   import AppConfigTableCell from "$lib/comps/app-configs/AppConfigTableCell.svelte";
   import { txtStore } from "$lib/stores/txtStore";
-  import { currentSpaceStore } from "$lib/spaces/spaceStore";
+  import { spaceStore } from "$lib/spaces/spaces.svelte";
   import { onMount } from "svelte";
   import type { AppConfig } from "@core/models";
   import type Space from "@core/spaces/Space";
