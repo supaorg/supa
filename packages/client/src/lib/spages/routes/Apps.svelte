@@ -1,7 +1,7 @@
 <script lang="ts">
   import AppConfigTableCell from "$lib/comps/app-configs/AppConfigTableCell.svelte";
   import { txtStore } from "$lib/stores/txtStore";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { AppConfig } from "@core/models";
   import type Space from "@core/spaces/Space";
   import SpagesNavButton from "../SpagesNavButton.svelte";

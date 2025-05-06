@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { CustomProviderConfig, ModelProvider } from "@core/models";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { onMount } from "svelte";
   import { Tooltip } from '@skeletonlabs/skeleton-svelte';
   import { CircleAlert, Edit, Trash2 } from "lucide-svelte";

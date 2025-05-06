@@ -7,7 +7,7 @@
     ModelProviderCloudConfig,
     ModelProviderConfig,
   } from "@core/models";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { validateKey } from "@core/tools/providerKeyValidators";
 
   let {

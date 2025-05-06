@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import SpaceOptionsPopup from "$lib/comps/popups/SpaceOptionsPopup.svelte";
   import RenamingPopup from "$lib/comps/popups/RenamingPopup.svelte";
   import type { SpacePointer } from "$lib/spaces/SpacePointer";

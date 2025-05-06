@@ -1,13 +1,15 @@
 <script lang="ts">
   import { message, open } from "@tauri-apps/plugin-dialog";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import {
     createNewLocalSpaceAndConnect,
     loadLocalSpaceAndConnect,
   } from "$lib/spaces/LocalSpaceSync";
   import { txtStore } from "$lib/stores/txtStore";
 
-  let { onSpaceSetup }: { onSpaceSetup: (spaceId: string) => void | undefined } = $props();
+  let {
+    onSpaceSetup,
+  }: { onSpaceSetup: (spaceId: string) => void | undefined } = $props();
 
   async function createSpaceDialog() {
     const path = await open({
@@ -60,7 +62,9 @@
 <div>
   <div class="flex items-center justify-between mt-4">
     <div>
-      <h3 class="text-lg font-semibold">{$txtStore.spacesPage.opener.createTitle}</h3>
+      <h3 class="text-lg font-semibold">
+        {$txtStore.spacesPage.opener.createTitle}
+      </h3>
       <p class="text-sm">
         {$txtStore.spacesPage.opener.createDescription}
       </p>
@@ -71,7 +75,9 @@
   </div>
   <div class="flex items-center justify-between mt-4">
     <div>
-      <h3 class="text-lg font-semibold">{$txtStore.spacesPage.opener.openTitle}</h3>
+      <h3 class="text-lg font-semibold">
+        {$txtStore.spacesPage.opener.openTitle}
+      </h3>
       <p class="text-sm">{$txtStore.spacesPage.opener.openDescription}</p>
     </div>
     <button class="btn preset-outlined-primary-500" onclick={openSpaceDialog}

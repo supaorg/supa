@@ -5,7 +5,7 @@
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { ChevronUp } from "lucide-svelte";
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
   let {
     configId = "",

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { message, open } from "@tauri-apps/plugin-dialog";
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import {
     createNewLocalSpaceAndConnect,
     loadLocalSpaceAndConnect,

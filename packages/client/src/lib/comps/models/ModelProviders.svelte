@@ -7,7 +7,7 @@
   import Link from "../basic/Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import { providers } from "@core/providers";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { getActiveProviders } from "@core/customProviders";
 
   let showHowForProvider: ModelProvider | null = $state(null);

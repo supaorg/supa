@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { CustomProviderConfig } from "@core/models";
   import { XCircle, PlusCircle } from "lucide-svelte";
   

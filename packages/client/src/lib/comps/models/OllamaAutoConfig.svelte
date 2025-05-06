@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { providers } from "@core/providers";
   import type { ModelProviderLocalConfig } from "@core/models";
   import { checkOllamaStatus } from "./ollama";

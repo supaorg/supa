@@ -1,11 +1,7 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { AppConfig } from "@core/models";
-  import Pen from "lucide-svelte/icons/pen";
   import { MessageCircle } from "lucide-svelte";
-  import { onMount } from "svelte";
-  import { Modal } from "@skeletonlabs/skeleton-svelte";
-  import NewThreadPopup from "../../spages/routes/NewThread.svelte";
   import type Space from "@core/spaces/Space";
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
 

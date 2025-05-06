@@ -6,7 +6,7 @@
   import { Modal } from "@skeletonlabs/skeleton-svelte";
   import SelectModelPopup from "../popups/SelectModelPopup.svelte";
   import { getActiveProviders } from "@core/customProviders";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { splitModelString, isValidModelString, getProviderId, getModelId } from "@core/utils/modelUtils";
 
   let { value = $bindable(), required }: { value: string; required?: boolean } =

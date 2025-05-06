@@ -2,7 +2,7 @@ import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./LocalSpaceSync";
 import type { SpacePointer } from "./SpacePointer";
 
-class SpacesState {
+class SpaceStore {
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $state(null);
   connections: SpaceConnection[] = $state([]);
@@ -143,4 +143,4 @@ class SpacesState {
   }
 }
 
-export const spaceStore = new SpacesState();
+export const spaceStore = new SpaceStore();

@@ -1,7 +1,7 @@
 <script lang="ts">
   import ChatApp from "./ChatApp.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
   let { treeId }: { treeId: string } = $props();
 
@@ -26,4 +26,3 @@
 {:catch}
   <div>Error loading app tree</div>
 {/await}
-

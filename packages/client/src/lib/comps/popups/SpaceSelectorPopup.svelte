@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { openSpaces } from "$lib/spages";
   import { ChevronsUpDown } from "lucide-svelte";

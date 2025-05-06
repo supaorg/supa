@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import VertexItem from "./VertexItem.svelte";
   import type { VertexChangeEvent } from "reptree/treeTypes";
   import type Space from "@core/spaces/Space";

@@ -1,15 +1,20 @@
 <script lang="ts">
   import type { AppConfig } from "@core/models";
   import { Switch, Popover, Tooltip } from "@skeletonlabs/skeleton-svelte";
-  import { TrashIcon, GripVertical, Pencil, MessageCircle } from "lucide-svelte";
+  import {
+    TrashIcon,
+    GripVertical,
+    Pencil,
+    MessageCircle,
+  } from "lucide-svelte";
   import { txtStore } from "$lib/stores/txtStore";
   import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
   let { config }: { config: AppConfig } = $props();
 
   let isVisible: boolean = $state(
-    config.visible !== undefined ? config.visible : true,
+    config.visible !== undefined ? config.visible : true
   );
   let isDefault = $derived(config.id === "default");
   let deletePopoverOpen = $state(false);
@@ -81,7 +86,9 @@
           class="inline-flex items-center justify-center p-1 rounded"
           title="Start Chat"
           aria-label="Start Chat"
-          onclick={() => {/* TODO: implement chat start */}}
+          onclick={() => {
+            /* TODO: implement chat start */
+          }}
         >
           <MessageCircle class="w-4 h-4" />
         </button>

@@ -3,7 +3,7 @@
   import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
   import uuid from "@core/uuid/uuid";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
   let {
     configId,
@@ -19,7 +19,7 @@
 
   let defaultConfigMessage = $derived(
     $txtStore.appConfigPage.defaultConfigMessage.replace(
-      '{defaultConfigGotoNew}', 
+      "{defaultConfigGotoNew}",
       $txtStore.appConfigPage.defaultConfigGotoNew
     )
   );
@@ -127,7 +127,11 @@
     <span>{$txtStore.basics.model}</span>
     <InputModel bind:value={targetLLM} required />
   </div>
-  <button type="submit" onclick={handleSubmit} class="btn preset-filled-primary-500 mb-2">
+  <button
+    type="submit"
+    onclick={handleSubmit}
+    class="btn preset-filled-primary-500 mb-2"
+  >
     {#if isNewApp}
       {$txtStore.appConfigPage.buttonCreate}
     {:else}

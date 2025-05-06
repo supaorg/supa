@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { ttabs } from "$lib/ttabs/ttabsLayout";
   import VertexView from "./VertexView.svelte";
   import type { Vertex } from "reptree";

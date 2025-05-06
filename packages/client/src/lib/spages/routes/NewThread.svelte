@@ -1,11 +1,11 @@
 <script lang="ts">
   import SendMessageForm from "../../comps/forms/SendMessageForm.svelte";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
   import { newThreadDrafts } from "$lib/stores/newThreadDrafts";
   import { openChatTab } from "$lib/ttabs/ttabsLayout";
-    import { spages } from "../spagesLayout";
+  import { spages } from "../spagesLayout";
 
   let { appConfig }: { appConfig?: AppConfig } = $props();
 
@@ -45,9 +45,12 @@
     // Create new app tree
     const newTree = ChatAppData.createNewChatTree(
       spaceStore.currentSpaceConnection.space,
-      appConfig.id,
+      appConfig.id
     );
-    const chatAppData = new ChatAppData(spaceStore.currentSpaceConnection.space, newTree);
+    const chatAppData = new ChatAppData(
+      spaceStore.currentSpaceConnection.space,
+      newTree
+    );
     chatAppData.newMessage("user", message);
     openChatTab(newTree.tree.root!.id, "New chat");
     onClose();

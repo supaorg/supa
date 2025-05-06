@@ -3,7 +3,7 @@
   import Loading from "$lib/comps/basic/Loading.svelte";
   import TauriWindowSetup from "$lib/comps/tauri/TauriWindowSetup.svelte";
   import { isTauri } from "$lib/tauri/isTauri";
-  import { spaceStore } from "$lib/spaces/spaces.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import SpaceSetup from "$lib/comps/spaces/SpaceSetup.svelte";
   import type { SpaceConnection } from "$lib/spaces/LocalSpaceSync";
   import { initializeDatabase, savePointers, saveCurrentSpaceId, saveConfig } from "$lib/localDb";
