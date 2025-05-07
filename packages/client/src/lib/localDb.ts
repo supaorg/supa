@@ -6,7 +6,6 @@ export interface ConfigEntry {
   value: unknown;
 }
 
-// Database class
 class LocalDb extends Dexie {
   pointers!: Dexie.Table<SpacePointer, string>;
   config!: Dexie.Table<ConfigEntry, string>;
@@ -22,7 +21,6 @@ class LocalDb extends Dexie {
 
 export const db = new LocalDb();
 
-// Helper methods
 export async function getAllPointers(): Promise<SpacePointer[]> {
   try {
     return await db.pointers.toArray();
@@ -100,7 +98,6 @@ export async function saveCurrentSpaceId(id: string | null): Promise<void> {
   }
 }
 
-// Initialize database
 export async function initializeDatabase(): Promise<{
   pointers: SpacePointer[];
   currentSpaceId: string | null;

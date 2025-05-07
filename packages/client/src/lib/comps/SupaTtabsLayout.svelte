@@ -38,34 +38,19 @@
     if (layoutJson !== lastSavedLayout) {
       lastSavedLayout = layoutJson;
 
-      // Find the pointer in the pointers array
-      const pointers = [...spaceStore.pointers];
-      const pointerIndex = pointers.findIndex((p) => p.id === pointer.id);
+      console.log("Layout changed, saving: ", layoutJson);
 
-      if (pointerIndex >= 0) {
-        // Update the pointer with the layout
-        pointers[pointerIndex] = {
-          ...pointers[pointerIndex],
-          //ttabsLayout: layoutJson
-        };
-
-        // Save to localDb
-        savePointers(pointers);
-
-        // Update the store
-        spaceStore.pointers = pointers;
-      }
+      // @TODO: use localDb to save
     }
   }
 
-  // Subscribe to ttabs state changes
   function subscribeToTtabs(): void {
     if (unsubscribe) {
       unsubscribe();
     }
 
     unsubscribe = ttabs.subscribe(() => {
-      //saveCurrentLayout();
+      saveCurrentLayout();
     });
   }
 
@@ -85,28 +70,18 @@
       return;
     }
 
-    setupTtabs();
-
-    /*
     console.log("Loading layout for space", spaceId);
     // Try to load saved layout
     const layoutLoaded = loadLayout(spaceId);
     
     // If no saved layout exists, create default
     if (!layoutLoaded) {
-      //setupTtabs();
+      setupTtabs();
     }
     
     // Subscribe to layout changes
     subscribeToTtabs();
-    */
   }
-
-  /*
-  $effect(() => {
-    console.log("Ttabs layout changed, tiles: ", ttabs.tiles);
-  });
-  */
 
   onDestroy(() => {
     unsubscribe?.();
