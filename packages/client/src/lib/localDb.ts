@@ -1,19 +1,32 @@
 import Dexie from 'dexie';
 import type { SpacePointer } from './spaces/SpacePointer';
 
+export type SpaceSetup = {
+  // Core identification fields (same as SpacePointer)
+  id: string;
+  uri: string;
+  name: string | null;
+  createdAt: Date;
+  
+  // Additional fields
+  ttabsLayout?: string | null;
+  theme?: string | null;
+  ops?: string[];
+};
+
 export interface ConfigEntry {
   key: string;
   value: unknown;
 }
 
 class LocalDb extends Dexie {
-  pointers!: Dexie.Table<SpacePointer, string>;
+  spaces!: Dexie.Table<SpaceSetup, string>;
   config!: Dexie.Table<ConfigEntry, string>;
   
   constructor() {
     super('localDb');
     this.version(1).stores({
-      pointers: '&id, uri, name, createdAt',
+      spaces: '&id, uri, name, createdAt',
       config: '&key',
     });
   }
@@ -23,7 +36,14 @@ export const db = new LocalDb();
 
 export async function getAllPointers(): Promise<SpacePointer[]> {
   try {
-    return await db.pointers.toArray();
+    // Get all spaces but only return the pointer fields
+    const spaces = await db.spaces.toArray();
+    return spaces.map(space => ({
+      id: space.id,
+      uri: space.uri,
+      name: space.name,
+      createdAt: space.createdAt
+    }));
   } catch (error) {
     console.error('Failed to get pointers from database:', error);
     return [];
@@ -72,7 +92,32 @@ export async function savePointers(pointers: SpacePointer[]): Promise<void> {
       return serializedPointer;
     });
     
-    await db.pointers.bulkPut(serializablePointers);
+    // Convert pointers to SpaceSetup objects and save them
+    // This preserves any existing additional data like ttabsLayout
+    for (const pointer of serializablePointers) {
+      try {
+        // Check if this space already exists
+        const existingSpace = await db.spaces.get(pointer.id);
+        
+        if (existingSpace) {
+          // Update only the pointer fields, preserving other data
+          await db.spaces.update(pointer.id, {
+            uri: pointer.uri,
+            name: pointer.name,
+            createdAt: pointer.createdAt
+          });
+        } else {
+          // Create a new space setup
+          await db.spaces.put({
+            ...pointer,
+            ttabsLayout: null,
+            theme: null
+          });
+        }
+      } catch (spaceError) {
+        console.error(`Failed to save space ${pointer.id}:`, spaceError);
+      }
+    }
   } catch (error) {
     console.error('Failed to save pointers to database:', error);
   }
@@ -123,5 +168,91 @@ export async function initializeDatabase(): Promise<{
     }
     
     return { pointers: [], currentSpaceId: null, config: {} };
+  }
+}
+
+// Get the complete SpaceSetup for a space (without ops)
+export async function getSpaceSetup(spaceId: string): Promise<SpaceSetup | undefined> {
+  try {
+    const space = await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .first();
+    
+    if (space) {
+      // Return everything except ops to avoid loading large data
+      const { ops, ...spaceWithoutOps } = space;
+      return spaceWithoutOps;
+    }
+    return undefined;
+  } catch (error) {
+    console.error(`Failed to get setup for space ${spaceId}:`, error);
+    return undefined;
+  }
+}
+
+// Get just the ttabsLayout for a space
+export async function getTtabsLayout(spaceId: string): Promise<string | null | undefined> {
+  try {
+    const space = await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .first();
+    return space?.ttabsLayout;
+  } catch (error) {
+    console.error(`Failed to get ttabsLayout for space ${spaceId}:`, error);
+    return undefined;
+  }
+}
+
+// Save ttabsLayout for a space
+export async function saveTtabsLayout(spaceId: string, layout: string): Promise<void> {
+  try {
+    // Use modify to update only the specific field without loading the entire object
+    await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .modify({ ttabsLayout: layout });
+  } catch (error) {
+    console.error(`Failed to save ttabsLayout for space ${spaceId}:`, error);
+  }
+}
+
+// Get ops for a space
+export async function getSpaceOps(spaceId: string): Promise<string[] | undefined> {
+  try {
+    const space = await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .first();
+    return space?.ops;
+  } catch (error) {
+    console.error(`Failed to get ops for space ${spaceId}:`, error);
+    return undefined;
+  }
+}
+
+// Save ops for a space
+export async function saveSpaceOps(spaceId: string, ops: string[]): Promise<void> {
+  try {
+    // Use modify to update only the specific field without loading the entire object
+    await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .modify({ ops: ops });
+  } catch (error) {
+    console.error(`Failed to save ops for space ${spaceId}:`, error);
+  }
+}
+
+// Save theme for a space
+export async function saveSpaceTheme(spaceId: string, theme: string): Promise<void> {
+  try {
+    await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .modify({ theme: theme });
+  } catch (error) {
+    console.error(`Failed to save theme for space ${spaceId}:`, error);
   }
 }

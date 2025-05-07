@@ -1,7 +1,7 @@
 <script lang="ts">
   import { TtabsRoot } from "ttabs-svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { savePointers } from "$lib/localDb";
+  import { getTtabsLayout, saveTtabsLayout } from "$lib/localDb";
   import { ttabs, setupTtabs } from "$lib/ttabs/ttabsLayout";
   import { onDestroy, untrack } from "svelte";
 
@@ -9,27 +9,29 @@
   let lastSavedLayout: string | null = null;
 
   // Load layout for the current space
-  function loadLayout(spaceId: string): boolean {
-    // Find the pointer for this space
-    const pointer = spaceStore.pointers.find((p) => p.id === spaceId);
+  async function loadLayout(spaceId: string): Promise<boolean> {
+    try {
+      // Get the ttabsLayout directly from the database
+      const ttabsLayout = await getTtabsLayout(spaceId);
 
-    /*
-    if (pointer?.ttabsLayout) {
-      // Save the layout to compare later for changes
-      lastSavedLayout = pointer.ttabsLayout;
-      
-      // Deserialize the layout
-      return ttabs.deserializeLayout(pointer.ttabsLayout);
+      if (ttabsLayout) {
+        // Save the layout to compare later for changes
+        lastSavedLayout = ttabsLayout;
+        
+        // Deserialize the layout
+        return ttabs.deserializeLayout(ttabsLayout);
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to load layout:', error);
+      return false;
     }
-    */
-
-    return false;
   }
 
   // Save the current layout
-  function saveCurrentLayout(): void {
-    const pointer = spaceStore.currentPointer;
-    if (!pointer) return;
+  async function saveCurrentLayout(): Promise<void> {
+    const spaceId = spaceStore.currentSpaceId;
+    if (!spaceId) return;
 
     // Serialize the current layout
     const layoutJson = ttabs.serializeLayout();
@@ -40,7 +42,8 @@
 
       console.log("Layout changed, saving: ", layoutJson);
 
-      // @TODO: use localDb to save
+      // Save to database
+      await saveTtabsLayout(spaceId, layoutJson);
     }
   }
 
@@ -62,7 +65,7 @@
     });
   });
 
-  function setupLayout(spaceId: string | null): void {
+  async function setupLayout(spaceId: string | null): Promise<void> {
     console.log("Setting up layout for space", spaceId);
 
     if (!spaceId) {
@@ -72,7 +75,7 @@
 
     console.log("Loading layout for space", spaceId);
     // Try to load saved layout
-    const layoutLoaded = loadLayout(spaceId);
+    const layoutLoaded = await loadLayout(spaceId);
     
     // If no saved layout exists, create default
     if (!layoutLoaded) {
