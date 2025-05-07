@@ -3,12 +3,11 @@
   import DevPanel from "../dev/DevPanel.svelte";
   import { isDevMode, spaceInspectorOpen } from "$lib/stores/devMode";
   import OllamaAutoConfig from "../models/OllamaAutoConfig.svelte";
-  import { TtabsRoot } from "ttabs-svelte";
-  import { ttabs } from "$lib/ttabs/ttabsLayout";
   import SpagesContainer from "$lib/spages/SpagesContainer.svelte";
   import { spages } from "$lib/spages/spagesLayout";
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
   import SidebarToggle from "../sidebar/SidebarToggle.svelte";
+  import SupaTtabsLayout from "../SupaTtabsLayout.svelte";
 </script>
 
 <OllamaAutoConfig />
@@ -20,7 +19,7 @@
 <div class="grid h-screen grid-rows-[1fr_auto] border-t border-surface-200-800">
   <div class="flex overflow-hidden">
     <main class="relative flex-grow h-full overflow-y-auto">
-      <TtabsRoot {ttabs} />
+      <SupaTtabsLayout />
     </main>
   </div>
 

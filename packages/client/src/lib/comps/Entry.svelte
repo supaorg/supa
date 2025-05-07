@@ -5,35 +5,27 @@
   import { isTauri } from "$lib/tauri/isTauri";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import SpaceSetup from "$lib/comps/spaces/SpaceSetup.svelte";
-  import type { SpaceConnection } from "$lib/spaces/LocalSpaceSync";
   import { initializeDatabase, savePointers, saveCurrentSpaceId, saveConfig } from "$lib/localDb";
-  import { setupTtabs } from "$lib/ttabs/ttabsLayout";
 
   type Status = "initializing" | "needsSpace" | "ready";
 
   let { children } = $props();
   let status: Status = $state("initializing");
-  let initialized = $state(false);
 
   onMount(() => {
-    console.log("Mounting Entry");
-
     if (!isTauri()) {
       throw new Error(
         "We don't support regular browsers yet. We have to run this from Tauri"
       );
     }
 
-    // Initialize space data
     initializeSpaceData();
 
-    // Return cleanup function
     return () => {
       spaceStore.disconnectAllSpaces();
     };
   });
 
-  // Separate async function for initializing space data
   async function initializeSpaceData() {
     try {
       // Explicitly set status to initializing (already the default, but making it explicit)
@@ -52,10 +44,6 @@
       const connection = await spaceStore.loadSpacesAndConnectToCurrent();
 
       console.log("Current space", spaceStore.currentSpace);
-
-      setupTtabs();
-      
-      initialized = true;
       
       // Only change status after loading is complete
       status = connection ? "ready" : "needsSpace";
@@ -68,19 +56,19 @@
 
   // Effects for persisting state changes
   $effect(() => {
-    if (initialized) {
+    if (status === "ready") {
       savePointers(spaceStore.pointers);
     }
   });
 
   $effect(() => {
-    if (initialized && spaceStore.currentSpaceId !== null) {
+    if (status === "ready" && spaceStore.currentSpaceId !== null) {
       saveCurrentSpaceId(spaceStore.currentSpaceId);
     }
   });
 
   $effect(() => {
-    if (initialized) {
+    if (status === "ready") {
       saveConfig(spaceStore.config);
     }
   });
