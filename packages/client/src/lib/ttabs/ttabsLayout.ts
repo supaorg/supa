@@ -1,6 +1,6 @@
 import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
 import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
-import { createTtabs, type TtabsTheme } from "ttabs-svelte";
+import { createTtabs, type TtabsTheme, type Tile } from "ttabs-svelte";
 import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
 import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
 
@@ -19,6 +19,114 @@ ttabs.registerComponent('chat', ChatAppLoader);
 let contentGrid: string | undefined;
 
 export let sidebarColumn: string | undefined;
+
+export function setupLayout(layoutJson?: string) {
+  if (!layoutJson) {
+    setupTtabs();
+    return;
+  }
+  
+  if (!tryToSetupFromJson(layoutJson)) {
+    setupTtabs();
+  }
+}
+
+/**
+ * Validates a layout JSON string to ensure it meets the minimum requirements and
+ * sets up the ttabs layout if valid:
+ * - Must have exactly one root grid
+ * - Must have a sidebar component
+ * - Must have at least one tab with content
+ * 
+ * @param layoutJson The layout JSON string to validate and apply
+ * @returns True if the layout is valid and applied, false otherwise
+ */
+function tryToSetupFromJson(layoutJson: string): boolean {
+  try {
+    let tiles: Tile[] = [];
+    let parsedLayout: any;
+    
+    // Try to parse as new format first (with metadata)
+    try {
+      parsedLayout = JSON.parse(layoutJson);
+      if (parsedLayout && typeof parsedLayout === 'object' && 'tiles' in parsedLayout && Array.isArray(parsedLayout.tiles)) {
+        tiles = parsedLayout.tiles;
+      }
+    } catch (e) {
+      console.error('Failed to parse layout JSON:', e);
+      return false;
+    }
+    
+    if (tiles.length === 0) {
+      console.error('No tiles found in layout');
+      return false;
+    }
+    
+    // Check for exactly one root grid
+    const rootGrids = tiles.filter(tile => 
+      tile.type === 'grid' && !tile.parent
+    );
+    
+    if (rootGrids.length !== 1) {
+      console.error(`Invalid number of root grids: ${rootGrids.length}, expected 1`);
+      return false;
+    }
+    
+    // Check for a sidebar component
+    const sidebarTiles = tiles.filter(tile => 
+      tile.type === 'content' && tile.componentId === 'sidebar'
+    );
+    
+    if (sidebarTiles.length === 0) {
+      console.error('No sidebar component found in layout');
+      return false;
+    }
+    
+    // Check for at least one tab with content
+    const hasTab = tiles.some(tile => tile.type === 'tab');
+    
+    if (!hasTab) {
+      console.error('No tabs found in layout');
+      return false;
+    }
+    
+    // Verify that at least one tab has associated content
+    const tabsWithContent = tiles.filter(tile => 
+      tile.type === 'tab' && 
+      tiles.some(contentTile => 
+        contentTile.type === 'content' && 
+        contentTile.parent === tile.id
+      )
+    );
+    
+    if (tabsWithContent.length === 0) {
+      console.error('No tabs with content found in layout');
+      return false;
+    }
+    
+    // All validation passed, now apply the layout
+    ttabs.resetState();
+    
+    // Find the main content grid and sidebar column
+    const rootGrid = rootGrids[0];
+    contentGrid = rootGrid.id;
+    
+    // Find the sidebar's parent column
+    const sidebarTile = sidebarTiles[0];
+    const sidebarParentTile = tiles.find(tile => tile.id === sidebarTile.parent);
+    if (sidebarParentTile && sidebarParentTile.type === 'column') {
+      sidebarColumn = sidebarParentTile.id;
+    }
+    
+    // Apply the layout
+    ttabs.deserializeLayout(layoutJson);
+    
+    return true;
+  } catch (e) {
+    console.error('Error validating or applying layout:', e);
+    return false;
+  }
+}
 
 export function setupTtabs() {
   ttabs.resetState();

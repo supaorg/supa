@@ -153,7 +153,6 @@ export async function initializeDatabase(): Promise<{
     const currentSpaceId = await getCurrentSpaceId();
     const config = await getAllConfig();
     
-    console.log('Successfully loaded database');
     return { pointers, currentSpaceId, config };
   } catch (error) {
     console.error('Failed to initialize database:', error);

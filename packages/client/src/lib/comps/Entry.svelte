@@ -42,12 +42,9 @@
       });
       
       const connection = await spaceStore.loadSpacesAndConnectToCurrent();
-
-      console.log("Current space", spaceStore.currentSpace);
       
       // Only change status after loading is complete
       status = connection ? "ready" : "needsSpace";
-      console.log("Entry: space loaded", connection, "status:", status);
     } catch (error) {
       console.error('Failed to initialize space state from database:', error);
       // Keep initializing state on error? Or maybe add an error state?
