@@ -117,9 +117,9 @@ function tryToSetupFromJson(layoutJson: string): boolean {
     if (sidebarParentTile && sidebarParentTile.type === 'column') {
       sidebarColumn = sidebarParentTile.id;
     }
-    
-    // Apply the layout
-    ttabs.deserializeLayout(layoutJson);
+
+    let focusedActiveTab = parsedLayout.metadata?.focusedActiveTab;
+    ttabs.setup(tiles, { focusedActiveTab })
     
     return true;
   } catch (e) {
