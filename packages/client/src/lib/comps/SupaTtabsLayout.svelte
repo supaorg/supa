@@ -45,7 +45,7 @@
 
   async function setupSpaceLayout(spaceId: string | null): Promise<void> {
     if (!spaceId) {
-      ttabs.resetState();
+      ttabs.resetTiles();
       return;
     }
 

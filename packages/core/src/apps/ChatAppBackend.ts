@@ -11,7 +11,7 @@ export default class ChatAppBackend {
   private activeAgent: SimpleChatAgent | null = null;
 
   get appTreeId(): string {
-    return this.appTree.tree.rootVertexId;
+    return this.appTree.tree.root!.id;
   }
 
   constructor(private space: Space, private appTree: AppTree) {

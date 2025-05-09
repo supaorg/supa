@@ -22,12 +22,12 @@ export let sidebarColumn: string | undefined;
 
 export function setupLayout(layoutJson?: string) {
   if (!layoutJson) {
-    setupTtabs();
+    setupDefault();
     return;
   }
   
   if (!tryToSetupFromJson(layoutJson)) {
-    setupTtabs();
+    setupDefault();
   }
 }
 
@@ -72,13 +72,13 @@ function tryToSetupFromJson(layoutJson: string): boolean {
       return false;
     }
     
-    // Check for a sidebar component
+    // Check for exactly one sidebar component
     const sidebarTiles = tiles.filter(tile => 
       tile.type === 'content' && tile.componentId === 'sidebar'
     );
     
-    if (sidebarTiles.length === 0) {
-      console.error('No sidebar component found in layout');
+    if (sidebarTiles.length !== 1) {
+      console.error('Invalid number of sidebar components: ' + sidebarTiles.length + ', expected 1');
       return false;
     }
     
@@ -104,22 +104,25 @@ function tryToSetupFromJson(layoutJson: string): boolean {
       return false;
     }
     
-    // All validation passed, now apply the layout
-    ttabs.resetState();
+    // All validation passed, now apply the layout and set references 
+    // for the content grid and sidebar column
     
     // Find the main content grid and sidebar column
-    const rootGrid = rootGrids[0];
-    contentGrid = rootGrid.id;
+    contentGrid = rootGrids[0].id;
     
-    // Find the sidebar's parent column
-    const sidebarTile = sidebarTiles[0];
-    const sidebarParentTile = tiles.find(tile => tile.id === sidebarTile.parent);
+    const sidebarParentTile = tiles.find(tile => tile.id === sidebarTiles[0].parent);
     if (sidebarParentTile && sidebarParentTile.type === 'column') {
       sidebarColumn = sidebarParentTile.id;
+    } else {
+      console.error('Sidebar parent tile not found or not a column');
+      return false;
     }
 
+    let activePanel = parsedLayout.metadata?.activePanel;
     let focusedActiveTab = parsedLayout.metadata?.focusedActiveTab;
-    ttabs.setup(tiles, { focusedActiveTab })
+
+    // Now setup ttabs
+    ttabs.setup(tiles, { activePanel, focusedActiveTab })
     
     return true;
   } catch (e) {
@@ -128,8 +131,9 @@ function tryToSetupFromJson(layoutJson: string): boolean {
   }
 }
 
-export function setupTtabs() {
-  ttabs.resetState();
+export function setupDefault() {
+  ttabs.resetTiles();
+  ttabs.rootGridId = ttabs.addGrid();
   const root = ttabs.rootGridId as string;
   const row = ttabs.addRow(root);
   sidebarColumn = ttabs.addColumn(row, "300px");
@@ -162,14 +166,12 @@ function findTabByTreeId(treeId: string): string | undefined {
 export function openChatTab(treeId: string, name: string) {
   // First, check if a tab with this treeId already exists
   const existingTabId = findTabByTreeId(treeId);
-  
   if (existingTabId) {
     // If tab exists, just activate it
     ttabs.setFocusedActiveTab(existingTabId);
     return;
   }
   
-  // Original logic for creating a new tab
   const grid = ttabs.getGrid(contentGrid!);
   let tab: string;
   
