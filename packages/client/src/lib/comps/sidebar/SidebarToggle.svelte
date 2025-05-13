@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ttabs, sidebarColumn } from "$lib/ttabs/ttabsLayout";
   import { onMount } from "svelte";
-  import type { TileColumn } from "ttabs-svelte";
+  import type { TileColumnState } from "ttabs-svelte";
   import Sidebar from "./Sidebar.svelte";
   import { fly } from 'svelte/transition';
 
@@ -84,7 +84,7 @@
     const sub = ttabs.subscribe((tiles) => {
       if (!sidebarColumn) return;
 
-      const sidebar = tiles[sidebarColumn] as TileColumn;
+      const sidebar = tiles[sidebarColumn] as TileColumnState;
       if (sidebar) {
         sidebarWidth = sidebar.width.value;
         sidebarIsOpen = sidebarWidth > 0;

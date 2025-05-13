@@ -1,8 +1,77 @@
 import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
 import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
-import { createTtabs, type TtabsTheme, type Tile } from "ttabs-svelte";
+import { 
+  createTtabs, 
+  type TtabsTheme, 
+  type TileState,
+  type LayoutValidator,
+  LayoutValidationError,
+  type Ttabs,
+  type TileColumnState
+} from "ttabs-svelte";
 import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
 import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
+
+/**
+ * SidebarValidator ensures that the layout has a sidebar column.
+ * It doesn't matter if the sidebar has width 0, it just needs to exist.
+ */
+class SidebarValidator implements LayoutValidator {
+  validate(ttabs: Ttabs): boolean {
+    const tiles = ttabs.getTiles();
+    
+    // Find sidebar component
+    const sidebarTiles = Object.values(tiles).filter(tile => 
+      tile.type === 'content' && tile.componentId === 'sidebar'
+    );
+    
+    if (sidebarTiles.length === 0) {
+      throw new LayoutValidationError(
+        "Layout must include a sidebar component", 
+        "MISSING_SIDEBAR"
+      );
+    }
+    
+    // Check that sidebar is in a column
+    const sidebarTile = sidebarTiles[0];
+    if (!sidebarTile.parent) {
+      throw new LayoutValidationError(
+        "Sidebar must have a parent column", 
+        "INVALID_SIDEBAR_PARENT"
+      );
+    }
+    
+    const sidebarParent = tiles[sidebarTile.parent];
+    if (!sidebarParent || sidebarParent.type !== 'column') {
+      throw new LayoutValidationError(
+        "Sidebar must be placed in a column", 
+        "INVALID_SIDEBAR_PARENT"
+      );
+    }
+    
+    return true;
+  }
+}
+
+/**
+ * Creates a default layout with a sidebar and content area.
+ * This function is registered as the defaultLayoutCreator for ttabs,
+ * so it will be called automatically when layout validation fails.
+ */
+function setupDefaultLayout(ttabs: Ttabs): void {
+  ttabs.resetTiles();
+  const root = ttabs.addGrid();
+  ttabs.rootGridId = root;
+  const row = ttabs.addRow(root);
+  sidebarColumn = ttabs.addColumn(row, "300px");
+  ttabs.setComponent(sidebarColumn, 'sidebar');
+  const parentColumn = ttabs.addColumn(row);
+  contentGrid = ttabs.addGrid(parentColumn);
+  ttabs.updateTile(contentGrid, { dontClean: true });
+  const newRow = ttabs.addRow(contentGrid);
+  const newColumn = ttabs.addColumn(newRow);
+  ttabs.addPanel(newColumn);
+}
 
 export const ttabs = createTtabs({
   theme: {
@@ -10,7 +79,9 @@ export const ttabs = createTtabs({
     components: {
       closeButton: TabCloseButton
     } as TtabsTheme['components']
-  }
+  },
+  validators: [new SidebarValidator()],
+  defaultLayoutCreator: setupDefault
 });
 
 ttabs.registerComponent('sidebar', Sidebar);
@@ -22,15 +93,17 @@ export let sidebarColumn: string | undefined;
 
 export function setupLayout(layoutJson?: string) {
   if (!layoutJson) {
-    setupDefault();
+    setupDefault(ttabs);
     return;
   }
-  
-  if (!tryToSetupFromJson(layoutJson)) {
-    setupDefault();
-  }
+ if (layoutJson) {
+  ttabs.deserializeLayout(layoutJson);
+ } else {
+  setupDefault(ttabs);
+ }
 }
 
+// @TODO: remove this - deprecated
 /**
  * Validates a layout JSON string to ensure it meets the minimum requirements and
  * sets up the ttabs layout if valid:
@@ -41,9 +114,9 @@ export function setupLayout(layoutJson?: string) {
  * @param layoutJson The layout JSON string to validate and apply
  * @returns True if the layout is valid and applied, false otherwise
  */
-function tryToSetupFromJson(layoutJson: string): boolean {
+function tryToGetTilesFromJson(layoutJson: string): TileState[] {
   try {
-    let tiles: Tile[] = [];
+    let tiles: TileState[] = [];
     let parsedLayout: any;
     
     // Try to parse as new format first (with metadata)
@@ -54,9 +127,12 @@ function tryToSetupFromJson(layoutJson: string): boolean {
       }
     } catch (e) {
       console.error('Failed to parse layout JSON:', e);
-      return false;
+      return [];
     }
+
+    return tiles;
     
+    /*
     if (tiles.length === 0) {
       console.error('No tiles found in layout');
       return false;
@@ -66,11 +142,7 @@ function tryToSetupFromJson(layoutJson: string): boolean {
     const rootGrids = tiles.filter(tile => 
       tile.type === 'grid' && !tile.parent
     );
-    
-    if (rootGrids.length !== 1) {
-      console.error(`Invalid number of root grids: ${rootGrids.length}, expected 1`);
-      return false;
-    }
+
     
     // Check for exactly one sidebar component
     const sidebarTiles = tiles.filter(tile => 
@@ -125,25 +197,29 @@ function tryToSetupFromJson(layoutJson: string): boolean {
     ttabs.setup(tiles, { activePanel, focusedActiveTab })
     
     return true;
+    */
   } catch (e) {
     console.error('Error validating or applying layout:', e);
     return false;
   }
 }
 
-export function setupDefault() {
-  ttabs.resetTiles();
-  ttabs.rootGridId = ttabs.addGrid();
-  const root = ttabs.rootGridId as string;
-  const row = ttabs.addRow(root);
-  sidebarColumn = ttabs.addColumn(row, "300px");
-  ttabs.setComponent(sidebarColumn, 'sidebar');
-  const parentColumn = ttabs.addColumn(row);
-  contentGrid = ttabs.addGrid(parentColumn);
-  ttabs.updateTile(contentGrid, { dontClean: true });
-  const newRow = ttabs.addRow(contentGrid);
-  const newColumn = ttabs.addColumn(newRow);
-  ttabs.addPanel(newColumn);
+/**
+ * Creates a default layout with a sidebar and content area.
+ * This function is used both directly and as the defaultLayoutCreator for ttabs,
+ * so it will be called automatically when layout validation fails.
+ */
+export function setupDefault(tt: Ttabs) {
+  const root = tt.rootGridId as string;
+  const row = tt.addRow(root);
+  sidebarColumn = tt.addColumn(row, "300px");
+  tt.setComponent(sidebarColumn, 'sidebar');
+  const parentColumn = tt.addColumn(row);
+  contentGrid = tt.addGrid(parentColumn);
+  tt.updateTile(contentGrid, { dontClean: true });
+  const newRow = tt.addRow(contentGrid);
+  const newColumn = tt.addColumn(newRow);
+  tt.addPanel(newColumn);
 }
 
 function findTabByTreeId(treeId: string): string | undefined {
