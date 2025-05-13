@@ -1,9 +1,15 @@
 import Dexie from 'dexie';
 import type { SpacePointer } from './spaces/SpacePointer';
+import type { VertexOperation } from 'reptree';
 
+/**
+ * Space setup on a client side
+ * The setup points to a space either local or remote by url field
+ */
 export type SpaceSetup = {
-  // Core identification fields (same as SpacePointer)
+  // Global unique identifier of the space
   id: string;
+  // The url to the space: both local and remote; e.g file://path/to/space-dir or http://example.com/space-api
   uri: string;
   name: string | null;
   createdAt: Date;
@@ -11,7 +17,7 @@ export type SpaceSetup = {
   // Additional fields
   ttabsLayout?: string | null;
   theme?: string | null;
-  ops?: string[];
+  ops?: VertexOperation[];
 };
 
 export interface ConfigEntry {
@@ -218,7 +224,7 @@ export async function saveTtabsLayout(spaceId: string, layout: string): Promise<
 }
 
 // Get ops for a space
-export async function getSpaceOps(spaceId: string): Promise<string[] | undefined> {
+export async function getSpaceOps(spaceId: string): Promise<VertexOperation[] | undefined> {
   try {
     const space = await db.spaces
       .where('id')
@@ -232,7 +238,7 @@ export async function getSpaceOps(spaceId: string): Promise<string[] | undefined
 }
 
 // Save ops for a space
-export async function saveSpaceOps(spaceId: string, ops: string[]): Promise<void> {
+export async function saveSpaceOps(spaceId: string, ops: VertexOperation[]): Promise<void> {
   try {
     // Use modify to update only the specific field without loading the entire object
     await db.spaces
