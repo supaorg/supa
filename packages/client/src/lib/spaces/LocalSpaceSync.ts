@@ -4,7 +4,7 @@ import { Backend } from "@core/spaces/Backend";
 import {
   RepTree,
   isMoveVertexOp,
-  isSetPropertyOp,
+  isAnyPropertyOp,
   newMoveVertexOp,
   newSetVertexPropertyOp,
   type VertexOperation
@@ -416,7 +416,7 @@ export class LocalSpaceSync implements SpaceConnection {
     }
 
     // Only save move ops or non-transient property ops (so, no transient properties)
-    if (!isSetPropertyOp(op) || !op.transient) {
+    if (!isAnyPropertyOp(op) || !op.transient) {
       ops.push(op);
     }
   }
@@ -621,7 +621,7 @@ function turnOpsIntoJSONLines(ops: VertexOperation[]): string {
     if (isMoveVertexOp(op)) {
       // We save parentId like that because it might be null and we want to save null with quotes
       str += `["m",${op.id.counter},"${op.targetId}",${JSON.stringify(op.parentId)}]\n`;
-    } else if (isSetPropertyOp(op)) {
+    } else if (isAnyPropertyOp(op)) {
       // Convert undefined to empty object - {} because JSON doesn't support undefined
       const value = op.value === undefined ? {} : op.value;
       str += `["p",${op.id.counter},"${op.targetId}","${op.key}",${JSON.stringify(value)}]\n`;
