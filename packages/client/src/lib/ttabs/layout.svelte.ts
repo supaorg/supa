@@ -117,7 +117,7 @@ export const layoutRefs: LayoutRefs = $state({
 
 export function setupLayout(layoutJson?: string) {
   if (!layoutJson) {
-    setupDefault(ttabs);
+    ttabs.resetToDefaultLayout();
     return;
   }
   
@@ -168,8 +168,8 @@ function findAndUpdateLayoutRefs() {
 
 /**
  * Creates a default layout with a sidebar and content area.
- * This function is used both directly and as the defaultLayoutCreator for ttabs,
- * so it will be called automatically when layout validation fails.
+ * This function is used as the defaultLayoutCreator for ttabs,
+ * so it will be called automatically when layout validation fails or when no layout is provided.
  */
 export function setupDefault(tt: Ttabs) {
   tt.resetTiles();
