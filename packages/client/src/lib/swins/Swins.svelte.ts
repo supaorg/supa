@@ -14,7 +14,7 @@ export interface ComponentEntry {
  * Represents a window entry in the stack
  */
 export interface WindowEntry {
-  /** Unique identifier for this page instance */
+  /** Unique identifier for this window instance */
   id: string;
   /** ID of the component in the registry */
   componentId: string;
@@ -56,16 +56,14 @@ export class SWins {
    * @param props Props to pass to the component
    * @param title Optional title for the window
    */
-  open(componentId: string, props: Record<string, any> = {}, title?: string) {
-    console.log("open", componentId);
-    
+  open(componentId: string, props: Record<string, any> = {}, title?: string) {    
     // Check if component exists
     if (!this.componentRegistry[componentId]) {
       console.error(`Component with ID "${componentId}" not found in registry`);
       return this; // For chaining
     }
     
-    // Create a unique ID for this page instance
+    // Create a unique ID for this window instance
     const id = `${componentId}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
     // Add to stack
@@ -85,12 +83,12 @@ export class SWins {
   }
   
   /**
-   * Pop until reaching a specific page
+   * Pop until reaching a specific window
    * 
-   * @param windowId ID of the page to navigate to
+   * @param windowId ID of the window to navigate to
    */
   popTo(windowId: string) {
-    const windowIndex = this.windows.findIndex(page => page.id === windowId);
+    const windowIndex = this.windows.findIndex(window => window.id === windowId);
     if (windowIndex !== -1) {
       this.windows = this.windows.slice(0, windowIndex + 1);
     }
@@ -98,21 +96,21 @@ export class SWins {
   }
   
   /**
-   * Replace the current page with a new one
+   * Replace the current window with a new one
    * 
    * @param componentId ID of the component to use
    * @param props Props for the component
-   * @param title Optional title for the page
+   * @param title Optional title for the window
    */
   replace(componentId: string, props: Record<string, any> = {}, title?: string) {
     if (this.windows.length === 0) {
       return this.open(componentId, props, title);
     }
     
-    // Create a unique ID for this page instance
+    // Create a unique ID for this window instance
     const id = `${componentId}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
-    // Replace the top page
+    // Replace the top window
     this.windows = [
       ...this.windows.slice(0, -1),
       { id, componentId, props, title }
@@ -122,7 +120,7 @@ export class SWins {
   }
   
   /**
-   * Clear all pages from the stack
+   * Clear all windows from the stack
    */
   clear() {
     this.windows = [];
@@ -135,11 +133,11 @@ export class SWins {
    * @param componentId ID of the component to check
    */
   isShowing(componentId: string): boolean {
-    return this.windows.some(page => page.componentId === componentId);
+    return this.windows.some(win => win.componentId === componentId);
   }
   
   /**
-   * Get the current top page if exists
+   * Get the current top window if exists
    */
   get current(): WindowEntry | undefined {
     if (this.windows.length === 0) return undefined;

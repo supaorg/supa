@@ -2,12 +2,10 @@ import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
 import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
 import { 
   createTtabs, 
-  type TtabsTheme, 
-  type TileState,
+  type TtabsTheme,
   type LayoutValidator,
   LayoutValidationError,
   type Ttabs,
-  type TileColumnState
 } from "ttabs-svelte";
 import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
 import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";

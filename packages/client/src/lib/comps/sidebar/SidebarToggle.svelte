@@ -1,10 +1,11 @@
 <script lang="ts">
   import { ttabs, layoutRefs } from "$lib/ttabs/layout.svelte";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import type { TileColumnState } from "ttabs-svelte";
   import Sidebar from "./Sidebar.svelte";
   import { fly } from 'svelte/transition';
 
+  let currentGridId = $state<string | undefined>(undefined);
   let sidebarIsOpen = $state(true);
   let sidebarWidth = $state(0);
   let sidebarWidthWhenOpen = $state(300);
@@ -67,17 +68,18 @@
     }, 200);
   }
 
-  onMount(() => {
+  $effect(() => {
     if (layoutRefs.sidebarColumn) {
       const sidebar = ttabs.getColumn(layoutRefs.sidebarColumn);
       sidebarWidth = sidebar.width.value;
-      sidebarWidthWhenOpen = sidebar.width.value || 300;
 
       // Just in case if the sidebar is at 0 width when we mount,
       // mark it as closed and set the width of the open sidebar to > 0
-      if (sidebarWidthWhenOpen === 0) {
+      if (sidebarWidth <= 50) {
         sidebarIsOpen = false;
         sidebarWidthWhenOpen = 300;
+      } else {
+        sidebarWidthWhenOpen = sidebarWidth;
       }
     }
 
@@ -93,9 +95,12 @@
 
     return () => {
       sub();
-      if (hoverTriggerTimeout) clearTimeout(hoverTriggerTimeout);
-      if (closeSidebarTimeout) clearTimeout(closeSidebarTimeout);
     };
+  });
+
+  onDestroy(() => { 
+    if (hoverTriggerTimeout) clearTimeout(hoverTriggerTimeout);
+    if (closeSidebarTimeout) clearTimeout(closeSidebarTimeout);
   });
 </script>
 
