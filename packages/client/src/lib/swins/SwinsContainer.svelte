@@ -1,29 +1,29 @@
 <script lang="ts">
-  import { Spages } from "./Spages.svelte";
+  import { SWins } from "./Swins.svelte";
   import { fly, fade } from "svelte/transition";
   import ChevronLeft from "lucide-svelte/icons/chevron-left";
   import X from "lucide-svelte/icons/x";
 
-  let { spages }: { spages: Spages } = $props();
+  let { swins }: { swins: SWins } = $props();
 
   // Function to handle breadcrumb navigation
   function handleBreadcrumbClick(pageIndex: number) {
-    if (pageIndex < spages.pages.length - 1) {
+    if (pageIndex < swins.windows.length - 1) {
       // If not the last page, use popTo to navigate to this page
-      spages.popTo(spages.pages[pageIndex].id);
+      swins.popTo(swins.windows[pageIndex].id);
     }
   }
 
   // Function to close all pages
   function closeAll() {
     // Close all pages by emptying the stack
-    while (spages.pages.length > 0) {
-      spages.pop();
+    while (swins.windows.length > 0) {
+      swins.pop();
     }
   }
 </script>
 
-{#if spages.pages.length > 0}
+{#if swins.windows.length > 0}
   <!-- Stack of pages -->
   <div
     class="fixed inset-0 z-49 flex flex-col items-center p-4 pt-20 pb-20 overflow-y-auto"
@@ -39,13 +39,13 @@
       in:fade={{ duration: 100 }}
       out:fade={{ duration: 100 }}
     ></div>
-    {#each spages.pages as page, i (page.id)}
+    {#each swins.windows as page, i (page.id)}
       <div
         class="relative card selectable-text rounded-lg bg-surface-50-950 border-1 border-surface-200-800 shadow-2xl max-w-[800px] w-full flex flex-col overflow-hidden max-h-[calc(100vh-10rem)]"
-        style="display: {i === spages.pages.length - 1 ? 'flex' : 'none'};"
+        style="display: {i === swins.windows.length - 1 ? 'flex' : 'none'};"
       >
         {#if page}
-          {@const Component = spages.componentRegistry[page.componentId]}
+          {@const Component = swins.componentRegistry[page.componentId]}
 
           {#if Component}
             <!-- Header with title and breadcrumb navigation -->
@@ -57,7 +57,7 @@
                 {#if i > 0}
                   <button
                     class="btn-icon hover:preset-tonal"
-                    onclick={() => spages.pop()}
+                    onclick={() => swins.pop()}
                     aria-label="Go back"
                   >
                     <ChevronLeft size={18} />
@@ -68,7 +68,7 @@
               <!-- Center section with breadcrumbs -->
               <div class="flex-1 flex justify-center text-sm">
                 <ol class="flex items-center gap-4">
-                  {#each spages.pages.slice(0, i + 1) as breadcrumb, index}
+                  {#each swins.windows.slice(0, i + 1) as breadcrumb, index}
                     {#if index > 0}
                       <li class="opacity-50" aria-hidden>&rsaquo;</li>
                     {/if}

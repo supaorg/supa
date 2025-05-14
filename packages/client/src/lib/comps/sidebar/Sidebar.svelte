@@ -5,14 +5,14 @@
   import AppTrees from "./AppTrees.svelte";
   import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
   import { txtStore } from "$lib/stores/txtStore";
-  import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
+  import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
 </script>
 
 <div class="flex flex-col h-full">
   <div class="min-h-min py-2 px-2">
     <AppButtons />
 
-    <SpagesNavButton
+    <SwinsNavButton
       component="apps"
       title="Assistants"
       className="w-full flex gap-2 flex-grow py-2 px-2 truncate flex rounded hover:preset-tonal"
@@ -23,7 +23,7 @@
         </span>
       </span>
       <span class="flex-grow text-left">{$txtStore.basics.apps}</span>
-    </SpagesNavButton>
+    </SwinsNavButton>
   </div>
   <div class="flex-grow overflow-y-auto px-2">
     <AppTrees />
@@ -32,9 +32,9 @@
     <div class="flex items-center gap-2">
       <div class="flex-grow"><SpaceSelectorPopup /></div>
       <div class="flex-shrink-0">
-        <SpagesNavButton component="settings" title="Settings" className="flex-grow py-2 px-2 truncate flex rounded hover:preset-tonal">
+        <SwinsNavButton component="settings" title="Settings" className="flex-grow py-2 px-2 truncate flex rounded hover:preset-tonal">
           <Settings size={18} />
-        </SpagesNavButton>
+        </SwinsNavButton>
       </div>
     </div>
   </div>

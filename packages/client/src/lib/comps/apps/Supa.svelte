@@ -3,8 +3,8 @@
   import DevPanel from "../dev/DevPanel.svelte";
   import { isDevMode, spaceInspectorOpen } from "$lib/stores/devMode";
   import OllamaAutoConfig from "../models/OllamaAutoConfig.svelte";
-  import SpagesContainer from "$lib/spages/SpagesContainer.svelte";
-  import { spages } from "$lib/spages/spagesLayout";
+  import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
+  import { swins } from "$lib/swins/swinsLayout";
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
   import SidebarToggle from "../sidebar/SidebarToggle.svelte";
   import SupaTtabsLayout from "../SupaTtabsLayout.svelte";
@@ -34,6 +34,6 @@
 
 <SidebarToggle />
 
-<SpagesContainer {spages} />
+<SwinsContainer swins={swins} />
 
 <ContextMenuHandler />

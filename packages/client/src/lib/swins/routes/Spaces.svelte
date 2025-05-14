@@ -1,7 +1,6 @@
 <script lang="ts">
   import SpaceOpener from "$lib/comps/spaces/SpaceOpener.svelte";
   import { goto } from "$app/navigation";
-  import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
   import SpaceList from "$lib/comps/spaces/SpaceList.svelte";
   import { txtStore } from "$lib/stores/txtStore";
 

@@ -8,7 +8,7 @@
     MessageCircle,
   } from "lucide-svelte";
   import { txtStore } from "$lib/stores/txtStore";
-  import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
+  import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
   let { config }: { config: AppConfig } = $props();
@@ -44,21 +44,21 @@
   <div class="flex items-start gap-2 flex-1 min-w-0 group">
     <Tooltip contentBase="card bg-surface-200-800 p-2">
       {#snippet trigger()}
-        <SpagesNavButton
+        <SwinsNavButton
           component="app-config"
           title="Edit Assistant"
           props={{ configId: config.id }}
           className="inline-flex items-center justify-center p-1 mt-0.5"
         >
           <Pencil class="w-4 h-4 group-hover:text-primary-600" />
-        </SpagesNavButton>
+        </SwinsNavButton>
       {/snippet}
       {#snippet content()}
         Edit Assistant
       {/snippet}
     </Tooltip>
     <div class="min-w-0">
-      <SpagesNavButton
+      <SwinsNavButton
         component="app-config"
         title={config.name}
         className="block text-left min-w-0"
@@ -66,7 +66,7 @@
       >
         <strong class="truncate block">{config.name}</strong>
         <span class="block truncate">{config.description}</span>
-      </SpagesNavButton>
+      </SwinsNavButton>
     </div>
   </div>
 

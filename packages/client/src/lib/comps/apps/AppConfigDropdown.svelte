@@ -4,7 +4,7 @@
   import { txtStore } from "$lib/stores/txtStore";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { ChevronUp } from "lucide-svelte";
-  import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
+  import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
   let {
@@ -80,11 +80,11 @@
     </div>
     {#if currentConfig}
       <div class="flex flex-col gap-1 mt-4">
-        <SpagesNavButton
+        <SwinsNavButton
           className="btn btn-sm w-full text-left justify-start"
           component="app-config"
           title="Edit Config"
-          props={{ configId }}>Edit "{currentConfig?.name}" config</SpagesNavButton
+          props={{ configId }}>Edit "{currentConfig?.name}" config</SwinsNavButton
         >
       </div>
     {/if}

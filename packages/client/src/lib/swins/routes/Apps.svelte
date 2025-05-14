@@ -3,7 +3,7 @@
   import { txtStore } from "$lib/stores/txtStore";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { AppConfig } from "@core/models";
-  import SpagesNavButton from "../SpagesNavButton.svelte";
+  import SwinsNavButton from "../SwinsNavButton.svelte";
 
   let appConfigs = $state<AppConfig[]>([]);
   let appConfigUnobserve: (() => void) | undefined;
@@ -33,11 +33,11 @@
     {/each}
   </div>
 
-  <SpagesNavButton
+  <SwinsNavButton
     component="app-config"
     title="New Config"
     className="btn preset-filled-primary-500 mb-2"
   >
     {$txtStore.appPage.buttonNewConfig}
-  </SpagesNavButton>
+  </SwinsNavButton>
 </div>

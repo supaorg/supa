@@ -9,7 +9,7 @@
     LANGUAGE_NAMES,
   } from "@core/localization/getTexts";
   import { txtStore } from "$lib/stores/txtStore";
-  import { openSpaces } from "$lib/spages";
+  import { openSpaces } from "$lib/swins";
   import ThemeSwitcher from "$lib/comps/themes/ThemeSwitcher.svelte";
 </script>
 

@@ -2,7 +2,7 @@
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { AppConfig } from "@core/models";
   import { MessageCircle } from "lucide-svelte";
-  import SpagesNavButton from "$lib/spages/SpagesNavButton.svelte";
+  import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
 
   let appConfigs = $state<AppConfig[]>([]);
   let appConfigUnobserve: (() => void) | undefined;
@@ -24,7 +24,7 @@
   {#each appConfigs as config (config.id)}
     {#if config.visible}
       <li>
-        <SpagesNavButton
+        <SwinsNavButton
           component="new-thread"
           title="New conversation"
           props={{ appConfig: config }}
@@ -36,7 +36,7 @@
             </span>
           </span>
           <span class="flex-grow text-left">{config.name}</span>
-        </SpagesNavButton>
+        </SwinsNavButton>
       </li>
     {/if}
   {/each}

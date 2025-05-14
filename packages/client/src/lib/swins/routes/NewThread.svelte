@@ -5,7 +5,7 @@
   import type { AppConfig } from "@core/models";
   import { newThreadDrafts } from "$lib/stores/newThreadDrafts";
   import { openChatTab } from "$lib/ttabs/layout.svelte";
-  import { spages } from "../spagesLayout";
+  import { swins } from "../swinsLayout";
 
   let { appConfig }: { appConfig?: AppConfig } = $props();
 
@@ -30,7 +30,7 @@
   }
 
   function onClose() {
-    spages.clear();
+    swins.clear();
   }
 
   async function newThread(message: string = "") {

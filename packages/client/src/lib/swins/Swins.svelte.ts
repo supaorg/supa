@@ -11,9 +11,9 @@ export interface ComponentEntry {
 }
 
 /**
- * Represents a page entry in the stack
+ * Represents a window entry in the stack
  */
-export interface PageEntry {
+export interface WindowEntry {
   /** Unique identifier for this page instance */
   id: string;
   /** ID of the component in the registry */
@@ -25,20 +25,20 @@ export interface PageEntry {
 }
 
 /**
- * Spages - Stack-Based Pages Manager
+ * SWins - Stack-Based Windows Manager
  * 
- * This class handles a stack of pages and component registry.
+ * This class handles a stack of windows and component registry.
  * It uses Svelte's $state for reactivity.
  */
-export class Spages {
+export class SWins {
   // Component registry - stores all available components
   componentRegistry: Record<string, ComponentEntry> = $state({});
   
-  // Stack of pages
-  pages: PageEntry[] = $state([]);
+  // Stack of windows
+  windows: WindowEntry[] = $state([]);
   
   /**
-   * Register a component that can be used in pages
+   * Register a component that can be used in windows
    * 
    * @param id Unique ID for the component
    * @param component The Svelte component to register
@@ -50,13 +50,15 @@ export class Spages {
   }
   
   /**
-   * Open a new page on top of the stack
+   * Open a new window on top of the stack
    * 
    * @param componentId ID of the registered component
    * @param props Props to pass to the component
-   * @param title Optional title for the page
+   * @param title Optional title for the window
    */
   open(componentId: string, props: Record<string, any> = {}, title?: string) {
+    console.log("open", componentId);
+    
     // Check if component exists
     if (!this.componentRegistry[componentId]) {
       console.error(`Component with ID "${componentId}" not found in registry`);
@@ -67,17 +69,17 @@ export class Spages {
     const id = `${componentId}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
     // Add to stack
-    this.pages = [...this.pages, { id, componentId, props, title }];
+    this.windows = [...this.windows, { id, componentId, props, title }];
     
     return this; // For chaining
   }
   
   /**
-   * Remove the top page from the stack
+   * Remove the top window from the stack
    */
   pop() {
-    if (this.pages.length > 0) {
-      this.pages = this.pages.slice(0, -1);
+    if (this.windows.length > 0) {
+      this.windows = this.windows.slice(0, -1);
     }
     return this; // For chaining
   }
@@ -85,12 +87,12 @@ export class Spages {
   /**
    * Pop until reaching a specific page
    * 
-   * @param pageId ID of the page to navigate to
+   * @param windowId ID of the page to navigate to
    */
-  popTo(pageId: string) {
-    const pageIndex = this.pages.findIndex(page => page.id === pageId);
-    if (pageIndex !== -1) {
-      this.pages = this.pages.slice(0, pageIndex + 1);
+  popTo(windowId: string) {
+    const windowIndex = this.windows.findIndex(page => page.id === windowId);
+    if (windowIndex !== -1) {
+      this.windows = this.windows.slice(0, windowIndex + 1);
     }
     return this; // For chaining
   }
@@ -103,7 +105,7 @@ export class Spages {
    * @param title Optional title for the page
    */
   replace(componentId: string, props: Record<string, any> = {}, title?: string) {
-    if (this.pages.length === 0) {
+    if (this.windows.length === 0) {
       return this.open(componentId, props, title);
     }
     
@@ -111,8 +113,8 @@ export class Spages {
     const id = `${componentId}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
     // Replace the top page
-    this.pages = [
-      ...this.pages.slice(0, -1),
+    this.windows = [
+      ...this.windows.slice(0, -1),
       { id, componentId, props, title }
     ];
     
@@ -123,7 +125,7 @@ export class Spages {
    * Clear all pages from the stack
    */
   clear() {
-    this.pages = [];
+    this.windows = [];
     return this; // For chaining
   }
   
@@ -133,14 +135,14 @@ export class Spages {
    * @param componentId ID of the component to check
    */
   isShowing(componentId: string): boolean {
-    return this.pages.some(page => page.componentId === componentId);
+    return this.windows.some(page => page.componentId === componentId);
   }
   
   /**
    * Get the current top page if exists
    */
-  get current(): PageEntry | undefined {
-    if (this.pages.length === 0) return undefined;
-    return this.pages[this.pages.length - 1];
+  get current(): WindowEntry | undefined {
+    if (this.windows.length === 0) return undefined;
+    return this.windows[this.windows.length - 1];
   }
 }
