@@ -1,0 +1,209 @@
+import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
+import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
+import { 
+  createTtabs, 
+  type TtabsTheme, 
+  type TileState,
+  type LayoutValidator,
+  LayoutValidationError,
+  type Ttabs,
+  type TileColumnState
+} from "ttabs-svelte";
+import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
+import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
+
+/**
+ * SidebarValidator ensures that the layout has a sidebar column.
+ * It doesn't matter if the sidebar has width 0, it just needs to exist.
+ */
+class SidebarValidator implements LayoutValidator {
+  validate(ttabs: Ttabs): boolean {
+    const tiles = ttabs.getTiles();
+    
+    // Find sidebar component
+    const sidebarTiles = Object.values(tiles).filter(tile => 
+      tile.type === 'content' && tile.componentId === 'sidebar'
+    );
+    
+    if (sidebarTiles.length === 0) {
+      throw new LayoutValidationError(
+        "Layout must include a sidebar component", 
+        "MISSING_SIDEBAR"
+      );
+    }
+    
+    // Check that sidebar is in a column
+    const sidebarTile = sidebarTiles[0];
+    if (!sidebarTile.parent) {
+      throw new LayoutValidationError(
+        "Sidebar must have a parent column", 
+        "INVALID_SIDEBAR_PARENT"
+      );
+    }
+    
+    const sidebarParent = tiles[sidebarTile.parent];
+    if (!sidebarParent || sidebarParent.type !== 'column') {
+      throw new LayoutValidationError(
+        "Sidebar must be placed in a column", 
+        "INVALID_SIDEBAR_PARENT"
+      );
+    }
+    
+    return true;
+  }
+}
+
+export const ttabs = createTtabs({
+  theme: {
+    ...SKELETON_THEME,
+    components: {
+      closeButton: TabCloseButton
+    } as TtabsTheme['components']
+  },
+  validators: [new SidebarValidator()],
+  defaultLayoutCreator: setupDefault,
+  setupFromScratch: findAndUpdateLayoutRefs
+});
+
+ttabs.registerComponent('sidebar', Sidebar);
+ttabs.registerComponent('chat', ChatAppLoader);
+
+type LayoutRefs = {
+  contentGrid: string | undefined,
+  sidebarColumn: string | undefined
+}
+
+export const layoutRefs: LayoutRefs = $state({ 
+  contentGrid: undefined,
+  sidebarColumn: undefined
+})
+
+export function setupLayout(layoutJson?: string) {
+  if (!layoutJson) {
+    setupDefault(ttabs);
+    return;
+  }
+  
+  ttabs.deserializeLayout(layoutJson);
+}
+
+/**
+ * Find and update layout references after a reset to default layout
+ * This ensures layoutRefs are always in sync with the actual layout
+ */
+function findAndUpdateLayoutRefs() {
+  // Find the sidebar column
+  const tiles = ttabs.getTiles();
+  
+  // Find sidebar component
+  const sidebarTiles = Object.values(tiles).filter(tile => 
+    tile.type === 'content' && tile.componentId === 'sidebar'
+  );
+  
+  if (sidebarTiles.length > 0) {
+    const sidebarTile = sidebarTiles[0];
+    if (sidebarTile.parent) {
+      // Update the sidebar column reference
+      layoutRefs.sidebarColumn = sidebarTile.parent;
+      
+      // Find the content grid (sibling column's child grid)
+      const sidebarParent = tiles[sidebarTile.parent]?.parent;
+      if (sidebarParent) {
+        const row = tiles[sidebarParent];
+        if (row && row.type === 'row') {
+          // Find the other column in this row (not the sidebar column)
+          const otherColumns = row.columns.filter(colId => colId !== sidebarTile.parent);
+          if (otherColumns.length > 0) {
+            const contentColumn = tiles[otherColumns[0]];
+            if (contentColumn && contentColumn.type === 'column' && contentColumn.child) {
+              const childTile = tiles[contentColumn.child];
+              if (childTile && childTile.type === 'grid') {
+                // Found the content grid
+                layoutRefs.contentGrid = childTile.id;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Creates a default layout with a sidebar and content area.
+ * This function is used both directly and as the defaultLayoutCreator for ttabs,
+ * so it will be called automatically when layout validation fails.
+ */
+export function setupDefault(tt: Ttabs) {
+  const root = tt.rootGridId as string;
+  const row = tt.addRow(root);
+  layoutRefs.sidebarColumn = tt.addColumn(row, "300px");
+  tt.setComponent(layoutRefs.sidebarColumn, 'sidebar');
+  const parentColumn = tt.addColumn(row);
+  layoutRefs.contentGrid = tt.addGrid(parentColumn);
+  tt.updateTile(layoutRefs.contentGrid, { dontClean: true });
+  const newRow = tt.addRow(layoutRefs.contentGrid);
+  const newColumn = tt.addColumn(newRow);
+  tt.addPanel(newColumn);
+}
+
+function findTabByTreeId(treeId: string): string | undefined {
+  // Search through all content tiles to find one with the matching treeId
+  for (const tileId in ttabs.tiles) {
+    const tile = ttabs.tiles[tileId];
+    if (tile.type === 'tab') {
+      const content = ttabs.getTabContent(tile.id);
+      if (
+        content?.componentId === 'chat' && 
+        content?.data?.componentProps?.treeId === treeId
+      ) {
+        return tile.id;
+      }
+    }
+  }
+  return undefined;
+}
+
+export function openChatTab(treeId: string, name: string) {
+  // First, check if a tab with this treeId already exists
+  const existingTabId = findTabByTreeId(treeId);
+  if (existingTabId) {
+    // If tab exists, just activate it
+    ttabs.setFocusedActiveTab(existingTabId);
+    return;
+  }
+
+  if (!layoutRefs.contentGrid) {
+    // Find the first non root grid
+    const grids = Object.values(ttabs.getTiles()).filter(tile => tile.type === 'grid' && !tile.parent);
+    if (grids.length === 0) {
+      console.error("No non root grid found");
+      return;
+    }
+    layoutRefs.contentGrid = grids[0].id;
+  }
+  
+  const grid = ttabs.getGrid(layoutRefs.contentGrid);
+  let tab: string;
+  
+  // Check for a lazy tab and if it exists, update it
+  const lazyTabs = ttabs.getLazyTabs(grid.id);
+  
+  if (lazyTabs.length > 0) {
+    // Reuse the first lazy tab we found
+    const lazyTab = lazyTabs[0];
+    tab = lazyTab.id;
+    
+    // Update the tab name
+    ttabs.updateTile(tab, { 
+      name
+    });
+  } else {
+    // No lazy tabs found, create a new one
+    tab = ttabs.addTab(grid.id, name, true, true);
+  }
+  
+  // Set the component for the tab
+  ttabs.setComponent(tab, 'chat', { treeId });
+  ttabs.setFocusedActiveTab(tab);
+}

@@ -4,7 +4,7 @@
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
   import { newThreadDrafts } from "$lib/stores/newThreadDrafts";
-  import { openChatTab } from "$lib/ttabs/ttabsLayout";
+  import { openChatTab } from "$lib/ttabs/layout.svelte";
   import { spages } from "../spagesLayout";
 
   let { appConfig }: { appConfig?: AppConfig } = $props();

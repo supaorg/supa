@@ -1,6 +1,6 @@
 <script lang="ts">
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { ttabs } from "$lib/ttabs/ttabsLayout";
+  import { ttabs } from "$lib/ttabs/layout.svelte";
   import VertexView from "./VertexView.svelte";
   import type { Vertex } from "reptree";
 

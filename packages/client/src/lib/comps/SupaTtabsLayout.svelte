@@ -2,7 +2,7 @@
   import { TtabsRoot } from "ttabs-svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { getTtabsLayout, saveTtabsLayout } from "$lib/localDb";
-  import { ttabs, setupLayout } from "$lib/ttabs/ttabsLayout";
+  import { ttabs, setupLayout } from "$lib/ttabs/layout.svelte";
   import { onDestroy, untrack } from "svelte";
 
   let unsubscribe: (() => void) | null = null;
@@ -17,8 +17,6 @@
     // Only save if the layout has changed
     if (layoutJson !== lastSavedLayout) {
       lastSavedLayout = layoutJson;
-
-      console.log(layoutJson);
 
       // Save to database
       await saveTtabsLayout(spaceId, layoutJson);

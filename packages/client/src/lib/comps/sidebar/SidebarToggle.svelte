@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ttabs, sidebarColumn } from "$lib/ttabs/ttabsLayout";
+  import { ttabs, layoutRefs } from "$lib/ttabs/layout.svelte";
   import { onMount } from "svelte";
   import type { TileColumnState } from "ttabs-svelte";
   import Sidebar from "./Sidebar.svelte";
@@ -15,8 +15,8 @@
   function toggleSidebar() {
     sidebarIsOpen = !sidebarIsOpen;
 
-    if (sidebarColumn) {
-      ttabs.updateTile(sidebarColumn, {
+    if (layoutRefs.sidebarColumn) {
+      ttabs.updateTile(layoutRefs.sidebarColumn, {
         width: { value: sidebarIsOpen ? sidebarWidthWhenOpen : 0, unit: "px" },
       });
     }
@@ -68,8 +68,8 @@
   }
 
   onMount(() => {
-    if (sidebarColumn) {
-      const sidebar = ttabs.getColumn(sidebarColumn);
+    if (layoutRefs.sidebarColumn) {
+      const sidebar = ttabs.getColumn(layoutRefs.sidebarColumn);
       sidebarWidth = sidebar.width.value;
       sidebarWidthWhenOpen = sidebar.width.value || 300;
 
@@ -82,9 +82,9 @@
     }
 
     const sub = ttabs.subscribe((tiles) => {
-      if (!sidebarColumn) return;
+      if (!layoutRefs.sidebarColumn) return;
 
-      const sidebar = tiles[sidebarColumn] as TileColumnState;
+      const sidebar = tiles[layoutRefs.sidebarColumn] as TileColumnState;
       if (sidebar) {
         sidebarWidth = sidebar.width.value;
         sidebarIsOpen = sidebarWidth > 0;
