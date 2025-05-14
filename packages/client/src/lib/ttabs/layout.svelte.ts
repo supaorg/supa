@@ -172,7 +172,8 @@ function findAndUpdateLayoutRefs() {
  * so it will be called automatically when layout validation fails.
  */
 export function setupDefault(tt: Ttabs) {
-  const root = tt.rootGridId as string;
+  tt.resetTiles();
+  const root = tt.addGrid();
   const row = tt.addRow(root);
   layoutRefs.sidebarColumn = tt.addColumn(row, "300px");
   tt.setComponent(layoutRefs.sidebarColumn, 'sidebar');
