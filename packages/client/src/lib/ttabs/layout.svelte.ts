@@ -19,16 +19,45 @@ import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
 class SidebarValidator implements LayoutValidator {
   validate(ttabs: Ttabs): boolean {
     const tiles = ttabs.getTiles();
+    const rootGridId = ttabs.rootGridId as string;
+    const rootGrid = tiles[rootGridId];
     
-    // Find sidebar component
+    // Check that root grid has only 1 row
+    if (!rootGrid || rootGrid.type !== 'grid' || rootGrid.rows.length !== 1) {
+      throw new LayoutValidationError(
+        "Root grid must have exactly one row",
+        "INVALID_ROOT_GRID"
+      );
+    }
+    
+    // Get the row and check its columns
+    const rowId = rootGrid.rows[0];
+    const row = tiles[rowId];
+    
+    if (!row || row.type !== 'row' || row.columns.length < 1) {
+      throw new LayoutValidationError(
+        "Root grid's row must have at least one column",
+        "INVALID_ROW_STRUCTURE"
+      );
+    }
+    
+    // Find sidebar components
     const sidebarTiles = Object.values(tiles).filter(tile => 
       tile.type === 'content' && tile.componentId === 'sidebar'
     );
     
+    // Check that there is exactly one sidebar
     if (sidebarTiles.length === 0) {
       throw new LayoutValidationError(
         "Layout must include a sidebar component", 
         "MISSING_SIDEBAR"
+      );
+    }
+    
+    if (sidebarTiles.length > 1) {
+      throw new LayoutValidationError(
+        "Layout must include only one sidebar component",
+        "MULTIPLE_SIDEBARS"
       );
     }
     
@@ -46,6 +75,14 @@ class SidebarValidator implements LayoutValidator {
       throw new LayoutValidationError(
         "Sidebar must be placed in a column", 
         "INVALID_SIDEBAR_PARENT"
+      );
+    }
+    
+    // Check that sidebar is in the first column of the row
+    if (row.columns[0] !== sidebarParent.id) {
+      throw new LayoutValidationError(
+        "Sidebar must be in the first column of the root row",
+        "SIDEBAR_NOT_FIRST_COLUMN"
       );
     }
     
