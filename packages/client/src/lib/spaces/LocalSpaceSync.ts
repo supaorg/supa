@@ -154,7 +154,7 @@ export class LocalSpaceSync implements SpaceConnection {
         }
 
         p = perf("2. RepTree");
-        const tree = new RepTree(appTreeId, ops);
+        const tree = new RepTree(uuid(), ops);
         p.stop();
         return new AppTree(tree);
       } catch (error) {
@@ -329,7 +329,7 @@ export class LocalSpaceSync implements SpaceConnection {
       const appTree = this.space.getAppTree(treeId);
 
       if (!appTree) {
-        console.log("App tree not found", treeId);
+        console.error("App tree not found", treeId);
         return;
       }
 
@@ -400,8 +400,6 @@ export class LocalSpaceSync implements SpaceConnection {
   }
 
   private handleWatchEvent(event: WatchEvent) {
-    console.log("Watch file event on", this.uri, event)
-
     if (typeof event.type === 'object' && 'create' in event.type) {
       const createEvent = event.type.create;
       if (createEvent.kind === 'file') {
