@@ -1,1 +1,1 @@
-# Use Cases of SupaCloud
+# Use Cases of Supa

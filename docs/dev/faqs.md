@@ -1,4 +1,4 @@
-# Questions & Answers about Technical side of SupaCloud
+# Questions & Answers about Technical side of Supa
 
 Go here for product-oridented FAQs.
 

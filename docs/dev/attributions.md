@@ -2,7 +2,7 @@
 
 ## Open Source
 
-SupaCloud is possible because of other open source projects.
+Supa is possible because of other open source projects.
 
 Languages:
 - TypeScript as the main language

@@ -37,7 +37,7 @@ We propose changing the space structure to use a versioned approach:
           YYYY/        # Year
             MM/        # Month
               DD/      # Day
-                peerId.json # Operations file for a specific peer
+                peerId.jsonl # Operations file for a specific peer
 ```
 
 ### Key Changes
@@ -207,8 +207,7 @@ async function migrateFromV0ToV1(oldPath: string, newPath: string): Promise<void
                 for (const peerFile of peerFiles) {
                   if (peerFile.isFile && peerFile.name.endsWith('.jsonl')) {
                     const content = await readTextFile(`${oldOpsPath}/${prefix.name}/${suffix.name}/${dateDir.name}/${peerFile.name}`);
-                    // Change extension from .jsonl to .json
-                    const newFileName = peerFile.name.replace('.jsonl', '.json');
+                    const newFileName = peerFile.name;
                     await writeTextFile(`${newDatePath}/${newFileName}`, content);
                   }
                 }

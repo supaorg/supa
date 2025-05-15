@@ -1,1 +1,1 @@
-# Architecture of SupaCloud
+# Architecture of Supa
