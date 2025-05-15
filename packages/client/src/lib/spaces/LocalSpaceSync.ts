@@ -127,6 +127,7 @@ export class LocalSpaceSync implements SpaceConnection {
   private saveSecretsTimer: (() => void) | null = null;
   private saveSecretsIntervalMs = 1000;
   private backend: Backend;
+  private readonly spaceVersion = 1; // Current space version
 
   constructor(readonly space: Space, private uri: string) {
     space.tree.observeOpApplied(
@@ -327,9 +328,13 @@ export class LocalSpaceSync implements SpaceConnection {
   }
 
   private async loadSecretsFromFile() {
-    const secrets = await this.readSecretsFromFile();
-    if (secrets) {
-      this.space.saveAllSecrets(secrets);
+    try {
+      const secrets = await this.readSecretsFromFile();
+      if (secrets) {
+        this.space.saveAllSecrets(secrets);
+      }
+    } catch (e) {
+      console.error("Error loading secrets", e);
     }
   }
 
@@ -358,21 +363,25 @@ export class LocalSpaceSync implements SpaceConnection {
   }
 
   private async readSecretsFromFile(): Promise<Record<string, string> | undefined> {
-    const secretsPath = this.uri + '/secrets';
-
-    try {
-      const encryptedContent = await readTextFile(secretsPath);
-      return await decryptSecrets(encryptedContent, this.space.getId());
-    } catch (error) {
+    const secretsPath = this.uri + '/space-v1/secrets';
+    
+    if (!await exists(secretsPath)) {
       return undefined;
     }
+
+    const encryptedData = await readTextFile(secretsPath);
+    if (!encryptedData) {
+      return undefined;
+    }
+
+    return await decryptSecrets(encryptedData, this.space.getId());
   }
 
   private async writeSecretsToFile(secrets: Record<string, string>) {
-    const secretsPath = this.uri + '/secrets';
-
-    const encryptedContent = await encryptSecrets(secrets, this.space.getId());
-    await writeTextFile(secretsPath, encryptedContent);
+    const encryptedData = await encryptSecrets(secrets, this.space.getId());
+    // Always write to the versioned path
+    const secretsPath = this.uri + '/space-v1/secrets';
+    await writeTextFile(secretsPath, encryptedData);
   }
 
   private handleWatchEvent(event: WatchEvent) {
@@ -452,29 +461,39 @@ export class LocalSpaceSync implements SpaceConnection {
 }
 
 export async function createNewLocalSpaceAndConnect(path: string): Promise<SpaceConnection> {
-  const dirEntries = await readDir(path);
-  // Exclude all dot directories (e.g .DS_Store, .git)
-  const filteredDirEntries = dirEntries.filter(entry => entry.isDirectory && !entry.name.startsWith('.'));
-  // Make sure the directory is empty (except for dot directories)
-  if (filteredDirEntries.length > 0) {
-    throw new Error("Directory is not empty");
-  }
+  // Create space directory if it doesn't exist
+  await mkdir(path, { recursive: true });
 
-  const space = Space.newSpace(uuid());
+  // Create versioned space directory
+  const versionedPath = path + '/space-v1';
+  await mkdir(versionedPath, { recursive: true });
 
-  // Create space.json
-  const pathToSpaceJson = path + '/space.json';
-  const file = await create(pathToSpaceJson);
-  await file.write(new TextEncoder().encode(JSON.stringify({
-    id: space.getId(),
-  })));
+  // Create ops directory
+  await mkdir(versionedPath + '/ops', { recursive: true });
 
-  const sync = new LocalSpaceSync(space, path);
-  const ops = space.tree.getAllOps();
-  // Add ops that created the space tree
-  sync.addOpsToSave(space.tree.root!.id, ops);
-  await sync.connect();
-  return sync;
+  // Create README.md file
+  await writeTextFile(path + '/README.md', 
+    `# Supa Space
+
+This directory contains a Supa space. Please do not rename or modify the 'supa-space-v{version}' directory structure as it will corrupt your data.`);
+
+  // Create space.json with a new space ID
+  const spaceId = uuid();
+  await writeTextFile(versionedPath + '/space.json', JSON.stringify({ id: spaceId }));
+
+  // Create a new space
+  const space = new Space(new RepTree(uuid()));
+
+  // Create a new space connection
+  const connection = new LocalSpaceSync(space, path);
+
+  // Connect to the space
+  await connection.connect();
+
+  // Save the space tree ops
+  await saveTreeOpsFromScratch(space.tree, path);
+
+  return connection;
 }
 
 export async function loadLocalSpaceAndConnect(path: string): Promise<SpaceConnection> {
@@ -486,7 +505,7 @@ export async function loadLocalSpaceAndConnect(path: string): Promise<SpaceConne
 
 export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<SpaceConnection> {
   if (pointer.uri.startsWith("http")) {
-    throw new Error("Remote spaces are not implemented yet");
+    throw new Error("Remote spaces are not supported by local space sync. Use a different connection method.");
   }
 
   const space = await loadLocalSpace(pointer.uri);
@@ -512,23 +531,27 @@ async function saveTreeOpsFromScratch(tree: RepTree, spacePath: string) {
 }
 
 function makePathForTree(spacePath: string, treeId: string): string {
-  // Path to a tree is a guid split in 2 parts to make a path with 2 levels, 
-  // with the first 2 characters of the guid as the first directory name.
-  // and the rest of the guid as the second directory name.
-  // E.g. f7/8f29f578fd42c9b31766f269998263
-  const treePath = treeId.substring(0, 2) + '/' + treeId.substring(2);
-  return spacePath + '/ops/' + treePath;
+  // We split the treeId into two parts to avoid having too many files in a single directory
+  // This is a common technique to avoid file system limitations
+  // xx/yyyyyyyyy
+  const prefix = treeId.substring(0, 2);
+  const suffix = treeId.substring(2);
+  return `${spacePath}/space-v1/ops/${prefix}/${suffix}`;
 }
 
 function makePathForOpsBasedOnDate(spacePath: string, treeId: string, date: Date): string {
-  const treePath = makePathForTree(spacePath, treeId);
-  return treePath + '/' + date.toISOString().split('T')[0];
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${makePathForTree(spacePath, treeId)}/${year}/${month}/${day}`;
 }
 
 async function openFileToCurrentTreeOpsJSONLFile(spacePath: string, treeId: string, peerId: string): Promise<FileHandle> {
-  const opsPath = makePathForOpsBasedOnDate(spacePath, treeId, new Date());
-  await mkdir(opsPath, { recursive: true });
-  const filePath = opsPath + '/' + peerId + '.jsonl';
+  const date = new Date();
+  const dirPath = makePathForOpsBasedOnDate(spacePath, treeId, date);
+  await mkdir(dirPath, { recursive: true });
+
+  const filePath = `${dirPath}/${peerId}.jsonl`;
 
   if (await exists(filePath)) {
     return await open(filePath, { append: true });
@@ -538,7 +561,7 @@ async function openFileToCurrentTreeOpsJSONLFile(spacePath: string, treeId: stri
 }
 
 async function loadLocalSpace(path: string): Promise<Space> {
-  const spacePath = path + '/space.json';
+  const spacePath = path + '/space-v1/space.json';
 
   const spaceJson = await readTextFile(spacePath);
 
@@ -554,11 +577,6 @@ async function loadLocalSpace(path: string): Promise<Space> {
     throw new Error("Space ID not found in space.json");
   }
 
-  // @TODO: do migrations here based on /v{version} directory 
-  // and if the version is not found, do migrations starting from the latest version directory.
-  // e.g the current version is 1, we look for /v1 and if not found, read available version directories
-  // and pick the latest one - v0, v0.5, pick v0.5 for migrations.
-
   // Load space tree 
   const ops = await loadAllTreeOps(path, spaceId);
 
@@ -571,15 +589,35 @@ async function loadLocalSpace(path: string): Promise<Space> {
 
 async function loadAllTreeOps(spacePath: string, treeId: string): Promise<VertexOperation[]> {
   const treeOpsPath = makePathForTree(spacePath, treeId);
+  
+  // Check if directory exists
+  if (!await exists(treeOpsPath)) {
+    return [];
+  }
 
   // Read all directories and get .jsonl files
   const dirEntries = await readDir(treeOpsPath);
   const datePaths: string[] = [];
   const jsonlFiles: string[] = [];
+  
   for (const entry of dirEntries) {
-    // Read all dirs that match YYYY-MM-DD
-    if (entry.isDirectory && entry.name.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      datePaths.push(treeOpsPath + '/' + entry.name);
+    // Check for year directories
+    if (entry.isDirectory && entry.name.match(/^\d{4}$/)) {
+      const yearPath = treeOpsPath + '/' + entry.name;
+      const monthEntries = await readDir(yearPath);
+      
+      for (const monthEntry of monthEntries) {
+        if (monthEntry.isDirectory && monthEntry.name.match(/^\d{2}$/)) {
+          const monthPath = yearPath + '/' + monthEntry.name;
+          const dayEntries = await readDir(monthPath);
+          
+          for (const dayEntry of dayEntries) {
+            if (dayEntry.isDirectory && dayEntry.name.match(/^\d{2}$/)) {
+              datePaths.push(monthPath + '/' + dayEntry.name);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -614,6 +652,7 @@ function turnOpsIntoJSONLines(ops: VertexOperation[]): string {
   let str = '';
 
   /*
+  Each op is an array object on a separate line
   ["m",1,"node1","node2"]\n
   ["p",2,"node1","name","hello world"]\n
   */
