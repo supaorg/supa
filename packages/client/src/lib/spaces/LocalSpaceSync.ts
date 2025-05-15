@@ -28,6 +28,7 @@ import uuid from "@core/uuid/uuid";
 import AppTree from "@core/spaces/AppTree";
 import perf from "@core/tools/perf";
 import { interval } from "@core/tools/interval";
+import { detectSpaceVersion, isMigrationInProgress, loadSpaceFromVersion, migrateSpace } from "./SpaceMigrations";
 
 const opsParserWorker = new Worker(new URL('./opsParser.worker.ts', import.meta.url));
 
@@ -525,8 +526,8 @@ This directory contains a Supa space. Please do not rename or modify the 'space-
   return sync;
 }
 
-export async function loadLocalSpaceAndConnect(path: string): Promise<SpaceConnection> {
-  const space = await loadLocalSpace(path);
+export async function loadLocalSpaceAndConnect(path: string, waitForMigration = false): Promise<SpaceConnection> {
+  const space = await loadLocalSpace(path, waitForMigration);
   const sync = new LocalSpaceSync(space, path);
   await sync.connect();
   return sync;
@@ -545,6 +546,99 @@ export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<Space
   const sync = new LocalSpaceSync(space, pointer.uri);
   await sync.connect();
   return sync;
+}
+
+async function loadLocalSpace(path: string, waitForMigration = false): Promise<Space> {
+  // Check if migration is in progress
+  const migrationInProgress = await isMigrationInProgress(path, waitForMigration);
+  
+  if (migrationInProgress) {
+    throw new Error(
+      'Migration in progress. Please try again later or set waitForMigration=true to wait for it to complete.'
+    );
+  }
+  
+  // Check if space has been migrated but the app was closed before loading the new version
+  if (await exists(`${path}/migrated.json`)) {
+    try {
+      const migratedContent = await readTextFile(`${path}/migrated.json`);
+      const migratedData = JSON.parse(migratedContent);
+      
+      console.log(`Found migrated space: ${migratedData.fromVersion} -> ${migratedData.toVersion}`);
+      
+      // Check if the migration was completed successfully
+      if (migratedData.status === 'completed') {
+        // Use the new version path
+        return await loadSpaceFromVersion(path, migratedData.toVersion);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error reading migrated.json:', error.message);
+      } else {
+        console.error('Error reading migrated.json:', error);
+      }
+      // Continue with normal loading process
+    }
+  }
+  
+  // Detect space version
+  let version;
+  try {
+    version = await detectSpaceVersion(path);
+  } catch (error: unknown) {
+    // If we can't detect the version, try the legacy approach
+    return await loadLegacySpace(path);
+  }
+  
+  // If not the latest version, migrate
+  const latestVersion = 1; // Update this as new versions are added
+  if (version < latestVersion) {
+    try {
+      await migrateSpace(path, latestVersion);
+      version = latestVersion;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(`Failed to migrate space: ${error.message}`);
+      } else {
+        console.error(`Failed to migrate space:`, error);
+      }
+      // If migration fails, try to load with the current version
+    }
+  }
+  
+  return await loadSpaceFromVersion(path, version);
+}
+
+/**
+ * Legacy function to load a space (fallback if version detection fails)
+ * @param path Path to the space directory
+ * @returns Promise that resolves with the loaded Space
+ */
+async function loadLegacySpace(path: string): Promise<Space> {
+  // Read space.json
+  const spaceJsonPath = `${path}/space.json`;
+  if (!await exists(spaceJsonPath)) {
+    throw new Error("space.json not found");
+  }
+
+  const spaceJson = await readTextFile(spaceJsonPath);
+
+  // Get id from spaceJson
+  const spaceData = JSON.parse(spaceJson);
+  const spaceId = spaceData.id;
+
+  if (!spaceId) {
+    throw new Error("Space ID not found in space.json");
+  }
+
+  // Load space tree 
+  const ops = await loadAllTreeOps(path, spaceId);
+
+  if (ops.length === 0) {
+    throw new Error("No operations found for space");
+  }
+
+  return new Space(new RepTree(uuid(), ops));
 }
 
 function makePathForTree(spacePath: string, treeId: string): string {
@@ -582,39 +676,13 @@ async function openFileToCurrentTreeOpsJSONLFile(spacePath: string, treeId: stri
   return await create(filePath);
 }
 
-async function loadLocalSpace(path: string): Promise<Space> {
-  // Check for versioned space structure
-  const versionedPath = path + '/space-v1';
-  const spacePath = versionedPath + '/space.json';
-
-  if (!await exists(spacePath)) {
-    throw new Error("space.json not found in versioned space structure");
-  }
-
-  const spaceJson = await readTextFile(spacePath);
-
-  if (!spaceJson) {
-    throw new Error("space.json not found");
-  }
-
-  // Get id from spaceJson
-  const spaceData = JSON.parse(spaceJson);
-  const spaceId = spaceData.id;
-
-  if (!spaceId) {
-    throw new Error("Space ID not found in space.json");
-  }
-
-  // Load space tree 
-  const ops = await loadAllTreeOps(path, spaceId);
-
-  if (ops.length === 0) {
-    throw new Error("No operations found for space");
-  }
-
-  return new Space(new RepTree(uuid(), ops));
-}
-
+/**
+ * Loads all operations for a tree from the filesystem
+ * This is the legacy version that only supports v1 format
+ * @param spacePath Path to the space directory
+ * @param treeId ID of the tree
+ * @returns Array of operations
+ */
 async function loadAllTreeOps(spacePath: string, treeId: string): Promise<VertexOperation[]> {
   const treeOpsPath = makePathForTree(spacePath, treeId);
 
