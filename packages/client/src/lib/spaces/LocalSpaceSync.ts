@@ -226,20 +226,25 @@ export class LocalSpaceSync implements SpaceConnection {
 
     this.savingOpsToFile = true;
 
-    for (const [treeId, ops] of this.treeOpsToSave.entries()) {
-      if (ops.length === 0) {
-        continue;
-      }
+    try {
+      // For each tree, save ops
+      for (const [treeId, ops] of this.treeOpsToSave.entries()) {
+        if (ops.length === 0) {
+          continue;
+        }
 
-      try {
-        const opsJSONLines = turnOpsIntoJSONLines(ops);
-        const opsFile = await openFileToCurrentTreeOpsJSONLFile(this.uri, treeId, this.space.tree.peerId);
-        await opsFile.write(new TextEncoder().encode(opsJSONLines));
-        this.treeOpsToSave.set(treeId, []);
-        await opsFile.close();
-      } catch (error) {
-        console.error("Error saving ops to file", error);
+        const opsStr = turnOpsIntoJSONLines(ops);
+        const dirPath = makePathForCurrentDayOps(this.uri, treeId);
+        await mkdir(dirPath, { recursive: true });
+
+        // Write ops to file
+        const filePath = `${dirPath}/${this.space.tree.peerId}.jsonl`;
+        const file = await open(filePath, { append: true });
+        await file.write(new TextEncoder().encode(opsStr));
+        await file.close();
       }
+    } catch (error) {
+      console.error("Error saving ops to file", error);
     }
 
     this.savingOpsToFile = false;
@@ -540,15 +545,20 @@ function makePathForTree(spacePath: string, treeId: string): string {
 }
 
 function makePathForOpsBasedOnDate(spacePath: string, treeId: string, date: Date): string {
-  const year = date.getFullYear().toString();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
+  // Use UTC date to ensure consistency across time zones
+  const year = date.getUTCFullYear().toString();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
   return `${makePathForTree(spacePath, treeId)}/${year}/${month}/${day}`;
 }
 
+function makePathForCurrentDayOps(spacePath: string, treeId: string): string {
+  // Create path based on current UTC date
+  return makePathForOpsBasedOnDate(spacePath, treeId, new Date());
+}
+
 async function openFileToCurrentTreeOpsJSONLFile(spacePath: string, treeId: string, peerId: string): Promise<FileHandle> {
-  const date = new Date();
-  const dirPath = makePathForOpsBasedOnDate(spacePath, treeId, date);
+  const dirPath = makePathForCurrentDayOps(spacePath, treeId);
   await mkdir(dirPath, { recursive: true });
 
   const filePath = `${dirPath}/${peerId}.jsonl`;
