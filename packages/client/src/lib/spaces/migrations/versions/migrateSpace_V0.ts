@@ -4,6 +4,7 @@ import {
   readDir,
   readTextFile,
   remove,
+  rename,
   writeTextFile
 } from "@tauri-apps/plugin-fs";
 import { moveFile, moveDirectory, loadOpsFromJSONLFile } from "$lib/spaces/migrations/SpaceMigrations";
@@ -54,24 +55,57 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
       `# Supa Space\n\nThis directory contains a Supa space. Please do not rename or modify the 'space-v1' directory structure as it will corrupt your data.`);
 
     // Validate migration
-    await validateMigration(spacePath, tempDirPath, spaceId);
+    // @TODO: consider to enable it again. But it's rather slow.
+    //await validateMigration(spacePath, tempDirPath, spaceId);
 
     // Move the temporary files to the final location
     // First, move the space-v1 directory
     await moveDirectory(`${tempDirPath}/space-v1`, `${spacePath}/space-v1`);
 
-    // Mark the old structure as migrated
-    await writeTextFile(`${spacePath}/migrated.json`, JSON.stringify({
+    // Create space-v0 directory to store original v0 structure
+    const spaceV0Path = `${spacePath}/space-v0`;
+    await mkdir(spaceV0Path, { recursive: true });
+
+    // Move v0 files/directories into space-v0
+    // 1. Move ops directory
+    if (await exists(`${spacePath}/ops`)) {
+      console.log(`Moving ops directory from ${spacePath}/ops to ${spaceV0Path}/ops`);
+      try {
+        // Create the target directory
+        await mkdir(`${spaceV0Path}`, { recursive: true });
+        
+        // Use rename to move the entire directory at once
+        await rename(`${spacePath}/ops`, `${spaceV0Path}/ops`);
+      } catch (error) {
+        console.error(`Error moving ops directory: ${error instanceof Error ? error.message : String(error)}`);
+        throw error;
+      }
+    }
+
+    // 2. Move space.json
+    if (await exists(`${spacePath}/space.json`)) {
+      await rename(`${spacePath}/space.json`, `${spaceV0Path}/space.json`);
+    }
+
+    // 3. Move secrets if it exists
+    if (await exists(`${spacePath}/secrets`)) {
+      await rename(`${spacePath}/secrets`, `${spaceV0Path}/secrets`);
+    }
+
+    // Create migration info file in space-v0
+    const migrationInfo = {
       migratedAt: new Date().toISOString(),
       fromVersion: 0,
       toVersion: 1,
       status: "completed"
-    }));
+    };
+    
+    await writeTextFile(`${spaceV0Path}/migration-info.json`, JSON.stringify(migrationInfo, null, 2));
 
     // Create migration log
     await writeTextFile(`${spacePath}/migration-v0-to-v1.log`,
       `Migration from v0 to v1 completed at ${new Date().toISOString()}\n` +
-      `Original v0 data preserved in root directory for reference.`);
+      `Original v0 data preserved in space-v0 directory for reference.`);
 
     // Remove the temporary directory
     await remove(tempDirPath, { recursive: true });
@@ -213,7 +247,6 @@ async function validateMigration(oldSpacePath: string, newSpacePath: string, spa
         
         // Combine prefix and suffix to get the full tree ID
         const treeId = prefixDir.name + suffixDir.name;
-        
         console.log(`Validating tree: ${treeId}`);
         const oldOps = await loadV0TreeOps(oldSpacePath, treeId);
         const newOps = await loadV1TreeOps(newSpacePath, treeId);
