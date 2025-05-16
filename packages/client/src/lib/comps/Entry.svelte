@@ -69,6 +69,15 @@
       saveConfig(spaceStore.config);
     }
   });
+  
+  // Track the number of spaces and switch to setup state when there are none
+  $effect(() => {
+    // Only check when we're in ready state and have access to the pointers
+    if (status === "ready" && spaceStore.pointers.length === 0) {
+      console.log("No spaces left, switching to setup state");
+      status = "needsSpace";
+    }
+  });
 
   async function onSpaceSetup(spaceId: string) {
     // TODO: implement connecting

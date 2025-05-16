@@ -3,6 +3,7 @@
   import SpaceOptionsPopup from "$lib/comps/popups/SpaceOptionsPopup.svelte";
   import RenamingPopup from "$lib/comps/popups/RenamingPopup.svelte";
   import type { SpacePointer } from "$lib/spaces/SpacePointer";
+  import { swins } from "$lib/swins";
 
   let renamingPopupOpen = $state(false);
   let spaceToRename = $state<SpacePointer | null>(null);
@@ -35,6 +36,8 @@
 
   function handleRemoveSpace(space: SpacePointer) {
     spaceStore.removeSpace(space.id);
+    // So if we access the list from swins - close it
+    swins.pop();
   }
 </script>
 
