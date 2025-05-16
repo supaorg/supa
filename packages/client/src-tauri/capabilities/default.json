@@ -17,6 +17,8 @@
     "core:window:allow-set-visible-on-all-workspaces",
     "core:window:allow-set-position",
     "dialog:default",
+    "fs:allow-temp-read-recursive",
+    "fs:allow-temp-write-recursive",
     {
       "identifier": "fs:allow-home-write-recursive",
       "allow": [

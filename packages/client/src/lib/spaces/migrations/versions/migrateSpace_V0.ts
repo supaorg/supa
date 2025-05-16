@@ -9,6 +9,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { loadOpsFromJSONLFile } from "$lib/spaces/migrations/SpaceMigrations";
 import { type VertexOperation } from "reptree";
+import { tempDir, join } from "@tauri-apps/api/path";
 
 
 /**
@@ -19,9 +20,11 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
   console.log(`Migrating space at ${spacePath} from v0 to v1`);
 
   try {
-    // @TODO: make it outside of space directory
-    // Create temporary directory for migration
-    const tempDirPath = `${spacePath}/temp-migration-v1-${Date.now()}`;
+    // Get OS temp directory path
+    const osTempDir = await tempDir();
+    // Create a unique subdirectory for this migration
+    const migrationId = `supa-migration-v1-${Date.now()}`;
+    const tempDirPath = await join(osTempDir, migrationId);
     await mkdir(tempDirPath, { recursive: true });
 
     // Create v1 directory structure in temp location
@@ -69,7 +72,7 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
       try {
         // Create the target directory
         await mkdir(`${spaceV0Path}`, { recursive: true });
-        
+
         // Use rename to move the entire directory at once
         await rename(`${spacePath}/ops`, `${spaceV0Path}/ops`);
       } catch (error) {
@@ -100,17 +103,17 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
         preservedData: true
       }
     };
-    
+
     await writeTextFile(`${spaceV0Path}/migrated.json`, JSON.stringify(migrationInfo, null, 2));
 
     // Remove the temporary directory
     await remove(tempDirPath, { recursive: true });
-    
+
     // Create README.md in the root directory
     await writeTextFile(`${spacePath}/README.md`,
       `# Supa Space
 
-This directory contains a Supa space. Please do not rename or modify the 'space-v1' directory structure as it will corrupt your data.`);
+This directory contains a Supa space. Please do not rename or modify the 'space-v1' folder as you won't be able to open the space from Supa. Supa needs it as is. You can delete this file if you want, though.`);
 
     console.log(`Migration from v0 to v1 completed for space at ${spacePath}`);
   } catch (error: unknown) {
@@ -190,35 +193,35 @@ async function migrateTreeOperations(oldSpacePath: string, newSpacePath: string,
  */
 async function migrateAllTrees(oldSpacePath: string, newSpacePath: string): Promise<void> {
   const opsPath = `${oldSpacePath}/ops`;
-  
+
   // Check if ops directory exists
   if (!await exists(opsPath)) {
     console.log(`No ops directory found at ${opsPath}`);
     return;
   }
-  
+
   // Read all prefix directories (first 2 chars of tree IDs)
   const prefixDirs = await readDir(opsPath);
   let treeCount = 0;
-  
+
   for (const prefixDir of prefixDirs) {
     if (!prefixDir.isDirectory) continue;
-    
+
     const prefixPath = `${opsPath}/${prefixDir.name}`;
     const suffixDirs = await readDir(prefixPath);
-    
+
     for (const suffixDir of suffixDirs) {
       if (!suffixDir.isDirectory) continue;
-      
+
       // Combine prefix and suffix to get the full tree ID
       const treeId = prefixDir.name + suffixDir.name;
-      
+
       console.log(`Migrating tree: ${treeId}`);
       await migrateTreeOperations(oldSpacePath, newSpacePath, treeId);
       treeCount++;
     }
   }
-  
+
   console.log(`Migrated ${treeCount} trees`);
 }
 
@@ -237,22 +240,22 @@ async function validateMigration(oldSpacePath: string, newSpacePath: string, spa
   const opsPath = `${oldSpacePath}/ops`;
   if (await exists(opsPath)) {
     const prefixDirs = await readDir(opsPath);
-    
+
     for (const prefixDir of prefixDirs) {
       if (!prefixDir.isDirectory) continue;
-      
+
       const prefixPath = `${opsPath}/${prefixDir.name}`;
       const suffixDirs = await readDir(prefixPath);
-      
+
       for (const suffixDir of suffixDirs) {
         if (!suffixDir.isDirectory) continue;
-        
+
         // Combine prefix and suffix to get the full tree ID
         const treeId = prefixDir.name + suffixDir.name;
         console.log(`Validating tree: ${treeId}`);
         const oldOps = await loadV0TreeOps(oldSpacePath, treeId);
         const newOps = await loadV1TreeOps(newSpacePath, treeId);
-        
+
         if (oldOps.length !== newOps.length) {
           throw new Error(`Migration validation failed for tree ${treeId}: Operation count mismatch. Old: ${oldOps.length}, New: ${newOps.length}`);
         }
