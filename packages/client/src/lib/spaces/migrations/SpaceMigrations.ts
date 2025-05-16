@@ -19,7 +19,7 @@ export async function detectSpaceVersion(spacePath: string): Promise<number> {
   if (await exists(`${spacePath}/space-v1`)) {
     return 1;
   }
-  
+
   // Check for v0 structure (legacy)
   if (await exists(`${spacePath}/space.json`) && await exists(`${spacePath}/ops`)) {
     return 0;

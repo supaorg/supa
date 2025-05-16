@@ -92,20 +92,20 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
       await rename(`${spacePath}/secrets`, `${spaceV0Path}/secrets`);
     }
 
-    // Create migration info file in space-v0
+    // Create migrated.json file in space-v0 to mark the migration as complete
     const migrationInfo = {
       migratedAt: new Date().toISOString(),
       fromVersion: 0,
       toVersion: 1,
-      status: "completed"
+      status: "completed",
+      details: {
+        originalStructure: "v0",
+        newStructure: "v1",
+        preservedData: true
+      }
     };
     
-    await writeTextFile(`${spaceV0Path}/migration-info.json`, JSON.stringify(migrationInfo, null, 2));
-
-    // Create migration log
-    await writeTextFile(`${spacePath}/migration-v0-to-v1.log`,
-      `Migration from v0 to v1 completed at ${new Date().toISOString()}\n` +
-      `Original v0 data preserved in space-v0 directory for reference.`);
+    await writeTextFile(`${spaceV0Path}/migrated.json`, JSON.stringify(migrationInfo, null, 2));
 
     // Remove the temporary directory
     await remove(tempDirPath, { recursive: true });
