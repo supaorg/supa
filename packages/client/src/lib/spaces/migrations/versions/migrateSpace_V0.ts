@@ -95,9 +95,20 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
  * @param spaceId ID of the space
  */
 async function migrateOperations(oldSpacePath: string, newSpacePath: string, spaceId: string): Promise<void> {
+  // Find and migrate all trees in the space
+  await migrateAllTrees(oldSpacePath, newSpacePath);
+}
+
+/**
+ * Migrates operations for a specific tree from v0 to v1 format
+ * @param oldSpacePath Path to the old space directory
+ * @param newSpacePath Path to the new space directory
+ * @param treeId ID of the tree to migrate
+ */
+async function migrateTreeOperations(oldSpacePath: string, newSpacePath: string, treeId: string): Promise<void> {
   // Get the tree ID prefix and suffix
-  const prefix = spaceId.substring(0, 2);
-  const suffix = spaceId.substring(2);
+  const prefix = treeId.substring(0, 2);
+  const suffix = treeId.substring(2);
 
   // Create the tree directory structure
   const oldTreePath = `${oldSpacePath}/ops/${prefix}/${suffix}`;
@@ -137,6 +148,47 @@ async function migrateOperations(oldSpacePath: string, newSpacePath: string, spa
 }
 
 /**
+ * Finds and migrates all trees in a space by scanning the ops directory
+ * @param oldSpacePath Path to the old space directory
+ * @param newSpacePath Path to the new space directory
+ */
+async function migrateAllTrees(oldSpacePath: string, newSpacePath: string): Promise<void> {
+  const opsPath = `${oldSpacePath}/ops`;
+  
+  // Check if ops directory exists
+  if (!await exists(opsPath)) {
+    console.log(`No ops directory found at ${opsPath}`);
+    return;
+  }
+  
+  // Read all prefix directories (first 2 chars of tree IDs)
+  const prefixDirs = await readDir(opsPath);
+  let treeCount = 0;
+  
+  for (const prefixDir of prefixDirs) {
+    if (!prefixDir.isDirectory) continue;
+    
+    const prefixPath = `${opsPath}/${prefixDir.name}`;
+    const suffixDirs = await readDir(prefixPath);
+    
+    for (const suffixDir of suffixDirs) {
+      if (!suffixDir.isDirectory) continue;
+      
+      // Combine prefix and suffix to get the full tree ID
+      const treeId = prefixDir.name + suffixDir.name;
+      
+      console.log(`Migrating tree: ${treeId}`);
+      await migrateTreeOperations(oldSpacePath, newSpacePath, treeId);
+      treeCount++;
+    }
+  }
+  
+  console.log(`Migrated ${treeCount} trees`);
+}
+
+
+
+/**
  * Validates that the migration was successful by comparing operation counts and checksums
  * @param oldSpacePath Path to the old space directory
  * @param newSpacePath Path to the new space directory
@@ -145,16 +197,35 @@ async function migrateOperations(oldSpacePath: string, newSpacePath: string, spa
 async function validateMigration(oldSpacePath: string, newSpacePath: string, spaceId: string): Promise<void> {
   console.log('Validating migration...');
 
-  // Load operations from both old and new structures
-  const oldOps = await loadV0TreeOps(oldSpacePath, spaceId);
-  const newOps = await loadV1TreeOps(newSpacePath, spaceId);
-
-  // Check operation counts
-  if (oldOps.length !== newOps.length) {
-    throw new Error(`Migration validation failed: Operation count mismatch. Old: ${oldOps.length}, New: ${newOps.length}`);
+  // Validate all trees by scanning the ops directory
+  const opsPath = `${oldSpacePath}/ops`;
+  if (await exists(opsPath)) {
+    const prefixDirs = await readDir(opsPath);
+    
+    for (const prefixDir of prefixDirs) {
+      if (!prefixDir.isDirectory) continue;
+      
+      const prefixPath = `${opsPath}/${prefixDir.name}`;
+      const suffixDirs = await readDir(prefixPath);
+      
+      for (const suffixDir of suffixDirs) {
+        if (!suffixDir.isDirectory) continue;
+        
+        // Combine prefix and suffix to get the full tree ID
+        const treeId = prefixDir.name + suffixDir.name;
+        
+        console.log(`Validating tree: ${treeId}`);
+        const oldOps = await loadV0TreeOps(oldSpacePath, treeId);
+        const newOps = await loadV1TreeOps(newSpacePath, treeId);
+        
+        if (oldOps.length !== newOps.length) {
+          throw new Error(`Migration validation failed for tree ${treeId}: Operation count mismatch. Old: ${oldOps.length}, New: ${newOps.length}`);
+        }
+      }
+    }
   }
 
-  console.log('Migration validation successful');
+  console.log('Migration validation successful for all trees');
 }
 
 /**
