@@ -261,3 +261,21 @@ export async function saveSpaceTheme(spaceId: string, theme: string): Promise<vo
     console.error(`Failed to save theme for space ${spaceId}:`, error);
   }
 }
+
+// Delete a space from the database
+export async function deleteSpace(spaceId: string): Promise<void> {
+  try {
+    // Delete the space from the spaces table
+    await db.spaces.delete(spaceId);
+    
+    // Check if this was the current space and clear it if so
+    const currentId = await getCurrentSpaceId();
+    if (currentId === spaceId) {
+      await db.config.delete('currentSpaceId');
+    }
+    
+    console.log(`Space ${spaceId} deleted from database`);
+  } catch (error) {
+    console.error(`Failed to delete space ${spaceId} from database:`, error);
+  }
+}

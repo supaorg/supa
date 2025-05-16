@@ -1,6 +1,7 @@
 import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./LocalSpaceSync";
 import type { SpacePointer } from "./SpacePointer";
+import { deleteSpace } from "$lib/localDb";
 
 class SpaceStore {
   pointers: SpacePointer[] = $state([]);
@@ -117,6 +118,9 @@ class SpaceStore {
       const nextPointer = this.pointers[0];
       this.currentSpaceId = nextPointer?.id || null;
     }
+
+    // Delete the space from the database
+    await deleteSpace(pointerId);
   }
 
   /**
