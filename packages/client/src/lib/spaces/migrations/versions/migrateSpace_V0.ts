@@ -7,7 +7,7 @@ import {
   rename,
   writeTextFile
 } from "@tauri-apps/plugin-fs";
-import { moveFile, moveDirectory, loadOpsFromJSONLFile } from "$lib/spaces/migrations/SpaceMigrations";
+import { loadOpsFromJSONLFile } from "$lib/spaces/migrations/SpaceMigrations";
 import { type VertexOperation } from "reptree";
 
 
@@ -50,17 +50,13 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
     // Migrate operations
     await migrateOperations(spacePath, tempV1Path, spaceId);
 
-    // Create README.md
-    await writeTextFile(`${tempDirPath}/README.md`,
-      `# Supa Space\n\nThis directory contains a Supa space. Please do not rename or modify the 'space-v1' directory structure as it will corrupt your data.`);
-
     // Validate migration
     // @TODO: consider to enable it again. But it's rather slow.
     //await validateMigration(spacePath, tempDirPath, spaceId);
 
     // Move the temporary files to the final location
-    // First, move the space-v1 directory
-    await moveDirectory(`${tempDirPath}/space-v1`, `${spacePath}/space-v1`);
+    // First, move the space-v1 directory using rename for efficiency
+    await rename(`${tempDirPath}/space-v1`, `${spacePath}/space-v1`);
 
     // Create space-v0 directory to store original v0 structure
     const spaceV0Path = `${spacePath}/space-v0`;
@@ -109,6 +105,12 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
 
     // Remove the temporary directory
     await remove(tempDirPath, { recursive: true });
+    
+    // Create README.md in the root directory
+    await writeTextFile(`${spacePath}/README.md`,
+      `# Supa Space
+
+This directory contains a Supa space. Please do not rename or modify the 'space-v1' directory structure as it will corrupt your data.`);
 
     console.log(`Migration from v0 to v1 completed for space at ${spacePath}`);
   } catch (error: unknown) {

@@ -322,45 +322,4 @@ export async function loadOpsFromJSONLFile(filePath: string, peerId: string): Pr
   }
 }
 
-/**
- * Moves a file from source to destination
- * @param sourcePath Source file path
- * @param destPath Destination file path
- */
-export async function moveFile(sourcePath: string, destPath: string): Promise<void> {
-  const content = await readTextFile(sourcePath);
-  await writeTextFile(destPath, content);
-  await remove(sourcePath);
-}
-
-/**
- * Moves a directory from source to destination
- * @param sourcePath Source directory path
- * @param destPath Destination directory path
- */
-export async function moveDirectory(sourcePath: string, destPath: string): Promise<void> {
-  // Create destination directory
-  await mkdir(destPath, { recursive: true });
-  
-  // Read all entries in source directory
-  const entries = await readDir(sourcePath);
-  
-  // Move each entry
-  for (const entry of entries) {
-    const sourceEntryPath = `${sourcePath}/${entry.name}`;
-    const destEntryPath = `${destPath}/${entry.name}`;
-    
-    if (entry.isDirectory) {
-      // Recursively move subdirectory
-      await moveDirectory(sourceEntryPath, destEntryPath);
-    } else {
-      // Move file
-      await moveFile(sourceEntryPath, destEntryPath);
-    }
-  }
-  
-  // Remove source directory after all contents have been moved
-  await remove(sourcePath);
-}
-
 
