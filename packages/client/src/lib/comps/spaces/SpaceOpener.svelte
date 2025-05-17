@@ -7,21 +7,28 @@
   } from "$lib/spaces/LocalSpaceSync";
   import { txtStore } from "$lib/stores/txtStore";
 
+  type Status = "idle" | "creating" | "opening";
+  let status: Status = $state("idle");
+
   let {
     onSpaceSetup,
   }: { onSpaceSetup: (spaceId: string) => void | undefined } = $props();
 
   async function createSpaceDialog() {
-    const path = await open({
-      title: $txtStore.spacesPage.opener.dialogCreateTitle,
-      directory: true,
-    });
+    if (status !== "idle") return;
 
-    if (!path) {
-      return;
-    }
-
+    status = "creating";
     try {
+      const path = await open({
+        title: $txtStore.spacesPage.opener.dialogCreateTitle,
+        directory: true,
+      });
+
+      if (!path) {
+        status = "idle";
+        return;
+      }
+
       const spaceSync = await createNewLocalSpaceAndConnect(path as string);
       const space = spaceSync.space;
       spaceStore.addLocalSpace(spaceSync, path as string);
@@ -30,20 +37,26 @@
     } catch (e) {
       console.error(e);
       message($txtStore.spacesPage.opener.errorCreate, { kind: "error" });
+    } finally {
+      status = "idle";
     }
   }
 
   async function openSpaceDialog() {
-    const path = await open({
-      title: $txtStore.spacesPage.opener.dialogOpenTitle,
-      directory: true,
-    });
+    if (status !== "idle") return;
 
-    if (!path) {
-      return;
-    }
-
+    status = "opening";
     try {
+      const path = await open({
+        title: $txtStore.spacesPage.opener.dialogOpenTitle,
+        directory: true,
+      });
+
+      if (!path) {
+        status = "idle";
+        return;
+      }
+
       const spaceSync = await loadLocalSpaceAndConnect(path as string);
       const space = spaceSync.space;
       spaceStore.currentSpaceId = space.getId();
@@ -52,6 +65,8 @@
     } catch (e) {
       console.error(e);
       message($txtStore.spacesPage.opener.errorOpen, { kind: "error" });
+    } finally {
+      status = "idle";
     }
   }
 </script>
@@ -66,9 +81,15 @@
         {$txtStore.spacesPage.opener.createDescription}
       </p>
     </div>
-    <button class="btn preset-outlined-primary-500" onclick={createSpaceDialog}
-      >{$txtStore.spacesPage.opener.createButton}</button
+    <button
+      class="btn preset-outlined-primary-500"
+      onclick={createSpaceDialog}
+      disabled={status !== "idle"}
     >
+      {status === "creating"
+        ? "Creating..."
+        : $txtStore.spacesPage.opener.createButton}
+    </button>
   </div>
   <div class="flex items-center justify-between mt-4">
     <div>
@@ -77,8 +98,14 @@
       </h3>
       <p class="text-sm">{$txtStore.spacesPage.opener.openDescription}</p>
     </div>
-    <button class="btn preset-outlined-primary-500" onclick={openSpaceDialog}
-      >{$txtStore.spacesPage.opener.openButton}</button
+    <button
+      class="btn preset-outlined-primary-500"
+      onclick={openSpaceDialog}
+      disabled={status !== "idle"}
     >
+      {status === "opening"
+        ? "Opening..."
+        : $txtStore.spacesPage.opener.openButton}
+    </button>
   </div>
 </div>
