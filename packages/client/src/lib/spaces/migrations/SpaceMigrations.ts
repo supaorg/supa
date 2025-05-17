@@ -68,7 +68,7 @@ export async function isMigrationInProgress(spacePath: string, waitForCompletion
     return true;
   }
   
-  // Wait for migration to complete or become stale
+  // Wait for migration to complete
   console.log('Waiting for migration to complete...');
   
   return new Promise((resolve) => {
@@ -172,23 +172,67 @@ export async function acquireMigrationLock(spacePath: string, fromVersion: numbe
   };
 }
 
+export interface MigrationStatus {
+  /** Current migration step description */
+  step: string;
+  /** Progress percentage (0-100) */
+  progress: number;
+  /** Optional details about the current step */
+  details?: string;
+  /** True if migration is complete */
+  isComplete: boolean;
+  /** Error message if migration failed */
+  error?: string;
+  /** Current version being migrated from */
+  fromVersion?: number;
+  /** Target version being migrated to */
+  toVersion?: number;
+}
+
+type MigrationProgressCallback = (step: string, progress: number, details?: string) => void;
+type MigrationStatusCallback = (status: MigrationStatus) => void;
+
 /**
  * Checks if a space needs migration and performs migration if needed
  * @param spacePath Path to the space directory
- * @param waitForMigration Whether to wait for an in-progress migration to complete
+ * @param statusCallback Optional callback to receive migration status updates
  * @returns Promise that resolves when migration is complete or not needed
  */
-export async function migrateSpaceIfNeeded(spacePath: string, waitForMigration = false): Promise<void> {
+export async function migrateSpaceIfNeeded(
+  spacePath: string, 
+  statusCallback: MigrationStatusCallback = () => {}
+): Promise<void> {
+  const reportStatus = (status: Omit<MigrationStatus, 'isComplete'>) => {
+    statusCallback({
+      ...status,
+      isComplete: status.progress >= 100 || !!status.error
+    });
+  };
+
   // Check if migration is in progress
-  const migrationInProgress = await isMigrationInProgress(spacePath, waitForMigration);
+  reportStatus({
+    step: 'Checking for existing migrations',
+    progress: 5
+  });
+  
+  const migrationInProgress = await isMigrationInProgress(spacePath, false);
   
   if (migrationInProgress) {
-    throw new Error(
-      'Migration in progress. Please try again later or set waitForMigration=true to wait for it to complete.'
-    );
+    const errorMsg = 'Migration is already in progress. Please wait for it to complete.';
+    reportStatus({
+      step: 'Error',
+      progress: 100,
+      error: errorMsg
+    });
+    throw new Error(errorMsg);
   }
   
   // Check if space has been migrated but the app was closed before loading the new version
+  reportStatus({
+    step: 'Checking for previous migration state',
+    progress: 10
+  });
+  
   if (await exists(`${spacePath}/migrated.json`)) {
     try {
       const migratedContent = await readTextFile(`${spacePath}/migrated.json`);
@@ -198,35 +242,86 @@ export async function migrateSpaceIfNeeded(spacePath: string, waitForMigration =
       
       // Check if the migration was completed successfully
       if (migratedData.status === 'completed') {
-        // Migration already completed
+        reportStatus({
+          step: 'Migration already completed',
+          progress: 100,
+          fromVersion: migratedData.fromVersion,
+          toVersion: migratedData.toVersion
+        });
         return;
       }
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Error reading migrated.json:', error.message);
-      } else {
-        console.error('Error reading migrated.json:', error);
-      }
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error reading migrated.json:', errorMsg);
+      reportStatus({
+        step: 'Error reading migration state',
+        progress: 15,
+        details: 'Will attempt to continue with migration',
+        error: errorMsg
+      });
       // Continue with normal migration process
     }
   }
   
   // Detect space version
+  reportStatus({
+    step: 'Detecting space version',
+    progress: 20
+  });
+  
   let currentVersion;
   try {
     currentVersion = await detectSpaceVersion(spacePath);
+    reportStatus({
+      step: `Detected space version ${currentVersion}`,
+      progress: 25,
+      fromVersion: currentVersion
+    });
   } catch (error: unknown) {
-    // If we can't detect the version, it's not a valid space
-    if (error instanceof Error) {
-      throw new Error(`Invalid space structure: ${error.message}`);
-    }
-    throw new Error('Invalid space structure');
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    reportStatus({
+      step: 'Error detecting space version',
+      progress: 25,
+      error: `Invalid space structure: ${errorMsg}`
+    });
+    throw new Error(`Invalid space structure: ${errorMsg}`);
   }
   
   // If not the latest version, migrate
   const latestVersion = 1; // Update this as new versions are added
   if (currentVersion < latestVersion) {
-    await migrateSpace(currentVersion, latestVersion, spacePath);
+    reportStatus({
+      step: `Starting migration from v${currentVersion} to v${latestVersion}`,
+      progress: 30,
+      fromVersion: currentVersion,
+      toVersion: latestVersion
+    });
+    
+    await migrateSpace(currentVersion, latestVersion, spacePath, false, (step, progress, details) => {
+      // Calculate overall progress (30-90% of total)
+      const overallProgress = 30 + (progress * 0.6);
+      reportStatus({
+        step: `Migrating: ${step}`,
+        progress: Math.floor(overallProgress),
+        details,
+        fromVersion: currentVersion,
+        toVersion: latestVersion
+      });
+    });
+    
+    reportStatus({
+      step: 'Migration completed successfully',
+      progress: 100,
+      fromVersion: currentVersion,
+      toVersion: latestVersion
+    });
+  } else {
+    reportStatus({
+      step: 'Space is up to date',
+      progress: 100,
+      fromVersion: currentVersion,
+      toVersion: latestVersion
+    });
   }
 }
 
@@ -238,7 +333,13 @@ export async function migrateSpaceIfNeeded(spacePath: string, waitForMigration =
  * @param forceOverrideLock Whether to force migration even if a lock exists
  * @returns Promise that resolves when migration is complete
  */
-async function migrateSpace(fromVersion: number, toVersion: number, spacePath: string, forceOverrideLock = false): Promise<void> {
+async function migrateSpace(
+  fromVersion: number, 
+  toVersion: number, 
+  spacePath: string, 
+  forceOverrideLock = false,
+  progressCallback?: MigrationProgressCallback
+): Promise<void> {
   // No migration needed if already at target version
   if (fromVersion === toVersion) {
     return;
@@ -257,10 +358,27 @@ async function migrateSpace(fromVersion: number, toVersion: number, spacePath: s
   // Acquire migration lock
   const releaseLock = await acquireMigrationLock(spacePath, fromVersion, toVersion);
   
+  const totalSteps = toVersion - fromVersion;
+  
   try {
     // Perform migrations sequentially
-    for (let v = fromVersion; v < toVersion; v++) {
-      await migrateToNextVersion(spacePath, v);
+    for (let i = 0; i < totalSteps; i++) {
+      const currentVersion = fromVersion + i;
+      const progress = (i / totalSteps) * 100;
+      
+      progressCallback?.(`Migrating from v${currentVersion} to v${currentVersion + 1}`, progress);
+      await migrateToNextVersion(spacePath, currentVersion, (step: string, stepProgress: number, details?: string) => {
+        // Calculate progress within current version step
+        const stepStart = (i / totalSteps) * 100;
+        const stepEnd = ((i + 1) / totalSteps) * 100;
+        const overallProgress = stepStart + (stepProgress * (stepEnd - stepStart) / 100);
+        
+        progressCallback?.(
+          `Migrating to v${currentVersion + 1}: ${step}`, 
+          overallProgress,
+          details
+        );
+      });
     }
   } finally {
     // Release the lock
@@ -272,15 +390,40 @@ async function migrateSpace(fromVersion: number, toVersion: number, spacePath: s
  * Migrates a space from one version to the next
  * @param spacePath Path to the space directory
  * @param fromVersion Current version to migrate from
+ * @param progressCallback Optional callback for progress updates
  */
-async function migrateToNextVersion(spacePath: string, fromVersion: number): Promise<void> {
-  switch (fromVersion) {
-    case 0:
-      await migrateFromV0ToV1(spacePath);
-      break;
-    // Add cases for future versions
-    default:
-      throw new Error(`No migration path defined from v${fromVersion} to v${fromVersion + 1}`);
+async function migrateToNextVersion(
+  spacePath: string, 
+  fromVersion: number,
+  progressCallback?: MigrationProgressCallback
+): Promise<void> {
+  progressCallback?.('Starting migration', 0);
+  
+  try {
+    switch (fromVersion) {
+      case 0: {
+        progressCallback?.('Migrating from v0 to v1', 10);
+        await migrateFromV0ToV1(spacePath, {
+          onProgress: (progress: number, message: string) => {
+            // Scale progress to 10-90% for v0->v1 migration
+            const scaledProgress = 10 + (progress * 0.8);
+            progressCallback?.(`v0→v1: ${message}`, scaledProgress);
+          }
+        });
+        progressCallback?.('Migration to v1 complete', 100);
+        break;
+      }
+      // Add cases for future versions
+      default: {
+        const errorMsg = `No migration path defined from v${fromVersion} to v${fromVersion + 1}`;
+        progressCallback?.(errorMsg, 100, 'Migration failed');
+        throw new Error(errorMsg);
+      }
+    }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error during migration';
+    progressCallback?.(`Migration failed: ${errorMsg}`, 100, 'Migration failed');
+    throw error;
   }
 }
 

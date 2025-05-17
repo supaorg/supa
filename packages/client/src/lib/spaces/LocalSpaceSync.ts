@@ -586,7 +586,23 @@ async function loadSpace(basePath: string): Promise<Space> {
 async function loadLocalSpace(path: string, waitForMigration = false): Promise<Space> {
   try {
     // First, check if migration is needed and perform it if necessary
-    await migrateSpaceIfNeeded(path, waitForMigration);
+    if (waitForMigration) {
+      // If waiting for migration, create a promise that resolves when migration is complete
+      await new Promise<void>((resolve, reject) => {
+        migrateSpaceIfNeeded(path, (status) => {
+          if (status.isComplete) {
+            if (status.error) {
+              reject(new Error(status.error));
+            } else {
+              resolve();
+            }
+          }
+        }).catch(reject);
+      });
+    } else {
+      // If not waiting for migration, just check if migration is needed
+      await migrateSpaceIfNeeded(path);
+    }
     
     // After migration (if any), load the space from the current version path
     return await loadSpace(path);

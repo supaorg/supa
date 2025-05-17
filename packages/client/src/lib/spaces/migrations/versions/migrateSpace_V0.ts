@@ -12,11 +12,26 @@ import { type VertexOperation } from "reptree";
 import { tempDir, join } from "@tauri-apps/api/path";
 
 
+export interface MigrationProgress {
+  onProgress?: (progress: number, message: string) => void;
+}
+
 /**
  * Migrates a space from v0 to v1
  * @param spacePath Path to the space directory
+ * @param options Options including progress callback
  */
-export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
+export async function migrateFromV0ToV1(
+  spacePath: string,
+  options: MigrationProgress = {}
+): Promise<void> {
+  const { onProgress } = options;
+  
+  const reportProgress = (progress: number, message: string) => {
+    onProgress?.(Math.min(100, Math.max(0, progress)), message);
+  };
+
+  reportProgress(0, 'Starting migration from v0 to v1');
   console.log(`Migrating space at ${spacePath} from v0 to v1`);
 
   try {
@@ -51,16 +66,24 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
     }
 
     // Migrate operations
-    await migrateOperations(spacePath, tempV1Path, spaceId);
+    reportProgress(30, 'Migrating operations');
+    await migrateOperations(spacePath, tempV1Path, spaceId, {
+      onProgress: (progress, message) => {
+        // Scale operation migration progress from 30-80%
+        reportProgress(30 + (progress * 0.5), message);
+      }
+    });
 
     // Validate migration
     // @TODO: consider to enable it again. But it's rather slow.
     //await validateMigration(spacePath, tempDirPath, spaceId);
 
     // Move the temporary files to the final location
+    reportProgress(80, 'Finalizing migration');
     // First, move the space-v1 directory using rename for efficiency
     await rename(`${tempDirPath}/space-v1`, `${spacePath}/space-v1`);
 
+    reportProgress(85, 'Creating backup of original files');
     // Create space-v0 directory to store original v0 structure
     const spaceV0Path = `${spacePath}/space-v0`;
     await mkdir(spaceV0Path, { recursive: true });
@@ -90,7 +113,10 @@ export async function migrateFromV0ToV1(spacePath: string): Promise<void> {
     if (await exists(`${spacePath}/secrets`)) {
       await rename(`${spacePath}/secrets`, `${spaceV0Path}/secrets`);
     }
+    
+    reportProgress(95, 'Finalizing backup');
 
+    reportProgress(98, 'Creating migration marker');
     // Create migrated.json file in space-v0 to mark the migration as complete
     const migrationInfo = {
       migratedAt: new Date().toISOString(),
@@ -132,10 +158,30 @@ This directory contains a Supa space. Please do not rename or modify the 'space-
  * @param oldSpacePath Path to the old space directory
  * @param newSpacePath Path to the new space directory
  * @param spaceId ID of the space
+ * @param options Options including progress callback
  */
-async function migrateOperations(oldSpacePath: string, newSpacePath: string, spaceId: string): Promise<void> {
+async function migrateOperations(
+  oldSpacePath: string, 
+  newSpacePath: string, 
+  spaceId: string,
+  options: MigrationProgress = {}
+): Promise<void> {
+  const { onProgress } = options;
+  
+  const reportProgress = (progress: number, message: string) => {
+    onProgress?.(progress, message);
+  };
+
+  reportProgress(0, 'Starting operation migration');
   // Find and migrate all trees in the space
-  await migrateAllTrees(oldSpacePath, newSpacePath);
+  await migrateAllTrees(oldSpacePath, newSpacePath, {
+    onProgress: (progress, message) => {
+      // Scale progress to 0-100% for tree migration
+      reportProgress(progress, message);
+    }
+  });
+  
+  reportProgress(100, 'Operation migration complete');
 }
 
 /**
@@ -190,20 +236,52 @@ async function migrateTreeOperations(oldSpacePath: string, newSpacePath: string,
  * Finds and migrates all trees in a space by scanning the ops directory
  * @param oldSpacePath Path to the old space directory
  * @param newSpacePath Path to the new space directory
+ * @param options Options including progress callback
  */
-async function migrateAllTrees(oldSpacePath: string, newSpacePath: string): Promise<void> {
+async function migrateAllTrees(
+  oldSpacePath: string, 
+  newSpacePath: string,
+  options: MigrationProgress = {}
+): Promise<void> {
+  const { onProgress } = options;
+  
+  const reportProgress = (progress: number, message: string) => {
+    onProgress?.(progress, message);
+  };
+
   const opsPath = `${oldSpacePath}/ops`;
 
   // Check if ops directory exists
   if (!await exists(opsPath)) {
     console.log(`No ops directory found at ${opsPath}`);
+    reportProgress(100, 'No operations to migrate');
     return;
   }
+
+  reportProgress(0, 'Scanning for trees to migrate');
 
   // Read all prefix directories (first 2 chars of tree IDs)
   const prefixDirs = await readDir(opsPath);
   let treeCount = 0;
+  let processedTrees = 0;
 
+  // First pass: count total trees for progress reporting
+  let totalTrees = 0;
+  for (const prefixDir of prefixDirs) {
+    if (!prefixDir.isDirectory) continue;
+    const prefixPath = `${opsPath}/${prefixDir.name}`;
+    const suffixDirs = await readDir(prefixPath);
+    totalTrees += suffixDirs.filter(d => d.isDirectory).length;
+  }
+
+  if (totalTrees === 0) {
+    reportProgress(100, 'No trees to migrate');
+    return;
+  }
+
+  reportProgress(5, `Found ${totalTrees} trees to migrate`);
+
+  // Second pass: process each tree
   for (const prefixDir of prefixDirs) {
     if (!prefixDir.isDirectory) continue;
 
@@ -215,14 +293,26 @@ async function migrateAllTrees(oldSpacePath: string, newSpacePath: string): Prom
 
       // Combine prefix and suffix to get the full tree ID
       const treeId = prefixDir.name + suffixDir.name;
-
+      processedTrees++;
+      
+      const progress = Math.min(100, 5 + Math.floor((processedTrees / totalTrees) * 95));
+      reportProgress(progress, `Migrating tree ${processedTrees} of ${totalTrees}: ${treeId}`);
+      
       console.log(`Migrating tree: ${treeId}`);
-      await migrateTreeOperations(oldSpacePath, newSpacePath, treeId);
-      treeCount++;
+      
+      try {
+        await migrateTreeOperations(oldSpacePath, newSpacePath, treeId);
+        treeCount++;
+      } catch (error) {
+        console.error(`Error migrating tree ${treeId}:`, error);
+        throw error;
+      }
     }
   }
 
-  console.log(`Migrated ${treeCount} trees`);
+  const message = `Migrated ${treeCount} of ${totalTrees} trees`;
+  console.log(message);
+  reportProgress(100, message);
 }
 
 
