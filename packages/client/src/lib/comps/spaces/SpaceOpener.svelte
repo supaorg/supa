@@ -48,9 +48,6 @@
       const space = spaceSync.space;
       spaceStore.currentSpaceId = space.getId();
       spaceStore.addLocalSpace(spaceSync, path as string);
-
-      console.log("Current space (after opening)", spaceStore.currentSpace);
-
       onSpaceSetup?.(space.getId());
     } catch (e) {
       console.error(e);
