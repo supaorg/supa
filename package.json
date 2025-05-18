@@ -10,9 +10,6 @@
     "dev": "cd packages/client && npm run tauri dev",
     "build": "cd packages/client && npm run tauri build",
     "translate-app": "cd packages/automations && npm run translate-app",
-    "rules": "airul generate",
-    "rules:comment": "# Generate AI rules from documentation",
-    "pregenerate": "[ -f .airulrc.json ] || airul init",
-    "postinstall": "echo \"\nRun 'npm run rules' to generate AI rules from your documentation\""
+    "rules": "airul gen"
   }
 }
