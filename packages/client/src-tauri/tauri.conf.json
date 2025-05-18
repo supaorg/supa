@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schema.tauri.app/config/2.0.0-rc",
+  "$schema": "https://schema.tauri.app/config/2",
   "productName": "Supa",
   "version": "0.1.0",
   "identifier": "cloud.supa.supa",
@@ -24,6 +24,7 @@
     }
   },
   "bundle": {
+    "createUpdaterArtifacts": true,
     "active": true,
     "targets": "all",
     "icon": [
@@ -33,5 +34,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVDMjUzODdGQjk1RDA3NTgKUldSWUIxMjVmemdsN0xnWXM3WFhabC9iYTVEMk8wTVRsZ2J1dUxldGkwRmgrUkx5WlE4Uy85U28K",
+      "endpoints": [
+        "https://github.com/mitkury/supa/releases/latest/download/latest.json"
+      ]
+    }
   }
 }
