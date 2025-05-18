@@ -6,6 +6,7 @@
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import SpaceSetup from "$lib/comps/spaces/SpaceSetup.svelte";
   import { initializeDatabase, savePointers, saveCurrentSpaceId, saveConfig } from "$lib/localDb";
+  import TauriUpdater from "./TauriUpdater.svelte";
 
   type Status = "initializing" | "needsSpace" | "ready";
 
@@ -98,3 +99,5 @@
 {#if isTauri()}
   <TauriWindowSetup />
 {/if}
+
+<TauriUpdater />
