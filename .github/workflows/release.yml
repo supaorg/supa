@@ -56,8 +56,14 @@ jobs:
           choco install -y visualstudio2022-workload-vctools
           choco install -y nodejs-lts
 
-      - name: Install project dependencies
+      - name: Install root dependencies
         run: npm ci
+
+      - name: Build submodules
+        run: |
+          cd packages/ttabs && npm run build
+          cd ../reptree && npm run build
+          cd ..
 
       - name: Build the application
         run: npm run build
