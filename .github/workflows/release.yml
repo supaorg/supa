@@ -31,8 +31,14 @@ jobs:
     steps:
       - name: Install Git LFS
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git-lfs
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            brew install git-lfs
+          elif [ "${{ runner.os }}" = "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y git-lfs
+          elif [ "${{ runner.os }}" = "Windows" ]; then
+            choco install git-lfs
+          fi
           git lfs install
 
       - name: Checkout repository
