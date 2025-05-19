@@ -17,15 +17,15 @@ jobs:
           - platform: "macos-latest"
             args: "--target aarch64-apple-darwin"
             name: "macOS (ARM64)"
-          - platform: "macos-latest"
-            args: "--target x86_64-apple-darwin"
-            name: "macOS (x86_64)"
-          - platform: "ubuntu-latest"
-            args: ""
-            name: "Linux"
-          - platform: "windows-latest"
-            args: ""
-            name: "Windows"
+          # - platform: "macos-latest"
+          #   args: "--target x86_64-apple-darwin"
+          #   name: "macOS (x86_64)"
+          # - platform: "ubuntu-latest"
+          #   args: ""
+          #   name: "Linux"
+          # - platform: "windows-latest"
+          #   args: ""
+          #   name: "Windows"
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -59,11 +59,19 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      - name: Build submodules
+      - name: Build ttabs
         run: |
-          cd packages/ttabs && npm run build
-          cd ../reptree && npm run build
-          cd ..
+          echo "Building ttabs..."
+          cd packages/ttabs/packages/ttabs
+          npm install
+          npm run build
+
+      - name: Build reptree
+        run: |
+          echo "Building reptree..."
+          cd packages/reptree
+          npm install
+          npm run build
 
       - name: Build the application
         run: npm run build
