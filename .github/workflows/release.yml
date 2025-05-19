@@ -83,12 +83,13 @@ jobs:
           npm install
 
       - name: Build the application
-        run: |
-          cd packages/client
-          npm run tauri build -- --verbose
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          cd packages/client
+          echo "TAURI_SIGNING_PRIVATE_KEY is ${#TAURI_SIGNING_PRIVATE_KEY} characters long"
+          npm run tauri build -- --verbose
 
       - name: Create release and upload artifacts
         uses: tauri-apps/tauri-action@v0
