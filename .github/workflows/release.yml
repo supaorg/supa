@@ -29,10 +29,17 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
+      - name: Install Git LFS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git-lfs
+          git lfs install
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          lfs: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
