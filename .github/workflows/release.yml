@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - release
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   build-and-release:
     permissions:
       contents: write
+    env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+    
     strategy:
       fail-fast: false
       matrix:
@@ -29,6 +33,17 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
+      - name: Check for required secrets
+        if: env.TAURI_SIGNING_PRIVATE_KEY == '' || env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD == ''
+        run: |
+          echo "::error::Missing required Tauri signing secrets. Please set TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD in repository secrets."
+          exit 1
+          
+      - name: Debug environment
+        run: |
+          echo "TAURI_SIGNING_PRIVATE_KEY is set: ${#TAURI_SIGNING_PRIVATE_KEY} characters"
+          echo "TAURI_SIGNING_PRIVATE_KEY_PASSWORD is set: ${#TAURI_SIGNING_PRIVATE_KEY_PASSWORD} characters"
+          
       - name: Install Git LFS
         run: |
           if [ "${{ runner.os }}" = "macOS" ]; then
@@ -50,8 +65,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -82,10 +97,13 @@ jobs:
           cd packages/reptree
           npm install
 
+      - name: Debug environment
+        run: |
+          echo "TAURI_SIGNING_PRIVATE_KEY is set: ${TAURI_SIGNING_PRIVATE_KEY:+yes}"
+          echo "TAURI_SIGNING_PRIVATE_KEY length: ${#TAURI_SIGNING_PRIVATE_KEY}"
+          echo "TAURI_SIGNING_PRIVATE_KEY_PASSWORD is set: ${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:+yes}"
+
       - name: Build the application
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           cd packages/client
           echo "TAURI_SIGNING_PRIVATE_KEY is ${#TAURI_SIGNING_PRIVATE_KEY} characters long"
@@ -101,7 +119,7 @@ jobs:
           releaseBody: |
             ## What's Changed
             *Auto-generated release notes*
-            
+
             ### Downloads
             See assets below for platform-specific builds.
           releaseDraft: true
