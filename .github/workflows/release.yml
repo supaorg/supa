@@ -62,8 +62,10 @@ jobs:
       - name: Build ttabs
         run: |
           echo "Building ttabs..."
-          cd packages/ttabs/packages/ttabs
+          cd packages/ttabs
+          # Install dependencies for the monorepo
           npm install
+          # This will build the ttabs package (see package.json scripts)
           npm run build
 
       - name: Build reptree
