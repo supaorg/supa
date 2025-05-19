@@ -55,6 +55,18 @@ jobs:
           cd ../core
           npm install
 
+      - name: Install ttabs dependencies
+        run: |
+          cd packages/ttabs
+          npm install
+          cd packages/ttabs
+          npm install
+
+      - name: Install reptree dependencies
+        run: |
+          cd packages/reptree
+          npm install
+
       - name: Build the application
         run: |
           cd packages/client
