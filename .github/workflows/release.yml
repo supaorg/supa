@@ -44,39 +44,21 @@ jobs:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
           toolchain: stable
 
-      - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-
-      - name: Install Windows dependencies
-        if: matrix.platform == 'windows-latest'
-        run: |
-          choco install -y visualstudio2022-workload-vctools
-          choco install -y nodejs-lts
-
       - name: Install root dependencies
-        run: npm ci
-
-      - name: Build ttabs
         run: |
-          echo "Building ttabs..."
-          cd packages/ttabs
-          # Install dependencies for the monorepo
+          # Install root dependencies
           npm install
-          # This will build the ttabs package (see package.json scripts)
-          npm run build
-
-      - name: Build reptree
-        run: |
-          echo "Building reptree..."
-          cd packages/reptree
+          # Install client dependencies
+          cd packages/client
           npm install
-          npm run build
+          # Install core dependencies
+          cd ../core
+          npm install
 
       - name: Build the application
-        run: npm run build
+        run: |
+          cd packages/client
+          npm run tauri build -- --verbose
         env:
           NODE_ENV: production
 
