@@ -3,21 +3,8 @@
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { openSpaces } from "$lib/swins";
   import { ChevronsUpDown } from "lucide-svelte";
-  import { onMount } from "svelte";
 
   let openState = $state(false);
-  let selectedSpaceId = $state<string | null>(null);
-
-  onMount(() => {
-    selectedSpaceId = spaceStore.currentSpaceId;
-  });
-
-  $effect(() => {
-    // Only update if the selected ID is different from current
-    if (selectedSpaceId !== spaceStore.currentSpaceId) {
-      spaceStore.currentSpaceId = selectedSpaceId;
-    }
-  });
 </script>
 
 <ContextMenu
@@ -37,8 +24,8 @@
       {#each spaceStore.pointers as pointer (pointer.id)}
         <button
           class="btn btn-sm w-full text-left justify-start"
-          class:preset-filled-secondary-500={pointer.id === selectedSpaceId}
-          onclick={() => selectedSpaceId = pointer.id}
+          class:preset-filled-secondary-500={pointer.id === spaceStore.currentSpaceId}
+          onclick={() => spaceStore.currentSpaceId = pointer.id}
         >
           <span><strong>{pointer.name || "Space"}</strong></span>
         </button>

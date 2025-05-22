@@ -104,12 +104,10 @@
 
     return () => {
       sub();
-    };
-  });
 
-  onDestroy(() => { 
-    if (hoverTriggerTimeout) clearTimeout(hoverTriggerTimeout);
-    if (closeSidebarTimeout) clearTimeout(closeSidebarTimeout);
+      if (hoverTriggerTimeout) clearTimeout(hoverTriggerTimeout);
+      if (closeSidebarTimeout) clearTimeout(closeSidebarTimeout);
+    };
   });
 </script>
 
