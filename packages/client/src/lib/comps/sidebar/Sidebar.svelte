@@ -8,7 +8,7 @@
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
 </script>
 
-<div class="flex flex-col h-full">
+<div class="supa-sidebar flex flex-col h-full">
   <div class="min-h-min py-2 px-2">
     <AppButtons />
 
@@ -39,3 +39,11 @@
     </div>
   </div>
 </div>
+
+<style>
+  :global {
+    .supa-sidebar {
+      background-color: var(--color-surface-100-900);
+    }
+  }
+</style>
