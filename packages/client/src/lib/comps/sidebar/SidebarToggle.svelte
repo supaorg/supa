@@ -5,7 +5,6 @@
   import Sidebar from "./Sidebar.svelte";
   import { fly } from 'svelte/transition';
 
-  let currentGridId = $state<string | undefined>(undefined);
   let sidebarIsOpen = $state(true);
   let sidebarWidth = $state(0);
   let sidebarWidthWhenOpen = $state(300);
@@ -48,24 +47,34 @@
     }
   }
 
-  function handleHoverLeave() {
+  function isOverContextMenu(event: MouseEvent) {
+    // Check if the related target is inside a popover (context menu)
+    const popover = (event.relatedTarget as HTMLElement)?.closest?.('.context-menu');
+    return !!popover;
+  }
+
+  function handleHoverLeave(event: MouseEvent) {
     // Clear the show timeout if it's active
     if (hoverTriggerTimeout) {
       clearTimeout(hoverTriggerTimeout);
       hoverTriggerTimeout = null;
     }
 
-    // Only start closing if we're not immediately entering the sidebar
-    closeSidebarTimeout = setTimeout(() => {
-      showHoverSidebar = false;
-    }, 300); // Give a bit of time to move to the sidebar
+    // Only start closing if we're not over a context menu
+    if (!isOverContextMenu(event)) {
+      closeSidebarTimeout = setTimeout(() => {
+        showHoverSidebar = false;
+      }, 300);
+    }
   }
 
-  function handleSidebarLeave() {
-    // Start the closing timeout
-    closeSidebarTimeout = setTimeout(() => {
-      showHoverSidebar = false;
-    }, 200);
+  function handleSidebarLeave(event: MouseEvent) {
+    // Only start closing if we're not over a context menu
+    if (!isOverContextMenu(event)) {
+      closeSidebarTimeout = setTimeout(() => {
+        showHoverSidebar = false;
+      }, 200);
+    }
   }
 
   $effect(() => {
