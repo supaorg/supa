@@ -33,9 +33,9 @@
   {onOpenChange}
   positioning={{ placement }}
   triggerBase={`${triggerClassNames}`}
-  contentBase={`card bg-surface-100-900 p-2 space-y-2 max-w-[${maxWidth}]`}
+  contentBase={`card bg-surface-200-800 shadow-lg p-2 space-y-2 max-w-[${maxWidth}]`}
   {arrow}
-  arrowBackground="!bg-surface-100-900"
+  arrowBackground="!bg-surface-200-800"
   {closeOnInteractOutside}
   {closeOnEscape}
 >
