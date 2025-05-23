@@ -11,12 +11,14 @@
   open={openState}
   onOpenChange={(e) => openState = e.open}
   placement="bottom"
-  triggerClassNames="flex-grow"
+  triggerClassNames="w-full"
 >
   {#snippet trigger()}
-    <div class="flex items-center gap-2">
-      <ChevronsUpDown size={18} />
-      <span class="flex-grow text-left">{spaceStore.currentSpace?.name}</span>
+    <div class="w-full h-full">
+      <div class="flex items-center gap-2 w-full h-full py-1 px-1 rounded hover:preset-tonal">
+        <ChevronsUpDown size={18} class="flex-shrink-0" />
+        <span class="flex-1 min-w-0 truncate text-left">{spaceStore.currentSpace?.name}</span>
+      </div>
     </div>
   {/snippet}
   {#snippet content()}
