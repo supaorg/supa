@@ -33,7 +33,7 @@ export const SKELETON_THEME: TtabsTheme = {
     '--ttabs-tab-bar-border': 'none',
     '--ttabs-tab-indicator-size': '2px',
     '--ttabs-tab-indicator-offset': '0',
-    '--ttabs-transition-duration': '0.1s',
+    '--ttabs-transition-duration': '0',
     '--ttabs-transition-timing': 'ease',
     
     // Controls
