@@ -132,13 +132,6 @@ export const sidebar = $state({
     this._updateLayout();
   },
 
-  setWidth(width: number) {
-    this.widthWhenOpen = width;
-    if (this.isOpen) {
-      this._updateLayout();
-    }
-  },
-
   _updateLayout() {
     if (!layoutRefs.sidebarColumn) return;
 
@@ -159,8 +152,11 @@ function updateHoverSidebarState() {
   if (layoutRefs.sidebarColumn) {
     const sidebarColumn = ttabs.getColumn(layoutRefs.sidebarColumn);
     if (sidebarColumn) {
-      sidebar.widthWhenOpen = Math.max(300, sidebarColumn.width?.value || 300);
       sidebar.isOpen = (sidebarColumn.width?.value || 0) > 50;
+
+      if (sidebar.isOpen) {
+        sidebar.widthWhenOpen = Math.max(50, sidebarColumn.width?.value || 300);
+      }
     }
   }
 }
