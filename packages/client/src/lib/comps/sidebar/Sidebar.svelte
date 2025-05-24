@@ -5,11 +5,7 @@
   import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import SidebarToggle from "./SidebarToggle.svelte";
-  import HoverSidebar from "./HoverSidebar.svelte";
 </script>
-
-<HoverSidebar />
-
 
 <div class="supa-sidebar flex flex-col h-full">
   <div class="min-h-min py-2 px-2">

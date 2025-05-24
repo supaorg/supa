@@ -1,7 +1,7 @@
 import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
 import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
-import { 
-  createTtabs, 
+import {
+  createTtabs,
   type TtabsTheme,
   type LayoutValidator,
   LayoutValidationError,
@@ -20,7 +20,7 @@ const sidebarValidator: LayoutValidator = (ttabs: Ttabs): boolean => {
   const tiles = ttabs.getTiles();
   const rootGridId = ttabs.rootGridId as string;
   const rootGrid = tiles[rootGridId];
-  
+
   // Check that root grid has only 1 row
   if (!rootGrid || rootGrid.type !== 'grid' || rootGrid.rows.length !== 1) {
     throw new LayoutValidationError(
@@ -28,55 +28,55 @@ const sidebarValidator: LayoutValidator = (ttabs: Ttabs): boolean => {
       "INVALID_ROOT_GRID"
     );
   }
-  
+
   // Get the row and check its columns
   const rowId = rootGrid.rows[0];
   const row = tiles[rowId];
-  
+
   if (!row || row.type !== 'row' || row.columns.length < 1) {
     throw new LayoutValidationError(
       "Root grid's row must have at least one column",
       "INVALID_ROW_STRUCTURE"
     );
   }
-  
+
   // Find sidebar components
-  const sidebarTiles = Object.values(tiles).filter(tile => 
+  const sidebarTiles = Object.values(tiles).filter(tile =>
     tile.type === 'content' && tile.componentId === 'sidebar'
   );
-  
+
   // Check that there is exactly one sidebar
   if (sidebarTiles.length === 0) {
     throw new LayoutValidationError(
-      "Layout must include a sidebar component", 
+      "Layout must include a sidebar component",
       "MISSING_SIDEBAR"
     );
   }
-  
+
   if (sidebarTiles.length > 1) {
     throw new LayoutValidationError(
       "Layout must include only one sidebar component",
       "MULTIPLE_SIDEBARS"
     );
   }
-  
+
   // Check that sidebar is in a column
   const sidebarTile = sidebarTiles[0];
   if (!sidebarTile.parent) {
     throw new LayoutValidationError(
-      "Sidebar must have a parent column", 
+      "Sidebar must have a parent column",
       "INVALID_SIDEBAR_PARENT"
     );
   }
-  
+
   const sidebarParent = tiles[sidebarTile.parent];
   if (!sidebarParent || sidebarParent.type !== 'column') {
     throw new LayoutValidationError(
-      "Sidebar must be placed in a column", 
+      "Sidebar must be placed in a column",
       "INVALID_SIDEBAR_PARENT"
     );
   }
-  
+
   // Check that sidebar is in the first column of the row
   if (row.columns[0] !== sidebarParent.id) {
     throw new LayoutValidationError(
@@ -84,7 +84,7 @@ const sidebarValidator: LayoutValidator = (ttabs: Ttabs): boolean => {
       "SIDEBAR_NOT_FIRST_COLUMN"
     );
   }
-  
+
   return true;
 };
 
@@ -108,7 +108,7 @@ type LayoutRefs = {
   sidebarColumn: string | undefined
 }
 
-export const layoutRefs: LayoutRefs = $state({ 
+export const layoutRefs: LayoutRefs = $state({
   contentGrid: undefined,
   sidebarColumn: undefined
 });
@@ -116,43 +116,46 @@ export const layoutRefs: LayoutRefs = $state({
 export const sidebar = $state({
   isOpen: true,
   widthWhenOpen: 300,
-  
+
   toggle() {
     this.isOpen = !this.isOpen;
     this._updateLayout();
   },
-  
+
   open() {
     this.isOpen = true;
     this._updateLayout();
   },
-  
+
   close() {
     this.isOpen = false;
     this._updateLayout();
   },
-  
+
   setWidth(width: number) {
     this.widthWhenOpen = width;
     if (this.isOpen) {
       this._updateLayout();
     }
   },
-  
+
   _updateLayout() {
     if (!layoutRefs.sidebarColumn) return;
-    
+
     ttabs.updateTile(layoutRefs.sidebarColumn, {
-      width: { 
-        value: this.isOpen ? this.widthWhenOpen : 0, 
-        unit: "px" 
+      width: {
+        value: this.isOpen ? this.widthWhenOpen : 0,
+        unit: "px"
       },
     });
   }
 });
 
-// Initialize sidebar state when layout changes
 ttabs.subscribe(() => {
+  updateHoverSidebarState();
+});
+
+function updateHoverSidebarState() {
   if (layoutRefs.sidebarColumn) {
     const sidebarColumn = ttabs.getColumn(layoutRefs.sidebarColumn);
     if (sidebarColumn) {
@@ -160,14 +163,14 @@ ttabs.subscribe(() => {
       sidebar.isOpen = (sidebarColumn.width?.value || 0) > 50;
     }
   }
-});
+}
 
 export function setupLayout(layoutJson?: string) {
   if (!layoutJson) {
     ttabs.resetToDefaultLayout();
     return;
   }
-  
+
   ttabs.deserializeLayout(layoutJson);
 }
 
@@ -178,18 +181,18 @@ export function setupLayout(layoutJson?: string) {
 function findAndUpdateLayoutRefs() {
   // Find the sidebar column
   const tiles = ttabs.getTiles();
-  
+
   // Find sidebar component
-  const sidebarTiles = Object.values(tiles).filter(tile => 
+  const sidebarTiles = Object.values(tiles).filter(tile =>
     tile.type === 'content' && tile.componentId === 'sidebar'
   );
-  
+
   if (sidebarTiles.length > 0) {
     const sidebarTile = sidebarTiles[0];
     if (sidebarTile.parent) {
       // Update the sidebar column reference
       layoutRefs.sidebarColumn = sidebarTile.parent;
-      
+
       // Find the content grid (sibling column's child grid)
       const sidebarParent = tiles[sidebarTile.parent]?.parent;
       if (sidebarParent) {
@@ -211,6 +214,8 @@ function findAndUpdateLayoutRefs() {
       }
     }
   }
+
+  updateHoverSidebarState();
 }
 
 /**
@@ -239,7 +244,7 @@ function findTabByTreeId(treeId: string): string | undefined {
     if (tile.type === 'tab') {
       const content = ttabs.getTabContent(tile.id);
       if (
-        content?.componentId === 'chat' && 
+        content?.componentId === 'chat' &&
         content?.data?.componentProps?.treeId === treeId
       ) {
         return tile.id;
@@ -267,27 +272,27 @@ export function openChatTab(treeId: string, name: string) {
     }
     layoutRefs.contentGrid = grids[0].id;
   }
-  
+
   const grid = ttabs.getGrid(layoutRefs.contentGrid);
   let tab: string;
-  
+
   // Check for a lazy tab and if it exists, update it
   const lazyTabs = ttabs.getLazyTabs(grid.id);
-  
+
   if (lazyTabs.length > 0) {
     // Reuse the first lazy tab we found
     const lazyTab = lazyTabs[0];
     tab = lazyTab.id;
-    
+
     // Update the tab name
-    ttabs.updateTile(tab, { 
+    ttabs.updateTile(tab, {
       name
     });
   } else {
     // No lazy tabs found, create a new one
     tab = ttabs.addTab(grid.id, name, true, true);
   }
-  
+
   // Set the component for the tab
   ttabs.setComponent(tab, 'chat', { treeId });
   ttabs.setFocusedActiveTab(tab);

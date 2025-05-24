@@ -1,8 +1,9 @@
 <script lang="ts">
   import { sidebar } from "$lib/ttabs/layout.svelte";
+  import { onDestroy, onMount } from "svelte";
   import Sidebar from "./Sidebar.svelte";
-  import { fly } from 'svelte/transition';
-  
+  import { fly } from "svelte/transition";
+
   let showHoverSidebar = $state(false);
   let hoverTriggerTimeout: ReturnType<typeof setTimeout> | null = null;
   let closeSidebarTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -24,10 +25,11 @@
     }
   }
 
-
   function isOverContextMenu(event: MouseEvent) {
     // Check if the related target is inside a popover (context menu)
-    const popover = (event.relatedTarget as HTMLElement)?.closest?.('.context-menu');
+    const popover = (event.relatedTarget as HTMLElement)?.closest?.(
+      ".context-menu"
+    );
     return !!popover;
   }
 
@@ -55,12 +57,9 @@
     }
   }
 
-  // Cleanup timeouts on component destroy
-  $effect(() => {
-    return () => {
-      if (hoverTriggerTimeout) clearTimeout(hoverTriggerTimeout);
-      if (closeSidebarTimeout) clearTimeout(closeSidebarTimeout);
-    };
+  onDestroy(() => {
+    if (hoverTriggerTimeout) clearTimeout(hoverTriggerTimeout);
+    if (closeSidebarTimeout) clearTimeout(closeSidebarTimeout);
   });
 </script>
 
@@ -77,9 +76,9 @@
 
 <!-- Hoverable sidebar - always rendered but only visible when triggered -->
 {#if !sidebar.isOpen}
-  <div 
+  <div
     class="hover-sidebar fixed top-0 h-full w-[300px] bg-surface-50-950 transition-all z-10"
-    class:border-r={showHoverSidebar} 
+    class:border-r={showHoverSidebar}
     class:border-surface-300-700={showHoverSidebar}
     class:shadow-2xl={showHoverSidebar}
     style="left: {showHoverSidebar ? '0' : '-300px'};"
