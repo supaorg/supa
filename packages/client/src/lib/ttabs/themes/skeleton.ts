@@ -27,7 +27,7 @@ export const SKELETON_THEME: TtabsTheme = {
     '--ttabs-content-padding': 'var(--spacing, 1rem)',
     
     // Tab headers
-    '--ttabs-tab-header-padding': '0.7rem 1rem',
+    '--ttabs-tab-header-padding': '0.755rem 1rem',
     '--ttabs-tab-header-border': 'var(--default-border-width) solid var(--color-surface-300-700)',
     '--ttabs-tab-header-font-size': 'var(--base-font-size)',
     '--ttabs-tab-bar-border': 'none',

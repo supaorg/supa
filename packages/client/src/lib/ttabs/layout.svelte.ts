@@ -1,5 +1,6 @@
 import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
 import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
+import SidebarToggle from "$lib/comps/sidebar/SidebarToggle.svelte";
 import {
   createTtabs,
   type TtabsTheme,
@@ -102,6 +103,7 @@ export const ttabs = createTtabs({
 
 ttabs.registerComponent('sidebar', Sidebar);
 ttabs.registerComponent('chat', ChatAppLoader);
+ttabs.registerComponent('sidebarToggle', SidebarToggle);
 
 type LayoutRefs = {
   contentGrid: string | undefined,
@@ -171,6 +173,49 @@ export function setupLayout(layoutJson?: string) {
 }
 
 /**
+ * Helper function to find the top-left panel in the content area
+ * @returns The ID of the top-left panel, or undefined if not found
+ */
+function findTopLeftPanelId(): string | undefined {
+  const tiles = ttabs.getTiles();
+  
+  // If we don't have content grid reference, we can't find the top-left panel
+  if (!layoutRefs.contentGrid) return undefined;
+  
+  // Get the content grid
+  const contentGrid = tiles[layoutRefs.contentGrid];
+  if (!contentGrid || contentGrid.type !== 'grid' || contentGrid.rows.length === 0) {
+    return undefined;
+  }
+  
+  // Get the first row in the content grid
+  const contentRowId = contentGrid.rows[0];
+  const contentRow = tiles[contentRowId];
+  
+  if (!contentRow || contentRow.type !== 'row' || contentRow.columns.length === 0) {
+    return undefined;
+  }
+  
+  // Get the first column in the content row
+  const firstColId = contentRow.columns[0];
+  const firstCol = tiles[firstColId];
+  
+  if (!firstCol || firstCol.type !== 'column' || !firstCol.child) {
+    return undefined;
+  }
+  
+  // Get the panel in this column
+  const panelId = firstCol.child;
+  const panel = tiles[panelId];
+  
+  if (!panel || panel.type !== 'panel') {
+    return undefined;
+  }
+  
+  return panelId;
+}
+
+/**
  * Find and update layout references after a reset to default layout
  * This ensures layoutRefs are always in sync with the actual layout
  */
@@ -209,6 +254,13 @@ function findAndUpdateLayoutRefs() {
         }
       }
     }
+  }
+
+  // Add the sidebar toggle to the top-left panel
+  const firstPanelId = findTopLeftPanelId();
+  if (firstPanelId) {
+    const panel = ttabs.getPanelObject(firstPanelId);
+    panel.leftComponents = [{ componentId: 'sidebarToggle' }];
   }
 
   updateHoverSidebarState();
