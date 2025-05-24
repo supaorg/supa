@@ -147,19 +147,24 @@ export const sidebar = $state({
 });
 
 ttabs.subscribe(() => {
-  updateHoverSidebarState();
+  findAndUpdateLayoutRefs();
 });
 
 function updateHoverSidebarState() {
-  if (layoutRefs.sidebarColumn) {
-    const sidebarColumn = ttabs.getColumn(layoutRefs.sidebarColumn);
-    if (sidebarColumn) {
-      sidebar.isOpen = (sidebarColumn.width?.value || 0) > 50;
+  try {
+    if (layoutRefs.sidebarColumn) {
+      console.log(layoutRefs.sidebarColumn);
+      const sidebarColumn = ttabs.getColumn(layoutRefs.sidebarColumn);
+      if (sidebarColumn) {
+        sidebar.isOpen = (sidebarColumn.width?.value || 0) > 50;
 
-      if (sidebar.isOpen) {
-        sidebar.widthWhenOpen = Math.max(50, sidebarColumn.width?.value || 300);
+        if (sidebar.isOpen) {
+          sidebar.widthWhenOpen = Math.max(50, sidebarColumn.width?.value || 300);
+        }
       }
     }
+  } catch (e) {
+    console.error(e);
   }
 }
 
@@ -177,42 +182,77 @@ export function setupLayout(layoutJson?: string) {
  * @returns The ID of the top-left panel, or undefined if not found
  */
 function findTopLeftPanelId(): string | undefined {
-  const tiles = ttabs.getTiles();
-  
-  // If we don't have content grid reference, we can't find the top-left panel
-  if (!layoutRefs.contentGrid) return undefined;
-  
-  // Get the content grid
-  const contentGrid = tiles[layoutRefs.contentGrid];
-  if (!contentGrid || contentGrid.type !== 'grid' || contentGrid.rows.length === 0) {
+  try {
+    if (!layoutRefs.contentGrid) return undefined;
+
+    // Recursively find the top-left panel in a grid
+    const findTopLeftPanelInGrid = (gridId: string): string | undefined => {
+      try {
+        const grid = ttabs.getGrid(gridId);
+        if (!grid || grid.rows.length === 0) return undefined;
+
+        // Get the first row
+        const firstRowId = grid.rows[0];
+        const firstRow = ttabs.getRow(firstRowId);
+        if (!firstRow || firstRow.columns.length === 0) return undefined;
+
+        // Get the first column
+        const firstColId = firstRow.columns[0];
+        const firstCol = ttabs.getColumn(firstColId);
+        if (!firstCol || !firstCol.child) return undefined;
+
+        // Get the child tile
+        const childId = firstCol.child;
+        const child = ttabs.getTile(childId);
+
+        if (!child) return undefined;
+
+        // If child is a panel, we found our top-left panel
+        if (child.type === 'panel') {
+          return childId;
+        }
+        // If child is a grid, recursively search within it
+        else if (child.type === 'grid') {
+          return findTopLeftPanelInGrid(childId);
+        }
+
+        return undefined;
+      } catch (error) {
+        console.error(`Error finding top-left panel in grid ${gridId}:`, error);
+        return undefined;
+      }
+    };
+
+    return findTopLeftPanelInGrid(layoutRefs.contentGrid);
+  } catch (e) {
+    console.error('Error in findTopLeftPanelId:', e);
     return undefined;
   }
-  
-  // Get the first row in the content grid
-  const contentRowId = contentGrid.rows[0];
-  const contentRow = tiles[contentRowId];
-  
-  if (!contentRow || contentRow.type !== 'row' || contentRow.columns.length === 0) {
-    return undefined;
+}
+
+/**
+ * Updates the visibility of the sidebar toggle button in all panels
+ * The toggle button is only visible in the top-left panel when the sidebar is closed
+ */
+function updateSidebarToggleVisibility() {
+  const allPanels = Object.values(ttabs.getTiles())
+    .filter((tile) => tile.type === 'panel');
+
+  const firstPanelId = findTopLeftPanelId();
+
+  console.log('firstPanelId', firstPanelId);
+
+  allPanels.forEach(panel => {
+    if (panel.id === firstPanelId && !sidebar.isOpen) {
+      panel.leftComponents = [{ componentId: 'sidebarToggle' }];
+    } else {
+      panel.leftComponents = [];
+    }
+  });
+
+  for (const panel of allPanels) {
+    ttabs.updateTile(panel.id, panel);
   }
-  
-  // Get the first column in the content row
-  const firstColId = contentRow.columns[0];
-  const firstCol = tiles[firstColId];
-  
-  if (!firstCol || firstCol.type !== 'column' || !firstCol.child) {
-    return undefined;
-  }
-  
-  // Get the panel in this column
-  const panelId = firstCol.child;
-  const panel = tiles[panelId];
-  
-  if (!panel || panel.type !== 'panel') {
-    return undefined;
-  }
-  
-  return panelId;
 }
 
 /**
@@ -256,14 +296,9 @@ function findAndUpdateLayoutRefs() {
     }
   }
 
-  // Add the sidebar toggle to the top-left panel
-  const firstPanelId = findTopLeftPanelId();
-  if (firstPanelId) {
-    const panel = ttabs.getPanelObject(firstPanelId);
-    panel.leftComponents = [{ componentId: 'sidebarToggle' }];
-  }
-
   updateHoverSidebarState();
+
+  updateSidebarToggleVisibility();
 }
 
 /**
