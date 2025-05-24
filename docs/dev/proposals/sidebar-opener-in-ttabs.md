@@ -1,7 +1,7 @@
-# Sidebar Opener Button in Ttabs Panel Proposal
+# Sidebar Toggle Button in Ttabs Panel Proposal
 
 ## Overview
-This proposal outlines adding a sidebar opener button to the ttabs panel in the Supa application, allowing users to open the sidebar from the tabs interface when the sidebar is closed.
+This proposal outlines adding a sidebar toggle button to the ttabs panel in the Supa application, allowing users to open or close the sidebar from the tabs interface.
 
 ## Usage Example
 After implementation, we'll be able to add UI components to panels in a simple, declarative way:
@@ -9,18 +9,18 @@ After implementation, we'll be able to add UI components to panels in a simple, 
 ```typescript
 // In layout.svelte.ts
 
-// 1. Register the SidebarOpener component
-ttabs.registerComponent('sidebarOpener', SidebarOpener);
+// 1. Register the SidebarToggle component
+ttabs.registerComponent('sidebarToggle', SidebarToggle);
 
 // 2. Find the top-left panel where we want to place the opener button
 function findAndUpdateLayoutRefs() {
   // Existing code...
   
-  // 3. Add the sidebar opener to the top-left panel
+  // 3. Add the sidebar toggle to the top-left panel
   const firstPanelId = findTopLeftPanelId();
   if (firstPanelId) {
     const panel = ttabs.getPanelObject(firstPanelId);
-    panel.leftComponents = [{ componentId: 'sidebarOpener' }];
+    panel.leftComponents = [{ componentId: 'sidebarToggle' }];
     
     // We could add multiple components if needed:
     // panel.rightComponents = [
@@ -208,38 +208,37 @@ export class Panel extends TileObject {
 }
 ```
 
-### 4. Create SidebarOpener Component
-Create a new component that opens the sidebar, with appropriate styling to match Supa's design system:
+### 4. Create SidebarToggle Component
+Create a new component that toggles the sidebar, with appropriate styling to match Supa's design system:
 
 ```svelte
 <script lang="ts">
   import { sidebar } from "$lib/ttabs/layout.svelte";
-  import { Menu } from "lucide-svelte";
+  import { Menu, PanelLeftClose } from "lucide-svelte";
   
   // Props passed from ttabs
   let ttabs: any;
   let panelId: string;
   
-  // Only show the button when the sidebar is closed
-  const isVisible = $derived(!sidebar.isOpen);
-  
-  function openSidebar() {
-    sidebar.open();
+  function toggleSidebar() {
+    sidebar.toggle();
   }
 </script>
 
-{#if isVisible}
-  <button 
-    class="sidebar-opener btn btn-sm variant-ghost-surface btn-icon" 
-    onclick={openSidebar} 
-    aria-label="Open sidebar"
-  >
+<button 
+  class="sidebar-toggle btn btn-sm variant-ghost-surface btn-icon" 
+  onclick={toggleSidebar} 
+  aria-label={sidebar.isOpen ? 'Close sidebar' : 'Open sidebar'}
+>
+  {#if sidebar.isOpen}
+    <PanelLeftClose size={16} />
+  {:else}
     <Menu size={16} />
-  </button>
-{/if}
+  {/if}
+</button>
 
 <style>
-  .sidebar-opener {
+  .sidebar-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -253,21 +252,21 @@ Integrate the sidebar opener in `layout.svelte.ts` by first registering the comp
 
 ```typescript
 // In layout.svelte.ts
-import SidebarOpener from "$lib/comps/sidebar/SidebarOpener.svelte";
+import SidebarToggle from "$lib/comps/sidebar/SidebarToggle.svelte";
 
-// Register the SidebarOpener component
-ttabs.registerComponent('sidebarOpener', SidebarOpener);
+// Register the SidebarToggle component
+ttabs.registerComponent('sidebarToggle', SidebarToggle);
 
 // Find and update layout references to determine the top-left panel
 function findAndUpdateLayoutRefs() {
   // Existing code...
   
   // After determining the first panel in the layout,
-  // add the sidebar opener to it
+  // add the sidebar toggle to it
   const firstPanelId = findTopLeftPanelId();
   if (firstPanelId) {
     const panel = ttabs.getPanelObject(firstPanelId);
-    panel.leftComponents = [{ componentId: 'sidebarOpener' }];
+    panel.leftComponents = [{ componentId: 'sidebarToggle' }];
   }
 }
 
@@ -349,11 +348,5 @@ function findTopLeftPanelId(): string | undefined {
 - Creates a more flexible ttabs component that can be customized for other needs
 - Maintains a clean interface by only showing the button when relevant
 
-## Alternative Approaches
-1. **Global Header Bar**: Instead of modifying ttabs, create a global header bar above all content
-2. **Floating Button**: Add a floating button that appears when sidebar is closed
-3. **Keyboard Shortcut Only**: Rely solely on keyboard shortcuts to toggle the sidebar
-4. **Dedicated Panel UI Registry**: Create a specialized registry and API for panel UI components
-5. **Slot-based Approach**: Use slots in the TilePanel component for custom content
 
 The proposed solution is preferred as it integrates naturally with the existing UI paradigm while minimizing changes to the ttabs package. It also keeps Supa-specific logic (determining which panel is top-left) in the Supa codebase rather than in the reusable ttabs package.
