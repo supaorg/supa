@@ -111,7 +111,56 @@ type LayoutRefs = {
 export const layoutRefs: LayoutRefs = $state({ 
   contentGrid: undefined,
   sidebarColumn: undefined
-})
+});
+
+export const sidebar = $state({
+  isOpen: true,
+  widthWhenOpen: 300,
+  
+  toggle() {
+    this.isOpen = !this.isOpen;
+    this._updateLayout();
+  },
+  
+  open() {
+    this.isOpen = true;
+    this._updateLayout();
+  },
+  
+  close() {
+    this.isOpen = false;
+    this._updateLayout();
+  },
+  
+  setWidth(width: number) {
+    this.widthWhenOpen = width;
+    if (this.isOpen) {
+      this._updateLayout();
+    }
+  },
+  
+  _updateLayout() {
+    if (!layoutRefs.sidebarColumn) return;
+    
+    ttabs.updateTile(layoutRefs.sidebarColumn, {
+      width: { 
+        value: this.isOpen ? this.widthWhenOpen : 0, 
+        unit: "px" 
+      },
+    });
+  }
+});
+
+// Initialize sidebar state when layout changes
+ttabs.subscribe(() => {
+  if (layoutRefs.sidebarColumn) {
+    const sidebarColumn = ttabs.getColumn(layoutRefs.sidebarColumn);
+    if (sidebarColumn) {
+      sidebar.widthWhenOpen = Math.max(300, sidebarColumn.width?.value || 300);
+      sidebar.isOpen = (sidebarColumn.width?.value || 0) > 50;
+    }
+  }
+});
 
 export function setupLayout(layoutJson?: string) {
   if (!layoutJson) {

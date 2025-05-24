@@ -5,6 +5,7 @@
   import AppTrees from "./AppTrees.svelte";
   import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
+  import { sidebar } from "$lib/ttabs/layout.svelte";
 </script>
 
 <div class="supa-sidebar flex flex-col h-full">
@@ -17,7 +18,14 @@
         <SwinsNavButton component="settings" title="Settings" className="p-2 rounded hover:preset-tonal">
           <Settings size={18} />
         </SwinsNavButton>
-        <button class="p-2 rounded hover:preset-tonal" title="Toggle sidebar" aria-label="Toggle sidebar">
+        <button 
+          class="p-2 rounded hover:preset-tonal" 
+          title="Close sidebar" 
+          aria-label="Close sidebar"
+          on:click={() => {
+            sidebar.close();
+          }}
+        >
           <PanelLeftClose size={18} />
         </button>
       </div>
