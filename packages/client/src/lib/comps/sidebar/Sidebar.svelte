@@ -1,12 +1,15 @@
 <script lang="ts">
   import Settings from "lucide-svelte/icons/settings-2";
-  import PanelLeftClose from "lucide-svelte/icons/panel-left-close";
   import AppButtons from "./AppButtons.svelte";
   import AppTrees from "./AppTrees.svelte";
   import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
-  import { sidebar } from "$lib/ttabs/layout.svelte";
+  import SidebarToggle from "./SidebarToggle.svelte";
+  import HoverSidebar from "./HoverSidebar.svelte";
 </script>
+
+<HoverSidebar />
+
 
 <div class="supa-sidebar flex flex-col h-full">
   <div class="min-h-min py-2 px-2">
@@ -18,16 +21,7 @@
         <SwinsNavButton component="settings" title="Settings" className="p-2 rounded hover:preset-tonal">
           <Settings size={18} />
         </SwinsNavButton>
-        <button 
-          class="p-2 rounded hover:preset-tonal" 
-          title="Close sidebar" 
-          aria-label="Close sidebar"
-          on:click={() => {
-            sidebar.close();
-          }}
-        >
-          <PanelLeftClose size={18} />
-        </button>
+        <SidebarToggle />
       </div>
     </div>
     <AppButtons />

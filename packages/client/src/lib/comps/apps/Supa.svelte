@@ -6,8 +6,8 @@
   import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
   import { swins } from "$lib/swins/swinsLayout";
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
-  import SidebarToggle from "../sidebar/SidebarToggle.svelte";
   import SupaTtabsLayout from "../SupaTtabsLayout.svelte";
+  import HoverSidebar from "../sidebar/HoverSidebar.svelte";
 </script>
 
 <OllamaAutoConfig />
@@ -32,7 +32,7 @@
   {/if}
 </div>
 
-<SidebarToggle />
+<HoverSidebar />
 
 <SwinsContainer swins={swins} />
 
