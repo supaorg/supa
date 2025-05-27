@@ -259,6 +259,7 @@ export default class Space {
       id: "default",
       name: "Chat",
       button: "New query",
+      visible: true,
       description: "A basic chat assistant",
       instructions:
         "You are Supa, an AI assistant. Be direct in all responses. Use simple language. Avoid niceties, filler words, and formality.",
