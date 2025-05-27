@@ -522,12 +522,28 @@ export class LocalSpaceSync implements SpaceConnection {
 }
 
 export async function createNewLocalSpaceAndConnect(path: string): Promise<SpaceConnection> {
+  let parentDirIsSpaceDir = false;
+  // First check if parent directory contains a space version directory
+  try {
+    const parentDir = path.split('/').slice(0, -1).join('/');
+    if (parentDir && await containsSpaceVersionDir(parentDir)) {
+      parentDirIsSpaceDir = true;
+    }
+  } catch (error) {
+    // We do try/catch just in case if we don't have permissions to read the parent directory
+    parentDirIsSpaceDir = false;
+  }
+
+  if (parentDirIsSpaceDir) {
+    throw new Error("Cannot create a space inside another space directory");
+  }
+
   const dirEntries = await readDir(path);
   // Exclude all dot directories (e.g .DS_Store, .git)
   const filteredDirEntries = dirEntries.filter(entry => entry.isDirectory && !entry.name.startsWith('.'));
   // Make sure the directory is empty (except for dot directories)
   if (filteredDirEntries.length > 0) {
-    throw new Error("Directory is not empty");
+    throw new Error("Folder (directory) is not empty. Make sure you create a space in a new, empty folder");
   }
 
   const space = Space.newSpace(uuid());

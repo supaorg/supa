@@ -37,7 +37,8 @@
       onSpaceSetup?.(space.getId());
     } catch (e) {
       console.error(e);
-      message($txtStore.spacesPage.opener.errorCreate, { kind: "error" });
+      const errorMessage = e instanceof Error ? e.message : $txtStore.spacesPage.opener.errorCreate;
+      message(errorMessage, { kind: "error" });
     } finally {
       status = "idle";
     }
@@ -67,7 +68,8 @@
       onSpaceSetup?.(space.getId());
     } catch (e) {
       console.error(e);
-      message($txtStore.spacesPage.opener.errorOpen, { kind: "error" });
+      const errorMessage = e instanceof Error ? e.message : $txtStore.spacesPage.opener.errorOpen;
+      message(errorMessage, { kind: "error" });
     } finally {
       status = "idle";
     }
