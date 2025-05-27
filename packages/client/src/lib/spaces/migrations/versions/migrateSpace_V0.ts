@@ -10,6 +10,7 @@ import {
 import { loadOpsFromJSONLFile } from "$lib/spaces/migrations/SpaceMigrations";
 import { type VertexOperation } from "reptree";
 import { tempDir, join } from "@tauri-apps/api/path";
+import { LOCAL_SPACE_MD_FILE, TEXT_INSIDE_LOCAL_SPACE_MD_FILE } from "$lib/spaces/LocalSpaceSync";
 
 
 export interface MigrationProgress {
@@ -26,7 +27,7 @@ export async function migrateFromV0ToV1(
   options: MigrationProgress = {}
 ): Promise<void> {
   const { onProgress } = options;
-  
+
   const reportProgress = (progress: number, message: string) => {
     onProgress?.(Math.min(100, Math.max(0, progress)), message);
   };
@@ -113,7 +114,7 @@ export async function migrateFromV0ToV1(
     if (await exists(`${spacePath}/secrets`)) {
       await rename(`${spacePath}/secrets`, `${spaceV0Path}/secrets`);
     }
-    
+
     reportProgress(95, 'Finalizing backup');
 
     reportProgress(98, 'Creating migration marker');
@@ -135,11 +136,9 @@ export async function migrateFromV0ToV1(
     // Remove the temporary directory
     await remove(tempDirPath, { recursive: true });
 
-    // Create README.md in the root directory
-    await writeTextFile(`${spacePath}/README.md`,
-      `# Supa Space
-
-This directory contains a Supa space. Please do not rename or modify the 'space-v1' folder as you won't be able to open the space from Supa. Supa needs it as is. You can delete this file if you want, though.`);
+    // Create supa.md in the root directory
+    await writeTextFile(`${spacePath}/${LOCAL_SPACE_MD_FILE}`,
+      TEXT_INSIDE_LOCAL_SPACE_MD_FILE);
 
     console.log(`Migration from v0 to v1 completed for space at ${spacePath}`);
   } catch (error: unknown) {
@@ -161,13 +160,13 @@ This directory contains a Supa space. Please do not rename or modify the 'space-
  * @param options Options including progress callback
  */
 async function migrateOperations(
-  oldSpacePath: string, 
-  newSpacePath: string, 
+  oldSpacePath: string,
+  newSpacePath: string,
   spaceId: string,
   options: MigrationProgress = {}
 ): Promise<void> {
   const { onProgress } = options;
-  
+
   const reportProgress = (progress: number, message: string) => {
     onProgress?.(progress, message);
   };
@@ -180,7 +179,7 @@ async function migrateOperations(
       reportProgress(progress, message);
     }
   });
-  
+
   reportProgress(100, 'Operation migration complete');
 }
 
@@ -239,12 +238,12 @@ async function migrateTreeOperations(oldSpacePath: string, newSpacePath: string,
  * @param options Options including progress callback
  */
 async function migrateAllTrees(
-  oldSpacePath: string, 
+  oldSpacePath: string,
   newSpacePath: string,
   options: MigrationProgress = {}
 ): Promise<void> {
   const { onProgress } = options;
-  
+
   const reportProgress = (progress: number, message: string) => {
     onProgress?.(progress, message);
   };
@@ -294,12 +293,12 @@ async function migrateAllTrees(
       // Combine prefix and suffix to get the full tree ID
       const treeId = prefixDir.name + suffixDir.name;
       processedTrees++;
-      
+
       const progress = Math.min(100, 5 + Math.floor((processedTrees / totalTrees) * 95));
       reportProgress(progress, `Migrating tree ${processedTrees} of ${totalTrees}: ${treeId}`);
-      
+
       console.log(`Migrating tree: ${treeId}`);
-      
+
       try {
         await migrateTreeOperations(oldSpacePath, newSpacePath, treeId);
         treeCount++;

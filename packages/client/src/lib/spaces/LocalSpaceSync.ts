@@ -118,6 +118,10 @@ export interface SpaceConnection {
   disconnect(): Promise<void>;
 }
 
+export const LOCAL_SPACE_MD_FILE = 'supa.md';
+export const TEXT_INSIDE_LOCAL_SPACE_MD_FILE = `# Supa Space
+
+This directory contains a Supa space. Please do not rename or modify the 'space-v1' folder as you won't be able to open the space from Supa. Supa needs it as is.`;
 
 export class LocalSpaceSync implements SpaceConnection {
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
@@ -498,13 +502,9 @@ export async function createNewLocalSpaceAndConnect(path: string): Promise<Space
   // Create ops directory
   await mkdir(versionedPath + '/ops', { recursive: true });
 
-  // Create README.md file
-  const readmeFile = await create(path + '/README.md');
-  await readmeFile.write(new TextEncoder().encode(
-    `# Supa Space
-
-This directory contains a Supa space. Please do not rename or modify the 'space-v1' directory structure as it will corrupt your data.`
-  ));
+  // Create supa.md file
+  const readmeFile = await create(path + '/' + LOCAL_SPACE_MD_FILE);
+  await readmeFile.write(new TextEncoder().encode(TEXT_INSIDE_LOCAL_SPACE_MD_FILE));
 
   // Create space.json with the space ID
   const spaceJsonFile = await create(versionedPath + '/space.json');
