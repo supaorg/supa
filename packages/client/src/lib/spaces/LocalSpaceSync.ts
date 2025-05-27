@@ -123,6 +123,46 @@ export const TEXT_INSIDE_LOCAL_SPACE_MD_FILE = `# Supa Space
 
 This directory contains a Supa space. Please do not rename or modify the 'space-v1' folder as you won't be able to open the space from Supa. Supa needs it as is.`;
 
+async function containsSpaceVersionDir(dir: string): Promise<boolean> {
+  try {
+    const entries = await readDir(dir);
+    return entries.some(entry => entry.isDirectory && entry.name.startsWith('space-v'));
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Checks if the provided path is a valid space directory or contains one
+ * @param path The path to check
+ * @returns The root path of the space
+ * @throws If no valid space directory is found
+ */
+export async function checkIfPathHasValidStructureAndReturnActualRootPath(path: string): Promise<string> {
+  // Check if current directory contains a space-v* directory
+  if (await containsSpaceVersionDir(path)) {
+    return path;
+  }
+  
+  // Check if we're inside a space-v* directory (one level deep)
+  const pathParts = path.split('/');
+  const lastPart = pathParts[pathParts.length - 1];
+  if (lastPart.startsWith('space-v')) {
+    const parentPath = pathParts.slice(0, -1).join('/');
+    if (await exists(`${parentPath}/${lastPart}`)) {
+      return parentPath;
+    }
+  }
+  
+  // Check one level up for a space-v* directory
+  const parentPath = path + '/..';
+  if (await containsSpaceVersionDir(parentPath)) {
+    return parentPath;
+  }
+  
+  throw new Error('Not a valid Supa space directory. Expected to find a space-v* directory.');
+}
+
 export class LocalSpaceSync implements SpaceConnection {
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
   private _connected = false;
@@ -585,6 +625,11 @@ async function loadSpace(basePath: string): Promise<Space> {
 
 async function loadLocalSpace(path: string): Promise<Space> {
   try {
+    const hasValidStructure = await containsSpaceVersionDir(path);
+    if (!hasValidStructure) {
+      throw new Error("Not a valid Supa space directory. Expected to find a space-v* directory.");
+    }
+    
     await migrateSpaceIfNeeded(path);
     // After migration (if any), load the space from the current version path
     return await loadSpace(path);
@@ -634,7 +679,6 @@ async function openFileToCurrentTreeOpsJSONLFile(spacePath: string, treeId: stri
 
 /**
  * Loads all operations for a tree from the filesystem
- * This is the legacy version that only supports v1 format
  * @param spacePath Path to the space directory
  * @param treeId ID of the tree
  * @returns Array of operations

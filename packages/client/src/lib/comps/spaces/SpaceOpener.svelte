@@ -2,6 +2,7 @@
   import { message, open } from "@tauri-apps/plugin-dialog";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import {
+  checkIfPathHasValidStructureAndReturnActualRootPath,
     createNewLocalSpaceAndConnect,
     loadLocalSpaceAndConnect,
   } from "$lib/spaces/LocalSpaceSync";
@@ -57,10 +58,12 @@
         return;
       }
 
-      const spaceSync = await loadLocalSpaceAndConnect(path as string);
+      // We do this to allow users open spaces from any directory inside the space directory 
+      const rootPath = await checkIfPathHasValidStructureAndReturnActualRootPath(path as string);
+      const spaceSync = await loadLocalSpaceAndConnect(rootPath);
       const space = spaceSync.space;
       spaceStore.currentSpaceId = space.getId();
-      spaceStore.addLocalSpace(spaceSync, path as string);
+      spaceStore.addLocalSpace(spaceSync, rootPath);
       onSpaceSetup?.(space.getId());
     } catch (e) {
       console.error(e);
