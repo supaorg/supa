@@ -96,7 +96,7 @@
       {#snippet trigger()}
         <Switch
           name={"visible-" + config.id}
-          checked={config.visible !== undefined ? config.visible : true}
+          checked={config.visible !== undefined ? config.visible : false}
           controlActive="bg-secondary-500"
           onCheckedChange={(_) => toggleVisibility()}
         />

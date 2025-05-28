@@ -61,6 +61,7 @@
         description: description,
         instructions: instructions,
         targetLLM: targetLLM,
+        visible: true,
       });
 
       swins.popTo("apps");
