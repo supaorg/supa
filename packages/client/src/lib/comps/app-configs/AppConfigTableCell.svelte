@@ -1,12 +1,13 @@
 <script lang="ts">
   import type { AppConfig } from "@core/models";
-  import { Switch, Popover, Tooltip } from "@skeletonlabs/skeleton-svelte";
+  import { Switch, Tooltip } from "@skeletonlabs/skeleton-svelte";
   import {
     TrashIcon,
     GripVertical,
     Pencil,
     MessageCircle,
   } from "lucide-svelte";
+  import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { txtStore } from "$lib/stores/txtStore";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
@@ -109,14 +110,13 @@
 
   <div>
     {#if !isDefault}
-      <Popover
+      <ContextMenu
         open={deletePopoverOpen}
         onOpenChange={(e) => (deletePopoverOpen = e.open)}
-        positioning={{ placement: "left" }}
-        triggerBase=""
-        contentBase="card bg-surface-200-800 p-4 space-y-4 max-w-[320px]"
+        placement="left"
+        triggerClassNames=""
+        maxWidth="320px"
         arrow
-        arrowBackground="!bg-surface-200 dark:!bg-surface-800"
         closeOnInteractOutside={true}
         closeOnEscape={true}
       >
@@ -140,7 +140,7 @@
             >
           </div>
         {/snippet}
-      </Popover>
+      </ContextMenu>
     {:else}
       <Tooltip contentBase="card bg-surface-200-800 p-2">
         {#snippet trigger()}
