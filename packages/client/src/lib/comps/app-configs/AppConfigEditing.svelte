@@ -97,8 +97,8 @@
       {@html defaultConfigMessage}
       <SwinsNavButton
         component="app-config"
+        className="anchor"
         title={$txtStore.appConfigPage.defaultConfigGotoNew}
-        popTo="apps"
       >
         {$txtStore.appConfigPage.defaultConfigGotoNew}
       </SwinsNavButton>

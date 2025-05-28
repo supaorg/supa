@@ -153,7 +153,6 @@ ttabs.subscribe(() => {
 function updateHoverSidebarState() {
   try {
     if (layoutRefs.sidebarColumn) {
-      console.log(layoutRefs.sidebarColumn);
       const sidebarColumn = ttabs.getColumn(layoutRefs.sidebarColumn);
       if (sidebarColumn) {
         sidebar.isOpen = (sidebarColumn.width?.value || 0) > 50;
@@ -239,8 +238,6 @@ function updateSidebarToggleVisibility() {
     .filter((tile) => tile.type === 'panel');
 
   const firstPanelId = findTopLeftPanelId();
-
-  console.log('firstPanelId', firstPanelId);
 
   allPanels.forEach(panel => {
     if (panel.id === firstPanelId && !sidebar.isOpen) {
