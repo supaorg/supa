@@ -10,7 +10,7 @@
   function handleBreadcrumbClick(pageIndex: number) {
     if (pageIndex < swins.windows.length - 1) {
       // If not the last page, use popTo to navigate to this page
-      swins.popTo(swins.windows[pageIndex].id);
+      swins.popTo(swins.windows[pageIndex].componentId);
     }
   }
 
