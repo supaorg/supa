@@ -29,7 +29,7 @@
 </script>
 
 <div class="flex gap-4 p-2 rounded">
-  <!-- Sorting/drag handle -->
+  <!--
   <div class="cursor-grab flex-shrink-0">
     <Tooltip contentBase="card bg-surface-200-800 p-2">
       {#snippet trigger()}
@@ -40,6 +40,7 @@
       {/snippet}
     </Tooltip>
   </div>
+  -->
 
   <!-- Edit icon + Assistant name/description -->
   <div class="flex items-start gap-2 flex-1 min-w-0 group">
