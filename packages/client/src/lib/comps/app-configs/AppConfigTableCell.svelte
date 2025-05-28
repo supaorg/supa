@@ -11,6 +11,7 @@
   import { txtStore } from "$lib/stores/txtStore";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { swins } from "$lib/swins";
 
   let { config }: { config: AppConfig } = $props();
 
@@ -81,7 +82,7 @@
           title="Start Chat"
           aria-label="Start Chat"
           onclick={() => {
-            /* TODO: implement chat start */
+            swins.open("new-thread", { appConfig: config }, "New conversation");
           }}
         >
           <MessageCircle class="w-4 h-4" />
