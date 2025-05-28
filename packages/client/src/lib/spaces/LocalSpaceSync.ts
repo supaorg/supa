@@ -778,7 +778,7 @@ function turnOpsIntoJSONLines(ops: VertexOperation[]): string {
       // We save parentId like that because it might be null and we want to save null with quotes
       str += `["m",${op.id.counter},"${op.targetId}",${JSON.stringify(op.parentId)}]\n`;
     } else if (isAnyPropertyOp(op)) {
-      // Convert undefined to empty object - {} because JSON doesn't support undefined
+      // Convert undefined to empty object ({}) because JSON doesn't support undefined
       const value = op.value === undefined ? {} : op.value;
       str += `["p",${op.id.counter},"${op.targetId}","${op.key}",${JSON.stringify(value)}]\n`;
     }
@@ -787,7 +787,7 @@ function turnOpsIntoJSONLines(ops: VertexOperation[]): string {
   return str;
 }
 
-async function turnJSONLinesIntoOps(lines: string[], peerId: string): Promise<VertexOperation[]> {
+export async function turnJSONLinesIntoOps(lines: string[], peerId: string): Promise<VertexOperation[]> {
   return new Promise((resolve, reject) => {
     const handleMessage = (e: MessageEvent) => {
       const { operations } = e.data as { operations: ParsedOp[] };
@@ -795,8 +795,9 @@ async function turnJSONLinesIntoOps(lines: string[], peerId: string): Promise<Ve
         if (op.type === 'm') {
           return newMoveVertexOp(op.counter, op.peerId, op.targetId, op.parentId ?? null);
         } else {
-          // Convert empty object back to undefined
+          // Convert empty object ({}) to undefined
           const value = op.value && typeof op.value === 'object' && Object.keys(op.value).length === 0 ? undefined : op.value;
+          console.log("value", op.key, value);
           return newSetVertexPropertyOp(op.counter, op.peerId, op.targetId, op.key!, value);
         }
       });

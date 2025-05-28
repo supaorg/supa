@@ -8,6 +8,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "reptree";
 import { migrateFromV0ToV1 } from "./versions/migrateSpace_V0";
+import { turnJSONLinesIntoOps } from "../LocalSpaceSync";
 
 /**
  * Detects the current version of a space directory
@@ -438,22 +439,7 @@ export async function loadOpsFromJSONLFile(filePath: string, peerId: string): Pr
     const content = await readTextFile(filePath);
     const lines = content.split('\n').filter(line => line.trim().length > 0);
     
-    const ops: VertexOperation[] = [];
-    
-    for (const line of lines) {
-      try {
-        const [type, counter, targetId, parentIdOrKey, value] = JSON.parse(line);
-        
-        if (type === 'm') {
-          ops.push(newMoveVertexOp(counter, peerId, targetId, parentIdOrKey));
-        } else if (type === 'p') {
-          ops.push(newSetVertexPropertyOp(counter, peerId, targetId, parentIdOrKey, value));
-        }
-      } catch (parseError) {
-        console.error(`Error parsing operation line: ${line}`, parseError);
-      }
-    }
-    
+    const ops: VertexOperation[] = await turnJSONLinesIntoOps(lines, peerId);
     return ops;
   } catch (error: unknown) {
     if (error instanceof Error) {

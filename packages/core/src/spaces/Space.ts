@@ -247,6 +247,10 @@ export default class Space {
   }
 
   getAppConfig(configId: string): AppConfig | undefined {
+    if (configId === "default") {
+      return Space.getDefaultAppConfig();
+    }
+
     const config = this.findObjectWithPropertyAtPath('app-configs', 'id', configId);
 
     if (!config) return undefined;

@@ -1,5 +1,20 @@
 import type { AppConfig } from "../models";
 import type { Vertex } from "../../../reptree/src/index";
+import Space from "./Space";
+
+function enrichDefaultConfig(configs: AppConfig[]): AppConfig[] {
+  // Enrich the default config with the default values
+  const defaultConfigIndex = configs.findIndex((config) => config.id === "default");
+  if (defaultConfigIndex !== -1) {
+    const defaultConfig = Space.getDefaultAppConfig();
+    configs[defaultConfigIndex] = {
+      ...defaultConfig,
+      ...configs[defaultConfigIndex],
+    };
+  }
+
+  return configs;
+}
 
 // @TODO: answer: should I resolve 'id' into vertex id? And same for _n to 'name'?
 
@@ -16,11 +31,17 @@ export class AppConfigsData {
   }
 
   getAll(): AppConfig[] {
-    return this.root.getChildrenAsTypedArray<AppConfig>();
+    return enrichDefaultConfig(this.root.getChildrenAsTypedArray<AppConfig>());
   }
 
   get(configId: string): AppConfig | undefined {
-    return this.root.findFirstTypedChildWithProperty<AppConfig>("id", configId);
+    const config = this.root.findFirstTypedChildWithProperty<AppConfig>("id", configId);
+
+    if (config?.id === "default") {
+      return enrichDefaultConfig([config])[0];
+    }
+
+    return config;
   }
 
   // @TODO: consider adding automatically
@@ -55,7 +76,12 @@ export class AppConfigsData {
   }
 
   observe(observer: (appConfigs: AppConfig[]) => void) {
+    function observerWrapper(appConfigs: AppConfig[]) {
+      observer(enrichDefaultConfig(appConfigs));
+    }
+
     observer(this.getAll());
-    return this.root.observeChildrenAsTypedArray(observer);
+
+    return this.root.observeChildrenAsTypedArray(observerWrapper);
   }
 }

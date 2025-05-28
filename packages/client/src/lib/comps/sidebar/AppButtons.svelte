@@ -4,16 +4,24 @@
   import { LayoutGrid, MessageCircle } from "lucide-svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import { txtStore } from "$lib/stores/txtStore";
+  import { untrack } from "svelte";
 
   let appConfigs = $state<AppConfig[]>([]);
   let appConfigUnobserve: (() => void) | undefined;
 
   $effect(() => {
-    appConfigUnobserve = spaceStore.currentSpace?.appConfigs.observe(
-      (configs) => {
+    const space = spaceStore.currentSpace;
+    if (!space) {
+      return;
+    }
+
+    // Untrack "appConfigs" state updates
+    untrack(() => {
+      appConfigUnobserve = space.appConfigs.observe((configs: AppConfig[]) => {
         appConfigs = configs;
-      }
-    );
+        console.log("appConfigs", appConfigs);
+      });
+    });
 
     return () => {
       appConfigUnobserve?.();
