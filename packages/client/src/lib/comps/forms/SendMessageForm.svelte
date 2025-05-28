@@ -94,7 +94,6 @@
           return drafts;
         });
       }
-      onClose();
     };
   });
 

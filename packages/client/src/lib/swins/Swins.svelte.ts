@@ -88,7 +88,7 @@ export class SWins {
    * @param componentId ID of the component to navigate to
    */
   popTo(componentId: string) {
-    const windowIndex = this.windows.findIndex(window => window.componentId === componentId);
+    const windowIndex = this.windows.findLastIndex(window => window.componentId === componentId);
     if (windowIndex !== -1) {
       this.windows = this.windows.slice(0, windowIndex + 1);
     }
