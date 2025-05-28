@@ -10,10 +10,12 @@
   async function checkForTauriUpdate() {
     console.log("Checking for update...");
     tauriUpdate = await check();
-    console.log("tauriUpdate", tauriUpdate);
     if (tauriUpdate) {
+      console.log("Tauri Update", tauriUpdate);
       await tauriUpdate.downloadAndInstall();
       showToast = true;
+    } else {
+      console.log("No update available");
     }
   }
 

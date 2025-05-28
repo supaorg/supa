@@ -46,7 +46,7 @@ export class SWins {
    */
   register(id: string, component: Component, defaultProps: Record<string, any> = {}) {
     this.componentRegistry[id] = { component, defaultProps };
-    return this; // For chaining
+    return this;
   }
   
   /**
@@ -60,7 +60,7 @@ export class SWins {
     // Check if component exists
     if (!this.componentRegistry[componentId]) {
       console.error(`Component with ID "${componentId}" not found in registry`);
-      return this; // For chaining
+      return this;
     }
     
     // Create a unique ID for this window instance
@@ -69,7 +69,7 @@ export class SWins {
     // Add to stack
     this.windows = [...this.windows, { id, componentId, props, title }];
     
-    return this; // For chaining
+    return this;
   }
   
   /**
@@ -79,20 +79,20 @@ export class SWins {
     if (this.windows.length > 0) {
       this.windows = this.windows.slice(0, -1);
     }
-    return this; // For chaining
+    return this;
   }
   
   /**
-   * Pop until reaching a specific window
+   * Pop until reaching a window with the specified component ID
    * 
-   * @param windowId ID of the window to navigate to
+   * @param componentId ID of the component to navigate to
    */
-  popTo(windowId: string) {
-    const windowIndex = this.windows.findIndex(window => window.id === windowId);
+  popTo(componentId: string) {
+    const windowIndex = this.windows.findIndex(window => window.componentId === componentId);
     if (windowIndex !== -1) {
       this.windows = this.windows.slice(0, windowIndex + 1);
     }
-    return this; // For chaining
+    return this;
   }
   
   /**
@@ -124,7 +124,7 @@ export class SWins {
    */
   clear() {
     this.windows = [];
-    return this; // For chaining
+    return this;
   }
   
   /**

@@ -1,9 +1,10 @@
 <script lang="ts">
   import InputModel from "../models/InputModel.svelte";
-  import { goto } from "$app/navigation";
   import { txtStore } from "$lib/stores/txtStore";
   import uuid from "@core/uuid/uuid";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { swins } from "$lib/swins";
+  import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
 
   let {
     configId,
@@ -62,7 +63,7 @@
         targetLLM: targetLLM,
       });
 
-      goto("/apps");
+      swins.popTo("apps");
     } else {
       if (isDefault) {
         spaceStore.currentSpace?.updateAppConfig(configId, {
@@ -93,6 +94,13 @@
   {#if isDefault}
     <p>
       {@html defaultConfigMessage}
+      <SwinsNavButton
+        component="app-config"
+        title={$txtStore.appConfigPage.defaultConfigGotoNew}
+        popTo="apps"
+      >
+        {$txtStore.appConfigPage.defaultConfigGotoNew}
+      </SwinsNavButton>
     </p>
   {/if}
   <label class="label">

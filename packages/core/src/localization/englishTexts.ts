@@ -48,8 +48,8 @@ export const englishTexts: Texts = {
       visibilityLabel: "Toggle app visibility",
       deleteLabel: "Delete app configuration"
     },
-    defaultConfigMessage: "This is the configuration of the default chat app. You can only change the model it uses.<br /><a href=\"/apps/new-config\" class=\"anchor\">{defaultConfigGotoNew}</a> if you want to create a new chat app configuration.",
-    defaultConfigGotoNew: "Go here",
+    defaultConfigMessage: "This is the configuration of the default chat assistant. You can change which AI model this assistant uses or create a new assistant.",
+    defaultConfigGotoNew: "New assistant",
     description: "You can create your own system prompts (instructions) based on the default chat app. It will be possible to create other type of apps with tools and external APIs in future versions of Supamind."
   },
 

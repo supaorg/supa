@@ -16,10 +16,7 @@
 
   // Function to close all pages
   function closeAll() {
-    // Close all pages by emptying the stack
-    while (swins.windows.length > 0) {
-      swins.pop();
-    }
+    swins.clear();
   }
 </script>
 
