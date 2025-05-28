@@ -797,7 +797,6 @@ export async function turnJSONLinesIntoOps(lines: string[], peerId: string): Pro
         } else {
           // Convert empty object ({}) to undefined
           const value = op.value && typeof op.value === 'object' && Object.keys(op.value).length === 0 ? undefined : op.value;
-          console.log("value", op.key, value);
           return newSetVertexPropertyOp(op.counter, op.peerId, op.targetId, op.key!, value);
         }
       });

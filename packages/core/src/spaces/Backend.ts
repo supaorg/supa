@@ -14,8 +14,6 @@ export class Backend {
     }
 
     space.observeTreeLoad((appTreeId) => {
-      console.log("App tree loaded", appTreeId);
-
       const appTree = space.getAppTree(appTreeId);
       if (!appTree) {
         throw new Error(`App tree with id ${appTreeId} not found`);

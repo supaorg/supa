@@ -24,6 +24,8 @@
     )
   );
 
+  let isDefault = $derived(configId === "default");
+
   $effect(() => {
     if (configId) {
       const config = spaceStore.currentSpace?.getAppConfig(configId);
@@ -62,12 +64,18 @@
 
       goto("/apps");
     } else {
-      spaceStore.currentSpace?.updateAppConfig(configId, {
-        name: name,
-        description: description,
-        instructions: instructions,
-        targetLLM: targetLLM,
-      });
+      if (isDefault) {
+        spaceStore.currentSpace?.updateAppConfig(configId, {
+          targetLLM: targetLLM,
+        });
+      } else {
+        spaceStore.currentSpace?.updateAppConfig(configId, {
+          name: name,
+          description: description,
+          instructions: instructions,
+          targetLLM: targetLLM,
+        });
+      }
     }
   }
 </script>
@@ -75,14 +83,14 @@
 <h3 class="h3 pb-6">
   {#if isNewApp}
     {$txtStore.appConfigPage.newConfigTitle}
-  {:else if configId !== "default"}
+  {:else if !isDefault}
     {$txtStore.appConfigPage.editConfigTitle}
   {:else}
     {$txtStore.appConfigPage.defaultConfigTitle}
   {/if}
 </h3>
 <form class="space-y-4" bind:this={formElement}>
-  {#if configId === "default"}
+  {#if isDefault}
     <p>
       {@html defaultConfigMessage}
     </p>

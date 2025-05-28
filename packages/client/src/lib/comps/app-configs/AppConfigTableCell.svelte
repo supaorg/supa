@@ -47,7 +47,7 @@
         <SwinsNavButton
           component="app-config"
           title="Edit Assistant"
-          props={{ configId: config.id }}
+          props={{ configId: config.id, disableFields: isDefault }}
           className="inline-flex items-center justify-center p-1 mt-0.5"
         >
           <Pencil class="w-4 h-4 group-hover:text-primary-600" />
@@ -62,7 +62,7 @@
         component="app-config"
         title={config.name}
         className="block text-left min-w-0"
-        props={{ configId: config.id }}
+        props={{ configId: config.id, disableFields: isDefault }}
       >
         <strong class="truncate block">{config.name}</strong>
         <span class="block truncate">{config.description}</span>
