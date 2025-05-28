@@ -13,7 +13,11 @@ function enrichDefaultConfig(configs: AppConfig[]): AppConfig[] {
     };
   }
 
-  return configs;
+  return configs.sort((a, b) => {
+    const aDate = new Date(a._c).getTime();
+    const bDate = new Date(b._c).getTime();
+    return aDate - bDate;
+  });
 }
 
 // @TODO: answer: should I resolve 'id' into vertex id? And same for _n to 'name'?
