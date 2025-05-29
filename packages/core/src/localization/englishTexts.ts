@@ -11,7 +11,7 @@ export const englishTexts: Texts = {
     loading: "Loading...",
     thinking: "Thinking...",
     model: "Model",
-    apps: "Apps",
+    apps: "Assistants",
   },
 
   messageForm: {
@@ -22,7 +22,7 @@ export const englishTexts: Texts = {
   },
 
   appPage: {
-    title: "Apps",
+    title: "Assistants",
     buttonNewConfig: "New Assistant",
     chatsTitle: "Your Assistants",
     contactMessage: "An ability to create other types of apps is coming at some point. Write at <a class=\"anchor\" href=\"mailto:hi@supa.cloud\">hi@supa.cloud</a> if you have ideas or suggestions for an app."
