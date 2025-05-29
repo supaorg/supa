@@ -1,47 +1,45 @@
 <script lang="ts">
   import { browser } from "$app/environment";
   import {
-    COLOR_SCHEMA_STORAGE_KEY,
-    getCurrentColorScheme,
     getOSColorScheme,
-    updateColorScheme,
   } from "$lib/utils/updateColorScheme";
+  import { theme, setColorScheme } from "$lib/stores/theme.svelte";
   import { Moon, Sun } from "lucide-svelte";
+  import { onMount } from "svelte";
 
   let { tiny = false } = $props();
 
-  let currentColorScheme = $state("light");
+  // Track the current color scheme selection (light, dark, or system)
+  let currentColorScheme = $state<"light" | "dark" | "system">("system");
 
-  if (browser) {
-    currentColorScheme = getCurrentColorScheme();
-  }
-
-  function handleSwitch() {
-    const setColorScheme = getCurrentColorScheme();
+  // Initialize the UI selection based on the current theme state
+  onMount(() => {
+    // If the theme's colorScheme matches the OS preference, show as "system"
     const osColorScheme = getOSColorScheme();
-    const targetColorScheme = setColorScheme === "dark" ? "light" : "dark";
-
-    if (osColorScheme === targetColorScheme) {
-      localStorage.removeItem(COLOR_SCHEMA_STORAGE_KEY);
+    if (theme.colorScheme === osColorScheme) {
+      currentColorScheme = "system";
     } else {
-      localStorage.setItem(COLOR_SCHEMA_STORAGE_KEY, targetColorScheme);
+      currentColorScheme = theme.colorScheme;
     }
+  });
 
+  // Handle the toggle button click (tiny mode)
+  async function handleSwitch() {
+    const targetColorScheme = theme.colorScheme === "dark" ? "light" : "dark";
+    await setColorScheme(targetColorScheme);
     currentColorScheme = targetColorScheme;
-
-    updateColorScheme();
   }
 
-  function changeColorScheme() {
+  // Handle the dropdown selection change
+  async function changeColorScheme() {
     if (currentColorScheme === "system") {
-      localStorage.removeItem(COLOR_SCHEMA_STORAGE_KEY);
-    } else if (currentColorScheme === "dark") {
-      localStorage.setItem(COLOR_SCHEMA_STORAGE_KEY, "dark");
-    } else if (currentColorScheme === "light") {
-      localStorage.setItem(COLOR_SCHEMA_STORAGE_KEY, "light");
+      // Use the OS preference
+      const osColorScheme = getOSColorScheme();
+      await setColorScheme(osColorScheme);
+    } else {
+      // Use the explicitly selected scheme
+      await setColorScheme(currentColorScheme);
     }
-
-    updateColorScheme();
   }
 </script>
 

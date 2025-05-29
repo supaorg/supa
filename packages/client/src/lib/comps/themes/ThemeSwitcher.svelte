@@ -24,10 +24,9 @@
     { name: "wintry", emoji: "🌨️" },
   ];
 
-  import { theme, setThemeName, setColorScheme, loadSpaceTheme } from "$lib/stores/theme.svelte";
+  import { theme, setThemeName, loadSpaceTheme } from "$lib/stores/theme.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { onMount } from "svelte";
-  import { Sun, Moon } from "lucide-svelte";
 
   onMount(async () => {
     // Load theme for current space if available
@@ -48,37 +47,9 @@
   async function handleThemeClick(name: string) {
     await setThemeName(name);
   }
-
-  async function toggleColorScheme() {
-    const newColorScheme = theme.colorScheme === 'dark' ? 'light' : 'dark';
-    await setColorScheme(newColorScheme);
-  }
 </script>
 
 <div class="mb-4">
-  <div class="flex justify-between items-center mb-2">
-    <h2 class="text-xl font-semibold">Color Mode</h2>
-    <button
-      class="btn variant-filled-primary p-2 flex items-center gap-2"
-      onclick={toggleColorScheme}
-      aria-label={theme.colorScheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-    >
-      {#if theme.colorScheme === 'dark'}
-        <Sun size={18} />
-        <span>Light Mode</span>
-      {:else}
-        <Moon size={18} />
-        <span>Dark Mode</span>
-      {/if}
-    </button>
-  </div>
-  <div class="text-sm text-surface-600-300 mb-6">
-    Choose your preferred color mode. This setting is saved per space.
-  </div>
-</div>
-
-<div class="mb-4">
-  <h2 class="text-xl font-semibold mb-2">Theme</h2>
   <div class="text-sm text-surface-600-300 mb-4">
     Select a color theme for your space.
   </div>
