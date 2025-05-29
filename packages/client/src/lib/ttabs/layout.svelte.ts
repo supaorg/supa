@@ -148,7 +148,7 @@ export const sidebar = $state({
   }
 });
 
-ttabs.subscribe(() => {
+ttabs.subscribeDebounced(() => {
   findAndUpdateLayoutRefs();
 });
 
@@ -341,6 +341,7 @@ function findTabByTreeId(treeId: string): string | undefined {
 /**
  * Checks if the content grid is empty or has a single column without tabs,
  * and if so, inserts the noTabsContent component directly into the column.
+ * Also removes noTabsContent if there's a column with tabs in the grid.
  * @returns The ID of the column where the component was inserted, or undefined if no insertion was made
  */
 export function setDefaultComponentWhenContentGridIsEmpty() {
@@ -354,16 +355,25 @@ export function setDefaultComponentWhenContentGridIsEmpty() {
   
   if (!grid) return;
   
+  // First, check if there's any column with tabs in the grid
+  const hasColumnWithTabs = checkIfGridHasColumnWithTabs(grid.id, tiles);
+  
+  // If we have a column with tabs, remove any noTabsContent components
+  if (hasColumnWithTabs) {
+    removeNoTabsContentComponents(grid.id, tiles);
+    return;
+  }
+  
   // Check if the grid is empty (no rows)
   if (grid.rows.length === 0) {
     // Grid is empty, add a row and column
     console.log("Grid is empty, adding a row and column");
-    /*
+    
     const newRow = ttabs.addRow(grid.id);
     const newColumn = ttabs.addColumn(newRow);
     // Set the component directly on the column
     ttabs.setComponent(newColumn, 'noTabsContent');
-    */
+    
     return;
   }
   
@@ -382,7 +392,7 @@ export function setDefaultComponentWhenContentGridIsEmpty() {
         
         if (!childId) {
           // Column is empty, set component directly on the column
-          //ttabs.setComponent(columnId, 'noTabsContent');
+          ttabs.setComponent(columnId, 'noTabsContent');
           console.log("Column is empty, setting noTabsContent");
         } else {
           const child = tiles[childId];
@@ -390,10 +400,112 @@ export function setDefaultComponentWhenContentGridIsEmpty() {
           // If the child is a panel with no tabs, remove it and set component on the column
           if (child && child.type === 'panel' && (!child.tabs || child.tabs.length === 0)) {
             console.log("Remove panel with no tabs");
-            //ttabs.removeTile(childId);
-            //ttabs.setComponent(columnId, 'noTabsContent');
+            ttabs.removeTile(childId);
+            ttabs.setComponent(columnId, 'noTabsContent');
           }
         }
+      }
+    }
+  }
+}
+
+/**
+ * Recursively checks if a grid has any column with tabs
+ * @param gridId The ID of the grid to check
+ * @param tiles The tiles object from ttabs.getTiles()
+ * @returns true if the grid has a column with tabs, false otherwise
+ */
+function checkIfGridHasColumnWithTabs(gridId: string, tiles: Record<string, any>): boolean {
+  const grid = tiles[gridId];
+  if (!grid || grid.type !== 'grid') return false;
+  
+  for (const rowId of grid.rows) {
+    const row = tiles[rowId];
+    if (!row || row.type !== 'row') continue;
+    
+    for (const columnId of row.columns) {
+      const column = tiles[columnId];
+      if (!column || column.type !== 'column') continue;
+      
+      const childId = column.child;
+      if (!childId) continue;
+      
+      const child = tiles[childId];
+      
+      // Check if the child is a panel with tabs
+      if (child && child.type === 'panel' && child.tabs && child.tabs.length > 0) {
+        return true;
+      }
+      
+      // Check if the child is a grid, and recursively check it
+      if (child && child.type === 'grid') {
+        if (checkIfGridHasColumnWithTabs(child.id, tiles)) {
+          return true;
+        }
+      }
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * Recursively removes columns with noTabsContent components from a grid
+ * @param gridId The ID of the grid to check
+ * @param tiles The tiles object from ttabs.getTiles()
+ */
+function removeNoTabsContentComponents(gridId: string, tiles: Record<string, any>) {
+  const grid = tiles[gridId];
+  if (!grid || grid.type !== 'grid') return;
+  
+  // Process each row in the grid
+  for (let i = 0; i < grid.rows.length; i++) {
+    const rowId = grid.rows[i];
+    const row = tiles[rowId];
+    if (!row || row.type !== 'row') continue;
+    
+    // Track columns to remove
+    const columnsToRemove: string[] = [];
+    
+    // First pass: identify columns with noTabsContent and check nested grids
+    for (const columnId of row.columns) {
+      const column = tiles[columnId];
+      if (!column || column.type !== 'column') continue;
+      
+      const childId = column.child;
+      if (!childId) continue;
+      
+      const child = tiles[childId];
+      
+      // Check if the child is a content tile with noTabsContent component
+      if (child && child.type === 'content' && child.componentId === 'noTabsContent') {
+        console.log("Found column with noTabsContent to remove", columnId);
+        columnsToRemove.push(columnId);
+      }
+      // Check if the child is a grid, and recursively check it
+      else if (child && child.type === 'grid') {
+        removeNoTabsContentComponents(child.id, tiles);
+      }
+    }
+    
+    // Second pass: remove identified columns
+    for (const columnId of columnsToRemove) {
+      console.log("Removing column with noTabsContent", columnId);
+      // Remove the column from the row
+      ttabs.removeTile(columnId);
+    }
+    
+    // If the row is now empty, remove it too
+    const updatedRow = tiles[rowId];
+    if (updatedRow && updatedRow.columns.length === 0) {
+      console.log("Removing empty row", rowId);
+      ttabs.removeTile(rowId);
+      
+      // Update the grid's rows array
+      const updatedGrid = tiles[gridId];
+      if (updatedGrid) {
+        const newRows = updatedGrid.rows.filter((id: string) => id !== rowId);
+        ttabs.updateTile(gridId, { rows: newRows });
       }
     }
   }
