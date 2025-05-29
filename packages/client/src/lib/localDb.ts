@@ -17,6 +17,7 @@ export type SpaceSetup = {
   // Additional fields
   ttabsLayout?: string | null;
   theme?: string | null;
+  colorScheme?: 'light' | 'dark' | null;
   ops?: VertexOperation[];
 };
 
@@ -259,6 +260,18 @@ export async function saveSpaceTheme(spaceId: string, theme: string): Promise<vo
       .modify({ theme: theme });
   } catch (error) {
     console.error(`Failed to save theme for space ${spaceId}:`, error);
+  }
+}
+
+// Save color scheme for a space
+export async function saveSpaceColorScheme(spaceId: string, colorScheme: 'light' | 'dark'): Promise<void> {
+  try {
+    await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .modify({ colorScheme: colorScheme });
+  } catch (error) {
+    console.error(`Failed to save color scheme for space ${spaceId}:`, error);
   }
 }
 

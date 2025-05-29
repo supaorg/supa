@@ -1,15 +1,24 @@
-import { updateTheme } from "$lib/stores/theme.svelte";
-
 export const DARK_MODE_MATCH_MEDIA_STR = "(prefers-color-scheme: dark)"; 
 export const COLOR_SCHEMA_STORAGE_KEY = "colorScheme";
 
-export function updateColorScheme() {
-  let colorScheme = 'dark';
+// This function applies the color scheme to the document without updating the theme store
+// to avoid circular dependencies
+export function applyColorSchemeToDocument(colorScheme: 'dark' | 'light') {
+  if (colorScheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+}
 
-  // Get the user's theme preference form local storage
+// This function is used on initial load before the theme store is initialized
+export function updateColorScheme(): 'dark' | 'light' {
+  let colorScheme: 'dark' | 'light' = 'dark';
+
+  // Get the user's theme preference from local storage
   const savedColorScheme = localStorage.getItem(COLOR_SCHEMA_STORAGE_KEY);
 
-  if (savedColorScheme) {
+  if (savedColorScheme && (savedColorScheme === 'dark' || savedColorScheme === 'light')) {
     colorScheme = savedColorScheme;
   }
   else {
@@ -17,13 +26,11 @@ export function updateColorScheme() {
     colorScheme = darkModeIsOnInOS ? 'dark' : 'light';
   }
 
-  if (colorScheme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
-
-  updateTheme();
+  // Apply the color scheme to the document
+  applyColorSchemeToDocument(colorScheme);
+  
+  // Return the determined color scheme
+  return colorScheme;
 }
 
 export function getCurrentColorScheme(): 'dark' | 'light' {

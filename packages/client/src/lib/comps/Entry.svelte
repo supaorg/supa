@@ -6,6 +6,8 @@
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import SpaceSetup from "$lib/comps/spaces/SpaceSetup.svelte";
   import { initializeDatabase, savePointers, saveCurrentSpaceId, saveConfig } from "$lib/localDb";
+  import { loadSpaceTheme, theme, setColorScheme } from "$lib/stores/theme.svelte";
+  import { getCurrentColorScheme } from "$lib/utils/updateColorScheme";
   import TauriUpdater from "./TauriUpdater.svelte";
 
   type Status = "initializing" | "needsSpace" | "ready";
@@ -19,6 +21,10 @@
         "We don't support regular browsers yet. We have to run this from Tauri"
       );
     }
+
+    // Initialize with system color scheme
+    const systemColorScheme = getCurrentColorScheme();
+    theme.colorScheme = systemColorScheme;
 
     initializeSpaceData();
 
@@ -44,6 +50,11 @@
       
       const connection = await spaceStore.loadSpacesAndConnectToCurrent();
       
+      // Load the theme for the current space if we have one
+      if (connection) {
+        await loadSpaceTheme();
+      }
+      
       // Only change status after loading is complete
       status = connection ? "ready" : "needsSpace";
     } catch (error) {
@@ -62,6 +73,8 @@
   $effect(() => {
     if (status === "ready" && spaceStore.currentSpaceId !== null) {
       saveCurrentSpaceId(spaceStore.currentSpaceId);
+      // Load theme when current space changes
+      loadSpaceTheme();
     }
   });
 
