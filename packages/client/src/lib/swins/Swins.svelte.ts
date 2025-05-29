@@ -94,6 +94,19 @@ export class SWins {
     }
     return this;
   }
+
+  /**
+   * Pop until reaching a window with the specified ID
+   * 
+   * @param id ID of the window to navigate to
+   */
+  popToWindow(id: string) {
+    const windowIndex = this.windows.findIndex(window => window.id === id);
+    if (windowIndex !== -1) {
+      this.windows = this.windows.slice(0, windowIndex + 1);
+    }
+    return this;
+  }
   
   /**
    * Replace the current window with a new one
