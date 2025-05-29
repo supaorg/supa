@@ -10,6 +10,7 @@ import {
 } from "ttabs-svelte";
 import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
 import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
+import NoTabsContent from "./components/NoTabsContent.svelte";
 
 /**
  * SidebarValidator ensures that the layout has a sidebar column.
@@ -104,6 +105,7 @@ export const ttabs = createTtabs({
 ttabs.registerComponent('sidebar', Sidebar);
 ttabs.registerComponent('chat', ChatAppLoader);
 ttabs.registerComponent('sidebarToggle', SidebarToggle);
+ttabs.registerComponent('noTabsContent', NoTabsContent);
 
 type LayoutRefs = {
   contentGrid: string | undefined,
@@ -296,6 +298,8 @@ function findAndUpdateLayoutRefs() {
   updateHoverSidebarState();
 
   updateSidebarToggleVisibility();
+
+  setDefaultComponentWhenContentGridIsEmpty();
 }
 
 /**
@@ -314,7 +318,7 @@ export function setupDefault(tt: Ttabs) {
   tt.updateTile(layoutRefs.contentGrid, { dontClean: true });
   const newRow = tt.addRow(layoutRefs.contentGrid);
   const newColumn = tt.addColumn(newRow);
-  tt.addPanel(newColumn);
+  tt.setComponent(newColumn, 'noTabsContent');
 }
 
 function findTabByTreeId(treeId: string): string | undefined {
@@ -332,6 +336,67 @@ function findTabByTreeId(treeId: string): string | undefined {
     }
   }
   return undefined;
+}
+
+/**
+ * Checks if the content grid is empty or has a single column without tabs,
+ * and if so, inserts the noTabsContent component directly into the column.
+ * @returns The ID of the column where the component was inserted, or undefined if no insertion was made
+ */
+export function setDefaultComponentWhenContentGridIsEmpty() {
+  if (!layoutRefs.contentGrid) {
+    // If we don't have a content grid reference, we can't proceed
+    return;
+  }
+
+  const tiles = ttabs.getTiles();
+  const grid = ttabs.getGrid(layoutRefs.contentGrid);
+  
+  if (!grid) return;
+  
+  // Check if the grid is empty (no rows)
+  if (grid.rows.length === 0) {
+    // Grid is empty, add a row and column
+    console.log("Grid is empty, adding a row and column");
+    /*
+    const newRow = ttabs.addRow(grid.id);
+    const newColumn = ttabs.addColumn(newRow);
+    // Set the component directly on the column
+    ttabs.setComponent(newColumn, 'noTabsContent');
+    */
+    return;
+  }
+  
+  // Check if the grid has a single row with a single column and no tabs
+  if (grid.rows.length === 1) {
+    const rowId = grid.rows[0];
+    const row = tiles[rowId];
+    
+    if (row && row.type === 'row' && row.columns.length === 1) {
+      const columnId = row.columns[0];
+      const column = tiles[columnId];
+      
+      if (column && column.type === 'column') {
+        // Check if the column is empty or has no content
+        const childId = column.child;
+        
+        if (!childId) {
+          // Column is empty, set component directly on the column
+          //ttabs.setComponent(columnId, 'noTabsContent');
+          console.log("Column is empty, setting noTabsContent");
+        } else {
+          const child = tiles[childId];
+          
+          // If the child is a panel with no tabs, remove it and set component on the column
+          if (child && child.type === 'panel' && (!child.tabs || child.tabs.length === 0)) {
+            console.log("Remove panel with no tabs");
+            //ttabs.removeTile(childId);
+            //ttabs.setComponent(columnId, 'noTabsContent');
+          }
+        }
+      }
+    }
+  }
 }
 
 export function openChatTab(treeId: string, name: string) {

@@ -36,6 +36,10 @@
   $effect(() => {
     const spaceId = spaceStore.currentSpaceId;
 
+    if (spaceStore.currentSpace?.hasSetupProviders == false) {
+      console.log("SETUP PROVIDERS");
+    } 
+
     untrack(() => {
       setupSpaceLayout(spaceId);
     });
