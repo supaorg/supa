@@ -19,7 +19,6 @@
     untrack(() => {
       appConfigUnobserve = space.appConfigs.observe((configs: AppConfig[]) => {
         appConfigs = configs;
-        console.log("appConfigs", appConfigs);
       });
     });
 

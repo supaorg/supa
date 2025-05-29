@@ -24,25 +24,7 @@
     { name: "wintry", emoji: "🌨️" },
   ];
 
-  import { theme, setThemeName, loadSpaceTheme } from "$lib/stores/theme.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { onMount } from "svelte";
-
-  onMount(async () => {
-    // Load theme for current space if available
-    if (spaceStore.currentSpaceId) {
-      await loadSpaceTheme();
-    }
-  });
-
-  // Use $effect directly at component scope to watch for space changes
-  $effect(() => {
-    // This will re-run whenever currentSpaceId changes
-    const currentSpaceId = spaceStore.currentSpaceId;
-    if (currentSpaceId) {
-      loadSpaceTheme();
-    }
-  });
+  import { theme, setThemeName } from "$lib/stores/theme.svelte";
 
   async function handleThemeClick(name: string) {
     await setThemeName(name);

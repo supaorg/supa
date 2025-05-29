@@ -2,7 +2,7 @@ import { getCurrentColorScheme, applyColorSchemeToDocument } from "$lib/utils/up
 import { saveSpaceTheme, saveSpaceColorScheme, getSpaceSetup } from "$lib/localDb";
 import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
-const DEFAULT_THEME = 'rose';
+const DEFAULT_THEME = 'cerberus';
 type ColorScheme = 'light' | 'dark';
 
 // Initialize with default values, will be updated when space loads

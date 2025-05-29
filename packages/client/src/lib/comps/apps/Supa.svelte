@@ -8,7 +8,10 @@
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
   import SupaTtabsLayout from "../SupaTtabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
+  import ThemeManager from "../themes/ThemeManager.svelte";
 </script>
+
+<ThemeManager />
 
 <OllamaAutoConfig />
 

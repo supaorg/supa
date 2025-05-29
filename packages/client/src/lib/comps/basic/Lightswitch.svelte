@@ -1,8 +1,5 @@
 <script lang="ts">
-  import { browser } from "$app/environment";
-  import {
-    getOSColorScheme,
-  } from "$lib/utils/updateColorScheme";
+  import { getOSColorScheme } from "$lib/utils/updateColorScheme";
   import { theme, setColorScheme } from "$lib/stores/theme.svelte";
   import { Moon, Sun } from "lucide-svelte";
   import { onMount } from "svelte";
@@ -10,7 +7,7 @@
   let { tiny = false } = $props();
 
   // Track the current color scheme selection (light, dark, or system)
-  let currentColorScheme = $state<"light" | "dark" | "system">("system");
+  let currentColorScheme: "light" | "dark" | "system" = $state("system");
 
   // Initialize the UI selection based on the current theme state
   onMount(() => {
