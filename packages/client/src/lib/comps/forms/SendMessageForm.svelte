@@ -16,7 +16,6 @@
   interface SendMessageFormProps {
     onSend: (msg: string) => void;
     onStop?: () => void;
-    onClose?: () => void;
     isFocused?: boolean;
     placeholder?: string;
     status?: MessageFormStatus;
@@ -32,7 +31,6 @@
   let {
     onSend,
     onStop = () => {},
-    onClose = () => {},
     isFocused = true,
     placeholder = $txtStore.messageForm.placeholder,
     status = "can-send-message",

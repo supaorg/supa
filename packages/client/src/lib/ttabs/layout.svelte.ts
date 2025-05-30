@@ -11,6 +11,7 @@ import {
 import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
 import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
 import NoTabsContent from "./components/NoTabsContent.svelte";
+import DefaultAppPage from "$lib/comps/apps/DefaultAppPage.svelte";
 
 /**
  * SidebarValidator ensures that the layout has a sidebar column.
@@ -106,7 +107,7 @@ export const ttabs = createTtabs({
 ttabs.registerComponent('sidebar', Sidebar);
 ttabs.registerComponent('chat', ChatAppLoader);
 ttabs.registerComponent('sidebarToggle', SidebarToggle);
-ttabs.registerComponent('noTabsContent', NoTabsContent);
+ttabs.registerComponent('noTabsContent', DefaultAppPage);
 
 type LayoutRefs = {
   contentGrid: string | undefined,
