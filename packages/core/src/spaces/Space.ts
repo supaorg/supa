@@ -94,6 +94,11 @@ export default class Space {
     return this.rootVertex.createdAt;
   }
 
+  get hasSetupProviders(): boolean {
+    const providersVertex = this.tree.getVertexByPath('providers');
+    return providersVertex ? providersVertex.children.length > 0 : false;
+  }
+
   newAppTree(appId: string): AppTree {
     const appTree = AppTree.newAppTree(this.tree.peerId, appId);
 
@@ -238,12 +243,6 @@ export default class Space {
 
   getAppConfigs(): AppConfig[] {
     return this.getArray<AppConfig>('app-configs');
-  }
-
-  observeAppConfigs(observer: (appConfigs: AppConfig[]) => void) {
-    // @TODO: implement
-    // observeChildrenAtVertex(this.tree.getVertexByPath('app-configs'), observer);
-    // observeChildrenAtPath('app-configs', observer);
   }
 
   getAppConfig(configId: string): AppConfig | undefined {

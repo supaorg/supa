@@ -5,13 +5,22 @@
   import type { AppConfig } from "@core/models";
   import { newThreadDrafts } from "$lib/stores/newThreadDrafts";
   import { openChatTab } from "$lib/ttabs/layout.svelte";
-  import { swins } from "../swinsLayout";
+  import { onMount } from "svelte";
 
-  let { appConfig }: { appConfig?: AppConfig } = $props();
+  let { appConfig, onSend }: { appConfig?: AppConfig, onSend?: () => void } = $props();
+  let targetAppConfig: AppConfig | undefined = $state(undefined);
+
+  onMount(() => { 
+    if (!appConfig) {
+      targetAppConfig = spaceStore.currentSpace?.getAppConfigs()[0];
+    } else {
+      targetAppConfig = appConfig;
+    }
+  });
 
   const placeholder = "Write a message...";
 
-  function onSend(msg: string) {
+  function onSendSubmit(msg: string) {
     if (!msg) {
       return;
     }
@@ -29,12 +38,8 @@
     newThread(msg);
   }
 
-  function onClose() {
-    swins.clear();
-  }
-
   async function newThread(message: string = "") {
-    if (!appConfig) {
+    if (!targetAppConfig) {
       throw new Error("App config not found");
     }
 
@@ -45,7 +50,7 @@
     // Create new app tree
     const newTree = ChatAppData.createNewChatTree(
       spaceStore.currentSpaceConnection.space,
-      appConfig.id
+      targetAppConfig.id
     );
     const chatAppData = new ChatAppData(
       spaceStore.currentSpaceConnection.space,
@@ -53,20 +58,19 @@
     );
     chatAppData.newMessage("user", message);
     openChatTab(newTree.tree.root!.id, "New chat");
-    onClose();
+    onSend?.();
   }
 </script>
 
 <div class="space-y-4 max-w-screen-md min-w-[600px]">
-  {#if appConfig}
-    <h3 class="h3">{appConfig.name}</h3>
-    <p>{appConfig.description}</p>
+  {#if targetAppConfig}
+    <h3 class="h3">{targetAppConfig.name}</h3>
+    <p>{targetAppConfig.description}</p>
     <SendMessageForm
-      {onSend}
+      onSend={onSendSubmit}
       {placeholder}
-      threadId={appConfig.id}
+      threadId={targetAppConfig.id}
       draftStore={newThreadDrafts}
-      {onClose}
       showConfigSelector={false}
     />
   {/if}

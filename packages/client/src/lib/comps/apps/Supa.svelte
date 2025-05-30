@@ -6,7 +6,7 @@
   import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
   import { swins } from "$lib/swins/swinsLayout";
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
-  import SupaTtabsLayout from "../SupaTtabsLayout.svelte";
+  import SupaTTabsLayout from "../SupaTTabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
   import ThemeManager from "../themes/ThemeManager.svelte";
 </script>
@@ -22,7 +22,7 @@
 <div class="grid h-screen grid-rows-[1fr_auto] border-t border-surface-200-800">
   <div class="flex overflow-hidden">
     <main class="relative flex-grow h-full overflow-y-auto">
-      <SupaTtabsLayout />
+      <SupaTTabsLayout />
     </main>
   </div>
 

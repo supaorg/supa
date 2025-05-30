@@ -3,17 +3,17 @@ import { type Component } from 'svelte';
 /**
  * Represents a component entry in the registry
  */
-export interface ComponentEntry {
+export interface ComponentEntry<T extends Record<string, any> = Record<string, any>> {
   /** The actual Svelte component */
-  component: Component;
+  component: Component<T>;
   /** Default props to pass to the component */
-  defaultProps?: Record<string, any>;
+  defaultProps?: T;
 }
 
 /**
  * Represents a window entry in the stack
  */
-export interface WindowEntry {
+export interface WindowEntry<T extends Record<string, any> = Record<string, any>> {
   /** Unique identifier for this window instance */
   id: string;
   /** ID of the component in the registry */
@@ -21,7 +21,7 @@ export interface WindowEntry {
   /** Title to display in the header */
   title?: string;
   /** Props to pass to the component */
-  props?: Record<string, any>;
+  props?: T;
 }
 
 /**
@@ -32,10 +32,10 @@ export interface WindowEntry {
  */
 export class SWins {
   // Component registry - stores all available components
-  componentRegistry: Record<string, ComponentEntry> = $state({});
+  componentRegistry: Record<string, ComponentEntry<any>> = $state({});
   
   // Stack of windows
-  windows: WindowEntry[] = $state([]);
+  windows: WindowEntry<any>[] = $state([]);
   
   /**
    * Register a component that can be used in windows
@@ -44,7 +44,7 @@ export class SWins {
    * @param component The Svelte component to register
    * @param defaultProps Default props to pass to the component
    */
-  register(id: string, component: Component, defaultProps: Record<string, any> = {}) {
+  register<T extends Record<string, any> = Record<string, any>>(id: string, component: Component<T>, defaultProps: T = {} as T) {
     this.componentRegistry[id] = { component, defaultProps };
     return this;
   }
@@ -56,7 +56,7 @@ export class SWins {
    * @param props Props to pass to the component
    * @param title Optional title for the window
    */
-  open(componentId: string, props: Record<string, any> = {}, title?: string) {    
+  open<T extends Record<string, any> = Record<string, any>>(componentId: string, props: Partial<T> = {}, title?: string) {    
     // Check if component exists
     if (!this.componentRegistry[componentId]) {
       console.error(`Component with ID "${componentId}" not found in registry`);
@@ -115,7 +115,7 @@ export class SWins {
    * @param props Props for the component
    * @param title Optional title for the window
    */
-  replace(componentId: string, props: Record<string, any> = {}, title?: string) {
+  replace<T extends Record<string, any> = Record<string, any>>(componentId: string, props: Partial<T> = {}, title?: string) {
     if (this.windows.length === 0) {
       return this.open(componentId, props, title);
     }

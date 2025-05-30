@@ -6,10 +6,12 @@ import {
   type TtabsTheme,
   type LayoutValidator,
   LayoutValidationError,
-  type Ttabs,
+  type TTabs,
 } from "ttabs-svelte";
 import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
 import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
+import NoTabsContent from "./components/NoTabsContent.svelte";
+import DefaultAppPage from "$lib/comps/apps/DefaultAppPage.svelte";
 
 /**
  * SidebarValidator ensures that the layout has a sidebar column.
@@ -17,7 +19,7 @@ import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
  * @param ttabs The ttabs instance to validate
  * @returns true if layout is valid, throws LayoutValidationError otherwise
  */
-const sidebarValidator: LayoutValidator = (ttabs: Ttabs): boolean => {
+const sidebarValidator: LayoutValidator = (ttabs: TTabs): boolean => {
   const tiles = ttabs.getTiles();
   const rootGridId = ttabs.rootGridId as string;
   const rootGrid = tiles[rootGridId];
@@ -98,12 +100,14 @@ export const ttabs = createTtabs({
   },
   validators: [sidebarValidator],
   defaultLayoutCreator: setupDefault,
-  setupFromScratch: findAndUpdateLayoutRefs
+  setupFromScratch: findAndUpdateLayoutRefs,
+  defaultComponentIdForEmptyTiles: 'noTabsContent'
 });
 
 ttabs.registerComponent('sidebar', Sidebar);
 ttabs.registerComponent('chat', ChatAppLoader);
 ttabs.registerComponent('sidebarToggle', SidebarToggle);
+ttabs.registerComponent('noTabsContent', DefaultAppPage);
 
 type LayoutRefs = {
   contentGrid: string | undefined,
@@ -146,7 +150,7 @@ export const sidebar = $state({
   }
 });
 
-ttabs.subscribe(() => {
+ttabs.subscribeDebounced(() => {
   findAndUpdateLayoutRefs();
 });
 
@@ -303,7 +307,7 @@ function findAndUpdateLayoutRefs() {
  * This function is used as the defaultLayoutCreator for ttabs,
  * so it will be called automatically when layout validation fails or when no layout is provided.
  */
-export function setupDefault(tt: Ttabs) {
+export function setupDefault(tt: TTabs) {
   tt.resetTiles();
   const root = tt.addGrid();
   const row = tt.addRow(root);
