@@ -2,19 +2,22 @@
   import ModelProviderSelector from "../models/ModelProviderSelector.svelte";
   import ModelProviders from "../models/ModelProviders.svelte";
   import { txtStore } from "$lib/stores/txtStore";
+  import { swins } from "$lib/swins";
 
   let {
     selectedModel,
     onModelSelect,
-    onRequestClose,
   }: {
-    onRequestClose: () => void;
     selectedModel: string | null;
     onModelSelect: (model: string) => void;
   } = $props();
 
   type Status = "selecting" | "managing";
   let status: Status = $state("selecting");
+
+  function onRequestClose() {
+    swins.pop();
+  }
 </script>
 
 <div class="md:min-w-[500px]">

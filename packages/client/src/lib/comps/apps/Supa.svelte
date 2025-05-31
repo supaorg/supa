@@ -9,6 +9,7 @@
   import SupaTTabsLayout from "../SupaTTabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
   import ThemeManager from "../themes/ThemeManager.svelte";
+  import { onMount } from "svelte";
 </script>
 
 <ThemeManager />

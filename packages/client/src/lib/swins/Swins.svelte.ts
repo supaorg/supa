@@ -139,6 +139,11 @@ export class SWins {
     this.windows = [];
     return this;
   }
+
+  clearRegistry() {
+    this.componentRegistry = {};
+    return this;
+  }
   
   /**
    * Check if a specific component is currently shown
