@@ -42,7 +42,7 @@ export default class Space {
       '_n': 'space',
       '_c': new Date().toISOString(),
       'version': '0',
-      'needsSetup': true
+      'onboarding': true
     });
 
     const apps = tree.newNamedVertex(rootId, 'app-configs');

@@ -10,7 +10,6 @@ import {
 } from "ttabs-svelte";
 import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
 import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
-import NoTabsContent from "./components/NoTabsContent.svelte";
 import DefaultAppPage from "$lib/comps/apps/DefaultAppPage.svelte";
 
 /**

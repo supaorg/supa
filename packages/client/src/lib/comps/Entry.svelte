@@ -4,7 +4,7 @@
   import TauriWindowSetup from "$lib/comps/tauri/TauriWindowSetup.svelte";
   import { isTauri } from "$lib/tauri/isTauri";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import SpaceSetup from "$lib/comps/spaces/SpaceSetup.svelte";
+  import SpaceSetup from "$lib/comps/onboarding/SpaceSetup.svelte";
   import { initializeDatabase, savePointers, saveCurrentSpaceId, saveConfig } from "$lib/localDb";
   import { loadSpaceTheme, theme, setColorScheme } from "$lib/stores/theme.svelte";
   import { getCurrentColorScheme } from "$lib/utils/updateColorScheme";

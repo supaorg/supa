@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Supa from "$lib/comps/apps/Supa.svelte";
+  import Space from "$lib/comps/apps/Space.svelte";
 </script>
 
-<Supa />
+<Space />

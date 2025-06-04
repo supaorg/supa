@@ -1,6 +1,6 @@
 <script lang="ts">
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
-  import SpaceOpener from "./SpaceOpener.svelte";
+  import SpaceOpener from "../spaces/SpaceOpener.svelte";
   import { txtStore } from "$lib/stores/txtStore";
 
   export let onSpaceSetup: (spaceId: string) => void = () => {};
