@@ -103,6 +103,10 @@
   function completeSetup() {
     // Apply final settings
     if (spaceStore.currentSpace) {
+      // Set onboarding to false to indicate setup is complete
+      const rootVertex = spaceStore.currentSpace.rootVertex;
+      spaceStore.currentSpace.tree.setVertexProperty(rootVertex.id, 'onboarding', false);
+      
       // Theme is already applied via setThemeName
       
       // Navigate to the main space view
