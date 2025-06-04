@@ -310,7 +310,7 @@ export function setupDefault(tt: TTabs) {
   tt.resetTiles();
   const root = tt.addGrid();
   const row = tt.addRow(root);
-  layoutRefs.sidebarColumn = tt.addColumn(row, "300px");
+  layoutRefs.sidebarColumn = tt.addColumn(row, "0px");
   tt.setComponent(layoutRefs.sidebarColumn, 'sidebar');
   const parentColumn = tt.addColumn(row);
   layoutRefs.contentGrid = tt.addGrid(parentColumn);
