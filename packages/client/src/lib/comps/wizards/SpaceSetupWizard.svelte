@@ -5,6 +5,7 @@
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
   import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
   import { Check } from "lucide-svelte";
+  import { onMount } from "svelte";
 
   let spaceName = $state("");
   let spaceNameError = $state(""); // Kept for potential future use, though Wizard handles its own validation display
@@ -40,8 +41,8 @@
   ];
 
   const wizardTitles = [
-    "Space Name",
-    "AI Models",
+    "Name",
+    "Brains",
     "Theme"
   ];
 
@@ -54,6 +55,10 @@
         hasSetupProvider = providerVertex.children.length > 0;
       }
     }
+  });
+
+  onMount(() => {
+    spaceName = spaceStore.currentSpace?.name || presetNames[0];
   });
 
   function handleProviderConnect() {
@@ -156,18 +161,20 @@
       </div>
     {:else if currentStep === 1}
       <!-- Step 2: Model Provider -->
-      <h2 class="h3 mb-4">Setup AI model provider</h2>
+      <h2 class="h3 mb-4">Setup brains for your space</h2>
       <p class="mb-4">
         Connect at least one AI model provider to start using Supa. We recommend
         setting up OpenAI, Anthropic or DeepSeek first.
       </p>
       
+      <!--
       {#if hasSetupProvider}
         <div class="alert variant-filled-success mb-4">
           <Check size={18} />
           <span>You've successfully set up a model provider!</span>
         </div>
       {/if}
+      -->
       
       <div class="max-h-[400px] overflow-y-auto pr-2">
         <ModelProviders onConnect={handleProviderConnect} />

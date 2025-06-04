@@ -72,7 +72,7 @@
       {#if i < totalSteps - 1}
         <div class="flex-1">
           <div class="h-8 flex items-center">
-            <div class="h-[1px] w-full mx-1" class:bg-success-200-800={i < currentStep} class:opacity-50={i < currentStep} class:bg-surface-100-900={i >= currentStep}></div>
+            <div class="h-[2px] w-full mx-1" class:bg-success-200-800={i < currentStep} class:bg-surface-100-900={i >= currentStep}></div>
           </div>
         </div>
       {/if}
