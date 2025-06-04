@@ -8,9 +8,8 @@
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
   import SpaceTTabsLayout from "../SpaceTTabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
-  import ThemeManager from "../themes/ThemeManager.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import SpaceOnboarding from "../onboarding/SpaceOnboarding.svelte";
+  import SpaceSetupWizard from "../wizards/SpaceSetupWizard.svelte";
   import { onMount } from "svelte";
 
   let onboarding = $state(false);
@@ -36,14 +35,11 @@
   });
 </script>
 
-<!-- Check for a theme and load it -->
-<ThemeManager />
-
 <!-- Set a periodic check for Ollama running and setup it as a model provider if it is -->
 <OllamaAutoConfig />
 
 {#if onboarding}
-  <SpaceOnboarding />
+  <SpaceSetupWizard />
 {:else}
   <div
     class="grid h-screen grid-rows-[1fr_auto] border-t border-surface-200-800"

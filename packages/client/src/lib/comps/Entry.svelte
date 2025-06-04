@@ -4,11 +4,12 @@
   import TauriWindowSetup from "$lib/comps/tauri/TauriWindowSetup.svelte";
   import { isTauri } from "$lib/tauri/isTauri";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import SpaceSetup from "$lib/comps/onboarding/SpaceSetup.svelte";
+  import FreshStartWizard from "$lib/comps/wizards/FreshStartWizard.svelte";
   import { initializeDatabase, savePointers, saveCurrentSpaceId, saveConfig } from "$lib/localDb";
   import { loadSpaceTheme, theme, setColorScheme } from "$lib/stores/theme.svelte";
   import { getCurrentColorScheme } from "$lib/utils/updateColorScheme";
   import TauriUpdater from "./TauriUpdater.svelte";
+  import ThemeManager from "./themes/ThemeManager.svelte";
 
   type Status = "initializing" | "needsSpace" | "ready";
 
@@ -73,8 +74,6 @@
   $effect(() => {
     if (status === "ready" && spaceStore.currentSpaceId !== null) {
       saveCurrentSpaceId(spaceStore.currentSpaceId);
-      // Load theme when current space changes
-      loadSpaceTheme();
     }
   });
 
@@ -94,17 +93,17 @@
   });
 
   async function onSpaceSetup(spaceId: string) {
-    // TODO: implement connecting
-    console.error("Not implemented yet");
     status = "ready";
   }
 </script>
 
+<!-- Check for a theme and load it (either the default or the space theme) -->
+<ThemeManager />
 
 {#if status === "initializing"}
   <Loading />
 {:else if status === "needsSpace"}
-  <SpaceSetup {onSpaceSetup} />
+  <FreshStartWizard {onSpaceSetup} />
 {:else if status === "ready"}
   {@render children?.()}
 {/if}
