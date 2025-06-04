@@ -81,7 +81,7 @@
 
   <!-- Step content -->
   <div
-    class="card p-4 shadow-lg border-[1px] border-surface-200-800 flex-grow overflow-y-auto"
+    class="flex-grow overflow-y-auto"
   >
     {@render children({ currentStep })}
   </div>
@@ -89,7 +89,7 @@
   <!-- Navigation buttons -->
   <div class="flex justify-between mt-4">
     <button
-      class="btn preset-outlined"
+      class="btn btn-lg preset-outlined"
       onclick={prevStep}
       disabled={currentStep === 0}
     >
@@ -97,7 +97,7 @@
       Back
     </button>
 
-    <button class="btn preset-filled" onclick={nextStep} disabled={!canAdvance}>
+    <button class="btn btn-lg preset-filled" onclick={nextStep} disabled={!canAdvance}>
       {currentStep < totalSteps - 1 ? "Next" : "Finish"}
       {#if currentStep < totalSteps - 1}
         <ChevronRight size={16} />
