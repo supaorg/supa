@@ -43,6 +43,14 @@
     }
   });
 
+  function handleCancel() {
+    if (!spaceStore.currentSpaceId) {
+      return;
+    }
+
+    spaceStore.removeSpace(spaceStore.currentSpaceId);
+  }
+
   onMount(() => {
     spaceName = spaceStore.currentSpace?.name || presetNames[0];
   });
@@ -106,6 +114,7 @@
   titles={wizardTitles} 
   onComplete={completeSetup} 
   onStepChange={handleStepChange}
+  onCancel={handleCancel} 
   canAdvance={canAdvance}
   bind:step={currentWizardStep}
 >

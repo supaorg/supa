@@ -9,6 +9,7 @@
     titles = [],
     onComplete = () => {},
     onStepChange = undefined,
+    onCancel = () => {},
     canAdvance = true,
   } = $props<{
     children: Snippet<[{ currentStep: number }]>;
@@ -17,6 +18,7 @@
     titles?: string[];
     onComplete?: () => void;
     onStepChange?: (newStep: number) => void;
+    onCancel?: () => void;
     canAdvance?: boolean;
   }>();
 
@@ -88,14 +90,22 @@
 
   <!-- Navigation buttons -->
   <div class="flex justify-between mt-4">
-    <button
-      class="btn btn-lg preset-outlined"
-      onclick={prevStep}
-      disabled={currentStep === 0}
-    >
-      <ChevronLeft size={16} />
-      Back
-    </button>
+    {#if currentStep === 0}
+      <button
+        class="btn btn-lg preset-outlined"
+        onclick={onCancel}
+      >
+        Cancel
+      </button>
+    {:else}
+      <button
+        class="btn btn-lg preset-outlined"
+        onclick={prevStep}
+      >
+        <ChevronLeft size={16} />
+        Back
+      </button>
+    {/if}
 
     <button class="btn btn-lg preset-filled" onclick={nextStep} disabled={!canAdvance}>
       {currentStep < totalSteps - 1 ? "Next" : "Finish"}
