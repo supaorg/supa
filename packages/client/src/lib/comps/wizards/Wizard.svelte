@@ -57,12 +57,12 @@
         class="flex flex-col items-center"
       >
         <div
-          class="w-10 h-10 rounded-full flex items-center justify-center mb-2"
-          class:bg-success-500={i <= currentStep}
+          class="w-8 h-8 rounded-full flex items-center justify-center mb-2"
+          class:bg-success-200-800={i <= currentStep}
           class:bg-surface-100-900={i > currentStep}
           class:opacity-50={i < currentStep}
         >
-          <span>{i + 1}</span>
+          <strong class="text-xs">{i + 1}</strong>
         </div>
         <span class="text-sm">
           {titles && titles[i] ? titles[i] : `Step ${i + 1}`}
@@ -71,8 +71,8 @@
 
       {#if i < totalSteps - 1}
         <div class="flex-1">
-          <div class="h-10 flex items-center">
-            <div class="h-1 w-full mx-1" class:bg-success-500={i < currentStep} class:opacity-50={i < currentStep} class:bg-surface-100-900={i >= currentStep}></div>
+          <div class="h-8 flex items-center">
+            <div class="h-[1px] w-full mx-1" class:bg-success-200-800={i < currentStep} class:opacity-50={i < currentStep} class:bg-surface-100-900={i >= currentStep}></div>
           </div>
         </div>
       {/if}
