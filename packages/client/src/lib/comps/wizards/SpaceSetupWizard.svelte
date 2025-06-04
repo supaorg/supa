@@ -15,6 +15,14 @@
   let spaceName = $state("");
   let spaceNameError = $state("");
   
+  // Preset space names
+  const presetNames = [
+    "Personal",
+    "Work",
+    "Studies",
+    "School"
+  ];
+  
   // Step 2: Model providers
   let hasSetupProvider = $state(false);
   
@@ -61,10 +69,9 @@
   // Navigation functions
   function nextStep() {
     if (currentStep === 0) {
-      // Validate space name
+      // Allow empty space name (skip naming)
       if (!spaceName.trim()) {
-        spaceNameError = "Please enter a name for your space";
-        return;
+        spaceName = "My Space"; // Default name if skipped
       }
       
       // Save space name
@@ -106,11 +113,6 @@
       // Set onboarding to false to indicate setup is complete
       const rootVertex = spaceStore.currentSpace.rootVertex;
       spaceStore.currentSpace.tree.setVertexProperty(rootVertex.id, 'onboarding', false);
-      
-      // Theme is already applied via setThemeName
-      
-      // Navigate to the main space view
-      goto('/');
     }
   }
 </script>
@@ -150,22 +152,37 @@
     {#if currentStep === 0}
       <!-- Step 1: Space Name -->
       <h2 class="h3 mb-4">Name your space</h2>
-      <p class="mb-4">Give your space a name to help you identify it.</p>
+      <p class="mb-4">Give your space a name to help you identify it, or skip to continue with a default name. You can always change it later.</p>
       
-      <div class="form-control w-full mb-6">
+      <div class="form-control w-full mb-4">
         <label class="label" for="spaceName">
           <span class="label-text">Space name</span>
         </label>
         <input
           id="spaceName"
           type="text"
-          placeholder="My Awesome Space"
+          placeholder="Space"
           class="input {spaceNameError ? 'input-error' : ''}"
           bind:value={spaceName}
         />
         {#if spaceNameError}
           <p class="text-error-500 text-sm mt-1">{spaceNameError}</p>
         {/if}
+      </div>
+      
+      <div class="mb-6">
+        <p class="text-sm mb-2">You can give a simple name that describes the purpose of the space:</p>
+        <div class="flex flex-wrap gap-2">
+          {#each presetNames as name}
+            <button 
+              class="btn btn-sm preset-outlined"
+              class:preset-filled={name.toLocaleLowerCase() === spaceName.toLocaleLowerCase()} 
+              onclick={() => spaceName = name}
+            >
+              {name}
+            </button>
+          {/each}
+        </div>
       </div>
     {:else if currentStep === 1}
       <!-- Step 2: Model Provider -->
