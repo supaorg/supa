@@ -1,36 +1,24 @@
 <script lang="ts">
+  import Wizard from "$lib/comps/wizards/Wizard.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { theme, setThemeName } from "$lib/stores/theme.svelte";
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
   import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
-  import { goto } from "$app/navigation";
-  import { providers } from "@core/providers";
-  import { Check, ChevronLeft, ChevronRight } from "lucide-svelte";
-  
-  // Step management
-  let currentStep = $state(0);
-  const totalSteps = 3;
-  
-  // Step 1: Space name
+  import { Check } from "lucide-svelte";
+
   let spaceName = $state("");
-  let spaceNameError = $state("");
-  
-  // Preset space names
+  let spaceNameError = $state(""); // Kept for potential future use, though Wizard handles its own validation display
+  let hasSetupProvider = $state(false);
+  let selectedTheme = $state(theme.themeName);
+
   const presetNames = [
     "Personal",
     "Work",
     "Studies",
     "School"
   ];
-  
-  // Step 2: Model providers
-  let hasSetupProvider = $state(false);
-  
-  // Step 3: Theme
-  let selectedTheme = $state(theme.themeName);
-  
-  // Available themes
-  let themes = [
+
+  const themes = [
     { name: "catppuccin", emoji: "🐈" },
     { name: "cerberus", emoji: "🐺" },
     { name: "concord", emoji: "🤖" },
@@ -44,8 +32,21 @@
     { name: "seafoam", emoji: "🧜‍♀️" },
     { name: "vintage", emoji: "📺" },
   ];
-  
-  // Check if the current space has any model providers configured
+
+  const wizardSteps = [
+    "name",
+    "provider",
+    "theme"
+  ];
+
+  const wizardTitles = [
+    "Space Name",
+    "AI Models",
+    "Theme"
+  ];
+
+  let currentWizardStep = $state(0);
+
   $effect(() => {
     if (spaceStore.currentSpace) {
       const providerVertex = spaceStore.currentSpace.tree.getVertexByPath("providers");
@@ -54,21 +55,19 @@
       }
     }
   });
-  
-  // Handle provider setup
+
   function handleProviderConnect() {
     hasSetupProvider = true;
   }
-  
-  // Handle theme selection
+
   async function handleThemeClick(name: string) {
     selectedTheme = name;
     await setThemeName(name);
   }
-  
-  // Navigation functions
-  function nextStep() {
-    if (currentStep === 0) {
+
+  function handleStepChange(newStep: number) {
+    currentWizardStep = newStep;
+    if (newStep === 1) { // Moving from step 0 (Name) to step 1 (Provider)
       // Allow empty space name (skip naming)
       if (!spaceName.trim()) {
         spaceName = "My Space"; // Default name if skipped
@@ -90,65 +89,36 @@
           }
         }
       }
-      
-      spaceNameError = "";
-    }
-    
-    if (currentStep < totalSteps - 1) {
-      currentStep++;
-    } else {
-      completeSetup();
+      spaceNameError = ""; // Clear any previous error
     }
   }
-  
-  function prevStep() {
-    if (currentStep > 0) {
-      currentStep--;
-    }
-  }
-  
+
   function completeSetup() {
-    // Apply final settings
     if (spaceStore.currentSpace) {
-      // Set onboarding to false to indicate setup is complete
       const rootVertex = spaceStore.currentSpace.rootVertex;
       spaceStore.currentSpace.tree.setVertexProperty(rootVertex.id, 'onboarding', false);
+      // Potentially navigate away or show a success message
     }
   }
+
+  let canAdvance = $derived.by(() => {
+    if (currentWizardStep === 1 && !hasSetupProvider) {
+      return false;
+    }
+    return true;
+  });
+
 </script>
 
-<div class="w-full max-w-3xl mx-auto p-4">
-  <!-- Progress indicator -->
-  <div class="flex justify-between mb-8">
-    {#each Array(totalSteps) as _, i}
-      <div 
-        class="flex flex-col items-center" 
-        class:opacity-50={i !== currentStep}
-      >
-        <div 
-          class="w-10 h-10 rounded-full flex items-center justify-center mb-2 {i === currentStep ? 'bg-primary-500' : i < currentStep ? 'bg-success-500' : 'bg-surface-300-600-token'}"
-        >
-          {#if i < currentStep}
-            <Check size={20} />
-          {:else}
-            <span>{i + 1}</span>
-          {/if}
-        </div>
-        <span class="text-sm">
-          {i === 0 ? 'Name' : i === 1 ? 'Provider' : 'Theme'}
-        </span>
-      </div>
-      
-      {#if i < totalSteps - 1}
-        <div class="flex-1 flex items-center">
-          <div class="h-0.5 w-full bg-surface-300-600-token"></div>
-        </div>
-      {/if}
-    {/each}
-  </div>
-  
-  <!-- Step content -->
-  <div class="card p-6 border-[1px] border-surface-200-800">
+<Wizard 
+  steps={wizardSteps} 
+  titles={wizardTitles} 
+  onComplete={completeSetup} 
+  onStepChange={handleStepChange}
+  canAdvance={canAdvance}
+  bind:step={currentWizardStep}
+>
+  {#snippet children({ currentStep }: { currentStep: number })} 
     {#if currentStep === 0}
       <!-- Step 1: Space Name -->
       <h2 class="h3 mb-4">Name your space</h2>
@@ -161,7 +131,7 @@
         <input
           id="spaceName"
           type="text"
-          placeholder="Space"
+          placeholder="My Space"
           class="input {spaceNameError ? 'input-error' : ''}"
           bind:value={spaceName}
         />
@@ -202,7 +172,7 @@
       <div class="max-h-[400px] overflow-y-auto pr-2">
         <ModelProviders onConnect={handleProviderConnect} />
       </div>
-    {:else}
+    {:else if currentStep === 2}
       <!-- Step 3: Theme -->
       <h2 class="h3 mb-4">Choose your theme</h2>
       <p class="mb-4">Select a theme and color scheme for your space.</p>
@@ -233,28 +203,5 @@
         {/each}
       </div>
     {/if}
-  </div>
-  
-  <!-- Navigation buttons -->
-  <div class="flex justify-between mt-6">
-    <button 
-      class="btn preset-outlined" 
-      onclick={prevStep}
-      disabled={currentStep === 0}
-    >
-      <ChevronLeft size={16} />
-      Back
-    </button>
-    
-    <button 
-      class="btn preset-filled" 
-      onclick={nextStep}
-      disabled={currentStep === 1 && !hasSetupProvider}
-    >
-      {currentStep < totalSteps - 1 ? 'Next' : 'Finish'}
-      {#if currentStep < totalSteps - 1}
-        <ChevronRight size={16} />
-      {/if}
-    </button>
-  </div>
-</div>
+  {/snippet}
+</Wizard>
