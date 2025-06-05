@@ -14,7 +14,7 @@
         onProviderAdded();
         swins.pop();
       }
-    }, 'Add Custom Provider');
+    }, 'Add Custom OpenAI-like Provider');
   }
 </script>
 
