@@ -281,6 +281,7 @@
     <ModelProviderApiKeyForm
       id={provider.id}
       autofocus={false}
+      showCloseButton={false}
       onValidKey={() => {
         swins.pop();
       }}

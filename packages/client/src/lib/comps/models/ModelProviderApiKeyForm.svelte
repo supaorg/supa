@@ -16,12 +16,14 @@
     onBlur = () => {},
     onClose = () => {},
     autofocus = true,
+    showCloseButton = true,
   } = $props<{
     id: string;
     onValidKey: (key: string) => void;
     onBlur?: (key: string) => void;
     onClose?: () => void;
     autofocus?: boolean;
+    showCloseButton?: boolean;
   }>();
 
   let apiKey = $state("");
@@ -90,19 +92,18 @@
     oninput={handleApiKeyChange}
     onblur={handleBlur}
   />
-  {#if apiKeyIsValid}
-    <span class="absolute right-9 top-1/2 -translate-y-1/2">
-      <CheckCircle size={18} class="text-success-500" />
-    </span>
-  {:else if showWarning}
-    <span class="absolute right-9 top-1/2 -translate-y-1/2">
-      <CircleAlert size={18} class="text-warning-500" />
-    </span>
-  {/if}
-  <button
-    class="absolute right-2.5 top-1/2 -translate-y-1/2"
-    onclick={onClose}
-  >
-    <XCircle size={18} />
-  </button>
+  <div class="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pr-2.5">
+    <div class="w-6 flex justify-center">
+      {#if apiKeyIsValid}
+        <CheckCircle size={18} class="text-success-500" />
+      {:else if showWarning}
+        <CircleAlert size={18} class="text-warning-500" />
+      {/if}
+    </div>
+    {#if showCloseButton}
+      <button onclick={onClose}>
+        <XCircle size={18} />
+      </button>
+    {/if}
+  </div>
 </div>
