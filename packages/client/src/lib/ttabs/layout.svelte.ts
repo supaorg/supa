@@ -315,9 +315,6 @@ export function setupDefault(tt: TTabs) {
   const parentColumn = tt.addColumn(row);
   layoutRefs.contentGrid = tt.addGrid(parentColumn);
   tt.updateTile(layoutRefs.contentGrid, { dontClean: true });
-  const newRow = tt.addRow(layoutRefs.contentGrid);
-  const newColumn = tt.addColumn(newRow);
-  tt.addPanel(newColumn);
 }
 
 function findTabByTreeId(treeId: string): string | undefined {
