@@ -8,6 +8,7 @@
   import { Tooltip } from '@skeletonlabs/skeleton-svelte';
   import { CircleAlert } from "lucide-svelte/icons";
   import { interval } from "@core/tools/interval";
+  import { ExternalLink } from "lucide-svelte";
 
   type ProviderStatus =
     | "disconnected"
@@ -39,6 +40,23 @@
     checkConfigurationAndStatus();
     cancelInterval = interval(checkConfigurationAndStatus, 30000);
     return cancelInterval;
+  });
+
+  // Observe provider configuration changes
+  $effect(() => {
+    if (!spaceStore.currentSpace) return;
+
+    const providersVertex = spaceStore.currentSpace.tree.getVertexByPath("providers");
+    if (!providersVertex) return;
+
+    const unobserve = providersVertex.observe((events) => {
+      // Check if this event affects our provider
+      if (events.some(e => e.type === "property" || e.type === "children")) {
+        checkConfigurationAndStatus();
+      }
+    });
+
+    return () => unobserve();
   });
 
   async function checkConfigurationAndStatus() {
@@ -110,23 +128,27 @@
 </script>
 
 <div
-  class="card p-4 flex gap-4"
+  class="rounded border border-surface-100-900 p-2 flex items-center gap-3 h-full"
   class:border-token={isConfigured && !showValidationWarning}
   class:border-warning-500={showValidationWarning}
 >
-  <a
-    href={provider.url}
-    target="_blank"
-    class="w-16 h-16 bg-white flex flex-shrink-0 items-center justify-center rounded"
-  >
-    <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
-  </a>
-  <div class="flex flex-col flex-grow space-y-4">
+  <div class="w-12 h-12 bg-white flex flex-shrink-0 items-center justify-center rounded">
+    <img class="p-2" src={provider.logoUrl} alt={provider.name} />
+  </div>
+  <div class="flex items-center justify-between flex-grow">
     <div class="flex items-center gap-2">
-      <a href={provider.url} target="_blank" class="font-semibold">{provider.name}</a>
+      <span class="font-semibold">{provider.name}</span>
+      <a 
+        href={provider.url} 
+        target="_blank" 
+        class="text-surface-500 hover:text-surface-700 transition-colors"
+        title="Visit provider website"
+      >
+        <ExternalLink size={14} />
+      </a>
       {#if isConfigured}
         <div class="flex items-center gap-1">
-          <span class="badge {showValidationWarning ? 'preset-filled-warning-500' : 'preset-filled-success-500'} {isChecking ? 'animate-pulse' : ''}">Connected</span>
+          <span class="badge badge-sm {showValidationWarning ? 'preset-filled-warning-500' : 'preset-filled-success-500'} {isChecking ? 'animate-pulse' : ''}">Connected</span>
           {#if showValidationWarning}
             <Tooltip 
               positioning={{ placement: 'top' }}
@@ -149,11 +171,11 @@
     </div>
 
     {#if !isEditing}
-      <div class="flex flex-grow gap-2">
+      <div class="flex gap-2">
         {#if isConfigured}
           {#if provider.access !== "local"}
             <button 
-              class="btn btn-md preset-outlined-surface-500" 
+              class="btn btn-sm preset-outlined-surface-500" 
               onclick={disconnect}
             >
               Disconnect
@@ -161,13 +183,13 @@
           {/if}
         {:else if provider.access === "local"}
           <button
-            class="btn btn-md preset-outlined-surface-500 flex-grow"
+            class="btn btn-sm preset-outlined-surface-500"
             onclick={() => (isEditing = true)}
           >
             Configure
           </button>
           <button
-            class="btn btn-md preset-outlined-surface-500"
+            class="btn btn-sm preset-outlined-surface-500"
             onclick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -178,13 +200,13 @@
           </button>
         {:else}
           <button
-            class="btn btn-md preset-filled-primary-500 flex-grow"
+            class="btn btn-sm preset-filled-primary-500"
             onclick={() => (isEditing = true)}
           >
             Connect
           </button>
           <button
-            class="btn btn-md preset-outlined-surface-500"
+            class="btn btn-sm preset-outlined-surface-500"
             onclick={(e) => {
               e.preventDefault();
               e.stopPropagation();

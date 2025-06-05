@@ -126,8 +126,8 @@
       <li>
         <span>2.</span>
         <span class="flex-auto"
-          >Go to <Link href="https://platform.deepseek.com/api"
-            >https://platform.deepseek.com/api</Link
+          >Go to <Link href="https://platform.deepseek.com/api_keys"
+            >https://platform.deepseek.com/api_keys</Link
           > and create an API key</span
         >
       </li>
@@ -174,16 +174,15 @@
       <li>
         <span>1.</span>
         <span class="flex-auto"
-          >Sign up or login to xAI: <Link href="https://x.ai/"
-            >https://x.ai/</Link
+          >Sign up or login to xAI: <Link href="https://console.x.ai/"
+            >https://console.x.ai/</Link
           ></span
         >
       </li>
       <li>
         <span>2.</span>
         <span class="flex-auto"
-          >Get your API key from xAI (refer to their documentation for the
-          latest instructions)</span
+          >Create a team and go to the API keys page.</span
         >
       </li>
       <li>
@@ -282,6 +281,7 @@
     <ModelProviderApiKeyForm
       id={provider.id}
       autofocus={false}
+      showCloseButton={false}
       onValidKey={() => {
         swins.pop();
       }}
