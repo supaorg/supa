@@ -8,6 +8,7 @@
   import { Tooltip } from '@skeletonlabs/skeleton-svelte';
   import { CircleAlert } from "lucide-svelte/icons";
   import { interval } from "@core/tools/interval";
+  import { ExternalLink } from "lucide-svelte";
 
   type ProviderStatus =
     | "disconnected"
@@ -131,16 +132,20 @@
   class:border-token={isConfigured && !showValidationWarning}
   class:border-warning-500={showValidationWarning}
 >
-  <a
-    href={provider.url}
-    target="_blank"
-    class="w-16 h-16 bg-white flex flex-shrink-0 items-center justify-center rounded"
-  >
+  <div class="w-16 h-16 bg-white flex flex-shrink-0 items-center justify-center rounded">
     <img class="w-5/6" src={provider.logoUrl} alt={provider.name} />
-  </a>
+  </div>
   <div class="flex flex-col flex-grow space-y-4">
     <div class="flex items-center gap-2">
-      <a href={provider.url} target="_blank" class="font-semibold">{provider.name}</a>
+      <span class="font-semibold">{provider.name}</span>
+      <a 
+        href={provider.url} 
+        target="_blank" 
+        class="text-surface-500 hover:text-surface-700 transition-colors"
+        title="Visit provider website"
+      >
+        <ExternalLink size={16} />
+      </a>
       {#if isConfigured}
         <div class="flex items-center gap-1">
           <span class="badge {showValidationWarning ? 'preset-filled-warning-500' : 'preset-filled-success-500'} {isChecking ? 'animate-pulse' : ''}">Connected</span>
