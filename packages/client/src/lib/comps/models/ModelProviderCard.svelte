@@ -41,6 +41,23 @@
     return cancelInterval;
   });
 
+  // Observe provider configuration changes
+  $effect(() => {
+    if (!spaceStore.currentSpace) return;
+
+    const providersVertex = spaceStore.currentSpace.tree.getVertexByPath("providers");
+    if (!providersVertex) return;
+
+    const unobserve = providersVertex.observe((events) => {
+      // Check if this event affects our provider
+      if (events.some(e => e.type === "property" || e.type === "children")) {
+        checkConfigurationAndStatus();
+      }
+    });
+
+    return () => unobserve();
+  });
+
   async function checkConfigurationAndStatus() {
     // First check if the provider is configured
     const config = spaceStore.currentSpace?.getModelProviderConfig(provider.id) as ModelProviderLocalConfig | undefined;
