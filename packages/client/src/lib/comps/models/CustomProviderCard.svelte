@@ -1,143 +1,118 @@
 <script lang="ts">
-  import type { CustomProviderConfig, ModelProvider } from "@core/models";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { onMount } from "svelte";
-  import { Tooltip } from '@skeletonlabs/skeleton-svelte';
-  import { CircleAlert, Edit, Trash2, ExternalLink, Pencil } from "lucide-svelte";
-  import { interval } from "@core/tools/interval";
+  import type { ModelProvider } from "@core/models";
+  import { Pencil, Trash2, CircleAlert } from "lucide-svelte";
+  import { Tooltip } from "@skeletonlabs/skeleton-svelte";
   import CustomProviderForm from "./CustomProviderForm.svelte";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { getActiveProviders } from "@core/customProviders";
   import { swins } from "$lib/swins";
-  
-  type ProviderStatus = "disconnected" | "invalid-key" | "connected";
-    
-  let status: ProviderStatus = $state("disconnected");
-  let isEditing = $state(false);
-  let isConfigured = $state(false);
-  let isChecking = $state(false);
-  let validationError = $state<string | null>(null);
-  let showValidationWarning = $derived(status === "invalid-key" as ProviderStatus);
-  let confirmingDelete = $state(false);
 
   let {
     provider,
-    onConnect = () => {},
-    onDisconnect = () => {},
-    onDeleted = () => {},
+    onConnect,
+    onDisconnect,
+    onDeleted,
   }: {
     provider: ModelProvider;
     onConnect?: (provider: ModelProvider) => void;
     onDisconnect?: (provider: ModelProvider) => void;
-    onDeleted?: (providerId: string) => void;
+    onDeleted?: () => void;
   } = $props();
 
-  let cancelInterval: () => void;
+  let isEditing = $state(false);
+  let isConfigured = $state(false);
+  let isChecking = $state(false);
+  let showValidationWarning = $state(false);
+  let validationError = $state<string | null>(null);
+  let confirmingDelete = $state(false);
 
-  onMount(() => {
-    checkConfigurationAndStatus();
-    cancelInterval = interval(checkConfigurationAndStatus, 30000);
-    return cancelInterval;
+  // Check if provider is configured
+  $effect(() => {
+    if (!spaceStore.currentSpace) return;
+    
+    const customConfigs = spaceStore.currentSpace.getCustomProviders();
+    const allProviders = getActiveProviders(customConfigs);
+    const activeProvider = allProviders.find(p => p.id === provider.id);
+    
+    isConfigured = !!activeProvider;
+    if (isConfigured) {
+      checkConfigurationAndStatus();
+    }
   });
 
   async function checkConfigurationAndStatus() {
-    // Check if the provider is configured
-    const config = spaceStore.currentSpace?.getModelProviderConfig(provider.id);
-    isConfigured = !!config;
-
-    if (!isConfigured) {
-      status = "disconnected";
-      return;
-    }
-
-    // For cloud providers, check their status
+    if (!spaceStore.currentSpace) return;
+    
     isChecking = true;
+    showValidationWarning = false;
+    validationError = null;
+    
     try {
-      const providerStatus = await spaceStore.currentSpace?.getModelProviderStatus(
-        provider.id,
-      );
-
-      if (providerStatus === "valid") {
-        status = "connected";
-        onConnect(provider);
-      } else if (providerStatus === "invalid") {
-        status = "invalid-key";
+      const customConfigs = spaceStore.currentSpace.getCustomProviders();
+      const allProviders = getActiveProviders(customConfigs);
+      const activeProvider = allProviders.find(p => p.id === provider.id);
+      
+      if (!activeProvider) {
+        isConfigured = false;
+        return;
+      }
+      
+      // Check provider status
+      const status = await spaceStore.currentSpace.getModelProviderStatus(provider.id);
+      
+      if (status === "invalid") {
+        showValidationWarning = true;
         validationError = "API key validation failed. The key might be invalid or expired.";
-        onDisconnect(provider);
-      } else {
-        status = "disconnected";
-        validationError = "Connection failed. Please check your network.";
-        onDisconnect(provider);
       }
     } catch (error) {
-      status = "disconnected";
-      onDisconnect(provider);
+      showValidationWarning = true;
+      validationError = error instanceof Error ? error.message : 'Unknown error occurred';
     } finally {
       isChecking = false;
     }
   }
 
-  function disconnect() {
-    status = "disconnected";
-    isConfigured = false;
-    validationError = null;
-    onDisconnect(provider);
-    spaceStore.currentSpace?.deleteModelProviderConfig(provider.id);
+  function handleEdit() {
+    isEditing = true;
   }
-  
-  function deleteProvider() {
-    if (!confirmingDelete) {
-      confirmingDelete = true;
-      return;
-    }
-    
-    if (spaceStore.currentSpace) {
-      spaceStore.currentSpace.removeCustomProvider(provider.id);
-      onDeleted(provider.id);
-    }
-    confirmingDelete = false;
-  }
-  
-  function cancelDelete() {
-    confirmingDelete = false;
-  }
-  
+
   function handleSave() {
     isEditing = false;
     checkConfigurationAndStatus();
   }
 
-  function handleEdit() {
-    swins.open('custom-provider-setup', {
-      providerId: provider.id,
-      onSave: () => {
-        swins.pop();
-      }
-    }, `Edit ${provider.name}`);
+  function handleDelete() {
+    confirmingDelete = true;
   }
 
-  function handleDelete() {
-    if (!confirm(`Are you sure you want to delete ${provider.name}?`)) return;
-    onDeleted?.(provider.id);
+  function cancelDelete() {
+    confirmingDelete = false;
+  }
+
+  function deleteProvider() {
+    if (!spaceStore.currentSpace) return;
+    
+    spaceStore.currentSpace.removeCustomProvider(provider.id);
+    onDeleted?.();
   }
 </script>
 
 <div
-  class="card p-4 flex gap-4"
+  class="card border border-surface-100-900 p-2 flex items-center gap-3 h-full"
   class:border-token={isConfigured && !showValidationWarning}
   class:border-warning-500={showValidationWarning}
 >
   {#if !isEditing}
-    <div
-      class="w-16 h-16 bg-white flex flex-shrink-0 items-center justify-center rounded"
-    >
-      <img src="/providers/openai-like.png" alt={provider.name} class="w-5/6" />
+    <div class="w-10 h-10 bg-white flex flex-shrink-0 items-center justify-center rounded">
+      <img src="/providers/openai-like.png" alt={provider.name} class="w-4/5" />
     </div>
     
-    <div class="flex flex-col flex-grow space-y-4">
+    <div class="flex items-center justify-between flex-grow">
       <div class="flex items-center gap-2">
         <span class="font-semibold">{provider.name}</span>
         {#if isConfigured}
           <div class="flex items-center gap-1">
-            <span class="badge {showValidationWarning ? 'preset-filled-warning-500' : 'preset-filled-success-500'} {isChecking ? 'animate-pulse' : ''}">Connected</span>
+            <span class="badge badge-sm {showValidationWarning ? 'preset-filled-warning-500' : 'preset-filled-success-500'} {isChecking ? 'animate-pulse' : ''}">Connected</span>
             {#if showValidationWarning}
               <Tooltip 
                 positioning={{ placement: 'top' }}
@@ -159,11 +134,6 @@
         {/if}
       </div>
       
-      <div class="text-xs opacity-70 flex flex-col gap-1">
-        <div><strong>API URL:</strong> {provider.baseApiUrl}</div>
-        <div><strong>Model ID:</strong> {provider.defaultModel}</div>
-      </div>
-      
       {#if !confirmingDelete}
         <div class="flex gap-2">
           <button 
@@ -171,7 +141,7 @@
             onclick={handleEdit}
             title="Edit provider"
           >
-            <Pencil size={16} />
+            <Pencil size={14} />
             <span>Edit</span>
           </button>
           <button 
@@ -179,27 +149,25 @@
             onclick={handleDelete}
             title="Delete provider"
           >
-            <Trash2 size={16} />
+            <Trash2 size={14} />
             <span>Delete</span>
           </button>
         </div>
       {:else}
-        <div class="flex flex-col gap-2">
-          <div class="text-sm text-error-500">Are you sure you want to delete this provider?</div>
-          <div class="flex gap-2">
-            <button 
-              class="btn btn-sm preset-filled-error-500" 
-              onclick={deleteProvider}
-            >
-              Confirm Delete
-            </button>
-            <button 
-              class="btn btn-sm preset-outlined-surface-500" 
-              onclick={cancelDelete}
-            >
-              Cancel
-            </button>
-          </div>
+        <div class="flex items-center gap-2">
+          <div class="text-sm text-error-500">Delete?</div>
+          <button 
+            class="btn btn-sm preset-filled-error-500" 
+            onclick={deleteProvider}
+          >
+            Confirm
+          </button>
+          <button 
+            class="btn btn-sm preset-outlined-surface-500" 
+            onclick={cancelDelete}
+          >
+            Cancel
+          </button>
         </div>
       {/if}
     </div>

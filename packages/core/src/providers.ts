@@ -10,14 +10,6 @@ export const providers: ModelProvider[] = [
     defaultModel: "gpt-4o"
   },
   {
-    id: "groq",
-    name: "Groq",
-    access: "cloud",
-    url: "https://groq.com/",
-    logoUrl: "/providers/groq.png",
-    defaultModel: "llama-3.3-70b-versatile"
-  },
-  {
     id: "anthropic",
     name: "Anthropic",
     access: "cloud",
@@ -40,6 +32,14 @@ export const providers: ModelProvider[] = [
     url: "https://gemini.google.com/",
     logoUrl: "/providers/google.png",
     defaultModel: "gemini-2.0-flash"
+  },
+  {
+    id: "groq",
+    name: "Groq",
+    access: "cloud",
+    url: "https://groq.com/",
+    logoUrl: "/providers/groq.png",
+    defaultModel: "llama-3.3-70b-versatile"
   },
   {
     id: "xai",
