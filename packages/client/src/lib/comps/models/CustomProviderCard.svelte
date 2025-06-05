@@ -3,9 +3,10 @@
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { onMount } from "svelte";
   import { Tooltip } from '@skeletonlabs/skeleton-svelte';
-  import { CircleAlert, Edit, Trash2 } from "lucide-svelte";
+  import { CircleAlert, Edit, Trash2, ExternalLink, Pencil } from "lucide-svelte";
   import { interval } from "@core/tools/interval";
   import CustomProviderForm from "./CustomProviderForm.svelte";
+  import { swins } from "$lib/swins";
   
   type ProviderStatus = "disconnected" | "invalid-key" | "connected";
     
@@ -103,6 +104,20 @@
     isEditing = false;
     checkConfigurationAndStatus();
   }
+
+  function handleEdit() {
+    swins.open('custom-provider-setup', {
+      providerId: provider.id,
+      onSave: () => {
+        swins.pop();
+      }
+    }, `Edit ${provider.name}`);
+  }
+
+  function handleDelete() {
+    if (!confirm(`Are you sure you want to delete ${provider.name}?`)) return;
+    onDeleted?.(provider.id);
+  }
 </script>
 
 <div
@@ -153,15 +168,15 @@
         <div class="flex gap-2">
           <button 
             class="btn btn-sm preset-outlined-surface-500" 
-            onclick={() => isEditing = true}
+            onclick={handleEdit}
             title="Edit provider"
           >
-            <Edit size={16} />
+            <Pencil size={16} />
             <span>Edit</span>
           </button>
           <button 
             class="btn btn-sm preset-outlined-error-500" 
-            onclick={deleteProvider}
+            onclick={handleDelete}
             title="Delete provider"
           >
             <Trash2 size={16} />
