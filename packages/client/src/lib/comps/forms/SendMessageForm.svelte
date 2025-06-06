@@ -7,6 +7,8 @@
   import { txtStore } from "$lib/stores/txtStore";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
+  import { swins } from "$lib/swins";
+    import { providers } from "@core/providers";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
@@ -38,6 +40,10 @@
     data = undefined,
     showConfigSelector = true,
   }: SendMessageFormProps = $props();
+
+  function openModelProvidersSettings() {
+    swins.open("model-providers", {}, "Model Providers");
+  }
 
   let query = $state("");
   let isTextareaFocused = $state(false);
@@ -86,7 +92,7 @@
     const draftContent = await spaceStore.getDraft(draftId);
     if (draftContent) {
       query = draftContent;
-      // Adjust height after loading draft content
+      // Adjust height after loading draft content into the textarea
       await tick();
       adjustTextareaHeight();
     }
@@ -162,7 +168,7 @@
     if (textareaElement) {
       textareaElement.style.height = `${TEXTAREA_BASE_HEIGHT}px`;
       textareaElement.style.overflowY = "hidden"; // Reset overflow to prevent scrollbars
-      // Use timeout to ensure UI updates before recalculating
+
       await tick();
       adjustTextareaHeight();
     }
@@ -181,63 +187,78 @@
   }
 </script>
 
-<form class="w-full" use:focusTrap={isFocused} onsubmit={handleSubmit}>
-  <div class="relative flex w-full items-center">
-    <div
-      class="flex w-full flex-col rounded-lg bg-surface-50-950 transition-colors ring"
-      class:ring-primary-300-700={isTextareaFocused}
-      class:ring-surface-300-700={!isTextareaFocused}
-    >
-      <textarea
-        bind:this={textareaElement}
-        class="block w-full resize-none border-0 bg-transparent p-2 leading-normal outline-none focus:ring-0"
-        style="height: {TEXTAREA_BASE_HEIGHT}px; overflow-y: hidden;"
-        {placeholder}
-        bind:value={query}
-        onkeydown={handleKeydown}
-        oninput={handleInput}
-        onfocus={() => (isTextareaFocused = true)}
-        onblur={() => (isTextareaFocused = false)}
-      ></textarea>
+{#if spaceStore.setupModelProviders}
+  <form class="w-full" use:focusTrap={isFocused} onsubmit={handleSubmit}>
+    <div class="relative flex w-full items-center">
+      <div
+        class="flex w-full flex-col rounded-lg bg-surface-50-950 transition-colors ring"
+        class:ring-primary-300-700={isTextareaFocused}
+        class:ring-surface-300-700={!isTextareaFocused}
+      >
+        <textarea
+          bind:this={textareaElement}
+          class="block w-full resize-none border-0 bg-transparent p-2 leading-normal outline-none focus:ring-0"
+          style="height: {TEXTAREA_BASE_HEIGHT}px; overflow-y: hidden;"
+          {placeholder}
+          bind:value={query}
+          onkeydown={handleKeydown}
+          oninput={handleInput}
+          onfocus={() => (isTextareaFocused = true)}
+          onblur={() => (isTextareaFocused = false)}
+          {disabled}
+        ></textarea>
 
-      <!-- Bottom toolbar -->
-      <div class="flex items-center justify-between p-2 text-sm">
-        <div class="flex items-center gap-2">
-          {#if showConfigSelector}
-            <AppConfigDropdown {configId} onChange={handleConfigChange} />
-          {/if}
-          {#if attachEnabled}
-            <button
-              class="flex items-center justify-center h-9 w-9 p-0"
-              aria-label={$txtStore.messageForm.attachFile}
-            >
-              <Paperclip size={20} />
-            </button>
-          {/if}
-        </div>
-        <div class="flex items-center gap-2">
-          {#if status === "ai-message-in-progress"}
-            <button
-              onclick={stopMsg}
-              class="flex items-center justify-center h-9 w-9 p-0"
-              aria-label={$txtStore.messageForm.stop}
-            >
-              <StopCircle size={20} />
-            </button>
-          {:else}
-            <button
-              onclick={sendMsg}
-              class="flex items-center justify-center h-9 w-9 p-0"
-              class:text-primary-500={canSendMessage}
-              class:opacity-50={!canSendMessage}
-              disabled={!canSendMessage}
-              aria-label={$txtStore.messageForm.send}
-            >
-              <Send size={20} />
-            </button>
-          {/if}
+        <!-- Bottom toolbar -->
+        <div class="flex items-center justify-between p-2 text-sm">
+          <div class="flex items-center gap-2">
+            {#if showConfigSelector}
+              <AppConfigDropdown {configId} onChange={handleConfigChange} />
+            {/if}
+            {#if attachEnabled}
+              <button
+                class="flex items-center justify-center h-9 w-9 p-0"
+                aria-label={$txtStore.messageForm.attachFile}
+                {disabled}
+              >
+                <Paperclip size={20} />
+              </button>
+            {/if}
+          </div>
+          <div class="flex items-center gap-2">
+            {#if status === "ai-message-in-progress"}
+              <button
+                onclick={stopMsg}
+                class="flex items-center justify-center h-9 w-9 p-0"
+                aria-label={$txtStore.messageForm.stop}
+              >
+                <StopCircle size={20} />
+              </button>
+            {:else}
+              <button
+                onclick={sendMsg}
+                class="flex items-center justify-center h-9 w-9 p-0"
+                class:text-primary-500={canSendMessage}
+                class:opacity-50={!canSendMessage}
+                disabled={!canSendMessage}
+                aria-label={$txtStore.messageForm.send}
+              >
+                <Send size={20} />
+              </button>
+            {/if}
+          </div>
         </div>
       </div>
     </div>
+  </form>
+{:else}
+  <div
+    class="relative flex w-full flex-col items-center justify-center rounded-lg bg-surface-50-950 p-4 transition-colors ring ring-surface-300-700"
+  >
+    <p class="mb-4 text-center">
+      Set up a model provider to chat with AI.
+    </p>
+    <button class="btn preset-filled" onclick={openModelProvidersSettings}>
+      Setup brains
+    </button>
   </div>
-</form>
+{/if}

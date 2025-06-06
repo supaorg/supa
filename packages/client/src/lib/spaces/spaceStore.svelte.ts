@@ -2,16 +2,53 @@ import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./LocalSpaceSync";
 import type { SpacePointer } from "./SpacePointer";
 import { deleteSpace, getDraft, saveDraft, deleteDraft } from "$lib/localDb";
+import { untrack } from "svelte";
 
 class SpaceStore {
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $state(null);
   connections: SpaceConnection[] = $state([]);
   config: Record<string, unknown> = $state({});
+  setupModelProviders: boolean = $state(false);
 
   currentSpace = $derived(this.connections.find(conn => conn.space.getId() === this.currentSpaceId)?.space || null);
   currentSpaceConnection = $derived(this.connections.find(conn => conn.space.getId() === this.currentSpaceId) || null);
   currentPointer = $derived(this.pointers.find(p => p.id === this.currentSpaceId) || null);
+
+  effectd = $effect.root(() => {
+    console.log("effectd");
+
+    $effect(() => {
+      console.log("effect of currentspace");
+
+      let providersObserver: (() => void) | null = null;
+
+      const currentSpace = spaceStore.currentSpace;
+
+      untrack(() => {
+        console.log("untracked currentspace");
+        if (currentSpace) {
+          const providersVertex = currentSpace.tree.getVertexByPath("providers");
+          if (providersVertex) {
+            spaceStore.setupModelProviders = providersVertex.children.length > 0;
+            providersObserver = providersVertex.observeChildren((children) => {
+              spaceStore.setupModelProviders = children.length > 0;
+            });
+          } else {
+            spaceStore.setupModelProviders = false;
+          }
+        } else {
+          spaceStore.setupModelProviders = false;
+        }
+      });
+
+      return () => {
+        if (providersObserver) {
+          providersObserver();
+        }
+      };
+    });
+  });
 
   /**
    * Initialize with data loaded from elsewhere
