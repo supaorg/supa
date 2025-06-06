@@ -3,14 +3,14 @@
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
-  import { newThreadDrafts } from "$lib/stores/newThreadDrafts";
   import { openChatTab } from "$lib/ttabs/layout.svelte";
   import { onMount } from "svelte";
 
-  let { appConfig, onSend }: { appConfig?: AppConfig, onSend?: () => void } = $props();
+  let { appConfig, onSend }: { appConfig?: AppConfig; onSend?: () => void } =
+    $props();
   let targetAppConfig: AppConfig | undefined = $state(undefined);
 
-  onMount(() => { 
+  onMount(() => {
     if (!appConfig) {
       targetAppConfig = spaceStore.currentSpace?.getAppConfigs()[0];
     } else {
@@ -20,20 +20,10 @@
 
   const placeholder = "Write a message...";
 
-  function onSendSubmit(msg: string) {
+  function handleSend(msg: string) {
     if (!msg) {
       return;
     }
-
-    // Clear draft when sending
-    newThreadDrafts.update((drafts) => {
-      if (!appConfig) {
-        return drafts;
-      }
-
-      delete drafts[appConfig.id];
-      return drafts;
-    });
 
     newThread(msg);
   }
@@ -50,14 +40,15 @@
     // Create new app tree
     const newTree = ChatAppData.createNewChatTree(
       spaceStore.currentSpaceConnection.space,
-      targetAppConfig.id
+      targetAppConfig.id,
     );
     const chatAppData = new ChatAppData(
       spaceStore.currentSpaceConnection.space,
-      newTree
+      newTree,
     );
     chatAppData.newMessage("user", message);
     openChatTab(newTree.tree.root!.id, "New chat");
+
     onSend?.();
   }
 </script>
@@ -67,10 +58,9 @@
     <h3 class="h3">{targetAppConfig.name}</h3>
     <p>{targetAppConfig.description}</p>
     <SendMessageForm
-      onSend={onSendSubmit}
+      onSend={handleSend}
       {placeholder}
-      threadId={targetAppConfig.id}
-      draftStore={newThreadDrafts}
+      draftId="new-thread"
       showConfigSelector={false}
     />
   {/if}

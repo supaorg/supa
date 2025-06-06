@@ -10,4 +10,4 @@
   }
 </script>
 
-<NewThread appConfig={appConfig} onSend={onSend} />
+<NewThread {appConfig} {onSend} />

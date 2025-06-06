@@ -1,17 +1,49 @@
 import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./LocalSpaceSync";
 import type { SpacePointer } from "./SpacePointer";
-import { deleteSpace } from "$lib/localDb";
+import { deleteSpace, getDraft, saveDraft, deleteDraft } from "$lib/localDb";
+import { untrack } from "svelte";
 
 class SpaceStore {
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $state(null);
   connections: SpaceConnection[] = $state([]);
   config: Record<string, unknown> = $state({});
+  setupModelProviders: boolean = $state(false);
 
   currentSpace = $derived(this.connections.find(conn => conn.space.getId() === this.currentSpaceId)?.space || null);
   currentSpaceConnection = $derived(this.connections.find(conn => conn.space.getId() === this.currentSpaceId) || null);
   currentPointer = $derived(this.pointers.find(p => p.id === this.currentSpaceId) || null);
+
+  effectd = $effect.root(() => {
+    $effect(() => {
+      let providersObserver: (() => void) | null = null;
+
+      const currentSpace = spaceStore.currentSpace;
+
+      untrack(() => {
+        if (currentSpace) {
+          const providersVertex = currentSpace.tree.getVertexByPath("providers");
+          if (providersVertex) {
+            spaceStore.setupModelProviders = providersVertex.children.length > 0;
+            providersObserver = providersVertex.observeChildren((children) => {
+              spaceStore.setupModelProviders = children.length > 0;
+            });
+          } else {
+            spaceStore.setupModelProviders = false;
+          }
+        } else {
+          spaceStore.setupModelProviders = false;
+        }
+      });
+
+      return () => {
+        if (providersObserver) {
+          providersObserver();
+        }
+      };
+    });
+  });
 
   /**
    * Initialize with data loaded from elsewhere
@@ -93,6 +125,30 @@ class SpaceStore {
   getLoadedSpaceFromPointer(pointer: SpacePointer): Space | null {
     const connection = this.connections.find((conn) => conn.space.getId() === pointer.id);
     return connection ? connection.space : null;
+  }
+
+  /**
+   * Get a draft for the current space
+   */
+  async getDraft(draftId: string): Promise<string | undefined> {
+    if (!this.currentSpaceId) return undefined;
+    return getDraft(this.currentSpaceId, draftId);
+  }
+
+  /**
+   * Save a draft for the current space
+   */
+  async saveDraft(draftId: string, content: string): Promise<void> {
+    if (!this.currentSpaceId) return;
+    await saveDraft(this.currentSpaceId, draftId, content);
+  }
+
+  /**
+   * Delete a draft for the current space
+   */
+  async deleteDraft(draftId: string): Promise<void> {
+    if (!this.currentSpaceId) return;
+    await deleteDraft(this.currentSpaceId, draftId);
   }
 
   /**

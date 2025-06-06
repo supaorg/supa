@@ -12,6 +12,6 @@
     </div>
   {/if}
   <CenteredPage>
-    <NewThread onSend={() => {}} />
+    <NewThread />
   </CenteredPage>
 </div>

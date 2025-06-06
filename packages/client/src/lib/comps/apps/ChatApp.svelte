@@ -168,7 +168,7 @@
         onSend={sendMsg}
         onStop={stopMsg}
         status={formStatus}
-        threadId={data.threadId}
+        draftId={data.threadId}
         maxLines={10}
         {data}
       />

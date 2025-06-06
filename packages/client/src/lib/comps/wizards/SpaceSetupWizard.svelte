@@ -59,11 +59,6 @@
     hasSetupProvider = true;
   }
 
-  async function handleThemeClick(name: string) {
-    selectedTheme = name;
-    await setThemeName(name);
-  }
-
   function handleStepChange(newStep: number) {
     currentWizardStep = newStep;
     if (newStep === 1) { // Moving from step 0 (Name) to step 1 (Provider)

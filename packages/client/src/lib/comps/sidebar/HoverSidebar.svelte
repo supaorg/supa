@@ -66,7 +66,7 @@
 <!-- Hover trigger area - only visible when sidebar is closed -->
 {#if !sidebar.isOpen}
   <div
-    class="fixed z-10 w-4 h-screen top-0 left-0 opacity-0 cursor-auto"
+    class="fixed z-10 w-10 h-[calc(100vh-2.5rem)] top-[2.5rem] left-0 opacity-0 cursor-auto"
     onmouseenter={handleHoverEnter}
     onmouseleave={handleHoverLeave}
     tabindex="0"
