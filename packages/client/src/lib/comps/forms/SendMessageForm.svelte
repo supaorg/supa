@@ -7,7 +7,6 @@
   import { type MessageFormStatus } from "./messageFormStatus";
   import { txtStore } from "$lib/stores/txtStore";
   import { draftMessages } from "$lib/stores/draftMessages";
-  import type { Writable } from "svelte/store";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
@@ -20,8 +19,7 @@
     placeholder?: string;
     status?: MessageFormStatus;
     disabled?: boolean;
-    threadId?: string;
-    draftStore?: Writable<Record<string, string>>;
+    draftId?: string;
     maxLines?: number;
     attachEnabled?: boolean;
     data?: ChatAppData; // Optional chat data for active chats
@@ -35,8 +33,7 @@
     placeholder = $txtStore.messageForm.placeholder,
     status = "can-send-message",
     disabled = false,
-    threadId,
-    draftStore = draftMessages,
+    draftId,
     maxLines = Infinity,
     attachEnabled = false,
     data = undefined,
@@ -65,8 +62,8 @@
       configId = data.configId;
     }
 
-    if (threadId && $draftStore[threadId]) {
-      query = $draftStore[threadId];
+    if (draftId && $draftMessages[draftId]) {
+      query = $draftMessages[draftId];
       // Adjust height after loading draft content
       timeout(() => adjustTextareaHeight(), 0);
     }
@@ -82,13 +79,12 @@
       }
     });
 
-    // Clean up draft when component is destroyed
     return () => {
       observeData?.();
 
-      if (threadId && query) {
-        draftStore.update((drafts) => {
-          drafts[threadId] = query;
+      if (draftId && query) {
+        draftMessages.update((drafts) => {
+          drafts[draftId] = query;
           return drafts;
         });
       }
@@ -139,12 +135,12 @@
     adjustTextareaHeight();
 
     // Save or clear draft based on content
-    if (threadId) {
-      draftStore.update((drafts) => {
+    if (draftId) {
+      draftMessages.update((drafts) => {
         if (query) {
-          drafts[threadId] = query;
+          drafts[draftId] = query;
         } else {
-          delete drafts[threadId];
+          delete drafts[draftId];
         }
         return drafts;
       });
@@ -159,9 +155,9 @@
     onSend(query);
 
     // Clear draft when message is sent
-    if (threadId) {
-      draftStore.update((drafts) => {
-        delete drafts[threadId];
+    if (draftId) {
+      draftMessages.update((drafts) => {
+        delete drafts[draftId];
         return drafts;
       });
     }
