@@ -16,17 +16,12 @@ class SpaceStore {
   currentPointer = $derived(this.pointers.find(p => p.id === this.currentSpaceId) || null);
 
   effectd = $effect.root(() => {
-    console.log("effectd");
-
     $effect(() => {
-      console.log("effect of currentspace");
-
       let providersObserver: (() => void) | null = null;
 
       const currentSpace = spaceStore.currentSpace;
 
       untrack(() => {
-        console.log("untracked currentspace");
         if (currentSpace) {
           const providersVertex = currentSpace.tree.getVertexByPath("providers");
           if (providersVertex) {
