@@ -1,7 +1,7 @@
 import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./LocalSpaceSync";
 import type { SpacePointer } from "./SpacePointer";
-import { deleteSpace } from "$lib/localDb";
+import { deleteSpace, getDraft, saveDraft, deleteDraft } from "$lib/localDb";
 
 class SpaceStore {
   pointers: SpacePointer[] = $state([]);
@@ -93,6 +93,30 @@ class SpaceStore {
   getLoadedSpaceFromPointer(pointer: SpacePointer): Space | null {
     const connection = this.connections.find((conn) => conn.space.getId() === pointer.id);
     return connection ? connection.space : null;
+  }
+
+  /**
+   * Get a draft for the current space
+   */
+  async getDraft(draftId: string): Promise<string | undefined> {
+    if (!this.currentSpaceId) return undefined;
+    return getDraft(this.currentSpaceId, draftId);
+  }
+
+  /**
+   * Save a draft for the current space
+   */
+  async saveDraft(draftId: string, content: string): Promise<void> {
+    if (!this.currentSpaceId) return;
+    await saveDraft(this.currentSpaceId, draftId, content);
+  }
+
+  /**
+   * Delete a draft for the current space
+   */
+  async deleteDraft(draftId: string): Promise<void> {
+    if (!this.currentSpaceId) return;
+    await deleteDraft(this.currentSpaceId, draftId);
   }
 
   /**

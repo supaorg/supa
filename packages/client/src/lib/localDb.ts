@@ -19,6 +19,7 @@ export type SpaceSetup = {
   theme?: string | null;
   colorScheme?: 'light' | 'dark' | null;
   ops?: VertexOperation[];
+  drafts?: { [draftId: string]: string } | null;
 };
 
 export interface ConfigEntry {
@@ -118,7 +119,8 @@ export async function savePointers(pointers: SpacePointer[]): Promise<void> {
           await db.spaces.put({
             ...pointer,
             ttabsLayout: null,
-            theme: null
+            theme: null,
+            drafts: null
           });
         }
       } catch (spaceError) {
@@ -290,5 +292,49 @@ export async function deleteSpace(spaceId: string): Promise<void> {
     console.log(`Space ${spaceId} deleted from database`);
   } catch (error) {
     console.error(`Failed to delete space ${spaceId} from database:`, error);
+  }
+}
+
+// Get a draft for a space and draftId
+export async function getDraft(spaceId: string, draftId: string): Promise<string | undefined> {
+  try {
+    const space = await db.spaces.get(spaceId);
+    return space?.drafts?.[draftId];
+  } catch (error) {
+    console.error(`Failed to get draft for space ${spaceId} and draftId ${draftId}:`, error);
+    return undefined;
+  }
+}
+
+// Save a draft for a space
+export async function saveDraft(spaceId: string, draftId: string, content: string): Promise<void> {
+  try {
+    await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .modify((space) => {
+        if (!space.drafts) {
+          space.drafts = {};
+        }
+        space.drafts[draftId] = content;
+      });
+  } catch (error) {
+    console.error(`Failed to save draft for space ${spaceId} and draftId ${draftId}:`, error);
+  }
+}
+
+// Delete a draft for a space
+export async function deleteDraft(spaceId: string, draftId: string): Promise<void> {
+  try {
+    await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .modify((space) => {
+        if (space.drafts && space.drafts[draftId]) {
+          delete space.drafts[draftId];
+        }
+      });
+  } catch (error) {
+    console.error(`Failed to delete draft for space ${spaceId} and draftId ${draftId}:`, error);
   }
 }

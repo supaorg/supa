@@ -1,12 +1,11 @@
 <script lang="ts">
   import { Send, StopCircle, Paperclip } from "lucide-svelte";
   import AppConfigDropdown from "$lib/comps/apps/AppConfigDropdown.svelte";
-  import { onMount } from "svelte";
-  import { timeout } from "@core/tools/timeout";
+  import { onMount, tick } from "svelte";
   import { focusTrap } from "$lib/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
   import { txtStore } from "$lib/stores/txtStore";
-  import { draftMessages } from "$lib/stores/draftMessages";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
@@ -56,17 +55,12 @@
     }
   }
 
-  // Load draft message if exists
   onMount(() => {
     if (data && data.configId) {
       configId = data.configId;
     }
 
-    if (draftId && $draftMessages[draftId]) {
-      query = $draftMessages[draftId];
-      // Adjust height after loading draft content
-      timeout(() => adjustTextareaHeight(), 0);
-    }
+    loadDraft();
 
     if (isFocused) {
       textareaElement?.focus();
@@ -81,15 +75,22 @@
 
     return () => {
       observeData?.();
-
-      if (draftId && query) {
-        draftMessages.update((drafts) => {
-          drafts[draftId] = query;
-          return drafts;
-        });
-      }
     };
   });
+
+  async function loadDraft() {
+    if (!draftId) {
+      return;
+    }
+
+    const draftContent = await spaceStore.getDraft(draftId);
+    if (draftContent) {
+      query = draftContent;
+      // Adjust height after loading draft content
+      await tick();
+      adjustTextareaHeight();
+    }
+  }
 
   function adjustTextareaHeight() {
     if (!textareaElement) return;
@@ -122,28 +123,25 @@
     }
   }
 
-  function handleKeydown(event: KeyboardEvent) {
+  async function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Enter" && !event.shiftKey) {
-      sendMsg();
+      await sendMsg();
       event.preventDefault();
       return;
     }
     adjustTextareaHeight();
   }
 
-  function handleInput() {
+  async function handleInput() {
     adjustTextareaHeight();
 
     // Save or clear draft based on content
     if (draftId) {
-      draftMessages.update((drafts) => {
-        if (query) {
-          drafts[draftId] = query;
-        } else {
-          delete drafts[draftId];
-        }
-        return drafts;
-      });
+      if (query) {
+        await spaceStore.saveDraft(draftId, query);
+      } else {
+        await spaceStore.deleteDraft(draftId);
+      }
     }
   }
 
@@ -156,10 +154,7 @@
 
     // Clear draft when message is sent
     if (draftId) {
-      draftMessages.update((drafts) => {
-        delete drafts[draftId];
-        return drafts;
-      });
+      await spaceStore.deleteDraft(draftId);
     }
 
     query = "";
@@ -168,9 +163,8 @@
       textareaElement.style.height = `${TEXTAREA_BASE_HEIGHT}px`;
       textareaElement.style.overflowY = "hidden"; // Reset overflow to prevent scrollbars
       // Use timeout to ensure UI updates before recalculating
-      timeout(() => {
-        adjustTextareaHeight();
-      }, 0);
+      await tick();
+      adjustTextareaHeight();
     }
   }
 
