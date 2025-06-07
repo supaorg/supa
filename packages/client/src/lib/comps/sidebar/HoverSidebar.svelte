@@ -1,6 +1,6 @@
 <script lang="ts">
   import { sidebar } from "$lib/ttabs/layout.svelte";
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, untrack } from "svelte";
   import Sidebar from "./Sidebar.svelte";
   import { fly } from "svelte/transition";
 
@@ -29,7 +29,7 @@
   function isOverContextMenu(event: MouseEvent) {
     // Check if the related target is inside a popover (context menu)
     const popover = (event.relatedTarget as HTMLElement)?.closest?.(
-      ".context-menu"
+      ".context-menu",
     );
     return !!popover;
   }
@@ -61,12 +61,16 @@
   // Watch for sidebar state changes
   $effect(() => {
     if (!sidebar.isOpen) {
-      // Set recently closed flag
-      recentlyClosed = true;
-      // Clear the flag after a delay
-      setTimeout(() => {
-        recentlyClosed = false;
-      }, 500); // Half-second delay
+      untrack(() => {
+        // Force the hover sidebar in a closed state just in case
+        showHoverSidebar = false;
+        // Set recently closed flag
+        recentlyClosed = true;
+        // Clear the flag after a delay
+        setTimeout(() => {
+          recentlyClosed = false;
+        }, 500); // Half-second delay
+      });
     }
   });
 
@@ -76,8 +80,8 @@
   });
 </script>
 
-<!-- Hover trigger area - only visible when sidebar is closed -->
-{#if !sidebar.isOpen}
+<!-- Hover trigger area - only present when sidebar is closed and not recently (500ms or so) closed -->
+{#if !sidebar.isOpen && !recentlyClosed}
   <div
     class="fixed z-10 w-10 h-[calc(100vh-2.5rem)] top-[2.5rem] left-0 opacity-0 cursor-auto"
     onmouseenter={handleHoverEnter}
