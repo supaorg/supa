@@ -3,7 +3,6 @@
   import { Switch, Tooltip } from "@skeletonlabs/skeleton-svelte";
   import {
     TrashIcon,
-    GripVertical,
     Pencil,
     MessageCircle,
   } from "lucide-svelte";

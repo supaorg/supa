@@ -1,12 +1,10 @@
 import {
   exists,
-  mkdir,
-  readDir,
   readTextFile,
   remove,
   writeTextFile
 } from "@tauri-apps/plugin-fs";
-import { newMoveVertexOp, newSetVertexPropertyOp, type VertexOperation } from "reptree";
+import { type VertexOperation } from "reptree";
 import { migrateFromV0ToV1 } from "./versions/migrateSpace_V0";
 import { turnJSONLinesIntoOps } from "../LocalSpaceSync";
 

@@ -1,8 +1,5 @@
 <script lang="ts">
   import {
-    Sparkles,
-    CircleAlert,
-    ChevronDown,
     ChevronRight,
     Edit,
     ChevronLeft,

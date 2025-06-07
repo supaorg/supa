@@ -1,4 +1,4 @@
-import { Lang, LanguageProvider, Provider } from 'aiwrapper';
+import { Lang, LanguageProvider } from 'aiwrapper';
 import { providers } from "../providers.ts";
 import Space from '../spaces/Space.ts';
 import { getProviderModels } from '../tools/providerModels.ts';

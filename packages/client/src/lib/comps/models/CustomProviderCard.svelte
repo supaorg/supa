@@ -5,7 +5,6 @@
   import CustomProviderForm from "./CustomProviderForm.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { getActiveProviders } from "@core/customProviders";
-  import { swins } from "$lib/swins";
 
   let {
     provider,

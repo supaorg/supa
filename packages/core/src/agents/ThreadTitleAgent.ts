@@ -1,5 +1,5 @@
 import { ThreadMessage } from "../models.ts";
-import { Agent, AgentInput, AgentOutput, AgentResponse } from "./Agent.ts";
+import { Agent, AgentInput, AgentOutput } from "./Agent.ts";
 import { AppConfigForChat } from "./SimpleChatAgent.ts";
 
 export class ThreadTitleAgent extends Agent<AppConfigForChat> {

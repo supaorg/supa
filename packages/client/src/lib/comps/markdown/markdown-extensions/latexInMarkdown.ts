@@ -1,4 +1,4 @@
-import type { MarkedExtension, TokenizerAndRendererExtension } from "marked";
+import type { TokenizerAndRendererExtension } from "marked";
 
 const inlineRule =
   /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1(?=[\s?!\.,:？！。，：]|$)/;

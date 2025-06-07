@@ -1,7 +1,6 @@
 <script lang="ts">
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import type { CustomProviderConfig } from "@core/models";
-  import { XCircle, PlusCircle } from "lucide-svelte";
+    import type { CustomProviderConfig } from "@core/models";
   
   let name = $state("");
   let baseApiUrl = $state("");

@@ -8,7 +8,6 @@
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
   import { swins } from "$lib/swins";
-    import { providers } from "@core/providers";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height

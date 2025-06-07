@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { ProgressRing } from "@skeletonlabs/skeleton-svelte";
   import { CheckCircle, CircleAlert, XCircle } from "lucide-svelte/icons";
   import { onMount } from "svelte";
   import { timeout } from "@core/tools/timeout";

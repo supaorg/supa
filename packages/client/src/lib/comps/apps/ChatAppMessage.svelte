@@ -4,10 +4,6 @@
     CircleAlert,
     ChevronDown,
     ChevronRight,
-    Edit,
-    ChevronLeft,
-    Copy,
-    Check,
   } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
