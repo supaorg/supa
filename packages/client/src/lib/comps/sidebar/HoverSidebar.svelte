@@ -2,7 +2,6 @@
   import { sidebar } from "$lib/ttabs/layout.svelte";
   import { onDestroy, onMount, untrack } from "svelte";
   import Sidebar from "./Sidebar.svelte";
-  import { fly } from "svelte/transition";
 
   let showHoverSidebar = $state(false);
   let hoverTriggerTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -94,18 +93,27 @@
 <!-- Hoverable sidebar - always rendered but only visible when triggered -->
 {#if !sidebar.isOpen}
   <div
-    class="hover-sidebar fixed top-0 h-full w-[300px] bg-surface-50-950 transition-all z-10"
+    class="hover-sidebar fixed top-0 h-full w-[300px] bg-surface-50-950 z-10"
+    class:show-sidebar={showHoverSidebar}
     class:border-r={showHoverSidebar}
     class:border-surface-300-700={showHoverSidebar}
     class:shadow-2xl={showHoverSidebar}
-    style="left: {showHoverSidebar ? '0' : '-300px'};"
     onmouseenter={handleHoverEnter}
     onmouseleave={handleSidebarLeave}
     tabindex="0"
     role="button"
-    in:fly={{ x: -300, duration: 300 }}
-    out:fly={{ x: -300, duration: 200 }}
   >
     <Sidebar />
   </div>
 {/if}
+
+<style>
+  .hover-sidebar {
+    transform: translateX(-300px);
+    transition: transform 200ms ease-out, border-color 200ms, box-shadow 200ms;
+  }
+  
+  .hover-sidebar.show-sidebar {
+    transform: translateX(0);
+  }
+</style>
