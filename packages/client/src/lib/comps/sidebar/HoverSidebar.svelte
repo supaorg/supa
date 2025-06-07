@@ -7,9 +7,10 @@
   let showHoverSidebar = $state(false);
   let hoverTriggerTimeout: ReturnType<typeof setTimeout> | null = null;
   let closeSidebarTimeout: ReturnType<typeof setTimeout> | null = null;
+  let recentlyClosed = $state(false);
 
   function handleHoverEnter() {
-    if (!sidebar.isOpen) {
+    if (!sidebar.isOpen && !recentlyClosed) {
       // Clear any closing timeout that might be active
       if (closeSidebarTimeout) {
         clearTimeout(closeSidebarTimeout);
@@ -56,6 +57,18 @@
       }, 200);
     }
   }
+
+  // Watch for sidebar state changes
+  $effect(() => {
+    if (!sidebar.isOpen) {
+      // Set recently closed flag
+      recentlyClosed = true;
+      // Clear the flag after a delay
+      setTimeout(() => {
+        recentlyClosed = false;
+      }, 500); // Half-second delay
+    }
+  });
 
   onDestroy(() => {
     if (hoverTriggerTimeout) clearTimeout(hoverTriggerTimeout);

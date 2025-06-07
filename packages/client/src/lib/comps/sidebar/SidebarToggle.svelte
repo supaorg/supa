@@ -6,7 +6,7 @@
 
 <button
   class="p-2 rounded hover:preset-tonal"
-  on:click={() => sidebar.toggle()}
+  onclick={() => sidebar.toggle()}
   title={sidebar.isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
   aria-label={sidebar.isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
 >
