@@ -5,8 +5,15 @@
   import { isTauri } from "$lib/tauri/isTauri";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import FreshStartWizard from "$lib/comps/wizards/FreshStartWizard.svelte";
-  import { initializeDatabase, savePointers, saveCurrentSpaceId, saveConfig } from "$lib/localDb";
-  import { loadSpaceTheme, theme, setColorScheme } from "$lib/stores/theme.svelte";
+  import {
+    initializeDatabase,
+    savePointers,
+    saveCurrentSpaceId,
+    saveConfig,
+  } from "$lib/localDb";
+  import {
+    theme,
+  } from "$lib/stores/theme.svelte";
   import { getCurrentColorScheme } from "$lib/utils/updateColorScheme";
   import TauriUpdater from "./TauriUpdater.svelte";
   import ThemeManager from "./themes/ThemeManager.svelte";
@@ -19,7 +26,7 @@
   onMount(() => {
     if (!isTauri()) {
       throw new Error(
-        "We don't support regular browsers yet. We have to run this from Tauri"
+        "We don't support regular browsers yet. We have to run this from Tauri",
       );
     }
 
@@ -38,28 +45,23 @@
     try {
       // Explicitly set status to initializing (already the default, but making it explicit)
       status = "initializing";
-      
+
       // Initialize data from database
       const { pointers, currentSpaceId, config } = await initializeDatabase();
-      
+
       // Set initial state to the spaceStore
       spaceStore.setInitialState({
         pointers,
         currentSpaceId,
-        config
+        config,
       });
-      
+
       const connection = await spaceStore.loadSpacesAndConnectToCurrent();
-      
-      // Load the theme for the current space if we have one
-      if (connection) {
-        await loadSpaceTheme();
-      }
-      
+
       // Only change status after loading is complete
       status = connection ? "ready" : "needsSpace";
     } catch (error) {
-      console.error('Failed to initialize space state from database:', error);
+      console.error("Failed to initialize space state from database:", error);
       // Keep initializing state on error? Or maybe add an error state?
     }
   }
@@ -82,7 +84,7 @@
       saveConfig(spaceStore.config);
     }
   });
-  
+
   // Track the number of spaces and switch to setup state when there are none
   $effect(() => {
     // Only check when we're in ready state and have access to the pointers
@@ -109,7 +111,9 @@
 {/if}
 
 {#if isTauri()}
+  <!-- Save and load the window size and position -->
   <TauriWindowSetup />
-{/if}
 
-<TauriUpdater />
+  <!-- Check for a new version of the app -->
+  <TauriUpdater />
+{/if}
