@@ -10,10 +10,30 @@
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import SpaceSetupWizard from "../wizards/SpaceSetupWizard.svelte";
-  import { onMount } from "svelte";
 
   let onboarding = $state(false);
 
+  $effect(() => {
+    const space = spaceStore.currentSpace;
+
+    if (!space) {
+      throw new Error("No current space. Space has to be setup at this point.");
+    }
+
+    const spaceRoot = space.tree.root!;
+
+    onboarding = spaceRoot.getProperty("onboarding") as boolean;
+
+    const observer = spaceRoot.observe(() => {
+      onboarding = spaceRoot.getProperty("onboarding") as boolean;
+    });
+
+    return () => {
+      observer();
+    };
+  });
+
+  /*
   onMount(() => {
     const space = spaceStore.currentSpace;
 
@@ -33,6 +53,7 @@
       observer();
     };
   });
+  */
 </script>
 
 <!-- Set a periodic check for Ollama running and setup it as a model provider if it is -->
