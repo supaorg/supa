@@ -1,0 +1,8 @@
+{
+  "name": "t69-server",
+  "description": "the server for t69",
+  "private": true,
+  "scripts": {
+    "dev": ""
+  }
+}

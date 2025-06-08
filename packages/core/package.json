@@ -1,0 +1,17 @@
+{
+  "name": "t69-core",
+  "version": "1.0.0",
+  "description": "core for t69 that can be used on clients, servers, and inside other services",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "aiwrapper": "^0.1.19"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^1.6.1"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "t69",
+  "description": "this is the root package of t69, it doesn't have any dependencies. we use it for shortcut commands, such as `npm install` to install all dependencies in client and server packages",
+  "private": true,
+  "devDependencies": {
+    "airul": "^0.1.34"
+  },
+  "scripts": {
+    "preinstall": "cd packages/client && npm install && cd ../core && npm install",
+    "dev": "cd packages/client && npm run dev && cd ../server npm run dev",
+    "rules": "airul gen"
+  }
+}
