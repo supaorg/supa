@@ -1,0 +1,14 @@
+.DS_Store
+
+_site
+_cache
+deno.lock
+.env
+jwt.key
+
+env.json
+
+node_modules
+
+.windsurfrules
+.cursorrules
