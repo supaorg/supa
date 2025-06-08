@@ -1,4 +1,4 @@
-# t69 is a new, open source version of t3
+# t69 (nice) is a new, open source version of t3
 
 theo asked for it, theo got it https://x.com/theo/status/1931515264497254402
 
