@@ -21,15 +21,17 @@
   let status: Status = $state("initializing");
 
   onMount(() => {
-    // Initialize with system color scheme
-    const systemColorScheme = getCurrentColorScheme();
-    theme.colorScheme = systemColorScheme;
-
     initializeSpaceData();
 
     return () => {
       spaceStore.disconnectAllSpaces();
     };
+  });
+
+  $effect(() => {
+    if (status === "initializing") return;
+
+    status = spaceStore.currentSpaceId ? "ready" : "needsSpace";
   });
 
   async function initializeSpaceData() {
@@ -76,7 +78,6 @@
     }
   });
 
-  // Track the number of spaces and switch to setup state when there are none
   $effect(() => {
     // Only check when we're in ready state and have access to the pointers
     if (status === "ready" && spaceStore.pointers.length === 0) {
