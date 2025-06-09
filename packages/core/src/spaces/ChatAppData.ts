@@ -1,6 +1,6 @@
-import type { Vertex } from "../../../reptree/src/index";
+import type { Vertex } from "reptree";
 import type Space from "./Space";
-import type { VertexPropertyType } from "../../../reptree/src/index";
+import type { VertexPropertyType } from "reptree";
 import type { ThreadMessage } from "../models";
 import AppTree from "./AppTree";
 

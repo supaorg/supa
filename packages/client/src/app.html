@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" data-theme="rose">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/png" href="%sveltekit.assets%/favicon.png">
+  <link rel="icon" type="image/x-icon" href="%sveltekit.assets%/favicon.ico">
+
+  <script>
+    function updateColorScheme() {
+      let colorScheme = 'dark';
+      // Get the user's theme preference from local storage
+      const savedColorScheme = localStorage.getItem("colorScheme");
+      if (savedColorScheme) {
+        colorScheme = savedColorScheme;
+      }
+      else {
+        const darkModeIsOnInOS = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        colorScheme = darkModeIsOnInOS ? 'dark' : 'light';
+      }
+
+      if (colorScheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
+    updateColorScheme();
+    // Check for changes in the user's theme preference
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateColorScheme);
+  </script>
+  <meta name="viewport" content="width=device-width" />
+  %sveltekit.head%
+</head>
+
+<body>
+  <div style="display: contents">
+    %sveltekit.body%
+  </div>
+</body>
+
+</html>

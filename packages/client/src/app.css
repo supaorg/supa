@@ -1,0 +1,114 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
+
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton/optional/presets';
+
+@import '@skeletonlabs/skeleton/themes/cerberus';
+@import '@skeletonlabs/skeleton/themes/rose';
+@import '@skeletonlabs/skeleton/themes/catppuccin';
+@import '@skeletonlabs/skeleton/themes/concord';
+@import '@skeletonlabs/skeleton/themes/crimson';
+@import '@skeletonlabs/skeleton/themes/fennec';
+@import '@skeletonlabs/skeleton/themes/hamlindigo';
+@import '@skeletonlabs/skeleton/themes/legacy';
+@import '@skeletonlabs/skeleton/themes/mint';
+@import '@skeletonlabs/skeleton/themes/modern';
+@import '@skeletonlabs/skeleton/themes/mona';
+@import '@skeletonlabs/skeleton/themes/nosh';
+@import '@skeletonlabs/skeleton/themes/nouveau';
+@import '@skeletonlabs/skeleton/themes/pine';
+@import '@skeletonlabs/skeleton/themes/reign';
+@import '@skeletonlabs/skeleton/themes/rocket';
+@import '@skeletonlabs/skeleton/themes/sahara';
+@import '@skeletonlabs/skeleton/themes/seafoam';
+@import '@skeletonlabs/skeleton/themes/terminus';
+@import '@skeletonlabs/skeleton/themes/vintage';
+@import '@skeletonlabs/skeleton/themes/vox';
+@import '@skeletonlabs/skeleton/themes/wintry';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html,
+body {
+  @apply h-full;
+}
+
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.selectable-text {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.markdown {
+  @apply space-y-4;
+
+  h1 {
+    @apply h1;
+  }
+
+  h2 {
+    @apply h2;
+  }
+
+  h3 {
+    @apply h3;
+  }
+
+  h4 {
+    @apply h4;
+  }
+
+  p {
+    @apply leading-7;
+  }
+
+  ul {
+    @apply list-disc list-inside space-y-2;
+  }
+
+  ol {
+    @apply list-decimal list-inside space-y-2;
+  }
+
+  li {
+    @apply ml-4;
+  }
+
+  a {
+    @apply anchor;
+  }
+
+  blockquote {
+    @apply border-l-4 pl-4 italic;
+  }
+
+  pre {
+    @apply card p-4 overflow-x-auto bg-surface-100-900;
+  }
+
+  code {
+    @apply font-mono rounded-base;
+  }
+
+  table {
+    @apply table;
+  }
+
+  img {
+    @apply card max-w-full h-auto;
+  }
+
+  hr {
+    @apply hr my-4;
+  }
+}

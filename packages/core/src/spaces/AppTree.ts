@@ -1,4 +1,4 @@
-import { RepTree } from "../../../reptree/src/index";
+import { RepTree } from "reptree";
 
 type EventCallback = (event: any) => void;
 

@@ -1,5 +1,5 @@
 import type { AppConfig } from "../models";
-import type { Vertex } from "../../../reptree/src/index";
+import type { Vertex } from "reptree";
 import Space from "./Space";
 
 function enrichDefaultConfig(configs: AppConfig[]): AppConfig[] {
