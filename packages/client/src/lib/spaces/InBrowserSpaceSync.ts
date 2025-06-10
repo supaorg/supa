@@ -200,6 +200,7 @@ export async function loadExistingInBrowserSpaceSync(spaceId: string): Promise<S
       
       // Save the initial space operations
       const initialOps = space.tree.getAllOps();
+
       const opsSync = sync as any; // Access private method
       opsSync.addOpsToSave(space.getId(), initialOps);
       

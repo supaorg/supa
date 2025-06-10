@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "aiwrapper": "^0.1.19",
-    "reptree": "^0.2.1"
+    "reptree": "^0.2.2"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

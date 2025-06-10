@@ -235,10 +235,10 @@ export async function saveTtabsLayout(spaceId: string, layout: string): Promise<
 // Get operations for a specific tree
 export async function getTreeOps(spaceId: string, treeId: string): Promise<VertexOperation[]> {
   try {
-    const treeOps = await db.treeOps
-      .where('[spaceId+treeId]')
-      .equals([spaceId, treeId])
-      .toArray();
+      const treeOps = await db.treeOps
+    .where('[spaceId+treeId]')
+    .equals([spaceId, treeId])
+    .toArray();
     
     return treeOps.map(entry => entry.operation);
   } catch (error) {
