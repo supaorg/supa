@@ -61,7 +61,7 @@ export type SpaceSetup = {
 
 // New table for operations
 export interface TreeOperations {
-  id?: number; // Auto-increment primary key
+  opId: string; // Use the existing operation ID as primary key (e.g., "123@some-uuid")
   spaceId: string; // Reference to the space
   treeId: string; // ID of the specific tree
   operation: VertexOperation; // The actual operation (union type: MoveVertex | SetVertexProperty)
@@ -76,14 +76,14 @@ Update the Dexie schema:
 class LocalDb extends Dexie {
   spaces!: Dexie.Table<SpaceSetup, string>;
   config!: Dexie.Table<ConfigEntry, string>;
-  treeOps!: Dexie.Table<TreeOperations, number>;
+  treeOps!: Dexie.Table<TreeOperations, string>; // Primary key is now string (opId)
   
   constructor() {
     super('localDb');
     this.version(2).stores({
       spaces: '&id, uri, name, createdAt',
       config: '&key',
-      treeOps: '++id, spaceId, treeId, [spaceId+treeId]'
+      treeOps: '&opId, spaceId, treeId, [spaceId+treeId]' // opId as primary key
     });
   }
 }
@@ -91,9 +91,10 @@ class LocalDb extends Dexie {
 
 ### 3. Key Features
 
+- **Existing Operation ID as Primary Key**: Uses the operation's own ID (e.g., "123@some-uuid") instead of generating a new auto-increment field
 - **Compound Index**: `[spaceId+treeId]` for efficient querying of operations by specific tree
 - **Separate Storage**: Each tree's operations are logically separated
-- **Minimal Overhead**: No additional metadata per operation
+- **No Additional Overhead**: Leverages existing operation ID structure, no extra metadata needed
 
 ### 4. API Changes
 
@@ -166,6 +167,7 @@ this.version(2).stores({
       const mainTreeId = space.id; // or derive from space structure
       space.ops.forEach((op) => {
         trans.treeOps.add({
+          opId: `${op.id.counter}@${op.id.peerId}`, // Extract ID from the operation
           spaceId: space.id,
           treeId: mainTreeId,
           operation: op
