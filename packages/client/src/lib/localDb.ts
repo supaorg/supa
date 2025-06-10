@@ -265,7 +265,7 @@ export async function saveTreeOps(spaceId: string, treeId: string, ops: VertexOp
         operation: op
       }));
       
-      await db.treeOps.bulkAdd(treeOpsEntries);
+      await db.treeOps.bulkPut(treeOpsEntries);
     });
   } catch (error) {
     console.error(`Failed to save ops for tree ${treeId} in space ${spaceId}:`, error);
@@ -284,7 +284,8 @@ export async function appendTreeOps(spaceId: string, treeId: string, ops: Vertex
       operation: op
     }));
     
-    await db.treeOps.bulkAdd(treeOpsEntries);
+    // Use bulkPut instead of bulkAdd to allow overwriting existing operations
+    await db.treeOps.bulkPut(treeOpsEntries);
   } catch (error) {
     console.error(`Failed to append ops for tree ${treeId} in space ${spaceId}:`, error);
   }
