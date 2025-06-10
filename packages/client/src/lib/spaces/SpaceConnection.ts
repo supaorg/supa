@@ -1,5 +1,6 @@
 import type Space from "@core/spaces/Space";
 import type { SpacePointer } from "./SpacePointer";
+import { loadExistingInBrowserSpaceSync } from "./InBrowserSpaceSync";
 
 export interface SpaceConnection {
   get space(): Space;
@@ -13,16 +14,7 @@ export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<Space
     throw new Error("Remote spaces are not supported by local space sync. Use a different connection method.");
   }
 
-  throw new Error("Not implemented");
-
-  /*
-  const space = await loadLocalSpace(pointer.uri);
-  if (space.getId() !== pointer.id) {
-    throw new Error("Space ID mismatch. Expected " + pointer.id + " but got " + space.getId());
-  }
-
-  const sync = new LocalSpaceSync(space, pointer.uri);
-  await sync.connect();
-  return sync;
-  */
+  // For now, assume all non-http URIs are in-browser spaces
+  // Load the existing space from database operations
+  return await loadExistingInBrowserSpaceSync(pointer.id);
 }

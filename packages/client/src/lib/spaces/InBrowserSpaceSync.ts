@@ -2,14 +2,55 @@ import Space from "@core/spaces/Space";
 import type { SpaceConnection } from "./SpaceConnection";
 import uuid from "@core/uuid/uuid";
 import { Backend } from "@core/spaces/Backend";
+import { getTreeOps, appendTreeOps } from "$lib/localDb";
+import type { VertexOperation } from "reptree";
+import { RepTree, isAnyPropertyOp } from "reptree";
+import AppTree from "@core/spaces/AppTree";
 
 export class InBrowserSpaceSync implements SpaceConnection {
   private _space: Space;
   private _connected: boolean = false;
-  private _backend: Backend;
+  private _backend: Backend | undefined;
+  private saveOpsTimer: number | undefined;
+  private savingOpsToDatabase = false;
+  private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
+  private saveOpsIntervalMs = 500;
 
   constructor(space: Space) {
     this._space = space;
+
+    // Observe operations from the main space tree
+    space.tree.observeOpApplied((op) => {
+      this.handleOpAppliedFromSamePeer(space.tree, op);
+    });
+
+    // Handle new app trees
+    space.observeNewAppTree((appTreeId) => {
+      this.handleNewAppTree(appTreeId);
+    });
+
+    // Handle loaded app trees
+    space.observeTreeLoad((appTreeId) => {
+      this.handleLoadAppTree(appTreeId);
+    });
+
+    // Register tree loader for app trees
+    space.registerTreeLoader(async (appTreeId) => {
+      try {
+        const spaceId = this._space.getId();
+        const ops = await getTreeOps(spaceId, appTreeId);
+        
+        if (ops.length === 0) {
+          return undefined;
+        }
+
+        const tree = new RepTree(uuid(), ops);
+        return new AppTree(tree);
+      } catch (error) {
+        console.error("Error loading app tree", appTreeId, error);
+        return undefined;
+      }
+    });
   } 
 
   get space(): Space {
@@ -21,13 +62,114 @@ export class InBrowserSpaceSync implements SpaceConnection {
   }
 
   async connect(): Promise<void> {
+    if (this._connected) {
+      return;
+    }
+
     this._backend = new Backend(this._space, true);
+
+    // Save pending ops every n milliseconds
+    this.saveOpsTimer = window.setInterval(() => this.saveOps(), this.saveOpsIntervalMs);
 
     this._connected = true;
   }
 
   async disconnect(): Promise<void> {
+    if (!this._connected) {
+      return;
+    }
+
+    // Save any pending operations
+    await this.saveOps();
+
+    if (this.saveOpsTimer) {
+      clearInterval(this.saveOpsTimer);
+      this.saveOpsTimer = undefined;
+    }
+
     this._connected = false;
+  }
+
+  private async saveOps() {
+    if (this.savingOpsToDatabase) {
+      return;
+    }
+
+    this.savingOpsToDatabase = true;
+
+    for (const [treeId, ops] of this.treeOpsToSave.entries()) {
+      if (ops.length === 0) {
+        continue;
+      }
+
+      try {
+        const spaceId = this._space.getId();
+        await appendTreeOps(spaceId, treeId, ops);
+        this.treeOpsToSave.set(treeId, []);
+      } catch (error) {
+        console.error("Error saving ops to database", error);
+      }
+    }
+
+    this.savingOpsToDatabase = false;
+  }
+
+  private addOpsToSave(treeId: string, ops: ReadonlyArray<VertexOperation>) {
+    let opsToSave = this.treeOpsToSave.get(treeId);
+    if (!opsToSave) {
+      opsToSave = [];
+      this.treeOpsToSave.set(treeId, opsToSave);
+    }
+    opsToSave.push(...ops);
+  }
+
+  private handleOpAppliedFromSamePeer(tree: RepTree, op: VertexOperation) {
+    // Important that we don't save ops from other peers here
+    if (op.id.peerId !== tree.peerId) {
+      return;
+    }
+
+    const treeId = tree.root!.id;
+
+    let ops = this.treeOpsToSave.get(treeId);
+    if (!ops) {
+      ops = [];
+      this.treeOpsToSave.set(treeId, ops);
+    }
+
+    // Only save move ops or non-transient property ops (so, no transient properties)
+    if (!isAnyPropertyOp(op) || !op.transient) {
+      ops.push(op);
+    }
+  }
+
+  private handleNewAppTree(appTreeId: string) {
+    // Add all ops from app tree into the sync
+    const appTree = this._space.getAppTree(appTreeId);
+
+    if (!appTree) {
+      console.error("App tree not found", appTreeId);
+      return;
+    }
+
+    const ops = appTree.tree.popLocalOps();
+    this.treeOpsToSave.set(appTreeId, ops);
+
+    appTree.tree.observeOpApplied((op) => {
+      this.handleOpAppliedFromSamePeer(appTree.tree, op);
+    });
+  }
+
+  private handleLoadAppTree(appTreeId: string) {
+    const appTree = this._space.getAppTree(appTreeId);
+
+    if (!appTree) {
+      throw new Error(`App tree with id ${appTreeId} not found`);
+    }
+
+    appTree.tree.observeOpApplied((op) => {
+      this.handleOpAppliedFromSamePeer(appTree.tree, op);
+    });
   }
 }
 
@@ -36,4 +178,36 @@ export function createNewInBrowserSpaceSync(): SpaceConnection {
   const sync = new InBrowserSpaceSync(space);
   sync.connect();
   return sync;
+}
+
+export async function loadExistingInBrowserSpaceSync(spaceId: string): Promise<SpaceConnection> {
+  try {
+    // Load operations for the main space tree
+    const spaceOps = await getTreeOps(spaceId, spaceId);
+    
+    if (spaceOps.length === 0) {
+      // No operations found - this might be a new space, create it
+      console.log(`No operations found for space ${spaceId}, creating new space`);
+      const space = Space.newSpace(uuid());
+      const sync = new InBrowserSpaceSync(space);
+      await sync.connect();
+      
+      // Save the initial space operations
+      const initialOps = space.tree.getAllOps();
+      const opsSync = sync as any; // Access private method
+      opsSync.addOpsToSave(space.getId(), initialOps);
+      
+      return sync;
+    }
+    
+    // Create the space from operations
+    const space = new Space(new RepTree(uuid(), spaceOps));
+    
+    const sync = new InBrowserSpaceSync(space);
+    await sync.connect();
+    return sync;
+  } catch (error) {
+    console.error(`Failed to load space ${spaceId} from database:`, error);
+    throw error;
+  }
 }

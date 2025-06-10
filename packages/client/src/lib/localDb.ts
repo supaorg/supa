@@ -18,7 +18,6 @@ export type SpaceSetup = {
   ttabsLayout?: string | null;
   theme?: string | null;
   colorScheme?: 'light' | 'dark' | null;
-  ops?: VertexOperation[];
   drafts?: { [draftId: string]: string } | null;
 };
 
@@ -27,15 +26,27 @@ export interface ConfigEntry {
   value: unknown;
 }
 
+// Table for operations grouped by tree IDs
+export interface TreeOperations {
+  opId: string; // Use the existing operation ID as primary key (e.g., "123@some-uuid")
+  spaceId: string; // Reference to the space
+  treeId: string; // ID of the specific tree
+  operation: VertexOperation; // The actual operation (union type: MoveVertex | SetVertexProperty)
+}
+
 class LocalDb extends Dexie {
   spaces!: Dexie.Table<SpaceSetup, string>;
   config!: Dexie.Table<ConfigEntry, string>;
+  treeOps!: Dexie.Table<TreeOperations, string>; // Primary key is string (opId)
   
   constructor() {
     super('localDb');
+    
+    // Version 1: New schema with TreeOperations table
     this.version(1).stores({
       spaces: '&id, uri, name, createdAt',
       config: '&key',
+      treeOps: '&opId, spaceId, treeId, [spaceId+treeId]' // opId as primary key
     });
   }
 }
@@ -179,7 +190,7 @@ export async function initializeDatabase(): Promise<{
   }
 }
 
-// Get the complete SpaceSetup for a space (without ops)
+// Get the complete SpaceSetup for a space
 export async function getSpaceSetup(spaceId: string): Promise<SpaceSetup | undefined> {
   try {
     const space = await db.spaces
@@ -187,12 +198,7 @@ export async function getSpaceSetup(spaceId: string): Promise<SpaceSetup | undef
       .equals(spaceId)
       .first();
     
-    if (space) {
-      // Return everything except ops to avoid loading large data
-      const { ops, ...spaceWithoutOps } = space;
-      return spaceWithoutOps;
-    }
-    return undefined;
+    return space;
   } catch (error) {
     console.error(`Failed to get setup for space ${spaceId}:`, error);
     return undefined;
@@ -226,30 +232,110 @@ export async function saveTtabsLayout(spaceId: string, layout: string): Promise<
   }
 }
 
-// Get ops for a space
-export async function getSpaceOps(spaceId: string): Promise<VertexOperation[] | undefined> {
+// Get operations for a specific tree
+export async function getTreeOps(spaceId: string, treeId: string): Promise<VertexOperation[]> {
   try {
-    const space = await db.spaces
-      .where('id')
-      .equals(spaceId)
-      .first();
-    return space?.ops;
+    const treeOps = await db.treeOps
+      .where('[spaceId+treeId]')
+      .equals([spaceId, treeId])
+      .toArray();
+    
+    return treeOps.map(entry => entry.operation);
   } catch (error) {
-    console.error(`Failed to get ops for space ${spaceId}:`, error);
-    return undefined;
+    console.error(`Failed to get ops for tree ${treeId} in space ${spaceId}:`, error);
+    return [];
   }
 }
 
-// Save ops for a space
-export async function saveSpaceOps(spaceId: string, ops: VertexOperation[]): Promise<void> {
+// Save operations for a specific tree
+export async function saveTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void> {
   try {
-    // Use modify to update only the specific field without loading the entire object
-    await db.spaces
-      .where('id')
-      .equals(spaceId)
-      .modify({ ops: ops });
+    await db.transaction('rw', db.treeOps, async () => {
+      // First delete all existing operations for this tree
+      await db.treeOps
+        .where('[spaceId+treeId]')
+        .equals([spaceId, treeId])
+        .delete();
+      
+      // Then add the new operations
+      const treeOpsEntries = ops.map(op => ({
+        opId: `${op.id.counter}@${op.id.peerId}`,
+        spaceId,
+        treeId,
+        operation: op
+      }));
+      
+      await db.treeOps.bulkAdd(treeOpsEntries);
+    });
   } catch (error) {
-    console.error(`Failed to save ops for space ${spaceId}:`, error);
+    console.error(`Failed to save ops for tree ${treeId} in space ${spaceId}:`, error);
+  }
+}
+
+// Append operations from RepTree.popLocalOps() to storage
+export async function appendTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void> {
+  try {
+    if (ops.length === 0) return;
+    
+    const treeOpsEntries = ops.map(op => ({
+      opId: `${op.id.counter}@${op.id.peerId}`,
+      spaceId,
+      treeId,
+      operation: op
+    }));
+    
+    await db.treeOps.bulkAdd(treeOpsEntries);
+  } catch (error) {
+    console.error(`Failed to append ops for tree ${treeId} in space ${spaceId}:`, error);
+  }
+}
+
+// Get operations for all trees in a space (for migration/debugging)
+export async function getAllSpaceTreeOps(spaceId: string): Promise<Map<string, VertexOperation[]>> {
+  try {
+    const treeOps = await db.treeOps
+      .where('spaceId')
+      .equals(spaceId)
+      .toArray();
+    
+    const treeOpsMap = new Map<string, VertexOperation[]>();
+    
+    for (const entry of treeOps) {
+      if (!treeOpsMap.has(entry.treeId)) {
+        treeOpsMap.set(entry.treeId, []);
+      }
+      treeOpsMap.get(entry.treeId)!.push(entry.operation);
+    }
+    
+    return treeOpsMap;
+  } catch (error) {
+    console.error(`Failed to get all tree ops for space ${spaceId}:`, error);
+    return new Map();
+  }
+}
+
+// Delete operations for a specific tree
+export async function deleteTreeOps(spaceId: string, treeId: string): Promise<void> {
+  try {
+    await db.treeOps
+      .where('[spaceId+treeId]')
+      .equals([spaceId, treeId])
+      .delete();
+  } catch (error) {
+    console.error(`Failed to delete ops for tree ${treeId} in space ${spaceId}:`, error);
+  }
+}
+
+// Get operation count for a tree (for UI/debugging)
+export async function getTreeOpCount(spaceId: string, treeId: string): Promise<number> {
+  try {
+    return await db.treeOps
+      .where('[spaceId+treeId]')
+      .equals([spaceId, treeId])
+      .count();
+  } catch (error) {
+    console.error(`Failed to get op count for tree ${treeId} in space ${spaceId}:`, error);
+    return 0;
   }
 }
 
@@ -280,14 +366,22 @@ export async function saveSpaceColorScheme(spaceId: string, colorScheme: 'light'
 // Delete a space from the database
 export async function deleteSpace(spaceId: string): Promise<void> {
   try {
-    // Delete the space from the spaces table
-    await db.spaces.delete(spaceId);
-    
-    // Check if this was the current space and clear it if so
-    const currentId = await getCurrentSpaceId();
-    if (currentId === spaceId) {
-      await db.config.delete('currentSpaceId');
-    }
+    await db.transaction('rw', [db.spaces, db.treeOps, db.config], async () => {
+      // Delete all operations for this space
+      await db.treeOps
+        .where('spaceId')
+        .equals(spaceId)
+        .delete();
+      
+      // Delete the space from the spaces table
+      await db.spaces.delete(spaceId);
+      
+      // Check if this was the current space and clear it if so
+      const currentId = await getCurrentSpaceId();
+      if (currentId === spaceId) {
+        await db.config.delete('currentSpaceId');
+      }
+    });
     
     console.log(`Space ${spaceId} deleted from database`);
   } catch (error) {
@@ -338,3 +432,5 @@ export async function deleteDraft(spaceId: string, draftId: string): Promise<voi
     console.error(`Failed to delete draft for space ${spaceId} and draftId ${draftId}:`, error);
   }
 }
+
+
