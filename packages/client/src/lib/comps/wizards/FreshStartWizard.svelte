@@ -7,8 +7,8 @@
     // TODO: Implement sign in functionality
   }
 
-  function handleLocal() {
-    const sync = createNewInBrowserSpaceSync();
+  async function handleLocal() {
+    const sync = await createNewInBrowserSpaceSync();
 
     spaceStore.addLocalSpace(sync, "browser://" + sync.space.getId());
     spaceStore.currentSpaceId = sync.space.getId();

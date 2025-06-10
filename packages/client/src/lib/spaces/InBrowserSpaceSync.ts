@@ -114,7 +114,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
     this.savingOpsToDatabase = false;
   }
 
-  private addOpsToSave(treeId: string, ops: ReadonlyArray<VertexOperation>) {
+  addOpsToSave(treeId: string, ops: ReadonlyArray<VertexOperation>) {
     let opsToSave = this.treeOpsToSave.get(treeId);
     if (!opsToSave) {
       opsToSave = [];
@@ -173,10 +173,16 @@ export class InBrowserSpaceSync implements SpaceConnection {
   }
 }
 
-export function createNewInBrowserSpaceSync(): SpaceConnection {
+export async function createNewInBrowserSpaceSync(): Promise<SpaceConnection> {
   const space = Space.newSpace(uuid());
   const sync = new InBrowserSpaceSync(space);
-  sync.connect();
+
+  // Get all operations that created the space tree and add them to be saved
+  const initOps = space.tree.getAllOps();
+  sync.addOpsToSave(space.getId(), initOps);
+
+  await sync.connect();
+  
   return sync;
 }
 
