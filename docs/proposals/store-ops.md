@@ -11,20 +11,33 @@ export type SpaceSetup = {
 }
 ```
 
-This approach has several limitations:
+This approach has a fundamental limitation:
 
-1. **Inefficient retrieval**: When we need operations for a specific tree, we have to load all operations for the entire space
-2. **Poor scalability**: As spaces grow and contain multiple trees, the ops array becomes large and unwieldy
-3. **Lack of granularity**: Operations from different trees (main space tree + multiple app trees) are mixed together
+**Incorrect Operation Storage**: We cannot correctly store operations for spaces because operations from different trees (the main space tree + separate app trees) are mixed together in a single array, making it impossible to properly restore each tree's individual state.
 
 ## Problem Analysis
 
-From `Space.ts`, we can see that each space contains:
-- A main space tree (`this.tree`)
-- Multiple app trees (`appTrees: Map<string, AppTree>`)
-- Each tree has its own unique ID
+From the codebase analysis, we can see the structure:
 
-Each tree operates independently and should have its operations stored separately for optimal performance.
+**Current Architecture:**
+- Each `Space` contains a main `RepTree` (`this.tree`) for space metadata and structure
+- The space tree links to separate app-related trees stored in `app-forest`
+- Each AI conversation is stored as a separate `AppTree` with its own `RepTree` instance
+- Each RepTree generates operations via methods like `getAllOps()`, `popLocalOps()`, and consumes them via `merge(ops)`
+
+**RepTree Operations:**
+Operations are generated when we move vertices or set properties:
+- `VertexOperation = MoveVertex | SetVertexProperty`
+- `MoveVertex`: Generated when moving vertices - `{ id: OpId, targetId: string, parentId: string | null }`  
+- `SetVertexProperty`: Generated when setting properties - `{ id: OpId, targetId: string, key: string, value: VertexPropertyTypeInOperation, transient: boolean }`
+- `OpId`: `{ counter: number, peerId: string }`
+
+**Current Problem:**
+All operations from all trees (main space tree + separate app trees) are stored together in a single `ops` array at the space level. This is fundamentally incorrect because:
+
+1. **Cannot restore individual trees**: Each RepTree needs its own specific operations to recreate its state
+2. **Operations get applied to wrong trees**: When loading, there's no way to know which operations belong to which tree
+3. **Data corruption**: Mixed operations from different trees cannot be properly applied during tree initialization
 
 ## Proposed Solution
 
@@ -51,7 +64,7 @@ export interface TreeOperations {
   id?: number; // Auto-increment primary key
   spaceId: string; // Reference to the space
   treeId: string; // ID of the specific tree
-  operation: VertexOperation; // The actual operation
+  operation: VertexOperation; // The actual operation (union type: MoveVertex | SetVertexProperty)
 }
 ```
 
@@ -87,23 +100,48 @@ class LocalDb extends Dexie {
 New functions to replace the current ops handling:
 
 ```typescript
-// Replace getSpaceOps
+// Replace getSpaceOps - get operations for a specific tree
 export async function getTreeOps(spaceId: string, treeId: string): Promise<VertexOperation[]>
 
-// Replace saveSpaceOps  
+// Replace saveSpaceOps - save operations for a specific tree
 export async function saveTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void>
 
-// New: Append single operation
-export async function appendTreeOp(spaceId: string, treeId: string, op: VertexOperation): Promise<void>
+// New: Append operations from RepTree.popLocalOps() to storage
+export async function appendTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void>
 
-// New: Get operations for all trees in a space
+// New: Get operations for all trees in a space (for migration/debugging)
 export async function getAllSpaceTreeOps(spaceId: string): Promise<Map<string, VertexOperation[]>>
 
 // New: Delete operations for a specific tree
 export async function deleteTreeOps(spaceId: string, treeId: string): Promise<void>
 
-// New: Get operation count for a tree
+// New: Get operation count for a tree (for UI/debugging)
 export async function getTreeOpCount(spaceId: string, treeId: string): Promise<number>
+```
+
+**Usage Pattern:**
+```typescript
+// Loading a tree: get ops from storage and merge into RepTree
+const ops = await getTreeOps(spaceId, treeId);
+const tree = new RepTree(peerId, ops); // RepTree handles union type deserialization
+
+// Saving changes: get local ops from RepTree and append to storage  
+const localOps = tree.popLocalOps(); // Returns properly typed VertexOperation[]
+if (localOps.length > 0) {
+  await appendTreeOps(spaceId, treeId, localOps);
+}
+
+// If manual type checking needed:
+import { isMoveVertexOp, isAnyPropertyOp } from 'reptree';
+ops.forEach(op => {
+  if (isMoveVertexOp(op)) {
+    // op is now typed as MoveVertex
+    console.log('Move:', op.targetId, 'to', op.parentId);
+  } else if (isAnyPropertyOp(op)) {
+    // op is now typed as SetVertexProperty  
+    console.log('Set property:', op.key, '=', op.value);
+  }
+});
 ```
 
 ### 5. Migration Strategy
@@ -141,10 +179,10 @@ this.version(2).stores({
 
 ## Benefits
 
-1. **Performance**: O(1) lookup for tree-specific operations via compound index
-2. **Scalability**: Operations are distributed across trees rather than concentrated
-3. **Flexibility**: Each tree can be managed independently
-4. **Memory Efficiency**: Only load operations for trees that are actively being used
+1. **Correctness**: Each tree gets its own operations, enabling proper state restoration
+2. **Data Integrity**: Operations are applied to the correct trees during initialization  
+3. **Proper Tree Isolation**: Each RepTree (space tree, conversation trees) maintains its own operation history
+4. **Efficient Loading**: Only load operations for the specific tree being initialized
 5. **Clean Storage**: Minimal overhead with no additional metadata per operation
 
 ## Considerations
@@ -152,6 +190,7 @@ this.version(2).stores({
 1. **Breaking Change**: Requires database migration
 2. **Complexity**: Slightly more complex API surface
 3. **Tree ID Management**: Need to ensure tree IDs are properly tracked and managed
+4. **Union Type Storage**: VertexOperation is a union type (MoveVertex | SetVertexProperty). While Dexie/IndexedDB can store the objects, deserialization requires type guards to restore correct TypeScript types. Fortunately, RepTree provides `isMoveVertexOp()` and `isAnyPropertyOp()` helper functions for this purpose.
 
 ## Implementation Plan
 
