@@ -11,10 +11,9 @@ export class InBrowserSpaceSync implements SpaceConnection {
   private _space: Space;
   private _connected: boolean = false;
   private _backend: Backend | undefined;
-  private saveOpsTimer: number | undefined;
+  private saveScheduled = false;
   private savingOpsToDatabase = false;
   private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
-  private saveOpsIntervalMs = 500;
   private secretsToSave: Record<string, string> | undefined;
   private secretsDirty = false;
 
@@ -73,6 +72,21 @@ export class InBrowserSpaceSync implements SpaceConnection {
     };
   }
 
+  /**
+   * Schedule saving operations at the end of the current frame
+   */
+  private scheduleSave() {
+    if (this.saveScheduled) {
+      return; // Save already scheduled for this frame
+    }
+    
+    this.saveScheduled = true;
+    requestAnimationFrame(() => {
+      this.saveScheduled = false;
+      this.saveOps();
+    });
+  }
+
   private markSecretsDirty() {
     this.secretsToSave = this._space.getAllSecrets();
     this.secretsDirty = true;
@@ -96,9 +110,6 @@ export class InBrowserSpaceSync implements SpaceConnection {
 
     this._backend = new Backend(this._space, true);
 
-    // Save pending ops and secrets every n milliseconds
-    this.saveOpsTimer = window.setInterval(() => this.saveData(), this.saveOpsIntervalMs);
-
     this._connected = true;
   }
 
@@ -109,11 +120,6 @@ export class InBrowserSpaceSync implements SpaceConnection {
 
     // Save any pending operations and secrets
     await this.saveData();
-
-    if (this.saveOpsTimer) {
-      clearInterval(this.saveOpsTimer);
-      this.saveOpsTimer = undefined;
-    }
 
     this._connected = false;
   }
@@ -201,6 +207,8 @@ export class InBrowserSpaceSync implements SpaceConnection {
     // Only save move ops or non-transient property ops (so, no transient properties)
     if (!isAnyPropertyOp(op) || !op.transient) {
       ops.push(op);
+      // Schedule save at the end of the current frame
+      this.scheduleSave();
     }
   }
 
