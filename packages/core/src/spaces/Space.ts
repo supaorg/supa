@@ -39,7 +39,6 @@ export default class Space {
     const rootId = tree.createRoot().id;
 
     tree.setVertexProperties(rootId, {
-      '_n': 'space',
       '_c': new Date().toISOString(),
       'version': '0',
       'onboarding': true
@@ -49,9 +48,9 @@ export default class Space {
     const defaultConfig = Space.getDefaultAppConfig();
     tree.newVertex(apps.id, defaultConfig);
 
-    const appTrees = tree.newNamedVertex(rootId, 'app-forest');
-    const providers = tree.newNamedVertex(rootId, 'providers');
-    const settings = tree.newNamedVertex(rootId, 'settings');
+    tree.newNamedVertex(rootId, 'app-forest');
+    tree.newNamedVertex(rootId, 'providers');
+    tree.newNamedVertex(rootId, 'settings');
 
     return new Space(tree);
   }

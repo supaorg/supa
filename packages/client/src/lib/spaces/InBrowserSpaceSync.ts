@@ -11,11 +11,10 @@ export class InBrowserSpaceSync implements SpaceConnection {
   private _space: Space;
   private _connected: boolean = false;
   private _backend: Backend | undefined;
-  private saveScheduled = false;
   private savingOpsToDatabase = false;
+  private savingSecretsToDatabase = false;
   private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
-  private secretsToSave: Record<string, string> | undefined;
-  private secretsDirty = false;
+  private secretsToSave: Record<string, string> = {};
 
   constructor(space: Space) {
     this._space = space;
@@ -55,6 +54,9 @@ export class InBrowserSpaceSync implements SpaceConnection {
 
     // Track secrets changes by wrapping the space's setSecret and saveAllSecrets methods
     this.wrapSecretsMethod();
+
+    // Set up continuous frame loop to save data
+    this.startSaveLoop();
   }
 
   private wrapSecretsMethod() {
@@ -63,34 +65,27 @@ export class InBrowserSpaceSync implements SpaceConnection {
 
     this._space.setSecret = (key: string, value: string) => {
       originalSetSecret(key, value);
-      this.markSecretsDirty();
+      this.secretsToSave[key] = value;
     };
 
     this._space.saveAllSecrets = (secrets: Record<string, string>) => {
       originalSaveAllSecrets(secrets);
-      this.markSecretsDirty();
+      Object.assign(this.secretsToSave, secrets);
     };
   }
 
   /**
-   * Schedule saving operations at the end of the current frame
+   * Start the continuous save loop that runs at the end of each frame
    */
-  private scheduleSave() {
-    if (this.saveScheduled) {
-      return; // Save already scheduled for this frame
-    }
-    
-    this.saveScheduled = true;
-    requestAnimationFrame(() => {
-      this.saveScheduled = false;
-      this.saveOps();
-    });
+  private startSaveLoop() {
+    const saveLoop = () => {
+      this.saveData();
+      requestAnimationFrame(saveLoop);
+    };
+    requestAnimationFrame(saveLoop);
   }
 
-  private markSecretsDirty() {
-    this.secretsToSave = this._space.getAllSecrets();
-    this.secretsDirty = true;
-  }
+
 
   get space(): Space {
     return this._space;
@@ -144,17 +139,25 @@ export class InBrowserSpaceSync implements SpaceConnection {
   }
 
   private async saveSecrets() {
-    if (!this.secretsDirty || !this.secretsToSave) {
+    if (Object.keys(this.secretsToSave).length === 0 || this.savingSecretsToDatabase) {
       return;
     }
 
+    this.savingSecretsToDatabase = true;
+
     try {
       const spaceId = this._space.getId();
-      await saveAllSecrets(spaceId, this.secretsToSave);
-      this.secretsDirty = false;
+      // Get all current secrets (including the changed ones)
+      const allSecrets = this._space.getAllSecrets();
+      if (allSecrets) {
+        await saveAllSecrets(spaceId, allSecrets);
+      }
+      this.secretsToSave = {};
     } catch (error) {
       console.error("Error saving secrets", error);
     }
+
+    this.savingSecretsToDatabase = false;
   }
 
   private async saveOps() {
@@ -207,8 +210,6 @@ export class InBrowserSpaceSync implements SpaceConnection {
     // Only save move ops or non-transient property ops (so, no transient properties)
     if (!isAnyPropertyOp(op) || !op.transient) {
       ops.push(op);
-      // Schedule save at the end of the current frame
-      this.scheduleSave();
     }
   }
 
@@ -262,18 +263,7 @@ export async function loadExistingInBrowserSpaceSync(spaceId: string): Promise<S
     
     if (spaceOps.length === 0) {
       // No operations found - this might be a new space, create it
-      console.log(`No operations found for space ${spaceId}, creating new space`);
-      const space = Space.newSpace(uuid());
-      const sync = new InBrowserSpaceSync(space);
-      await sync.connect();
-      
-      // Save the initial space operations
-      const initialOps = space.tree.getAllOps();
-
-      const opsSync = sync as any; // Access private method
-      opsSync.addOpsToSave(space.getId(), initialOps);
-      
-      return sync;
+      throw new Error(`No operations found for space ${spaceId}`);
     }
     
     // Create the space from operations
