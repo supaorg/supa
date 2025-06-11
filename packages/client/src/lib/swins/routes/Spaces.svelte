@@ -1,9 +1,13 @@
 <script lang="ts">
   import SpaceList from "$lib/comps/spaces/SpaceList.svelte";
   import { txtStore } from "$lib/stores/txtStore";
+  import { createNewInBrowserSpaceSync } from "$lib/spaces/InBrowserSpaceSync";
+  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
-  function handleNewSpace() {
-    // TODO: Implement new space creation
+  async function handleNewSpace() {
+    const sync = await createNewInBrowserSpaceSync();
+    spaceStore.addLocalSpace(sync, "browser://" + sync.space.getId());
+    spaceStore.currentSpaceId = sync.space.getId();
   }
 </script>
 
