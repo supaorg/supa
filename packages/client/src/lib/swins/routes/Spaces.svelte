@@ -1,14 +1,18 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import SpaceList from "$lib/comps/spaces/SpaceList.svelte";
   import { txtStore } from "$lib/stores/txtStore";
 
-  function handleSpaceSetup(spaceId: string) {
-    goto(`/`);
+  function handleNewSpace() {
+    // TODO: Implement new space creation
   }
 </script>
 
-<h3 class="h3 pb-4">{$txtStore.spacesPage.title}</h3>
+<div class="flex justify-between items-center pb-4">
+  <h3 class="h3">{$txtStore.spacesPage.title}</h3>
+  <button class="btn preset-filled" onclick={handleNewSpace}>
+    New Space
+  </button>
+</div>
 <p class="mb-6">
   {$txtStore.spacesPage.description}
 </p>
