@@ -49,7 +49,7 @@
   let textareaElement: HTMLTextAreaElement;
 
   let canSendMessage = $derived(
-    !disabled && status === "can-send-message" && query.length > 0,
+    !disabled && status === "can-send-message" && query.trim().length > 0,
   );
 
   let configId = $state("");
