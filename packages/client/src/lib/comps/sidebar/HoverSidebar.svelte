@@ -110,7 +110,7 @@
 <style>
   .hover-sidebar {
     transform: translateX(-300px);
-    transition: transform 200ms ease-out, border-color 200ms, box-shadow 200ms;
+    transition: transform 100ms ease-out, border-color 100ms, box-shadow 100ms;
   }
   
   .hover-sidebar.show-sidebar {
