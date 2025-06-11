@@ -252,23 +252,16 @@ export async function getTreeOps(spaceId: string, treeId: string): Promise<Verte
 // Save operations for a specific tree
 export async function saveTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void> {
   try {
-    await db.transaction('rw', db.treeOps, async () => {
-      // First delete all existing operations for this tree
-      await db.treeOps
-        .where('[spaceId+treeId]')
-        .equals([spaceId, treeId])
-        .delete();
-      
-      // Then add the new operations
-      const treeOpsEntries = ops.map(op => ({
-        opId: `${op.id.counter}@${op.id.peerId}`,
-        spaceId,
-        treeId,
-        operation: op
-      }));
-      
-      await db.treeOps.bulkPut(treeOpsEntries);
-    });
+    if (ops.length === 0) return;
+    
+    const treeOpsEntries = ops.map(op => ({
+      opId: `${op.id.counter}@${op.id.peerId}`,
+      spaceId,
+      treeId,
+      operation: op
+    }));
+    
+    await db.treeOps.bulkPut(treeOpsEntries);
   } catch (error) {
     console.error(`Failed to save ops for tree ${treeId} in space ${spaceId}:`, error);
   }
