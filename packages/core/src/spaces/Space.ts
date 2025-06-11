@@ -277,8 +277,9 @@ export default class Space {
   // Get provider config and add API key from secrets if it's a cloud provider
   getModelProviderConfig(providerId: string): ModelProviderConfig | undefined {
     const config = this.getFirstObjectWithPropertyAtPath('providers', 'id', providerId) as ModelProviderConfig | undefined;
+    if (!config) return undefined;
 
-    if (config && config.type === 'cloud') {
+    if (config.type === 'cloud') {
       const apiKey = this.getServiceApiKey(providerId);
       if (apiKey) {
         config.apiKey = apiKey;

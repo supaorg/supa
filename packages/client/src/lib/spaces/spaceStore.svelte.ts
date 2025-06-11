@@ -1,7 +1,7 @@
 import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./SpaceConnection";
 import type { SpacePointer } from "./SpacePointer";
-import { deleteSpace, getDraft, saveDraft, deleteDraft } from "$lib/localDb";
+import { deleteSpace, getDraft, saveDraft, deleteDraft, getAllSecrets, saveAllSecrets, getSecret, setSecret } from "$lib/localDb";
 import { untrack } from "svelte";
 
 class SpaceStore {
@@ -149,6 +149,38 @@ class SpaceStore {
   async deleteDraft(draftId: string): Promise<void> {
     if (!this.currentSpaceId) return;
     await deleteDraft(this.currentSpaceId, draftId);
+  }
+
+  /**
+   * Get all secrets for the current space
+   */
+  async getAllSecrets(): Promise<Record<string, string> | undefined> {
+    if (!this.currentSpaceId) return undefined;
+    return getAllSecrets(this.currentSpaceId);
+  }
+
+  /**
+   * Save all secrets for the current space
+   */
+  async saveAllSecrets(secrets: Record<string, string>): Promise<void> {
+    if (!this.currentSpaceId) return;
+    await saveAllSecrets(this.currentSpaceId, secrets);
+  }
+
+  /**
+   * Get a specific secret for the current space
+   */
+  async getSecret(key: string): Promise<string | undefined> {
+    if (!this.currentSpaceId) return undefined;
+    return getSecret(this.currentSpaceId, key);
+  }
+
+  /**
+   * Set a specific secret for the current space
+   */
+  async setSecret(key: string, value: string): Promise<void> {
+    if (!this.currentSpaceId) return;
+    await setSecret(this.currentSpaceId, key, value);
   }
 
   /**

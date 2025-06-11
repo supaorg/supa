@@ -2,7 +2,7 @@ import Space from "@core/spaces/Space";
 import type { SpaceConnection } from "./SpaceConnection";
 import uuid from "@core/uuid/uuid";
 import { Backend } from "@core/spaces/Backend";
-import { getTreeOps, appendTreeOps } from "$lib/localDb";
+import { getTreeOps, appendTreeOps, getAllSecrets, saveAllSecrets } from "$lib/localDb";
 import type { VertexOperation } from "reptree";
 import { RepTree, isAnyPropertyOp } from "reptree";
 import AppTree from "@core/spaces/AppTree";
@@ -15,6 +15,8 @@ export class InBrowserSpaceSync implements SpaceConnection {
   private savingOpsToDatabase = false;
   private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
   private saveOpsIntervalMs = 500;
+  private secretsToSave: Record<string, string> | undefined;
+  private secretsDirty = false;
 
   constructor(space: Space) {
     this._space = space;
@@ -51,7 +53,30 @@ export class InBrowserSpaceSync implements SpaceConnection {
         return undefined;
       }
     });
-  } 
+
+    // Track secrets changes by wrapping the space's setSecret and saveAllSecrets methods
+    this.wrapSecretsMethod();
+  }
+
+  private wrapSecretsMethod() {
+    const originalSetSecret = this._space.setSecret.bind(this._space);
+    const originalSaveAllSecrets = this._space.saveAllSecrets.bind(this._space);
+
+    this._space.setSecret = (key: string, value: string) => {
+      originalSetSecret(key, value);
+      this.markSecretsDirty();
+    };
+
+    this._space.saveAllSecrets = (secrets: Record<string, string>) => {
+      originalSaveAllSecrets(secrets);
+      this.markSecretsDirty();
+    };
+  }
+
+  private markSecretsDirty() {
+    this.secretsToSave = this._space.getAllSecrets();
+    this.secretsDirty = true;
+  }
 
   get space(): Space {
     return this._space;
@@ -66,10 +91,13 @@ export class InBrowserSpaceSync implements SpaceConnection {
       return;
     }
 
+    // Load secrets from database
+    await this.loadSecrets();
+
     this._backend = new Backend(this._space, true);
 
-    // Save pending ops every n milliseconds
-    this.saveOpsTimer = window.setInterval(() => this.saveOps(), this.saveOpsIntervalMs);
+    // Save pending ops and secrets every n milliseconds
+    this.saveOpsTimer = window.setInterval(() => this.saveData(), this.saveOpsIntervalMs);
 
     this._connected = true;
   }
@@ -79,8 +107,8 @@ export class InBrowserSpaceSync implements SpaceConnection {
       return;
     }
 
-    // Save any pending operations
-    await this.saveOps();
+    // Save any pending operations and secrets
+    await this.saveData();
 
     if (this.saveOpsTimer) {
       clearInterval(this.saveOpsTimer);
@@ -88,6 +116,39 @@ export class InBrowserSpaceSync implements SpaceConnection {
     }
 
     this._connected = false;
+  }
+
+  private async loadSecrets() {
+    try {
+      const spaceId = this._space.getId();
+      const secrets = await getAllSecrets(spaceId);
+      if (secrets) {
+        this._space.saveAllSecrets(secrets);
+      }
+    } catch (error) {
+      console.error("Error loading secrets", error);
+    }
+  }
+
+  private async saveData() {
+    await Promise.all([
+      this.saveOps(),
+      this.saveSecrets()
+    ]);
+  }
+
+  private async saveSecrets() {
+    if (!this.secretsDirty || !this.secretsToSave) {
+      return;
+    }
+
+    try {
+      const spaceId = this._space.getId();
+      await saveAllSecrets(spaceId, this.secretsToSave);
+      this.secretsDirty = false;
+    } catch (error) {
+      console.error("Error saving secrets", error);
+    }
   }
 
   private async saveOps() {

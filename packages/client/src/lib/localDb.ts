@@ -19,6 +19,7 @@ export type SpaceSetup = {
   theme?: string | null;
   colorScheme?: 'light' | 'dark' | null;
   drafts?: { [draftId: string]: string } | null;
+  secrets?: { [key: string]: string } | null;
 };
 
 export interface ConfigEntry {
@@ -131,7 +132,8 @@ export async function savePointers(pointers: SpacePointer[]): Promise<void> {
             ...pointer,
             ttabsLayout: null,
             theme: null,
-            drafts: null
+            drafts: null,
+            secrets: null
           });
         }
       } catch (spaceError) {
@@ -431,6 +433,57 @@ export async function deleteDraft(spaceId: string, draftId: string): Promise<voi
       });
   } catch (error) {
     console.error(`Failed to delete draft for space ${spaceId} and draftId ${draftId}:`, error);
+  }
+}
+
+// Get all secrets for a space
+export async function getAllSecrets(spaceId: string): Promise<Record<string, string> | undefined> {
+  try {
+    const space = await db.spaces.get(spaceId);
+    return space?.secrets || undefined;
+  } catch (error) {
+    console.error(`Failed to get all secrets for space ${spaceId}:`, error);
+    return undefined;
+  }
+}
+
+// Save all secrets for a space
+export async function saveAllSecrets(spaceId: string, secrets: Record<string, string>): Promise<void> {
+  try {
+    await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .modify({ secrets: secrets });
+  } catch (error) {
+    console.error(`Failed to save all secrets for space ${spaceId}:`, error);
+  }
+}
+
+// Get a specific secret for a space
+export async function getSecret(spaceId: string, key: string): Promise<string | undefined> {
+  try {
+    const space = await db.spaces.get(spaceId);
+    return space?.secrets?.[key];
+  } catch (error) {
+    console.error(`Failed to get secret ${key} for space ${spaceId}:`, error);
+    return undefined;
+  }
+}
+
+// Set a specific secret for a space
+export async function setSecret(spaceId: string, key: string, value: string): Promise<void> {
+  try {
+    await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .modify((space) => {
+        if (!space.secrets) {
+          space.secrets = {};
+        }
+        space.secrets[key] = value;
+      });
+  } catch (error) {
+    console.error(`Failed to set secret ${key} for space ${spaceId}:`, error);
   }
 }
 
