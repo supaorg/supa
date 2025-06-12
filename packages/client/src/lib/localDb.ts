@@ -13,7 +13,7 @@ export type SpaceSetup = {
   uri: string;
   name: string | null;
   createdAt: Date;
-  
+
   // Additional fields
   ttabsLayout?: string | null;
   theme?: string | null;
@@ -39,10 +39,10 @@ class LocalDb extends Dexie {
   spaces!: Dexie.Table<SpaceSetup, string>;
   config!: Dexie.Table<ConfigEntry, string>;
   treeOps!: Dexie.Table<TreeOperations, string>; // Primary key is string (opId)
-  
+
   constructor() {
     super('localDb');
-    
+
     // Version 1: New schema with TreeOperations table
     this.version(1).stores({
       spaces: '&id, uri, name, createdAt',
@@ -96,7 +96,7 @@ export async function savePointers(pointers: SpacePointer[]): Promise<void> {
     const serializablePointers = pointers.map(pointer => {
       // Make a copy of the pointer to avoid modifying the original
       const serializedPointer = { ...pointer };
-      
+
       // Ensure createdAt is a proper Date object
       // If it's already a Date, use it; otherwise try to create a new Date from it
       if (!(serializedPointer.createdAt instanceof Date)) {
@@ -108,17 +108,17 @@ export async function savePointers(pointers: SpacePointer[]): Promise<void> {
           serializedPointer.createdAt = new Date();
         }
       }
-      
+
       return serializedPointer;
     });
-    
+
     // Convert pointers to SpaceSetup objects and save them
     // This preserves any existing additional data like ttabsLayout
     for (const pointer of serializablePointers) {
       try {
         // Check if this space already exists
         const existingSpace = await db.spaces.get(pointer.id);
-        
+
         if (existingSpace) {
           // Update only the pointer fields, preserving other data
           await db.spaces.update(pointer.id, {
@@ -157,7 +157,7 @@ export async function saveConfig(config: Record<string, unknown>): Promise<void>
 
 export async function saveCurrentSpaceId(id: string | null): Promise<void> {
   if (id === null) return;
-  
+
   try {
     await db.config.put({ key: 'currentSpaceId', value: id });
   } catch (error) {
@@ -174,11 +174,11 @@ export async function initializeDatabase(): Promise<{
     const pointers = await getAllPointers();
     const currentSpaceId = await getCurrentSpaceId();
     const config = await getAllConfig();
-    
+
     return { pointers, currentSpaceId, config };
   } catch (error) {
     console.error('Failed to initialize database:', error);
-    
+
     // Attempt recovery
     try {
       await db.delete();
@@ -187,7 +187,7 @@ export async function initializeDatabase(): Promise<{
     } catch (recoveryError) {
       console.error('Failed to recover database:', recoveryError);
     }
-    
+
     return { pointers: [], currentSpaceId: null, config: {} };
   }
 }
@@ -199,7 +199,7 @@ export async function getSpaceSetup(spaceId: string): Promise<SpaceSetup | undef
       .where('id')
       .equals(spaceId)
       .first();
-    
+
     return space;
   } catch (error) {
     console.error(`Failed to get setup for space ${spaceId}:`, error);
@@ -237,11 +237,11 @@ export async function saveTtabsLayout(spaceId: string, layout: string): Promise<
 // Get operations for a specific tree
 export async function getTreeOps(spaceId: string, treeId: string): Promise<VertexOperation[]> {
   try {
-      const treeOps = await db.treeOps
-    .where('[spaceId+treeId]')
-    .equals([spaceId, treeId])
-    .toArray();
-    
+    const treeOps = await db.treeOps
+      .where('[spaceId+treeId]')
+      .equals([spaceId, treeId])
+      .toArray();
+
     return treeOps.map(entry => entry.operation);
   } catch (error) {
     console.error(`Failed to get ops for tree ${treeId} in space ${spaceId}:`, error);
@@ -249,60 +249,36 @@ export async function getTreeOps(spaceId: string, treeId: string): Promise<Verte
   }
 }
 
-// Save operations for a specific tree
-export async function saveTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void> {
-  try {
-    if (ops.length === 0) return;
-    
-    const treeOpsEntries = ops.map(op => ({
-      opId: `${op.id.counter}@${op.id.peerId}`,
-      spaceId,
-      treeId,
-      operation: op
-    }));
-    
-    await db.treeOps.bulkPut(treeOpsEntries);
-  } catch (error) {
-    console.error(`Failed to save ops for tree ${treeId} in space ${spaceId}:`, error);
-  }
-}
-
-// Append operations from RepTree.popLocalOps() to storage
 export async function appendTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void> {
-  try {
-    if (ops.length === 0) return;
-    
-    const treeOpsEntries = ops.map(op => ({
-      opId: `${op.id.counter}@${op.id.peerId}`,
-      spaceId,
-      treeId,
-      operation: op
-    }));
-    
-    // Use bulkPut instead of bulkAdd to allow overwriting existing operations
-    await db.treeOps.bulkPut(treeOpsEntries);
-  } catch (error) {
-    console.error(`Failed to append ops for tree ${treeId} in space ${spaceId}:`, error);
-  }
+  if (ops.length === 0) return;
+
+  const treeOpsEntries = ops.map(op => ({
+    opId: `${op.id.counter}@${op.id.peerId}`,
+    spaceId,
+    treeId,
+    operation: op
+  }));
+
+  // Use bulkPut instead of bulkAdd to allow overwriting existing operations
+  await db.treeOps.bulkPut(treeOpsEntries);
 }
 
-// Get operations for all trees in a space (for migration/debugging)
 export async function getAllSpaceTreeOps(spaceId: string): Promise<Map<string, VertexOperation[]>> {
   try {
     const treeOps = await db.treeOps
       .where('spaceId')
       .equals(spaceId)
       .toArray();
-    
+
     const treeOpsMap = new Map<string, VertexOperation[]>();
-    
+
     for (const entry of treeOps) {
       if (!treeOpsMap.has(entry.treeId)) {
         treeOpsMap.set(entry.treeId, []);
       }
       treeOpsMap.get(entry.treeId)!.push(entry.operation);
     }
-    
+
     return treeOpsMap;
   } catch (error) {
     console.error(`Failed to get all tree ops for space ${spaceId}:`, error);
@@ -310,7 +286,6 @@ export async function getAllSpaceTreeOps(spaceId: string): Promise<Map<string, V
   }
 }
 
-// Delete operations for a specific tree
 export async function deleteTreeOps(spaceId: string, treeId: string): Promise<void> {
   try {
     await db.treeOps
@@ -322,7 +297,6 @@ export async function deleteTreeOps(spaceId: string, treeId: string): Promise<vo
   }
 }
 
-// Get operation count for a tree (for UI/debugging)
 export async function getTreeOpCount(spaceId: string, treeId: string): Promise<number> {
   try {
     return await db.treeOps
@@ -368,17 +342,17 @@ export async function deleteSpace(spaceId: string): Promise<void> {
         .where('spaceId')
         .equals(spaceId)
         .delete();
-      
+
       // Delete the space from the spaces table
       await db.spaces.delete(spaceId);
-      
+
       // Check if this was the current space and clear it if so
       const currentId = await getCurrentSpaceId();
       if (currentId === spaceId) {
         await db.config.delete('currentSpaceId');
       }
     });
-    
+
     console.log(`Space ${spaceId} deleted from database`);
   } catch (error) {
     console.error(`Failed to delete space ${spaceId} from database:`, error);

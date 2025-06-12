@@ -2,22 +2,21 @@ import Space from "@core/spaces/Space";
 import type { SpaceConnection } from "./SpaceConnection";
 import uuid from "@core/uuid/uuid";
 import { Backend } from "@core/spaces/Backend";
-import { getTreeOps, appendTreeOps, getAllSecrets, saveAllSecrets } from "$lib/localDb";
+import { getTreeOps } from "$lib/localDb";
 import type { VertexOperation } from "reptree";
 import { RepTree, isAnyPropertyOp } from "reptree";
 import AppTree from "@core/spaces/AppTree";
+import SpacePersistenceQueue from "./SpacePersistenceQueue";
 
 export class InBrowserSpaceSync implements SpaceConnection {
   private _space: Space;
   private _connected: boolean = false;
   private _backend: Backend | undefined;
-  private savingOpsToDatabase = false;
-  private savingSecretsToDatabase = false;
-  private treeOpsToSave: Map<string, VertexOperation[]> = new Map();
-  private secretsToSave: Record<string, string> = {};
+  private thingsToSave: SpacePersistenceQueue;
 
   constructor(space: Space) {
     this._space = space;
+    this.thingsToSave = new SpacePersistenceQueue(space.getId());
 
     // Observe operations from the main space tree
     space.tree.observeOpApplied((op) => {
@@ -65,12 +64,14 @@ export class InBrowserSpaceSync implements SpaceConnection {
 
     this._space.setSecret = (key: string, value: string) => {
       originalSetSecret(key, value);
-      this.secretsToSave[key] = value;
+      this.thingsToSave.addSecret(key, value);
     };
 
     this._space.saveAllSecrets = (secrets: Record<string, string>) => {
       originalSaveAllSecrets(secrets);
-      Object.assign(this.secretsToSave, secrets);
+      Object.keys(secrets).forEach(key => {
+        this.thingsToSave.addSecret(key, secrets[key]);
+      });
     };
   }
 
@@ -79,13 +80,11 @@ export class InBrowserSpaceSync implements SpaceConnection {
    */
   private startSaveLoop() {
     const saveLoop = () => {
-      this.saveData();
+      this.thingsToSave.saveData();
       requestAnimationFrame(saveLoop);
     };
     requestAnimationFrame(saveLoop);
   }
-
-
 
   get space(): Space {
     return this._space;
@@ -114,15 +113,14 @@ export class InBrowserSpaceSync implements SpaceConnection {
     }
 
     // Save any pending operations and secrets
-    await this.saveData();
+    await this.thingsToSave.saveData();
 
     this._connected = false;
   }
 
   private async loadSecrets() {
     try {
-      const spaceId = this._space.getId();
-      const secrets = await getAllSecrets(spaceId);
+      const secrets = await this.thingsToSave.getSavedSecrets();
       if (secrets) {
         this._space.saveAllSecrets(secrets);
       }
@@ -131,66 +129,8 @@ export class InBrowserSpaceSync implements SpaceConnection {
     }
   }
 
-  private async saveData() {
-    await Promise.all([
-      this.saveOps(),
-      this.saveSecrets()
-    ]);
-  }
-
-  private async saveSecrets() {
-    if (Object.keys(this.secretsToSave).length === 0 || this.savingSecretsToDatabase) {
-      return;
-    }
-
-    this.savingSecretsToDatabase = true;
-
-    try {
-      const spaceId = this._space.getId();
-      // Get all current secrets (including the changed ones)
-      const allSecrets = this._space.getAllSecrets();
-      if (allSecrets) {
-        await saveAllSecrets(spaceId, allSecrets);
-      }
-      this.secretsToSave = {};
-    } catch (error) {
-      console.error("Error saving secrets", error);
-    }
-
-    this.savingSecretsToDatabase = false;
-  }
-
-  private async saveOps() {
-    if (this.savingOpsToDatabase) {
-      return;
-    }
-
-    this.savingOpsToDatabase = true;
-
-    for (const [treeId, ops] of this.treeOpsToSave.entries()) {
-      if (ops.length === 0) {
-        continue;
-      }
-
-      try {
-        const spaceId = this._space.getId();
-        await appendTreeOps(spaceId, treeId, ops);
-        this.treeOpsToSave.set(treeId, []);
-      } catch (error) {
-        console.error("Error saving ops to database", error);
-      }
-    }
-
-    this.savingOpsToDatabase = false;
-  }
-
   addOpsToSave(treeId: string, ops: ReadonlyArray<VertexOperation>) {
-    let opsToSave = this.treeOpsToSave.get(treeId);
-    if (!opsToSave) {
-      opsToSave = [];
-      this.treeOpsToSave.set(treeId, opsToSave);
-    }
-    opsToSave.push(...ops);
+    this.thingsToSave.addOps(treeId, ops);
   }
 
   private handleOpAppliedFromSamePeer(tree: RepTree, op: VertexOperation) {
@@ -201,15 +141,9 @@ export class InBrowserSpaceSync implements SpaceConnection {
 
     const treeId = tree.root!.id;
 
-    let ops = this.treeOpsToSave.get(treeId);
-    if (!ops) {
-      ops = [];
-      this.treeOpsToSave.set(treeId, ops);
-    }
-
     // Only save move ops or non-transient property ops (so, no transient properties)
     if (!isAnyPropertyOp(op) || !op.transient) {
-      ops.push(op);
+      this.thingsToSave.addOps(treeId, [op]);
     }
   }
 
@@ -223,7 +157,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
     }
 
     const ops = appTree.tree.popLocalOps();
-    this.treeOpsToSave.set(appTreeId, ops);
+    this.thingsToSave.addOps(appTreeId, ops);
 
     appTree.tree.observeOpApplied((op) => {
       this.handleOpAppliedFromSamePeer(appTree.tree, op);
