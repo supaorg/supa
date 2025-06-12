@@ -59,7 +59,7 @@ interface TreeOperation {
 this.version(3).stores({
   spaces: '&id, uri, name, createdAt',
   config: '&key',
-  treeOps: '&[clock+peerId+treeId], spaceId, treeId, [spaceId+treeId], [spaceId+treeId+clock]'
+  treeOps: '&[clock+peerId+treeId+spaceId], spaceId, treeId, [spaceId+treeId], [spaceId+treeId+clock]'
 });
 ```
 
