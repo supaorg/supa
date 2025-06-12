@@ -57,12 +57,16 @@
           tabindex="0"
           class="flex-grow"
         >
-          <div class="font-semibold">{space.name || "Unnamed Space"}</div>
-          <div class="text-sm opacity-70">{space.uri}</div>
+          <div class="font-semibold">{space.name || "New Space"}</div>
+          {#if space.uri.startsWith("browser")}
+            <div class="text-sm opacity-70">Local space</div>
+          {:else}
+            <div class="text-sm opacity-70">{space.uri}</div>
+          {/if}
         </div>
 
-        <SpaceOptionsPopup 
-          onRename={() => openRenamePopup(space)} 
+        <SpaceOptionsPopup
+          onRename={() => openRenamePopup(space)}
           onRemove={() => handleRemoveSpace(space)}
         />
       </div>
