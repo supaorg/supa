@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Chrome against localhost",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:6969",
+      "webRoot": "${workspaceFolder}/packages/client/src",
+      "sourceMaps": true,
+      "preLaunchTask": "npm: dev - packages/client"
+    },
+    {
+      "name": "Attach to Chrome",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "url": "http://localhost:6969",
+      "webRoot": "${workspaceFolder}/packages/client/src",
+      "sourceMaps": true
+    }
+  ]
+} 
