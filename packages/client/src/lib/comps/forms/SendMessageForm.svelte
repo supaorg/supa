@@ -47,6 +47,7 @@
   let query = $state("");
   let isTextareaFocused = $state(false);
   let textareaElement: HTMLTextAreaElement;
+  let isSending = $state(false);
 
   let canSendMessage = $derived(
     !disabled && status === "can-send-message" && query.trim().length > 0,
@@ -137,13 +138,21 @@
     adjustTextareaHeight();
   }
 
-  async function handleInput() {
+  async function handleInput(e: InputEvent) {
+    // Skip if we're in the process of sending a message
+    if (isSending) {
+      e.preventDefault();
+      return;
+    }
+
     adjustTextareaHeight();
 
     // Save or clear draft based on content
     if (draftId) {
-      if (query) {
-        await spaceStore.saveDraft(draftId, query);
+      const trimmedQuery = query.trim();
+
+      if (trimmedQuery.length > 0) {
+        await spaceStore.saveDraft(draftId, trimmedQuery);
       } else {
         await spaceStore.deleteDraft(draftId);
       }
@@ -154,6 +163,8 @@
     if (disabled || status !== "can-send-message") {
       return;
     }
+
+    isSending = true; // Set flag before sending
 
     onSend(query);
 
@@ -171,6 +182,8 @@
       await tick();
       adjustTextareaHeight();
     }
+
+    isSending = false; // Reset flag after sending is complete
   }
 
   async function stopMsg() {

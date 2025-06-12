@@ -68,6 +68,7 @@ export default class Space {
     this.appConfigs = new AppConfigsData(this.tree.getVertexByPath('app-configs')!);
   }
 
+  /** Space id is the same as the root vertex id of the space tree */
   getId(): string {
     return this.tree.root!.id;
   }
