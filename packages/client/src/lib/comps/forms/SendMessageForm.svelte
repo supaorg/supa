@@ -166,13 +166,13 @@
 
     isSending = true; // Set flag before sending
 
-    onSend(query);
-
     // Clear draft when message is sent
     if (draftId) {
       await spaceStore.deleteDraft(draftId);
     }
 
+    onSend(query);
+    
     query = "";
     // Force reset to base height after clearing content
     if (textareaElement) {
