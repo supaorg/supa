@@ -29,7 +29,7 @@ export interface ConfigEntry {
 
 // Table for operations grouped by tree IDs
 export interface TreeOperations {
-  opId: string; // Use the existing operation ID as primary key (e.g., "123@some-uuid")
+  opId: string; // The operation ID (e.g., "123@some-uuid")
   spaceId: string; // Reference to the space
   treeId: string; // ID of the specific tree
   operation: VertexOperation; // The actual operation (union type: MoveVertex | SetVertexProperty)
@@ -38,16 +38,15 @@ export interface TreeOperations {
 class LocalDb extends Dexie {
   spaces!: Dexie.Table<SpaceSetup, string>;
   config!: Dexie.Table<ConfigEntry, string>;
-  treeOps!: Dexie.Table<TreeOperations, string>; // Primary key is string (opId)
+  treeOps!: Dexie.Table<TreeOperations, string>; // Primary key is string (opId+treeId composite)
 
   constructor() {
     super('localDb');
 
-    // Version 1: New schema with TreeOperations table
     this.version(1).stores({
       spaces: '&id, uri, name, createdAt',
       config: '&key',
-      treeOps: '&opId, spaceId, treeId, [spaceId+treeId]' // opId as primary key
+      treeOps: '&[opId+treeId], spaceId, treeId, [spaceId+treeId]' // Composite primary key
     });
   }
 }
