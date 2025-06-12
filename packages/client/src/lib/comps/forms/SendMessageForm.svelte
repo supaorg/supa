@@ -138,10 +138,9 @@
     adjustTextareaHeight();
   }
 
-  async function handleInput(e: InputEvent) {
+  async function handleInput() {
     // Skip if we're in the process of sending a message
     if (isSending) {
-      e.preventDefault();
       return;
     }
 
