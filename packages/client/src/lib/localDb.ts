@@ -27,18 +27,30 @@ export interface ConfigEntry {
   value: unknown;
 }
 
-// Table for operations grouped by tree IDs
-export interface TreeOperations {
-  opId: string; // The operation ID (e.g., "123@some-uuid")
-  spaceId: string; // Reference to the space
-  treeId: string; // ID of the specific tree
-  operation: VertexOperation; // The actual operation (union type: MoveVertex | SetVertexProperty)
+// Table for operations with split operation IDs
+export interface TreeOperation {
+  // Composite primary key components
+  clock: number;        // The counter/clock value
+  peerId: string;       // The peer ID
+  treeId: string;       // Tree identifier
+  spaceId: string;      // Space reference
+
+  // Operation data
+  targetId: string;     // Target vertex ID
+
+  // Move operation: has parentId
+  parentId?: string;    // For move operations
+
+  // Property operation: has key/value/transient  
+  key?: string;         // Property key
+  value?: any;          // Property value
+  transient?: boolean;  // Whether property is transient
 }
 
 class LocalDb extends Dexie {
   spaces!: Dexie.Table<SpaceSetup, string>;
   config!: Dexie.Table<ConfigEntry, string>;
-  treeOps!: Dexie.Table<TreeOperations, string>; // Primary key is string (opId+treeId composite)
+  treeOps!: Dexie.Table<TreeOperation, string>; // Primary key is composite
 
   constructor() {
     super('localDb');
@@ -46,12 +58,55 @@ class LocalDb extends Dexie {
     this.version(1).stores({
       spaces: '&id, uri, name, createdAt',
       config: '&key',
-      treeOps: '&[opId+treeId], spaceId, treeId, [spaceId+treeId]' // Composite primary key
+      treeOps: '&[clock+peerId+treeId+spaceId], spaceId, treeId, [spaceId+treeId], [spaceId+treeId+clock]'
     });
   }
 }
 
 export const db = new LocalDb();
+
+// Convert to VertexOperation for RepTree
+function toVertexOperation(op: TreeOperation): VertexOperation {
+  if (op.parentId !== undefined) {
+    // Move operation detected by presence of parentId
+    return {
+      id: { counter: op.clock, peerId: op.peerId },
+      targetId: op.targetId,
+      parentId: op.parentId
+    } as VertexOperation;
+  } else {
+    // Property operation detected by presence of key
+    return {
+      id: { counter: op.clock, peerId: op.peerId },
+      targetId: op.targetId,
+      key: op.key!,
+      value: op.value,
+      transient: op.transient || false
+    } as VertexOperation;
+  }
+}
+
+// Convert from VertexOperation for storage
+function fromVertexOperation(op: VertexOperation, spaceId: string, treeId: string): TreeOperation {
+  const base: Partial<TreeOperation> = {
+    clock: op.id.counter,
+    peerId: op.id.peerId,
+    treeId,
+    spaceId,
+    targetId: op.targetId
+  };
+
+  if ('parentId' in op) {
+    return { ...base, parentId: op.parentId } as TreeOperation;
+  } else {
+    return {
+      ...base,
+      key: op.key,
+      value: op.value,
+      transient: op.transient
+    } as TreeOperation;
+  }
+}
 
 export async function getAllPointers(): Promise<SpacePointer[]> {
   try {
@@ -241,7 +296,7 @@ export async function getTreeOps(spaceId: string, treeId: string): Promise<Verte
       .equals([spaceId, treeId])
       .toArray();
 
-    return treeOps.map(entry => entry.operation);
+    return treeOps.map(toVertexOperation);
   } catch (error) {
     console.error(`Failed to get ops for tree ${treeId} in space ${spaceId}:`, error);
     return [];
@@ -251,14 +306,9 @@ export async function getTreeOps(spaceId: string, treeId: string): Promise<Verte
 export async function appendTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void> {
   if (ops.length === 0) return;
 
-  const treeOpsEntries = ops.map(op => ({
-    opId: `${op.id.counter}@${op.id.peerId}`,
-    spaceId,
-    treeId,
-    operation: op
-  }));
+  const treeOpsEntries = ops.map(op => fromVertexOperation(op, spaceId, treeId));
 
-  // Use bulkPut instead of bulkAdd to allow overwriting existing operations
+  // Use bulkPut to store operations
   await db.treeOps.bulkPut(treeOpsEntries);
 }
 
@@ -275,7 +325,7 @@ export async function getAllSpaceTreeOps(spaceId: string): Promise<Map<string, V
       if (!treeOpsMap.has(entry.treeId)) {
         treeOpsMap.set(entry.treeId, []);
       }
-      treeOpsMap.get(entry.treeId)!.push(entry.operation);
+      treeOpsMap.get(entry.treeId)!.push(toVertexOperation(entry));
     }
 
     return treeOpsMap;
