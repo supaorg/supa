@@ -82,7 +82,7 @@
         <SwinsNavButton
           component="app-config"
           title="Edit Assistant"
-          props={{ configId: config.id, disableFields: isDefault }}
+          props={{ configId: config.id }}
           className="inline-flex items-center justify-center p-1"
         >
           <Pencil class="w-4 h-4" />

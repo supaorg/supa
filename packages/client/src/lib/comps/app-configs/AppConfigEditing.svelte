@@ -8,8 +8,7 @@
 
   let {
     configId,
-    disableFields = false,
-  }: { configId?: string; disableFields?: boolean } = $props();
+  }: { configId?: string } = $props();
 
   let isNewApp = $derived(!configId);
 
@@ -113,7 +112,7 @@
       placeholder={$txtStore.appConfigPage.namePlaceholder}
       required
       bind:value={name}
-      disabled={disableFields}
+      disabled={isDefault}
     />
   </label>
   <label class="label">
@@ -125,7 +124,7 @@
       placeholder={$txtStore.appConfigPage.descriptionPlaceholder}
       required
       bind:value={description}
-      disabled={disableFields}
+      disabled={isDefault}
     />
   </label>
   <label class="label">
@@ -137,7 +136,7 @@
       placeholder={$txtStore.appConfigPage.instructionsPlaceholder}
       required
       bind:value={instructions}
-      disabled={disableFields}
+      disabled={isDefault}
     ></textarea>
   </label>
   <div class="label">
