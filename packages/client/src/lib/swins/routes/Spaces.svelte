@@ -3,6 +3,7 @@
   import { txtStore } from "$lib/stores/txtStore";
   import { createNewInBrowserSpaceSync } from "$lib/spaces/InBrowserSpaceSync";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { Plus } from "lucide-svelte";
 
   async function handleNewSpace() {
     const sync = await createNewInBrowserSpaceSync();
@@ -14,7 +15,8 @@
 <div class="flex justify-between items-center pb-4">
   <h3 class="h3">{$txtStore.spacesPage.title}</h3>
   <button class="btn preset-filled-primary-500" onclick={handleNewSpace}>
-    + New Space
+    <Plus size={16} />
+    New Space
   </button>
 </div>
 <p class="mb-6">

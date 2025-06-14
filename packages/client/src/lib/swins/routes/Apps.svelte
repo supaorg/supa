@@ -4,6 +4,7 @@
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { AppConfig } from "@core/models";
   import SwinsNavButton from "../SwinsNavButton.svelte";
+  import { Plus } from "lucide-svelte";
 
   let appConfigs = $state<AppConfig[]>([]);
   let appConfigUnobserve: (() => void) | undefined;
@@ -29,7 +30,8 @@
       title="New Assistant"
       className="btn preset-filled-primary-500"
     >
-      + {$txtStore.appPage.buttonNewConfig}
+      <Plus size={16} />
+      {$txtStore.appPage.buttonNewConfig}
     </SwinsNavButton>
   </div>
   <p>
