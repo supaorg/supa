@@ -53,7 +53,7 @@ export const englishTexts: Texts = {
   },
 
   appConfigDropdown: {
-    placeholder: "Select configuration..."
+    placeholder: "Select an assistant..."
   },
 
   modelSelection: {

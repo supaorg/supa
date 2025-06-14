@@ -13,6 +13,7 @@
   }: { configId: string; onChange?: (id: string) => void } = $props();
 
   let visibleAppConfigs = $state<AppConfig[]>([]);
+  let appConfigs = $state<AppConfig[]>([]);
 
   let currentConfig = $derived.by(() => {
     return visibleAppConfigs.find((config) => config.id === configId);
@@ -22,6 +23,7 @@
 
   onMount(() => {
     const unobserve = spaceStore.currentSpace?.appConfigs.observe((configs) => {
+      appConfigs = configs;
       visibleAppConfigs = configs.filter((config) => config.visible);
     });
 
@@ -46,7 +48,7 @@
       class="flex items-center gap-2 px-2 py-1 rounded-container transition-colors preset-outlined-primary-500"
     >
       <span class="text-left truncate min-w-0">
-        {#if visibleAppConfigs.length > 0}
+        {#if visibleAppConfigs.length > 0 && currentConfig}
           {#if configId}
             {#each visibleAppConfigs as config}
               {#if config.id === configId}
@@ -64,7 +66,7 @@
     </button>
   {/snippet}
   {#snippet content()}
-    {#if visibleAppConfigs.length > 1}
+    {#if appConfigs.length > 1 || (configId && !currentConfig)}
       <div class="flex flex-col gap-1 mb-4">
         {#each visibleAppConfigs as config (config.id)}
           <button
