@@ -10,6 +10,7 @@
     saveConfig,
   } from "$lib/localDb";
   import ThemeManager from "./themes/ThemeManager.svelte";
+  import { initShortcuts } from "$lib/shortcuts/shortcuts";
 
   type Status = "initializing" | "needsSpace" | "ready";
 
@@ -18,6 +19,7 @@
 
   onMount(() => {
     initializeSpaceData();
+    initShortcuts();
 
     return () => {
       spaceStore.disconnectAllSpaces();
