@@ -69,6 +69,10 @@
   });
 
   function getPairString(pair: SelectedPair) {
+    // Special case for "auto" models - they don't have a model ID
+    if (pair.providerId === "auto") {
+      return "auto";
+    }
     return combineModelString(pair.providerId, pair.model);
   }
 

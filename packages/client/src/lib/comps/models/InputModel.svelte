@@ -126,7 +126,7 @@
   <div class="input variant-form-material">
     <button
       type="button"
-      class="flex p-4 gap-4 items-center cursor-pointer w-full"
+      class="flex p-2 gap-4 items-center cursor-pointer w-full"
       onclick={onRequestChange}
     >
       <div class="w-8 h-8 flex items-center justify-center rounded">
