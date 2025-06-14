@@ -4,11 +4,13 @@
   import { createNewInBrowserSpaceSync } from "$lib/spaces/InBrowserSpaceSync";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { Plus } from "lucide-svelte";
+    import { swins } from "../swinsLayout";
 
   async function handleNewSpace() {
     const sync = await createNewInBrowserSpaceSync();
     spaceStore.addLocalSpace(sync, "browser://" + sync.space.getId());
     spaceStore.currentSpaceId = sync.space.getId();
+    swins.clear();
   }
 </script>
 
