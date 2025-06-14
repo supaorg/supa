@@ -13,7 +13,10 @@ export const theme = $state({
 
 // Load theme and color scheme for the current space
 export async function loadSpaceTheme() {
-  if (!spaceStore.currentSpaceId) return;
+  if (!spaceStore.currentSpaceId) {
+    setDefaultTheme();
+    return;
+  }
   
   try {
     const spaceSetup = await getSpaceSetup(spaceStore.currentSpaceId);
@@ -41,11 +44,15 @@ export async function loadSpaceTheme() {
   } catch (error) {
     console.error('Failed to load space theme:', error);
     // Fall back to defaults
-    theme.themeName = DEFAULT_THEME;
-    theme.colorScheme = getCurrentColorScheme();
-    document.documentElement.setAttribute("data-theme", DEFAULT_THEME);
-    applyColorScheme(theme.colorScheme);
+    setDefaultTheme();
   }
+}
+
+function setDefaultTheme() {
+  theme.themeName = DEFAULT_THEME;
+  theme.colorScheme = getCurrentColorScheme();
+  document.documentElement.setAttribute("data-theme", DEFAULT_THEME);
+  applyColorScheme(theme.colorScheme);
 }
 
 // Apply the color scheme to the document
