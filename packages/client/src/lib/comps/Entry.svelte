@@ -9,10 +9,6 @@
     saveCurrentSpaceId,
     saveConfig,
   } from "$lib/localDb";
-  import {
-    theme,
-  } from "$lib/stores/theme.svelte";
-  import { getCurrentColorScheme } from "$lib/utils/updateColorScheme";
   import ThemeManager from "./themes/ThemeManager.svelte";
 
   type Status = "initializing" | "needsSpace" | "ready";
@@ -97,7 +93,7 @@
 {#if status === "initializing"}
   <Loading />
 {:else if status === "needsSpace"}
-  <FreshStartWizard {onSpaceSetup} />
+  <FreshStartWizard />
 {:else if status === "ready"}
   {@render children?.()}
 {/if}

@@ -7,6 +7,7 @@
   let hoverTriggerTimeout: ReturnType<typeof setTimeout> | null = null;
   let closeSidebarTimeout: ReturnType<typeof setTimeout> | null = null;
   let recentlyClosed = $state(false);
+  let sidebarElement: HTMLElement;
 
   function handleHoverEnter() {
     if (!sidebar.isOpen && !recentlyClosed) {
@@ -25,12 +26,93 @@
     }
   }
 
-  function isOverContextMenu(event: MouseEvent) {
+  function isOverContextMenu(event?: MouseEvent) {
+    // If no event provided, check current mouse position
+    if (!event) {
+      const openContextMenus = document.querySelectorAll(".context-menu, [data-popover-content]");
+      for (const menu of openContextMenus) {
+        const rect = menu.getBoundingClientRect();
+        // We don't have exact mouse position here, so just check if menu exists
+        if (menu.matches(':hover')) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     // Check if the related target is inside a popover (context menu)
-    const popover = (event.relatedTarget as HTMLElement)?.closest?.(
-      ".context-menu",
-    );
+    const target = event.relatedTarget as HTMLElement;
+    if (!target) return false;
+    
+    // Check for context menu classes and popover elements
+    const popover = target.closest(".context-menu, [data-popover-content], [role='dialog']");
     return !!popover;
+  }
+
+  function hasOpenContextMenu() {
+    // Check if any context menus are currently open in the document
+    const openContextMenus = document.querySelectorAll(".context-menu, [data-popover-content][data-state='open']");
+    return openContextMenus.length > 0;
+  }
+
+  function isMouseOverSidebarArea(event: MouseEvent) {
+    if (!sidebarElement) return false;
+    
+    const rect = sidebarElement.getBoundingClientRect();
+    const { clientX, clientY } = event;
+    
+    return (
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom
+    );
+  }
+
+  function isMouseOverAnyContextMenu(event: MouseEvent) {
+    const openContextMenus = document.querySelectorAll(".context-menu, [data-popover-content]");
+    const { clientX, clientY } = event;
+    
+    for (const menu of openContextMenus) {
+      const rect = menu.getBoundingClientRect();
+      if (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function handleGlobalMouseMove(event: MouseEvent) {
+    // Only track when hover sidebar is open
+    if (!showHoverSidebar) return;
+
+    const overSidebar = isMouseOverSidebarArea(event);
+    const overContextMenu = isMouseOverAnyContextMenu(event);
+
+    // If mouse is not over sidebar or any context menu, start closing
+    if (!overSidebar && !overContextMenu) {
+      if (closeSidebarTimeout) {
+        clearTimeout(closeSidebarTimeout);
+      }
+      
+      closeSidebarTimeout = setTimeout(() => {
+        // Double-check before closing
+        if (!hasOpenContextMenu()) {
+          showHoverSidebar = false;
+        }
+      }, 200);
+    } else {
+      // Mouse is over sidebar or context menu, cancel any pending close
+      if (closeSidebarTimeout) {
+        clearTimeout(closeSidebarTimeout);
+        closeSidebarTimeout = null;
+      }
+    }
   }
 
   function handleHoverLeave(event: MouseEvent) {
@@ -40,19 +122,25 @@
       hoverTriggerTimeout = null;
     }
 
-    // Only start closing if we're not over a context menu
-    if (!isOverContextMenu(event)) {
+    // Don't close if we're over a context menu or if any context menu is open
+    if (!isOverContextMenu(event) && !hasOpenContextMenu()) {
       closeSidebarTimeout = setTimeout(() => {
-        showHoverSidebar = false;
-      }, 300);
+        // Double-check that no context menus opened during the delay
+        if (!hasOpenContextMenu()) {
+          showHoverSidebar = false;
+        }
+      }, 200);
     }
   }
 
   function handleSidebarLeave(event: MouseEvent) {
-    // Only start closing if we're not over a context menu
-    if (!isOverContextMenu(event)) {
+    // Don't close if we're over a context menu or if any context menu is open
+    if (!isOverContextMenu(event) && !hasOpenContextMenu()) {
       closeSidebarTimeout = setTimeout(() => {
-        showHoverSidebar = false;
+        // Double-check that no context menus opened during the delay
+        if (!hasOpenContextMenu()) {
+          showHoverSidebar = false;
+        }
       }, 200);
     }
   }
@@ -73,9 +161,20 @@
     }
   });
 
+  // Add global mouse tracking when hover sidebar is open
+  $effect(() => {
+    if (showHoverSidebar) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      return () => {
+        document.removeEventListener('mousemove', handleGlobalMouseMove);
+      };
+    }
+  });
+
   onDestroy(() => {
     if (hoverTriggerTimeout) clearTimeout(hoverTriggerTimeout);
     if (closeSidebarTimeout) clearTimeout(closeSidebarTimeout);
+    document.removeEventListener('mousemove', handleGlobalMouseMove);
   });
 </script>
 
@@ -93,6 +192,7 @@
 <!-- Hoverable sidebar - always rendered but only visible when triggered -->
 {#if !sidebar.isOpen}
   <div
+    bind:this={sidebarElement}
     class="hover-sidebar fixed top-0 h-full w-[300px] bg-surface-50-950 z-10"
     class:show-sidebar={showHoverSidebar}
     class:border-r={showHoverSidebar}
