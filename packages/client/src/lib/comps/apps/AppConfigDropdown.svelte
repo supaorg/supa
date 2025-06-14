@@ -84,7 +84,11 @@
           className="btn btn-sm w-full text-left justify-start"
           component="app-config"
           title="Edit Config"
-          props={{ configId }}>Edit "{currentConfig?.name}" config</SwinsNavButton
+          props={{ configId }}
+          onclick={() => {
+            openState = false;
+          }}
+        >Edit "{currentConfig?.name}" assistant</SwinsNavButton
         >
       </div>
     {/if}

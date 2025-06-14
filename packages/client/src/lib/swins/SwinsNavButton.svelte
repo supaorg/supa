@@ -10,6 +10,7 @@
     className,
     pop,
     popTo,
+    onclick,
   }: {
     children: Snippet;
     component: string;
@@ -18,6 +19,7 @@
     className?: string;
     pop?: 'current' | 'all';
     popTo?: string;
+    onclick?: () => void;
   } = $props();
 
   function handleClick() {
@@ -30,6 +32,10 @@
     }
 
     swins.open(component, props, title);
+
+    if (onclick) {
+      onclick();
+    }
   }
 </script>
 
