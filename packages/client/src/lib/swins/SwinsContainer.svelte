@@ -3,6 +3,7 @@
   import { fly, fade } from "svelte/transition";
   import ChevronLeft from "lucide-svelte/icons/chevron-left";
   import X from "lucide-svelte/icons/x";
+  import { onMount } from "svelte";
 
   let { swins }: { swins: SWins } = $props();
 
@@ -18,6 +19,69 @@
   function closeAll() {
     swins.clear();
   }
+
+  // @TODO: review and delete if we don't actually need this
+  // Function to check if we should ignore Esc key
+  function shouldIgnoreEsc(activeElement: Element | null): boolean {
+    if (!activeElement) return false;
+
+    const tagName = activeElement.tagName.toLowerCase();
+    
+    // Check for form elements that might be in use
+    if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') {
+      return true;
+    }
+
+    // Check for contenteditable elements
+    if (activeElement.getAttribute('contenteditable') === 'true') {
+      return true;
+    }
+
+    // Check for elements with textbox role
+    if (activeElement.getAttribute('role') === 'textbox') {
+      return true;
+    }
+
+    // Check if we're inside a modal or dialog (higher z-index than swins)
+    const elementZIndex = window.getComputedStyle(activeElement).zIndex;
+    if (elementZIndex && parseInt(elementZIndex) > 49) {
+      return true;
+    }
+
+    // Check if parent has a higher z-index (for nested modals)
+    let parent = activeElement.parentElement;
+    while (parent) {
+      const parentZIndex = window.getComputedStyle(parent).zIndex;
+      if (parentZIndex && parseInt(parentZIndex) > 49) {
+        return true;
+      }
+      parent = parent.parentElement;
+    }
+
+    return false;
+  }
+
+  // Handle Esc key to close current swin
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && swins.windows.length > 0) {
+      const activeElement = document.activeElement;
+      
+      if (true/*!shouldIgnoreEsc(activeElement)*/) {
+        event.preventDefault();
+        swins.pop(); // Close the current (top) swin
+      }
+    }
+  }
+
+  onMount(() => {
+    // Add global keydown listener when component mounts
+    document.addEventListener('keydown', handleKeydown);
+
+    // Cleanup on unmount
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+    };
+  });
 </script>
 
 {#if swins.windows.length > 0}
