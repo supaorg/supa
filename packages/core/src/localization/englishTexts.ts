@@ -44,7 +44,7 @@ export const englishTexts: Texts = {
     errorAppConfigLoadFailure: "Failed to load app config",
     tableCell: {
       deleteButton: "Delete",
-      visibilityLabel: "Toggle app visibility",
+      visibilityLabel: "Toggle assistant visibility in the sidebar",
       deleteLabel: "Delete app configuration"
     },
     defaultConfigMessage: "This is the configuration of the default chat assistant. You can change which AI model this assistant uses or create a new assistant.",

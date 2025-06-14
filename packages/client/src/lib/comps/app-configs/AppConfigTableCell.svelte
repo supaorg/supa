@@ -42,53 +42,54 @@
   </div>
   -->
 
-  <!-- Edit icon + Assistant name/description -->
+  <!-- Start chat button + Assistant name/description -->
   <div class="flex items-start gap-2 flex-1 min-w-0 group">
     <Tooltip contentBase="card bg-surface-200-800 p-2">
       {#snippet trigger()}
-        <SwinsNavButton
-          component="app-config"
-          title="Edit Assistant"
-          props={{ configId: config.id, disableFields: isDefault }}
-          className="inline-flex items-center justify-center p-1 mt-0.5"
-        >
-          <Pencil class="w-4 h-4 group-hover:text-primary-600" />
-        </SwinsNavButton>
-      {/snippet}
-      {#snippet content()}
-        Edit Assistant
-      {/snippet}
-    </Tooltip>
-    <div class="min-w-0">
-      <SwinsNavButton
-        component="app-config"
-        title={config.name}
-        className="block text-left min-w-0"
-        props={{ configId: config.id, disableFields: isDefault }}
-      >
-        <strong class="truncate block">{config.name}</strong>
-        <span class="block truncate">{config.description}</span>
-      </SwinsNavButton>
-    </div>
-  </div>
-
-  <!-- Start chat button -->
-  <div>
-    <Tooltip contentBase="card bg-surface-200-800 p-2">
-      {#snippet trigger()}
         <button
-          class="inline-flex items-center justify-center p-1 rounded"
+          class="inline-flex items-center justify-center p-1 mt-0.5 rounded"
           title="Start Chat"
           aria-label="Start Chat"
           onclick={() => {
             swins.open("new-thread", { appConfig: config }, "New conversation");
           }}
         >
-          <MessageCircle class="w-4 h-4" />
+          <MessageCircle class="w-4 h-4 group-hover:text-primary-600" />
         </button>
       {/snippet}
       {#snippet content()}
         Start a chat with this assistant
+      {/snippet}
+    </Tooltip>
+    <div class="min-w-0">
+      <button
+        class="block text-left min-w-0"
+        title={config.name}
+        onclick={() => {
+          swins.open("new-thread", { appConfig: config }, "New conversation");
+        }}
+      >
+        <strong class="truncate block">{config.name}</strong>
+        <span class="block truncate">{config.description}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Edit button -->
+  <div>
+    <Tooltip contentBase="card bg-surface-200-800 p-2">
+      {#snippet trigger()}
+        <SwinsNavButton
+          component="app-config"
+          title="Edit Assistant"
+          props={{ configId: config.id, disableFields: isDefault }}
+          className="inline-flex items-center justify-center p-1"
+        >
+          <Pencil class="w-4 h-4" />
+        </SwinsNavButton>
+      {/snippet}
+      {#snippet content()}
+        Edit Assistant
       {/snippet}
     </Tooltip>
   </div>
