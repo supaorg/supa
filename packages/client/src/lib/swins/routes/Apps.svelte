@@ -22,7 +22,16 @@
 </script>
 
 <div class="card space-y-4">
-  <h3 class="h3">Your Assistants</h3>
+  <div class="flex justify-between items-center">
+    <h3 class="h3">Your Assistants</h3>
+    <SwinsNavButton
+      component="app-config"
+      title="New Assistant"
+      className="btn preset-filled-primary-500"
+    >
+      + {$txtStore.appPage.buttonNewConfig}
+    </SwinsNavButton>
+  </div>
   <p>
     You can create and edit your chat assistants here. You will see the
     assistant buttons in the right top of the sidebar.
@@ -32,12 +41,4 @@
       <AppConfigTableCell {config} />
     {/each}
   </div>
-
-  <SwinsNavButton
-    component="app-config"
-    title="New Config"
-    className="btn preset-filled-primary-500 mb-2"
-  >
-    {$txtStore.appPage.buttonNewConfig}
-  </SwinsNavButton>
 </div>

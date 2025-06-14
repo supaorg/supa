@@ -11,10 +11,10 @@
   }
 </script>
 
-<div class="flex justify-between items-center pb-4">
+<div class="flex justify-between items-center">
   <h3 class="h3">{$txtStore.spacesPage.title}</h3>
-  <button class="btn preset-filled" onclick={handleNewSpace}>
-    New Space
+  <button class="btn preset-filled-primary-500" onclick={handleNewSpace}>
+    + New Space
   </button>
 </div>
 <p class="mb-6">
