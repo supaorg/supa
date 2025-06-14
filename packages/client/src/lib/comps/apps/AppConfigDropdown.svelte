@@ -3,7 +3,7 @@
   import type { AppConfig } from "@core/models";
   import { txtStore } from "$lib/stores/txtStore";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
-  import { ChevronUp } from "lucide-svelte";
+  import { ChevronUp, Pencil, Plus } from "lucide-svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
@@ -64,22 +64,24 @@
     </button>
   {/snippet}
   {#snippet content()}
-    <div class="flex flex-col gap-1">
-      {#each visibleAppConfigs as config (config.id)}
-        <button
-          class="btn btn-sm w-full text-left justify-start"
-          class:preset-filled-secondary-500={config.id === configId}
-          onclick={() => selectConfig(config.id)}
-        >
-          <span
-            ><strong>{config.name}</strong><br />
-            {config.description}</span
+    {#if visibleAppConfigs.length > 1}
+      <div class="flex flex-col gap-1 mb-4">
+        {#each visibleAppConfigs as config (config.id)}
+          <button
+            class="btn btn-sm w-full text-left justify-start"
+            class:preset-filled-secondary-500={config.id === configId}
+            onclick={() => selectConfig(config.id)}
           >
-        </button>
-      {/each}
-    </div>
-    {#if currentConfig}
-      <div class="flex flex-col gap-1 mt-4">
+            <span
+              ><strong>{config.name}</strong><br />
+              {config.description}</span
+            >
+          </button>
+        {/each}
+      </div>
+    {/if}
+    <div class="flex flex-col gap-1">
+      {#if currentConfig}
         <SwinsNavButton
           className="btn btn-sm w-full text-left justify-start"
           component="app-config"
@@ -87,10 +89,17 @@
           props={{ configId }}
           onclick={() => {
             openState = false;
-          }}
-        >Edit "{currentConfig?.name}" assistant</SwinsNavButton
+          }}><Pencil size={16} />Edit "{currentConfig?.name}" assistant</SwinsNavButton
         >
-      </div>
-    {/if}
+      {/if}
+      <SwinsNavButton
+        className="btn btn-sm w-full text-left justify-start"
+        component="app-config"
+        title="New Assistant"
+        onclick={() => {
+          openState = false;
+        }}><Plus size={16} />New Assistant</SwinsNavButton
+      >
+    </div>
   {/snippet}
 </ContextMenu>
