@@ -17,7 +17,7 @@
     const space = spaceStore.currentSpace;
 
     if (!space) {
-      throw new Error("No current space. Space has to be setup at this point.");
+      return;
     }
 
     const spaceRoot = space.tree.root!;

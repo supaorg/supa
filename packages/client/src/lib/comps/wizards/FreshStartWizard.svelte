@@ -16,7 +16,7 @@
 </script>
 
 <CenteredPage>
-  <div class="card p-8 mt-4 space-y-6">
+  <div class="card p-8 mt-4 space-y-6 selectable-text">
     <div class="space-y-4">
       <h2 class="h2">Welcome to t69.chat</h2>
       <p>
