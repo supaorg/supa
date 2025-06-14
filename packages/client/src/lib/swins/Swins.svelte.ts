@@ -87,12 +87,14 @@ export class SWins {
    * 
    * @param componentId ID of the component to navigate to
    */
-  popTo(componentId: string) {
+  popTo(componentId: string): boolean {
     const windowIndex = this.windows.findLastIndex(window => window.componentId === componentId);
     if (windowIndex !== -1) {
       this.windows = this.windows.slice(0, windowIndex + 1);
+      return true;
     }
-    return this;
+    
+    return false;
   }
 
   /**
@@ -100,12 +102,15 @@ export class SWins {
    * 
    * @param id ID of the window to navigate to
    */
-  popToWindow(id: string) {
+  popToWindow(id: string): boolean {
     const windowIndex = this.windows.findIndex(window => window.id === id);
     if (windowIndex !== -1) {
       this.windows = this.windows.slice(0, windowIndex + 1);
+
+      return true;
     }
-    return this;
+    
+    return false;
   }
   
   /**

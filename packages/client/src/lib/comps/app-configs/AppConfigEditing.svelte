@@ -63,7 +63,9 @@
         visible: true,
       });
 
-      swins.popTo("apps");
+      if (!swins.popTo("apps")) {
+        swins.clear();
+      }
     } else {
       if (isDefault) {
         spaceStore.currentSpace?.updateAppConfig(configId, {
