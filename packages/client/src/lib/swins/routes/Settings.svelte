@@ -17,6 +17,7 @@
   <!--<h2 class="h2 mb-4">{$txtStore.settingsPage.title}</h2>-->
 
   <div class="flex flex-col gap-6 w-full">
+      <!--
     <div class="card p-4 border-[1px] border-surface-200-800">
       <h3 class="h4 mb-4">{$txtStore.settingsPage.appearance.language}</h3>
       <div class="space-y-4">
@@ -27,6 +28,7 @@
         </select>
       </div>
     </div>
+    -->
 
     <div class="card p-4 border-[1px] border-surface-200-800">
       <h3 class="h4 mb-4">{$txtStore.settingsPage.appearance.title}</h3>
