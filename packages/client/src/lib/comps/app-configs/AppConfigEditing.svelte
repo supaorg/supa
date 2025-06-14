@@ -54,14 +54,22 @@
     }
 
     if (!configId) {
+      const newConfigId = uuid();
       spaceStore.currentSpace?.insertIntoArray("app-configs", {
-        id: uuid(),
+        id: newConfigId,
         name: name,
         description: description,
         instructions: instructions,
         targetLLM: targetLLM,
         visible: true,
       });
+
+      // Dispatch custom event to notify about new assistant creation
+      const event = new CustomEvent('assistant-created', {
+        detail: { assistantId: newConfigId },
+        bubbles: true
+      });
+      document.dispatchEvent(event);
 
       if (!swins.popTo("apps")) {
         swins.clear();

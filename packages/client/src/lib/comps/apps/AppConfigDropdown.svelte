@@ -27,8 +27,19 @@
       visibleAppConfigs = configs.filter((config) => config.visible);
     });
 
+    // Listen for assistant-created events
+    const handleAssistantCreated = (event: CustomEvent) => {
+      const { assistantId } = event.detail;
+      if (assistantId && onChange) {
+        onChange(assistantId);
+      }
+    };
+
+    document.addEventListener('assistant-created', handleAssistantCreated as EventListener);
+
     return () => {
       unobserve?.();
+      document.removeEventListener('assistant-created', handleAssistantCreated as EventListener);
     };
   });
 
