@@ -2,6 +2,14 @@ import { ModelProvider } from "./models.ts";
 
 export const providers: ModelProvider[] = [
   {
+    id: "openrouter",
+    name: "OpenRouter",
+    access: "cloud",
+    url: "https://openrouter.ai/",
+    logoUrl: "/providers/openrouter.png",
+    defaultModel: "openai/gpt-4o"
+  },
+  {
     id: "openai",
     name: "OpenAI",
     access: "cloud",
@@ -64,14 +72,6 @@ export const providers: ModelProvider[] = [
     url: "https://mistral.ai/",
     logoUrl: "/providers/mistral.png",
     defaultModel: "mistral-large-latest"
-  },
-  {
-    id: "openrouter",
-    name: "OpenRouter",
-    access: "cloud",
-    url: "https://openrouter.ai/",
-    logoUrl: "/providers/openrouter.png",
-    defaultModel: "openai/gpt-4o"
   },
   {
     id: "ollama",
