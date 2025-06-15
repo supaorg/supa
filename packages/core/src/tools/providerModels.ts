@@ -45,6 +45,11 @@ export function getProviderModels(
     return Promise.resolve([]);
   }
   
+  // Special case for OpenRouter - return empty array since models are entered manually
+  if (provider === "openrouter") {
+    return Promise.resolve([]);
+  }
+  
   // Legacy implementation as fallback
   switch (provider) {
     case "openai":
