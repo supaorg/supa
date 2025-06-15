@@ -274,6 +274,33 @@
         <span class="flex-auto">Go back here after you start it.</span>
       </li>
     </ol>
+  {:else if provider.id === "openrouter"}
+    <p>
+      You will need to enter a key that will allow you to use OpenRouter's unified API to access hundreds of AI models.
+    </p>
+    <ol class="list">
+      <li>
+        <span>1.</span>
+        <span class="flex-auto"
+          >Sign up or login to OpenRouter: <Link
+            href="https://openrouter.ai/"
+            >https://openrouter.ai/</Link
+          ></span
+        >
+      </li>
+      <li>
+        <span>2.</span>
+        <span class="flex-auto"
+          >Go to your account settings and navigate to the API keys section to create a new API key.</span
+        >
+      </li>
+      <li>
+        <span>3.</span>
+        <span class="flex-auto"
+          >Paste the key here and wait for it to validate.</span
+        >
+      </li>
+    </ol>
   {:else}
     <p>No setup instructions available for this provider.</p>
   {/if}
