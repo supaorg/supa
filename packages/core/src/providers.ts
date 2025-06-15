@@ -66,6 +66,14 @@ export const providers: ModelProvider[] = [
     defaultModel: "mistral-large-latest"
   },
   {
+    id: "openrouter",
+    name: "OpenRouter",
+    access: "cloud",
+    url: "https://openrouter.ai/",
+    logoUrl: "/providers/openrouter.png",
+    defaultModel: "openai/gpt-4o"
+  },
+  {
     id: "ollama",
     name: "Ollama",
     access: "local",
