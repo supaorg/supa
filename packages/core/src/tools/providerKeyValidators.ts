@@ -20,6 +20,8 @@ export function validateKey(
       return validateKey_cohere(key, signal);
     case "mistral":
       return validateKey_mistral(key, signal);
+    case "openrouter":
+      return validateKey_openrouter(key, signal);
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
@@ -165,4 +167,25 @@ async function validateKey_mistral(
   signal?: AbortSignal,
 ): Promise<boolean> {
   return validateKey_openaiLikeApi("https://api.mistral.ai/v1", key, signal);
+}
+
+async function validateKey_openrouter(
+  apiKey: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  try {
+    const response = await fetch("https://openrouter.ai/api/v1/auth/key", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      signal,
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error("OpenRouter API key validation failed:", error);
+    return false;
+  }
 }
