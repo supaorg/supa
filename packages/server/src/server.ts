@@ -3,8 +3,10 @@ import cors from '@fastify/cors';
 import { Database } from './database';
 import { AuthService, AuthError } from './auth';
 
-const PORT = parseInt(process.env.PORT || '3131');
+// Use cloud-provided PORT or default for development
+const PORT = parseInt(process.env.PORT || '3131', 10);
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:6969';
+const API_BASE_URL = process.env.API_BASE_URL || `http://localhost:${PORT}`;
 
 // Initialize database and auth service
 const db = new Database('./data/t69.db');
@@ -78,16 +80,16 @@ fastify.get('/dev/info', async (request, reply) => {
     mode: auth.isMockMode() ? 'mock' : 'oauth',
     mockMode: auth.isMockMode(),
     endpoints: {
-      health: `http://localhost:${PORT}/health`,
-      login: `http://localhost:${PORT}/auth/login/google`,
-      me: `http://localhost:${PORT}/auth/me`,
-      refresh: `http://localhost:${PORT}/auth/refresh`,
-      logout: `http://localhost:${PORT}/auth/logout`
+      health: `${API_BASE_URL}/health`,
+      login: `${API_BASE_URL}/auth/login/google`,
+      me: `${API_BASE_URL}/auth/me`,
+      refresh: `${API_BASE_URL}/auth/refresh`,
+      logout: `${API_BASE_URL}/auth/logout`
     },
     mockUser: auth.isMockMode() ? {
       email: 'dev@t69.local',
       name: 'Dev User',
-      loginUrl: `http://localhost:${PORT}/auth/login/google`
+      loginUrl: `${API_BASE_URL}/auth/login/google`
     } : null,
     setup: auth.isMockMode() ? {
       message: 'Running in mock mode - no OAuth setup required!',
@@ -274,8 +276,8 @@ const start = async () => {
     fastify.log.info(`📱 Frontend URL: ${FRONTEND_URL}`);
 
     if (auth.isMockMode()) {
-      fastify.log.info(`🔧 MOCK AUTH MODE - Visit http://localhost:${PORT}/dev/info for details`);
-      fastify.log.info(`   Quick test: http://localhost:${PORT}/auth/login/google`);
+      fastify.log.info(`🔧 MOCK AUTH MODE - Visit ${API_BASE_URL}/dev/info for details`);
+      fastify.log.info(`   Quick test: ${API_BASE_URL}/auth/login/google`);
     }
   } catch (error) {
     fastify.log.error('Error starting server:', error);
