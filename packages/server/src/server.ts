@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { Database } from './database.js';
-import { AuthService } from './auth.js';
+import { AuthService, AuthError } from './auth.js';
 
 const PORT = parseInt(process.env.PORT || '3131');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:6969';
@@ -41,6 +41,7 @@ interface GoogleCallbackRequest {
   Querystring: {
     code?: string;
     error?: string;
+    state?: string;
   };
 }
 
@@ -65,15 +66,25 @@ fastify.get('/health', async (request, reply) => {
 
 // Start Google OAuth flow
 fastify.get('/auth/login/google', async (request, reply) => {
-  const authUrl = auth.getGoogleAuthUrl();
-  return reply.redirect(302, authUrl);
+  try {
+    const authUrl = auth.getGoogleAuthUrl();
+    return reply.redirect(302, authUrl);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return reply.code(error.statusCode).send({ 
+        error: error.message, 
+        code: error.code 
+      });
+    }
+    throw error;
+  }
 });
 
 // Handle Google OAuth callback
 fastify.get<{ Querystring: GoogleCallbackRequest['Querystring'] }>(
   '/auth/callback/google', 
   async (request, reply) => {
-    const { code, error } = request.query;
+    const { code, error, state } = request.query;
     
     if (error) {
       return reply.redirect(302, `${FRONTEND_URL}/auth/callback?error=${error}`);
@@ -85,9 +96,19 @@ fastify.get<{ Querystring: GoogleCallbackRequest['Querystring'] }>(
 
     try {
       const token = await auth.handleGoogleCallback(code);
-      return reply.redirect(302, `${FRONTEND_URL}/auth/callback?token=${token}`);
+      const redirectUrl = state 
+        ? `${FRONTEND_URL}/auth/callback?token=${token}&state=${state}`
+        : `${FRONTEND_URL}/auth/callback?token=${token}`;
+      return reply.redirect(302, redirectUrl);
     } catch (error) {
-      fastify.log.error('Google callback error:', error);
+      if (error instanceof AuthError) {
+        fastify.log.error('Google callback error:', { 
+          message: error.message, 
+          code: error.code 
+        });
+        return reply.redirect(302, `${FRONTEND_URL}/auth/callback?error=${error.code}`);
+      }
+      fastify.log.error('Unexpected Google callback error:', error);
       return reply.redirect(302, `${FRONTEND_URL}/auth/callback?error=auth_failed`);
     }
   }
@@ -100,14 +121,51 @@ fastify.get<{ Headers: AuthMeRequest['Headers'] }>(
     const token = getAuthToken(request.headers.authorization);
     
     if (!token) {
-      return reply.code(401).send({ error: 'No token provided' });
+      return reply.code(401).send({ error: 'No token provided', code: 'NO_TOKEN' });
     }
 
     try {
       const user = await auth.verifyToken(token);
       return { user };
     } catch (error) {
-      return reply.code(401).send({ error: 'Invalid token' });
+      if (error instanceof AuthError) {
+        return reply.code(error.statusCode).send({ 
+          error: error.message, 
+          code: error.code 
+        });
+      }
+      return reply.code(401).send({ error: 'Token verification failed', code: 'TOKEN_FAILED' });
+    }
+  }
+);
+
+// Refresh user data
+fastify.post<{ Headers: AuthMeRequest['Headers'] }>(
+  '/auth/refresh',
+  async (request, reply) => {
+    const token = getAuthToken(request.headers.authorization);
+    
+    if (!token) {
+      return reply.code(401).send({ error: 'No token provided', code: 'NO_TOKEN' });
+    }
+
+    try {
+      const currentUser = await auth.verifyToken(token);
+      const refreshedUser = await auth.refreshUserData(currentUser.id);
+      
+      if (!refreshedUser) {
+        return reply.code(404).send({ error: 'User not found', code: 'USER_NOT_FOUND' });
+      }
+      
+      return { user: refreshedUser };
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return reply.code(error.statusCode).send({ 
+          error: error.message, 
+          code: error.code 
+        });
+      }
+      return reply.code(500).send({ error: 'Refresh failed', code: 'REFRESH_FAILED' });
     }
   }
 );
@@ -123,9 +181,18 @@ fastify.post('/auth/logout', async (request, reply) => {
 fastify.setErrorHandler((error, request, reply) => {
   fastify.log.error(error);
   
-  // Send error response
+  // Handle AuthError specifically
+  if (error instanceof AuthError) {
+    return reply.code(error.statusCode).send({
+      error: error.message,
+      code: error.code
+    });
+  }
+  
+  // Send generic error response
   reply.code(500).send({
     error: 'Internal Server Error',
+    code: 'INTERNAL_ERROR',
     message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
   });
 });
