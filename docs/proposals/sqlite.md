@@ -1,8 +1,10 @@
 # Proposal: SQLite Storage for Server Operations
 
 ## Current State
-- **Client**: IndexedDB via Dexie with `TreeOperation` schema
+- **Client**: IndexedDB via Dexie with `TreeOperation` schema (localDb.ts)
 - **Server**: No persistent storage yet
+- **Decision**: Use RepTrees on server with schema close to localDb.ts
+- **Architecture**: Individual SQLite databases per space (partitioned by UUID)
 - **Shared**: TypeScript everywhere, `packages/core` exists
 
 ## Proposed Approaches
@@ -53,7 +55,7 @@ CREATE INDEX idx_space_tree_clock ON tree_operations(space_id, tree_id, clock);
 CREATE INDEX idx_peer ON tree_operations(peer_id);
 ```
 
-**Benefits:** Simple, explicit, efficient, matches client schema closely
+**Benefits:** Simple, explicit, efficient, matches client schema closely, aligns with RepTree server implementation
 **Drawbacks:** None significant for our use case
 
 ### Option 3: Direct Dexie-like Interface
@@ -63,11 +65,11 @@ CREATE INDEX idx_peer ON tree_operations(peer_id);
 class SqliteDb {
   async getTreeOps(spaceId: string, treeId: string): Promise<VertexOperation[]>
   async appendTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void>
-  // ... same API as localDb.ts
+  // ... same API as localDb.ts, enabling RepTree logic sharing
 }
 ```
 
-**Benefits:** Minimal changes, familiar API
+**Benefits:** Minimal changes, familiar API, enables shared RepTree implementation
 **Drawbacks:** Doesn't leverage SQLite indexing potential
 
 ### Option 4: Hybrid Approach
@@ -93,4 +95,12 @@ interface OperationRepository {
 3. **Server** uses explicit SQLite columns (simple, fast, type-safe)
 4. **Both** implement same interface for consistency
 
-The explicit column approach is optimal for our simple, stable operation types. 
+The explicit column approach is optimal for our simple, stable operation types.
+
+## Implementation Notes
+
+Given our server-sync architecture:
+- Each space gets its own SQLite database file (e.g., `spaces/ab/123456-7890-1234-5678-90abcdef1234.db`)
+- The same schema applies to each space database
+- RepTree logic can be shared between client and server since both use similar storage patterns
+- WebSocket sync can efficiently query operations by clock/peer for delta updates 
