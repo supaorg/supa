@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { Database } from './database.js';
-import { AuthService, AuthError } from './auth.js';
+import { Database } from './database';
+import { AuthService, AuthError } from './auth';
 
 const PORT = parseInt(process.env.PORT || '3131');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:6969';
@@ -55,12 +55,47 @@ function getAuthToken(authorization?: string): string | null {
 
 // Routes
 
-// Health check
+// Health check with auth status
 fastify.get('/health', async (request, reply) => {
-  return { 
-    status: 'ok', 
+  return {
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    auth: {
+      mode: auth.isMockMode() ? 'mock' : 'oauth',
+      mockUser: auth.isMockMode() ? 'dev@t69.local' : null
+    }
+  };
+});
+
+// Development info endpoint
+fastify.get('/dev/info', async (request, reply) => {
+  if (process.env.NODE_ENV === 'production') {
+    return reply.code(404).send({ error: 'Not found' });
+  }
+
+  return {
+    mode: auth.isMockMode() ? 'mock' : 'oauth',
+    mockMode: auth.isMockMode(),
+    endpoints: {
+      health: `http://localhost:${PORT}/health`,
+      login: `http://localhost:${PORT}/auth/login/google`,
+      me: `http://localhost:${PORT}/auth/me`,
+      refresh: `http://localhost:${PORT}/auth/refresh`,
+      logout: `http://localhost:${PORT}/auth/logout`
+    },
+    mockUser: auth.isMockMode() ? {
+      email: 'dev@t69.local',
+      name: 'Dev User',
+      loginUrl: `http://localhost:${PORT}/auth/login/google`
+    } : null,
+    setup: auth.isMockMode() ? {
+      message: 'Running in mock mode - no OAuth setup required!',
+      toEnableOAuth: 'Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables'
+    } : {
+      message: 'Running with real OAuth',
+      configured: true
+    }
   };
 });
 
@@ -68,12 +103,12 @@ fastify.get('/health', async (request, reply) => {
 fastify.get('/auth/login/google', async (request, reply) => {
   try {
     const authUrl = auth.getGoogleAuthUrl();
-    return reply.redirect(302, authUrl);
+    return reply.redirect(authUrl, 302);
   } catch (error) {
     if (error instanceof AuthError) {
-      return reply.code(error.statusCode).send({ 
-        error: error.message, 
-        code: error.code 
+      return reply.code(error.statusCode).send({
+        error: error.message,
+        code: error.code
       });
     }
     throw error;
@@ -82,34 +117,34 @@ fastify.get('/auth/login/google', async (request, reply) => {
 
 // Handle Google OAuth callback
 fastify.get<{ Querystring: GoogleCallbackRequest['Querystring'] }>(
-  '/auth/callback/google', 
+  '/auth/callback/google',
   async (request, reply) => {
     const { code, error, state } = request.query;
-    
+
     if (error) {
-      return reply.redirect(302, `${FRONTEND_URL}/auth/callback?error=${error}`);
+      return reply.redirect(`${FRONTEND_URL}/auth/callback?error=${error}`, 302);
     }
-    
+
     if (!code) {
-      return reply.redirect(302, `${FRONTEND_URL}/auth/callback?error=missing_code`);
+      return reply.redirect(`${FRONTEND_URL}/auth/callback?error=missing_code`, 302);
     }
 
     try {
       const token = await auth.handleGoogleCallback(code);
-      const redirectUrl = state 
+      const redirectUrl = state
         ? `${FRONTEND_URL}/auth/callback?token=${token}&state=${state}`
         : `${FRONTEND_URL}/auth/callback?token=${token}`;
-      return reply.redirect(302, redirectUrl);
+      return reply.redirect(redirectUrl, 302);
     } catch (error) {
       if (error instanceof AuthError) {
-        fastify.log.error('Google callback error:', { 
-          message: error.message, 
-          code: error.code 
+        fastify.log.error('Google callback error:', {
+          message: error.message,
+          code: error.code
         });
-        return reply.redirect(302, `${FRONTEND_URL}/auth/callback?error=${error.code}`);
+        return reply.redirect(`${FRONTEND_URL}/auth/callback?error=${error.code}`, 302);
       }
       fastify.log.error('Unexpected Google callback error:', error);
-      return reply.redirect(302, `${FRONTEND_URL}/auth/callback?error=auth_failed`);
+      return reply.redirect(`${FRONTEND_URL}/auth/callback?error=auth_failed`, 302);
     }
   }
 );
@@ -119,19 +154,24 @@ fastify.get<{ Headers: AuthMeRequest['Headers'] }>(
   '/auth/me',
   async (request, reply) => {
     const token = getAuthToken(request.headers.authorization);
-    
+
     if (!token) {
       return reply.code(401).send({ error: 'No token provided', code: 'NO_TOKEN' });
     }
 
     try {
       const user = await auth.verifyToken(token);
-      return { user };
+      return {
+        user,
+        meta: {
+          mockMode: auth.isMockMode()
+        }
+      };
     } catch (error) {
       if (error instanceof AuthError) {
-        return reply.code(error.statusCode).send({ 
-          error: error.message, 
-          code: error.code 
+        return reply.code(error.statusCode).send({
+          error: error.message,
+          code: error.code
         });
       }
       return reply.code(401).send({ error: 'Token verification failed', code: 'TOKEN_FAILED' });
@@ -144,7 +184,7 @@ fastify.post<{ Headers: AuthMeRequest['Headers'] }>(
   '/auth/refresh',
   async (request, reply) => {
     const token = getAuthToken(request.headers.authorization);
-    
+
     if (!token) {
       return reply.code(401).send({ error: 'No token provided', code: 'NO_TOKEN' });
     }
@@ -152,17 +192,23 @@ fastify.post<{ Headers: AuthMeRequest['Headers'] }>(
     try {
       const currentUser = await auth.verifyToken(token);
       const refreshedUser = await auth.refreshUserData(currentUser.id);
-      
+
       if (!refreshedUser) {
         return reply.code(404).send({ error: 'User not found', code: 'USER_NOT_FOUND' });
       }
-      
-      return { user: refreshedUser };
+
+      return {
+        user: refreshedUser,
+        meta: {
+          mockMode: auth.isMockMode(),
+          refreshed: !auth.isMockMode()
+        }
+      };
     } catch (error) {
       if (error instanceof AuthError) {
-        return reply.code(error.statusCode).send({ 
-          error: error.message, 
-          code: error.code 
+        return reply.code(error.statusCode).send({
+          error: error.message,
+          code: error.code
         });
       }
       return reply.code(500).send({ error: 'Refresh failed', code: 'REFRESH_FAILED' });
@@ -180,7 +226,7 @@ fastify.post('/auth/logout', async (request, reply) => {
 // Error handler
 fastify.setErrorHandler((error, request, reply) => {
   fastify.log.error(error);
-  
+
   // Handle AuthError specifically
   if (error instanceof AuthError) {
     return reply.code(error.statusCode).send({
@@ -188,7 +234,7 @@ fastify.setErrorHandler((error, request, reply) => {
       code: error.code
     });
   }
-  
+
   // Send generic error response
   reply.code(500).send({
     error: 'Internal Server Error',
@@ -200,7 +246,7 @@ fastify.setErrorHandler((error, request, reply) => {
 // Graceful shutdown handler
 const gracefulShutdown = async (signal: string) => {
   fastify.log.info(`Received ${signal}, shutting down gracefully...`);
-  
+
   try {
     await fastify.close();
     db.close();
@@ -219,13 +265,18 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 // Start server
 const start = async () => {
   try {
-    await fastify.listen({ 
-      port: PORT, 
+    await fastify.listen({
+      port: PORT,
       host: '0.0.0.0' // Listen on all interfaces
     });
-    
+
     fastify.log.info(`🚀 Server running on http://localhost:${PORT}`);
     fastify.log.info(`📱 Frontend URL: ${FRONTEND_URL}`);
+
+    if (auth.isMockMode()) {
+      fastify.log.info(`🔧 MOCK AUTH MODE - Visit http://localhost:${PORT}/dev/info for details`);
+      fastify.log.info(`   Quick test: http://localhost:${PORT}/auth/login/google`);
+    }
   } catch (error) {
     fastify.log.error('Error starting server:', error);
     process.exit(1);

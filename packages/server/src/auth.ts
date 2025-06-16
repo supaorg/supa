@@ -2,26 +2,32 @@ import jwt from 'jsonwebtoken';
 import { Database, User } from './database.js';
 
 // Environment variables with validation
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-not-for-production';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3131';
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Validate required environment variables
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
-}
-if (!GOOGLE_CLIENT_ID) {
-  throw new Error('GOOGLE_CLIENT_ID environment variable is required');
-}
-if (!GOOGLE_CLIENT_SECRET) {
-  throw new Error('GOOGLE_CLIENT_SECRET environment variable is required');
+// Check if we're in mock mode (development without OAuth credentials)
+const IS_MOCK_MODE = NODE_ENV === 'development' && (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET);
+
+if (!IS_MOCK_MODE) {
+  // Validate required environment variables for production
+  if (!JWT_SECRET || JWT_SECRET === 'dev-secret-key-not-for-production') {
+    throw new Error('JWT_SECRET environment variable is required for production');
+  }
+  if (!GOOGLE_CLIENT_ID) {
+    throw new Error('GOOGLE_CLIENT_ID environment variable is required');
+  }
+  if (!GOOGLE_CLIENT_SECRET) {
+    throw new Error('GOOGLE_CLIENT_SECRET environment variable is required');
+  }
 }
 
-// Now we can safely use these as non-undefined
+// Now we can safely use these as non-undefined (or use mock values)
 const VALIDATED_JWT_SECRET: string = JWT_SECRET;
-const VALIDATED_GOOGLE_CLIENT_ID: string = GOOGLE_CLIENT_ID;
-const VALIDATED_GOOGLE_CLIENT_SECRET: string = GOOGLE_CLIENT_SECRET;
+const VALIDATED_GOOGLE_CLIENT_ID: string = GOOGLE_CLIENT_ID || 'mock-client-id';
+const VALIDATED_GOOGLE_CLIENT_SECRET: string = GOOGLE_CLIENT_SECRET || 'mock-client-secret';
 
 // Types
 interface GoogleTokenResponse {
@@ -68,12 +74,53 @@ export class AuthError extends Error {
 export class AuthService {
   private readonly JWT_EXPIRY_DAYS = 30;
   
-  constructor(private db: Database) {}
+  constructor(private db: Database) {
+    if (IS_MOCK_MODE) {
+      console.log('🔧 Running in MOCK AUTH MODE - OAuth disabled for development');
+      console.log('   To enable real OAuth, set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET');
+      this.createMockUser();
+    }
+  }
+
+  /**
+   * Create a mock user for development
+   */
+  private createMockUser(): void {
+    const mockEmail = 'dev@t69.local';
+    let mockUser = this.db.getUserByEmail(mockEmail);
+    
+    if (!mockUser) {
+      mockUser = this.db.createUser(
+        mockEmail,
+        'Dev User',
+        'https://via.placeholder.com/150/0066cc/ffffff?text=DEV'
+      );
+      
+      this.db.createAccount(
+        mockUser.id,
+        'mock',
+        'mock-123',
+        mockEmail,
+        'mock-access-token',
+        undefined,
+        undefined
+      );
+      
+      console.log(`   Created mock user: ${mockEmail}`);
+    }
+  }
 
   /**
    * Generate Google OAuth authorization URL
    */
   getGoogleAuthUrl(state?: string): string {
+    if (IS_MOCK_MODE) {
+      // In mock mode, redirect directly to callback with mock code
+      const params = new URLSearchParams({ code: 'mock-auth-code' });
+      if (state) params.set('state', state);
+      return `${API_BASE_URL}/auth/callback/google?${params.toString()}`;
+    }
+
     const params = new URLSearchParams({
       client_id: VALIDATED_GOOGLE_CLIENT_ID,
       redirect_uri: `${API_BASE_URL}/auth/callback/google`,
@@ -94,6 +141,10 @@ export class AuthService {
    * Handle Google OAuth callback and return JWT token
    */
   async handleGoogleCallback(code: string): Promise<string> {
+    if (IS_MOCK_MODE) {
+      return this.handleMockCallback(code);
+    }
+
     try {
       // Exchange code for tokens
       const tokens = await this.exchangeCodeForTokens(code);
@@ -121,6 +172,22 @@ export class AuthService {
       }
       throw new AuthError('OAuth callback failed', 'OAUTH_CALLBACK_FAILED', 500);
     }
+  }
+
+  /**
+   * Handle mock authentication callback
+   */
+  private handleMockCallback(code: string): string {
+    if (code !== 'mock-auth-code') {
+      throw new AuthError('Invalid mock auth code', 'INVALID_MOCK_CODE', 400);
+    }
+
+    const mockUser = this.db.getUserByEmail('dev@t69.local');
+    if (!mockUser) {
+      throw new AuthError('Mock user not found', 'MOCK_USER_NOT_FOUND', 500);
+    }
+
+    return this.generateToken(mockUser);
   }
 
   /**
@@ -182,6 +249,11 @@ export class AuthService {
     const user = this.db.getUserById(userId);
     if (!user) return null;
 
+    if (IS_MOCK_MODE) {
+      // In mock mode, just return the user as-is
+      return user;
+    }
+
     const accounts = this.db.getUserAccounts(userId);
     
     // Try to refresh from Google if we have a valid token
@@ -200,6 +272,13 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  /**
+   * Check if running in mock mode
+   */
+  isMockMode(): boolean {
+    return IS_MOCK_MODE;
   }
 
   // Private helper methods
