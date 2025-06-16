@@ -29,28 +29,31 @@ This proposal outlines a simple server sync architecture for t69 that maintains 
   - Prevents directory listing slowdown with 10,000+ databases
 
 #### Server Database Schema (per space)
-Mirror the localDb.ts structure but adapted for SQLite:
+Mirror the localDb.ts structure as closely as possible:
 ```sql
--- Similar to localDb.ts treeOps table
-CREATE TABLE tree_operations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    operation TEXT NOT NULL,  -- JSON serialized TreeOperation
-    timestamp INTEGER NOT NULL,
-    processed BOOLEAN DEFAULT FALSE
+-- Match TreeOperation interface exactly
+CREATE TABLE tree_ops (
+    -- Composite primary key components (matching TreeOperation interface)
+    clock INTEGER NOT NULL,
+    peerId TEXT NOT NULL,
+    treeId TEXT NOT NULL,
+    spaceId TEXT NOT NULL,
+    
+    -- Operation data
+    targetId TEXT NOT NULL,
+    
+    -- Optional fields for different operation types
+    parentId TEXT,  -- For move operations
+    key TEXT,       -- Property key
+    value TEXT,     -- Property value (JSON serialized)
+    
+    PRIMARY KEY (clock, peerId, treeId, spaceId)
 );
 
 -- Similar to localDb.ts spaces table  
-CREATE TABLE space_metadata (
+CREATE TABLE spaces (
     id TEXT PRIMARY KEY,
-    name TEXT,
     created_at INTEGER,
-    updated_at INTEGER
-);
-
--- Similar to localDb.ts config table
-CREATE TABLE space_config (
-    key TEXT PRIMARY KEY,
-    value TEXT
 );
 ```
 

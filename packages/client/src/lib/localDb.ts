@@ -44,7 +44,6 @@ export interface TreeOperation {
   // Property operation: has key/value/transient  
   key?: string;         // Property key
   value?: any;          // Property value
-  transient?: boolean;  // Whether property is transient
 }
 
 class LocalDb extends Dexie {
@@ -81,7 +80,6 @@ function toVertexOperation(op: TreeOperation): VertexOperation {
       targetId: op.targetId,
       key: op.key!,
       value: op.value,
-      transient: op.transient || false
     } as VertexOperation;
   }
 }
@@ -103,7 +101,6 @@ function fromVertexOperation(op: VertexOperation, spaceId: string, treeId: strin
       ...base,
       key: op.key,
       value: op.value,
-      transient: op.transient
     } as TreeOperation;
   }
 }
