@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+  import jwt from 'jsonwebtoken';
 import { Database, User } from './database.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';

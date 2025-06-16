@@ -1,7 +1,7 @@
-import Database from 'better-sqlite3';
+import SQLiteDatabase from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
-import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { mkdirSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 export interface User {
   id: string;
@@ -25,13 +25,15 @@ export interface Account {
 }
 
 export class Database {
-  private db: Database.Database;
+  private db: SQLiteDatabase.Database;
 
   constructor(dbPath: string) {
-    // Ensure directory exists
-    mkdirSync(dirname(dbPath), { recursive: true });
+    // Ensure data directory exists (simple approach)
+    if (!existsSync('./data')) {
+      mkdirSync('./data', { recursive: true });
+    }
     
-    this.db = new Database(dbPath);
+    this.db = new SQLiteDatabase(dbPath);
     this.init();
   }
 
