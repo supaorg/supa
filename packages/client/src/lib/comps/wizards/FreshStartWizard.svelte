@@ -1,15 +1,8 @@
 <script lang="ts">
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
-  import { createNewInBrowserSpaceSync, loadExistingInBrowserSpaceSync } from "$lib/spaces/InBrowserSpaceSync";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { swins } from "$lib/swins";
   import { authStore } from "$lib/stores/auth.svelte";
-  import { api } from "$lib/utils/api";
-  import type { SpaceCreationResponse } from "@core/apiTypes";
-  import Space from "@core/spaces/Space";
-  import uuid from "@core/uuid/uuid";
-  import { InBrowserSpaceSync } from "$lib/spaces/InBrowserSpaceSync";
-  import { appendTreeOps } from "$lib/localDb";
+    import { createNewLocalSpace, createNewSyncedSpace } from "$lib/spaces/spaceCreation";
 
   function handleSignIn() {
     swins.open("sign-in", {}, "Sign in");
@@ -17,35 +10,6 @@
 
   function handleSignOut() {
     authStore.logout();
-  }
-
-  async function handleNewLocalSpace() {
-    const sync = await createNewInBrowserSpaceSync();
-
-    spaceStore.addLocalSpace(sync, "browser://" + sync.space.getId());
-    spaceStore.currentSpaceId = sync.space.getId();
-  }
-
-  async function handleNewSyncedSpace() {
-    try {
-      const response = await api.post<SpaceCreationResponse>('/spaces');
-      
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Failed to create space');
-      }
-
-      // Save the operations to local storage first
-      await appendTreeOps(response.data.id, response.data.id, response.data.operations);
-
-      // Load the space with the saved operations
-      const sync = await loadExistingInBrowserSpaceSync(response.data.id);
-      
-      spaceStore.addLocalSpace(sync, "localhost:3131/spaces/" + response.data.id);
-      spaceStore.currentSpaceId = response.data.id;
-    } catch (error) {
-      console.error('Failed to create synced space:', error);
-      // TODO: Show error to user
-    }
   }
 </script>
 
@@ -106,7 +70,7 @@
         <div class="flex flex-col gap-2">
           <button
             class="btn btn-lg preset-filled-primary-500"
-            onclick={handleNewSyncedSpace}
+            onclick={createNewSyncedSpace}
           >
             Let's go!
           </button>
@@ -123,7 +87,7 @@
         <div class="flex flex-col gap-2">
           <button
             class="btn btn-lg preset-filled-primary-500"
-            onclick={handleNewLocalSpace}
+            onclick={createNewLocalSpace}
           >
             Go local, sync later
           </button>
