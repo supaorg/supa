@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { AuthService, AuthError } from '../auth';
+import { createAuthMiddleware } from '../middleware/auth.middleware';
 
 // Helper to extract JWT token from Authorization header
 function getAuthToken(authorization?: string): string | null {
@@ -10,6 +11,8 @@ function getAuthToken(authorization?: string): string | null {
 }
 
 export function registerAuthRoutes(fastify: FastifyInstance, auth: AuthService, frontendUrl: string) {
+  const authMiddleware = createAuthMiddleware(auth);
+
   // Start Google OAuth flow
   fastify.get('/auth/login/google', async (request, reply) => {
     try {
@@ -86,35 +89,18 @@ export function registerAuthRoutes(fastify: FastifyInstance, auth: AuthService, 
     }
   });
 
-  // Get current user info
-  fastify.get<{ Headers: { authorization?: string } }>(
-    '/auth/me',
-    async (request, reply) => {
-      const token = getAuthToken(request.headers.authorization);
-
-      if (!token) {
-        return reply.code(401).send({ error: 'No token provided', code: 'NO_TOKEN' });
+  // Get current user info (protected route)
+  fastify.get('/auth/me', {
+    preHandler: authMiddleware
+  }, async (request, reply) => {
+    // User is already attached to request by middleware
+    return {
+      user: request.user,
+      meta: {
+        mockMode: auth.isMockMode()
       }
-
-      try {
-        const user = await auth.verifyToken(token);
-        return {
-          user,
-          meta: {
-            mockMode: auth.isMockMode()
-          }
-        };
-      } catch (error) {
-        if (error instanceof AuthError) {
-          return reply.code(error.statusCode).send({
-            error: error.message,
-            code: error.code
-          });
-        }
-        return reply.code(401).send({ error: 'Token verification failed', code: 'TOKEN_FAILED' });
-      }
-    }
-  );
+    };
+  });
 
   // Refresh token endpoint
   fastify.post("/auth/refresh", async (request, reply) => {
@@ -136,7 +122,9 @@ export function registerAuthRoutes(fastify: FastifyInstance, auth: AuthService, 
   });
 
   // Logout (for JWT, this is mainly client-side)
-  fastify.post('/auth/logout', async (request, reply) => {
+  fastify.post('/auth/logout', {
+    preHandler: authMiddleware
+  }, async (request, reply) => {
     // For JWT tokens, logout is handled client-side by removing the token
     // We could implement token blacklisting here if needed in the future
     return { success: true };
