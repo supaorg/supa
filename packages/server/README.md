@@ -30,7 +30,7 @@ Visit `http://localhost:3131/dev/info` to see available endpoints and test the a
 
 ### Mock Mode (Default)
 - **No OAuth setup required** - Perfect for new developers
-- **Automatic mock user** - `dev@t69.local` created automatically
+- **Automatic mock user** - `dev-user@t69.chat` created automatically
 - **Instant auth flow** - Click login and you're authenticated
 - **All endpoints work** - Full API functionality without external dependencies
 
@@ -117,7 +117,7 @@ Uses SQLite database stored at `./data/t69.db` with tables:
 - `users` - User profiles (id, email, name, avatar_url)
 - `accounts` - OAuth account links (user_id, provider, provider_account_id)
 
-In mock mode, creates a default user: `dev@t69.local`
+In mock mode, creates a default user: `dev-user@t69.chat`
 
 ## Production
 

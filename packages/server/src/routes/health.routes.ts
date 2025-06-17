@@ -10,7 +10,7 @@ export function registerHealthRoutes(fastify: FastifyInstance, auth: AuthService
       uptime: process.uptime(),
       auth: {
         mode: auth.isMockMode() ? 'mock' : 'oauth',
-        mockUser: auth.isMockMode() ? 'dev@dev.dev' : null
+        mockUser: auth.isMockMode() ? 'dev-user@t69.chat' : null
       }
     };
   });
@@ -32,7 +32,7 @@ export function registerHealthRoutes(fastify: FastifyInstance, auth: AuthService
         logout: `${apiBaseUrl}/auth/logout`
       },
       mockUser: auth.isMockMode() ? {
-        email: 'dev@dev.dev',
+        email: 'dev-user@t69.chat',
         name: 'Dev User',
         loginUrl: `${apiBaseUrl}/auth/login/google`
       } : null,

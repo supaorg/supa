@@ -96,7 +96,7 @@ export class AuthService {
    * Create a mock user for development
    */
   private createMockUser(): void {
-    const mockEmail = 'dev@t69.local';
+    const mockEmail = 'dev-user@t69.chat';
     let mockUser = this.db.getUserByEmail(mockEmail);
     
     if (!mockUser) {
@@ -188,7 +188,7 @@ export class AuthService {
       throw new AuthError('Invalid mock auth code', 'INVALID_MOCK_CODE', 400);
     }
 
-    const mockUser = this.db.getUserByEmail('dev@t69.local');
+    const mockUser = this.db.getUserByEmail('dev-user@t69.chat');
     if (!mockUser) {
       throw new AuthError('Mock user not found', 'MOCK_USER_NOT_FOUND', 500);
     }
