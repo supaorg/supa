@@ -9,8 +9,8 @@ const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3131';
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Token expiration configuration
-const ACCESS_TOKEN_EXPIRY_DAYS = parseInt(process.env.ACCESS_TOKEN_EXPIRY_DAYS ?? '1', 10);
-const REFRESH_TOKEN_EXPIRY_DAYS = parseInt(process.env.REFRESH_TOKEN_EXPIRY_DAYS ?? '30', 10);
+const ACCESS_TOKEN_EXPIRY_DAYS = parseInt(process.env.ACCESS_TOKEN_EXPIRY_DAYS ?? '365', 10);
+const REFRESH_TOKEN_EXPIRY_DAYS = parseInt(process.env.REFRESH_TOKEN_EXPIRY_DAYS ?? '365', 10);
 
 // Check if we're in mock mode (development without OAuth credentials)
 const IS_MOCK_MODE = NODE_ENV === 'development' && (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET);
