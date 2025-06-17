@@ -11,6 +11,8 @@
   } from "$lib/localDb";
   import ThemeManager from "./themes/ThemeManager.svelte";
   import { initShortcuts } from "$lib/shortcuts/shortcuts";
+  import { swins } from "$lib/swins";
+  import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
 
   type Status = "initializing" | "needsSpace" | "ready";
 
@@ -91,6 +93,9 @@
 
 <!-- Check for a theme and load it (either the default or the space theme) -->
 <ThemeManager />
+
+<!-- Setup stacking windows (popover windows with navigation) we use for new conversations, settings, etc -->
+<SwinsContainer {swins} />
 
 {#if status === "initializing"}
   <Loading />

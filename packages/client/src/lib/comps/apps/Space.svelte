@@ -3,8 +3,6 @@
   import DevPanel from "../dev/DevPanel.svelte";
   import { isDevMode, spaceInspectorOpen } from "$lib/stores/devMode";
   import OllamaAutoConfig from "../models/OllamaAutoConfig.svelte";
-  import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
-  import { swins } from "$lib/swins/swinsLayout";
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
   import SpaceTTabsLayout from "../SpaceTTabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
@@ -59,15 +57,12 @@
   </div>
 
   <!-- This sidebar works when the regular column-based sidebar is closed -->
-  <HoverSidebar />
+  <!--<HoverSidebar />-->
 
   {#if $isDevMode && $spaceInspectorOpen}
     <SpaceInspectorWindow />
   {/if}
 {/if}
-
-<!-- Setup stacking windows (popover windows with navigation) we use for new conversations, settings, etc -->
-<SwinsContainer {swins} />
 
 <!-- Handle native and custom context menus -->
 <ContextMenuHandler />

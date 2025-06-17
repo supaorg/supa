@@ -2,9 +2,11 @@
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
   import { createNewInBrowserSpaceSync } from "$lib/spaces/InBrowserSpaceSync";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { swins } from "$lib/swins";
 
   function handleSignIn() {
-    // TODO: Implement sign in functionality
+    console.log("handleSignIn");
+    swins.open("sign-in", {}, "Sign in");
   }
 
   async function handleLocal() {
@@ -23,7 +25,7 @@
         This is an open-source alternative to <a
           class="anchor"
           href="https://t3.chat">t3.chat</a
-        >, built during a 
+        >, built during a
         <a class="anchor" href="https://cloneathon.t3.chat/"
           >hackathon orginized by Theo (t3.gg)</a
         >. Here's the
@@ -38,7 +40,10 @@
         <dl class="space-y-3">
           <div>
             <dt class="font-semibold">Workspaces</dt>
-            <dd>Organize your conversations and assistants into separate workspaces</dd>
+            <dd>
+              Organize your conversations and assistants into separate
+              workspaces
+            </dd>
           </div>
           <div>
             <dt class="font-semibold">Local first</dt>
@@ -50,11 +55,15 @@
           </div>
           <div>
             <dt class="font-semibold">Any AI</dt>
-            <dd>From OpenAI and Anthropic to Ollama and any OpenAI-compatible API</dd>
+            <dd>
+              From OpenAI and Anthropic to Ollama and any OpenAI-compatible API
+            </dd>
           </div>
           <div>
             <dt class="font-semibold">Many themes</dt>
-            <dd>You can switch between many themes and distinguish your workspaces</dd>
+            <dd>
+              You can switch between many themes and distinguish your workspaces
+            </dd>
           </div>
         </dl>
       </div>
@@ -62,13 +71,19 @@
 
     <div class="flex flex-col gap-4 pt-4">
       <div class="flex flex-col gap-2">
-        <button class="btn btn-lg preset-filled-primary-500" on:click={handleLocal}>
+        <button
+          class="btn btn-lg preset-filled-primary-500"
+          onclick={handleLocal}
+        >
           Go local, sync later
         </button>
         <small>You can sign in later and sync your space to a server</small>
       </div>
 
-      <button class="btn btn-lg preset-outlined-surface-500" on:click={handleSignIn}>
+      <button
+        class="btn btn-lg preset-outlined-surface-500"
+        onclick={handleSignIn}
+      >
         Sign in/up
       </button>
     </div>
