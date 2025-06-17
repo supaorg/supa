@@ -15,7 +15,6 @@
     "types": ["node"],
     "lib": ["ES2022"],
     "paths": {
-      "@core": ["../core/src"],
       "@core/*": ["../core/src/*"]
     }
   },
