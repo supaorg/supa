@@ -1,6 +1,6 @@
 import Space from "@core/spaces/Space";
-import { RepTree } from "@core";
-import type { VertexOperation } from "@core";
+import { RepTree } from "@core/index";
+import type { VertexOperation } from "@core/index";
 import AppTree from "@core/spaces/AppTree";
 import Database from 'better-sqlite3';
 import path from 'path';
