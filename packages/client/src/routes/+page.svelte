@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Space from "$lib/comps/apps/Space.svelte";
+  import SpaceEntry from "$lib/comps/SpaceEntry.svelte";
 </script>
 
-<Space />
+<SpaceEntry />

@@ -9,19 +9,14 @@
     saveCurrentSpaceId,
     saveConfig,
   } from "$lib/localDb";
-  import ThemeManager from "./themes/ThemeManager.svelte";
-  import { initShortcuts } from "$lib/shortcuts/shortcuts";
-  import { swins } from "$lib/swins";
-  import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
+    import Space from "./apps/Space.svelte";
 
   type Status = "initializing" | "needsSpace" | "ready";
 
-  let { children } = $props();
   let status: Status = $state("initializing");
 
   onMount(() => {
     initializeSpaceData();
-    initShortcuts();
 
     return () => {
       spaceStore.disconnectAllSpaces();
@@ -91,16 +86,10 @@
   }
 </script>
 
-<!-- Check for a theme and load it (either the default or the space theme) -->
-<ThemeManager />
-
-<!-- Setup stacking windows (popover windows with navigation) we use for new conversations, settings, etc -->
-<SwinsContainer {swins} />
-
 {#if status === "initializing"}
   <Loading />
 {:else if status === "needsSpace"}
   <FreshStartWizard />
 {:else if status === "ready"}
-  {@render children?.()}
+  <Space />
 {/if}

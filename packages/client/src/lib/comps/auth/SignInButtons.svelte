@@ -1,40 +1,26 @@
 <script lang="ts">
+  // API server configuration
+  const API_BASE_URL = 'http://localhost:3131'; // TODO: Make this configurable
+
   const handleGoogleLogin = async () => {
-    /*
-    signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin + "/auth-callback",
-      },
-    });
-    if (error) console.error(error);
-    */
+    try {
+      // Redirect to the API server's Google OAuth endpoint
+      // The server will handle the OAuth flow and redirect back with a token
+      window.location.href = `${API_BASE_URL}/auth/login/google`;
+    } catch (error) {
+      console.error('Google login error:', error);
+    }
   };
 
   const handleGithubLogin = async () => {
-    /*
-    signInWithOAuth({
-      provider: "github",
-      options: {
-        redirectTo: window.location.origin + "/auth-callback",
-      },
-    });
-    if (error) console.error(error);
-    */
+    // TODO: Implement GitHub OAuth
+    console.log('GitHub OAuth not implemented yet');
   };
 
   const handleXLogin = async () => {
-    /*
-    signInWithOAuth({
-      provider: "twitter",
-      options: {
-        redirectTo: window.location.origin + "/auth-callback",
-      },
-    });
-    if (error) console.error(error);
-    */
+    // TODO: Implement X/Twitter OAuth  
+    console.log('X OAuth not implemented yet');
   };
-
 </script>
 
 <button
@@ -50,22 +36,24 @@
 
 <button
   type="button"
-  class="btn bg-black text-white flex w-full mb-4"
+  class="btn bg-black text-white flex w-full mb-4 opacity-50 cursor-not-allowed"
   onclick={handleGithubLogin}
+  disabled
 >
   <span class="bg-white p-1 rounded mr-2">
     <img src="/auth-providers-icons/github.svg" alt="Github" class="w-6 h-6" />
   </span>
-  Continue with Github
+  Continue with Github (Coming Soon)
 </button>
 
 <button
   type="button"
-  class="btn bg-black text-white flex w-full mb-4"
+  class="btn bg-black text-white flex w-full mb-4 opacity-50 cursor-not-allowed"
   onclick={handleXLogin}
+  disabled
 >
   <span class="bg-black p-1 rounded mr-2">
     <img src="/auth-providers-icons/x.svg" alt="X" class="w-6 h-6" />
   </span>
-  Continue with X
+  Continue with X (Coming Soon)
 </button>

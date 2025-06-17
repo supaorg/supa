@@ -3,6 +3,8 @@
   import { createNewInBrowserSpaceSync } from "$lib/spaces/InBrowserSpaceSync";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { swins } from "$lib/swins";
+  import { authStore } from "$lib/stores/auth.svelte";
+  import { LogOut } from "lucide-svelte";
 
   function handleSignIn() {
     console.log("handleSignIn");
@@ -15,10 +17,40 @@
     spaceStore.addLocalSpace(sync, "browser://" + sync.space.getId());
     spaceStore.currentSpaceId = sync.space.getId();
   }
+
+  function handleLogout() {
+    authStore.logout();
+  }
 </script>
 
 <CenteredPage width="2xl">
   <div class="card p-8 mt-4 space-y-6 selectable-text">
+    <!-- Authentication Status -->
+    {#if authStore.isAuthenticated && authStore.user}
+      <div class="card preset-tonal p-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          {#if authStore.user.avatarUrl}
+            <img 
+              src={authStore.user.avatarUrl} 
+              alt={authStore.user.name}
+              class="w-10 h-10 rounded-full"
+            />
+          {/if}
+          <div>
+            <div class="font-semibold">{authStore.user.name}</div>
+            <div class="text-sm text-surface-600">{authStore.user.email}</div>
+          </div>
+        </div>
+        <button
+          class="btn btn-sm preset-outlined-surface-500 flex items-center gap-2"
+          onclick={handleLogout}
+        >
+          <LogOut size={16} />
+          Sign out
+        </button>
+      </div>
+    {/if}
+
     <div class="space-y-4">
       <h2 class="h2">Welcome to t69.chat</h2>
       <p>
@@ -80,12 +112,14 @@
         <small>You can sign in later and sync your space to a server</small>
       </div>
 
-      <button
-        class="btn btn-lg preset-outlined-surface-500"
-        onclick={handleSignIn}
-      >
-        Sign in/up
-      </button>
+      {#if !authStore.isAuthenticated}
+        <button
+          class="btn btn-lg preset-outlined-surface-500"
+          onclick={handleSignIn}
+        >
+          Sign in/up
+        </button>
+      {/if}
     </div>
   </div>
 </CenteredPage>
