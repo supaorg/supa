@@ -13,7 +13,6 @@
     "jsonwebtoken": "^9.0.2",
     "fastify": "^4.24.3",
     "@fastify/cors": "^8.4.0",
-    "reptree": "^0.2.2",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

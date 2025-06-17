@@ -3,8 +3,8 @@ import type { SpaceConnection } from "./SpaceConnection";
 import uuid from "@core/uuid/uuid";
 import { Backend } from "@core/spaces/Backend";
 import { getTreeOps } from "$lib/localDb";
-import type { VertexOperation } from "reptree";
-import { RepTree, isAnyPropertyOp } from "reptree";
+import type { VertexOperation } from "@core";
+import { RepTree, isAnyPropertyOp } from "@core";
 import AppTree from "@core/spaces/AppTree";
 import SpacePersistenceQueue from "./SpacePersistenceQueue";
 

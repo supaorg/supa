@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Vertex } from "reptree";
+  import type { Vertex } from "@core";
   import Self from "./VertexView.svelte";
   import VertexPropertiesView from "./VertexPropertiesView.svelte";
   import { TrashIcon, Plus } from "lucide-svelte";

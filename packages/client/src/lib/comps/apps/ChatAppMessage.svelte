@@ -7,7 +7,7 @@
   } from "lucide-svelte";
   import type { ThreadMessage } from "@core/models";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
-  import type { Vertex } from "reptree";
+  import type { Vertex } from "@core";
   import { onMount } from "svelte";
   import { timeout } from "@core/tools/timeout";
   import Markdown from "../markdown/Markdown.svelte";

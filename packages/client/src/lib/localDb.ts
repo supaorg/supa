@@ -1,6 +1,6 @@
 import Dexie from 'dexie';
 import type { SpacePointer } from './spaces/SpacePointer';
-import type { VertexOperation } from 'reptree';
+import type { VertexOperation } from '@core';
 
 /**
  * Space setup on a client side

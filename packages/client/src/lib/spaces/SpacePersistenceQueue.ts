@@ -1,4 +1,4 @@
-import type { VertexOperation } from "reptree";
+import type { VertexOperation } from "@core";
 import { getTreeOps, appendTreeOps, getAllSecrets, saveAllSecrets } from "$lib/localDb";
 
 /**

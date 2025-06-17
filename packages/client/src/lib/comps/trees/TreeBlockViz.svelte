@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount} from "svelte";
   import { type Writable, get } from "svelte/store";
+  import type { RepTree, Vertex } from "@core/spaces/Space";
   import {
-    RepTree,
     type VertexChangeEvent,
     type TreeVertexProperty,
-  } from "reptree";
+  } from "@core/spaces/Space";
 
   export let tree: RepTree;
   export let vertexId: string;
