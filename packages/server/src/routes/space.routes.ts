@@ -30,10 +30,14 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
       // Create new space with ServerSpaceSync
       const spaceSync = await createNewServerSpaceSync(spaceId, ownerId);
 
+      // Get initial operations
+      const operations = await spaceSync.getTreeOps(spaceId);
+
       const space: SpaceCreationResponse = {
         id: spaceId,
         created_at: Date.now(),
-        owner_id: ownerId
+        owner_id: ownerId,
+        operations
       };
 
       return reply.code(201).send(space);
@@ -62,10 +66,14 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
       // Load existing space with ServerSpaceSync
       const spaceSync = await loadExistingServerSpaceSync(id);
 
+      // Get operations for the space
+      const operations = await spaceSync.getTreeOps(id);
+
       const space: SpaceCreationResponse = {
         id,
         created_at: Date.now(), // TODO: Get actual creation time from database
-        owner_id: request.user!.id // TODO: Get actual owner from database
+        owner_id: request.user!.id, // TODO: Get actual owner from database
+        operations
       };
 
       return reply.send(space);

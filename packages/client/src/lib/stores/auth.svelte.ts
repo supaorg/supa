@@ -195,14 +195,14 @@ class AuthStore {
   }
 
   // Get the authorization header for API requests
-  getAuthHeader(): string | null {
+  async getAuthHeader(): Promise<string | null> {
     if (!this.accessToken) return null;
     
     // Check if token is expired or about to expire (within 5 minutes)
     if (this.tokenExpiry && this.tokenExpiry - Date.now() < 5 * 60 * 1000) {
       console.log('Token about to expire, refreshing...');
       // Token is expired or about to expire, refresh it
-      this.refreshTokens();
+      await this.refreshTokens();
     }
     
     return `Bearer ${this.accessToken}`;

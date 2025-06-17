@@ -30,7 +30,7 @@ export async function apiRequest<T = any>(
     }
 
     // Add authorization header if user is authenticated
-    const authHeader = authStore.getAuthHeader();
+    const authHeader = await authStore.getAuthHeader();
     if (authHeader) {
       headers['Authorization'] = authHeader;
     }

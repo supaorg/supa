@@ -271,7 +271,7 @@ export async function createNewServerSpaceSync(spaceId: string, ownerId: string,
   const dbPath = path.join(partitionDir, `${spaceId}.db`);
   
   // Create new space with a unique peer ID for the server
-  const serverPeerId = `server-${uuidv4()}`;
+  const serverPeerId = `${uuidv4()}`;
   const space = Space.newSpace(serverPeerId);
   
   // Create the sync instance
