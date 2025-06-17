@@ -2,6 +2,14 @@ import { browser } from "$app/environment";
 import { setCookie, getCookie } from "$lib/utils/cookies";
 import { apiRequest } from "$lib/utils/api";
 
+// Cookie configuration
+const COOKIE_OPTIONS = {
+  secure: true,
+  httpOnly: true,
+  sameSite: 'strict' as const,
+  path: '/'
+};
+
 export interface User {
   id: string;
   email: string;
@@ -37,9 +45,13 @@ class AuthStore {
     this.isAuthenticated = true;
     
     if (browser) {
-      // Store tokens in httpOnly-style cookies (secure)
-      setCookie(document, "access_token", tokens.access_token, 1); // 1 day
-      setCookie(document, "refresh_token", tokens.refresh_token, 30); // 30 days
+      // Store tokens in cookies
+      // Convert expires_in (seconds) to days for cookie expiration
+      const accessTokenDays = Math.ceil(tokens.expires_in / (24 * 60 * 60));
+      const refreshTokenDays = 30; // 30 days for refresh token
+      
+      setCookie(document, "access_token", tokens.access_token, accessTokenDays);
+      setCookie(document, "refresh_token", tokens.refresh_token, refreshTokenDays);
       
       // Store user info in localStorage for easy access
       localStorage.setItem("user", JSON.stringify(user));
@@ -54,7 +66,7 @@ class AuthStore {
     this.isAuthenticated = false;
     
     if (browser) {
-      // Clear cookies
+      // Clear cookies by setting expiration to 0 days
       setCookie(document, "access_token", null, 0);
       setCookie(document, "refresh_token", null, 0);
       

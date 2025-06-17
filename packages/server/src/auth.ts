@@ -8,6 +8,10 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3131';
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// Token expiration configuration
+const ACCESS_TOKEN_EXPIRY_DAYS = parseInt(process.env.ACCESS_TOKEN_EXPIRY_DAYS ?? '1', 10);
+const REFRESH_TOKEN_EXPIRY_DAYS = parseInt(process.env.REFRESH_TOKEN_EXPIRY_DAYS ?? '30', 10);
+
 // Check if we're in mock mode (development without OAuth credentials)
 const IS_MOCK_MODE = NODE_ENV === 'development' && (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET);
 
@@ -77,8 +81,8 @@ interface AuthTokens {
 }
 
 export class AuthService {
-  private readonly ACCESS_TOKEN_EXPIRY_DAYS = 1; // 1 day
-  private readonly REFRESH_TOKEN_EXPIRY_DAYS = 30; // 30 days
+  private readonly ACCESS_TOKEN_EXPIRY_DAYS = ACCESS_TOKEN_EXPIRY_DAYS;
+  private readonly REFRESH_TOKEN_EXPIRY_DAYS = REFRESH_TOKEN_EXPIRY_DAYS;
   
   constructor(private db: Database) {
     if (IS_MOCK_MODE) {
@@ -194,6 +198,7 @@ export class AuthService {
 
   private generateTokens(user: User): AuthTokens {
     const now = Math.floor(Date.now() / 1000);
+    const accessTokenExpiry = now + (this.ACCESS_TOKEN_EXPIRY_DAYS * 24 * 60 * 60);
     
     // Generate access token
     const accessToken = jwt.sign(
@@ -203,7 +208,7 @@ export class AuthService {
         name: user.name,
         type: 'access',
         iat: now,
-        exp: now + (this.ACCESS_TOKEN_EXPIRY_DAYS * 24 * 60 * 60),
+        exp: accessTokenExpiry,
       },
       VALIDATED_JWT_SECRET
     );
@@ -222,7 +227,7 @@ export class AuthService {
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
-      expires_in: this.ACCESS_TOKEN_EXPIRY_DAYS * 24 * 60 * 60
+      expires_in: this.ACCESS_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 // Convert days to seconds
     };
   }
 
