@@ -1,6 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { AuthService } from '../auth';
 import { createAuthMiddleware } from '../middleware/auth.middleware';
+import { createNewServerSpaceSync, loadExistingServerSpaceSync } from '../lib/ServerSpaceSync';
+import { v4 as uuidv4 } from 'uuid';
 
 // Types
 interface Space {
@@ -28,22 +30,31 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
     preHandler: authMiddleware
   }, async (request, reply) => {
     try {
-      // TODO: Implement actual space creation logic
+      const spaceId = uuidv4();
+      const ownerId = request.user!.id;
+
+      // Create new space with ServerSpaceSync
+      const spaceSync = await createNewServerSpaceSync(spaceId, ownerId);
+
       const space: Space = {
-        id: 'dummy-id-' + Date.now(),
+        id: spaceId,
         created_at: Date.now(),
-        owner_id: request.user!.id
+        owner_id: ownerId
       };
 
       return reply.code(201).send(space);
     } catch (error) {
+      console.error('Failed to create space:', error);
       if (error instanceof SpaceError) {
         return reply.code(error.statusCode).send({
           error: error.message,
           code: error.code
         });
       }
-      throw error;
+      return reply.code(500).send({
+        error: 'Failed to create space',
+        code: 'SPACE_CREATION_FAILED'
+      });
     }
   });
 
@@ -54,22 +65,34 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
     try {
       const { id } = request.params;
 
-      // TODO: Implement actual space retrieval logic
+      // Load existing space with ServerSpaceSync
+      const spaceSync = await loadExistingServerSpaceSync(id);
+
       const space: Space = {
         id,
-        created_at: Date.now(),
-        owner_id: request.user!.id
+        created_at: Date.now(), // TODO: Get actual creation time from database
+        owner_id: request.user!.id // TODO: Get actual owner from database
       };
 
       return reply.send(space);
     } catch (error) {
+      console.error('Failed to load space:', error);
       if (error instanceof SpaceError) {
         return reply.code(error.statusCode).send({
           error: error.message,
           code: error.code
         });
       }
-      throw error;
+      if (error instanceof Error && error.message.includes('Space database not found')) {
+        return reply.code(404).send({
+          error: 'Space not found',
+          code: 'SPACE_NOT_FOUND'
+        });
+      }
+      return reply.code(500).send({
+        error: 'Failed to load space',
+        code: 'SPACE_LOAD_FAILED'
+      });
     }
   });
 } 
