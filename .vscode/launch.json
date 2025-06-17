@@ -8,7 +8,7 @@
       "url": "http://localhost:6969",
       "webRoot": "${workspaceFolder}/packages/client/src",
       "sourceMaps": true,
-      "preLaunchTask": "npm: dev - packages/client"
+      "preLaunchTask": "npm: dev"
     },
     {
       "name": "Attach to Chrome",
