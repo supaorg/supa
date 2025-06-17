@@ -7,6 +7,7 @@ export interface APIResponse<T = any> {
   data?: T;
   error?: string;
   success: boolean;
+  status?: number;
 }
 
 export async function apiRequest<T = any>(
@@ -47,6 +48,7 @@ export async function apiRequest<T = any>(
       return {
         success: false,
         error: 'Authentication required',
+        status: 401
       };
     }
 
@@ -63,18 +65,21 @@ export async function apiRequest<T = any>(
       return {
         success: false,
         error: data?.message || data || `HTTP ${response.status}`,
+        status: response.status
       };
     }
 
     return {
       success: true,
       data,
+      status: response.status
     };
   } catch (error) {
     console.error('API request failed:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
+      status: 0 // Network errors don't have a status code
     };
   }
 }

@@ -128,8 +128,15 @@ class AuthStore {
       });
 
       if (!response.success || !response.data) {
-        console.error('Token refresh failed:', response.error);
-        throw new Error(response.error || "Failed to refresh tokens");
+        // Only logout if we get a 401 response
+        if (response.status === 401) {
+          console.error('Token refresh failed with 401, logging out');
+          this.logout();
+        } else {
+          console.error('Token refresh failed:', response.error);
+          throw new Error(response.error || "Failed to refresh tokens");
+        }
+        return;
       }
 
       console.log('Tokens refreshed, getting user info...');
@@ -141,8 +148,15 @@ class AuthStore {
       });
 
       if (!userResponse.success || !userResponse.data) {
-        console.error('Failed to get user info after token refresh');
-        throw new Error("Failed to get user info");
+        // Only logout if we get a 401 response
+        if (userResponse.status === 401) {
+          console.error('Failed to get user info with 401, logging out');
+          this.logout();
+        } else {
+          console.error('Failed to get user info after token refresh');
+          throw new Error("Failed to get user info");
+        }
+        return;
       }
 
       console.log('User info retrieved, updating auth state...');
@@ -161,7 +175,9 @@ class AuthStore {
       console.log('Token refresh completed successfully');
     } catch (error) {
       console.error("Failed to refresh tokens:", error);
-      this.logout();
+      // Don't logout on network errors or other issues
+      // Just throw the error to be handled by the caller
+      throw error;
     }
   }
 
