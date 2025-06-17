@@ -1,13 +1,11 @@
 import SQLiteDatabase from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
 
 export interface User {
   id: string;
   email: string;
   name: string;
-  avatar_url: string;
   created_at: string;
   updated_at: string;
 }
@@ -18,9 +16,6 @@ export interface Account {
   provider: string;
   provider_account_id: string;
   provider_email: string;
-  access_token?: string;
-  refresh_token?: string;
-  expires_at?: number;
   created_at: string;
 }
 
@@ -55,9 +50,6 @@ export class Database {
         provider TEXT NOT NULL,
         provider_account_id TEXT NOT NULL,
         provider_email TEXT,
-        access_token TEXT,
-        refresh_token TEXT,
-        expires_at INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
         UNIQUE(provider, provider_account_id)
@@ -69,22 +61,21 @@ export class Database {
   }
 
   // User methods
-  createUser(email: string, name: string, avatar_url: string): User {
+  createUser(email: string, name: string): User {
     const id = randomUUID();
     const now = new Date().toISOString();
     
     const stmt = this.db.prepare(`
-      INSERT INTO users (id, email, name, avatar_url, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO users (id, email, name, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)
     `);
-    
-    stmt.run(id, email, name, avatar_url, now, now);
+
+    stmt.run(id, email, name, now, now);
     
     return {
       id,
       email,
       name,
-      avatar_url,
       created_at: now,
       updated_at: now
     };
@@ -100,7 +91,7 @@ export class Database {
     return stmt.get(email) as User | null;
   }
 
-  updateUser(id: string, updates: Partial<Pick<User, 'name' | 'avatar_url'>>): void {
+  updateUser(id: string, updates: Partial<Pick<User, 'name'>>): void {
     const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
     const values = Object.values(updates);
     
@@ -119,20 +110,17 @@ export class Database {
     userId: string,
     provider: string,
     providerAccountId: string,
-    providerEmail: string,
-    accessToken?: string,
-    refreshToken?: string,
-    expiresAt?: number
+    providerEmail: string
   ): Account {
     const id = randomUUID();
     const now = new Date().toISOString();
     
     const stmt = this.db.prepare(`
-      INSERT INTO accounts (id, user_id, provider, provider_account_id, provider_email, access_token, refresh_token, expires_at, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO accounts (id, user_id, provider, provider_account_id, provider_email, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
     `);
     
-    stmt.run(id, userId, provider, providerAccountId, providerEmail, accessToken, refreshToken, expiresAt, now);
+    stmt.run(id, userId, provider, providerAccountId, providerEmail, now);
     
     return {
       id,
@@ -140,9 +128,6 @@ export class Database {
       provider,
       provider_account_id: providerAccountId,
       provider_email: providerEmail,
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      expires_at: expiresAt,
       created_at: now
     };
   }

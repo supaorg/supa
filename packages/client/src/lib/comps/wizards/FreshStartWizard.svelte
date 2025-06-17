@@ -22,7 +22,8 @@
   }
 
   async function handleNewSyncedSpace() {
-
+    // TODO: ask the server to create a new space and connect to it
+    // and then sync changes to the browser space
   }
 </script>
 

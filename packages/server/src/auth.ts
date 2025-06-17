@@ -55,7 +55,6 @@ export interface JWTPayload {
   sub: string;
   email: string;
   name: string;
-  avatar_url: string;
   iat: number;
   exp: number;
 }
@@ -71,8 +70,15 @@ export class AuthError extends Error {
   }
 }
 
+interface AuthTokens {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
 export class AuthService {
-  private readonly JWT_EXPIRY_DAYS = 30;
+  private readonly ACCESS_TOKEN_EXPIRY_DAYS = 1; // 1 day
+  private readonly REFRESH_TOKEN_EXPIRY_DAYS = 30; // 30 days
   
   constructor(private db: Database) {
     if (IS_MOCK_MODE) {
@@ -92,18 +98,14 @@ export class AuthService {
     if (!mockUser) {
       mockUser = this.db.createUser(
         mockEmail,
-        'Dev User',
-        'https://via.placeholder.com/150/0066cc/ffffff?text=DEV'
+        'Dev User'
       );
       
       this.db.createAccount(
         mockUser.id,
         'mock',
         'mock-123',
-        mockEmail,
-        'mock-access-token',
-        undefined,
-        undefined
+        mockEmail
       );
       
       console.log(`   Created mock user: ${mockEmail}`);
@@ -140,7 +142,7 @@ export class AuthService {
   /**
    * Handle Google OAuth callback and return JWT token
    */
-  async handleGoogleCallback(code: string): Promise<string> {
+  async handleGoogleCallback(code: string): Promise<AuthTokens> {
     if (IS_MOCK_MODE) {
       return this.handleMockCallback(code);
     }
@@ -163,8 +165,8 @@ export class AuthService {
       // Create or update OAuth account
       await this.createOrUpdateAccount(user.id, googleUser, tokens);
       
-      // Generate JWT token
-      return this.generateToken(user);
+      // Generate our own tokens
+      return this.generateTokens(user);
       
     } catch (error) {
       if (error instanceof AuthError) {
@@ -177,7 +179,7 @@ export class AuthService {
   /**
    * Handle mock authentication callback
    */
-  private handleMockCallback(code: string): string {
+  private handleMockCallback(code: string): AuthTokens {
     if (code !== 'mock-auth-code') {
       throw new AuthError('Invalid mock auth code', 'INVALID_MOCK_CODE', 400);
     }
@@ -187,24 +189,71 @@ export class AuthService {
       throw new AuthError('Mock user not found', 'MOCK_USER_NOT_FOUND', 500);
     }
 
-    return this.generateToken(mockUser);
+    return this.generateTokens(mockUser);
   }
 
-  /**
-   * Generate JWT token for user
-   */
-  generateToken(user: User): string {
+  private generateTokens(user: User): AuthTokens {
     const now = Math.floor(Date.now() / 1000);
-    const payload: JWTPayload = {
-      sub: user.id,
-      email: user.email,
-      name: user.name,
-      avatar_url: user.avatar_url,
-      iat: now,
-      exp: now + (this.JWT_EXPIRY_DAYS * 24 * 60 * 60),
-    };
+    
+    // Generate access token
+    const accessToken = jwt.sign(
+      {
+        sub: user.id,
+        email: user.email,
+        name: user.name,
+        type: 'access',
+        iat: now,
+        exp: now + (this.ACCESS_TOKEN_EXPIRY_DAYS * 24 * 60 * 60),
+      },
+      VALIDATED_JWT_SECRET
+    );
 
-    return jwt.sign(payload, VALIDATED_JWT_SECRET);
+    // Generate refresh token
+    const refreshToken = jwt.sign(
+      {
+        sub: user.id,
+        type: 'refresh',
+        iat: now,
+        exp: now + (this.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60),
+      },
+      VALIDATED_JWT_SECRET
+    );
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      expires_in: this.ACCESS_TOKEN_EXPIRY_DAYS * 24 * 60 * 60
+    };
+  }
+
+  async refreshTokens(refreshToken: string): Promise<AuthTokens> {
+    try {
+      // Verify refresh token
+      const decoded = jwt.verify(refreshToken, VALIDATED_JWT_SECRET) as jwt.JwtPayload;
+      
+      // Check if it's actually a refresh token
+      if (decoded.type !== 'refresh') {
+        throw new AuthError('Invalid token type', 'INVALID_TOKEN_TYPE', 401);
+      }
+      
+      // Get user
+      const user = this.db.getUserById(decoded.sub);
+      if (!user) {
+        throw new AuthError('User not found', 'USER_NOT_FOUND', 401);
+      }
+      
+      // Generate new tokens
+      return this.generateTokens(user);
+      
+    } catch (error) {
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new AuthError('Invalid refresh token', 'INVALID_REFRESH_TOKEN', 401);
+      }
+      if (error instanceof AuthError) {
+        throw error;
+      }
+      throw new AuthError('Token refresh failed', 'REFRESH_FAILED', 401);
+    }
   }
 
   /**
@@ -213,6 +262,11 @@ export class AuthService {
   async verifyToken(token: string): Promise<User> {
     try {
       const decoded = jwt.verify(token, VALIDATED_JWT_SECRET) as jwt.JwtPayload;
+      
+      // Check if it's an access token
+      if (decoded.type !== 'access') {
+        throw new AuthError('Invalid token type', 'INVALID_TOKEN_TYPE', 401);
+      }
       
       // Type guard to ensure we have the expected payload structure
       if (!decoded.sub || typeof decoded.sub !== 'string') {
@@ -252,23 +306,6 @@ export class AuthService {
     if (IS_MOCK_MODE) {
       // In mock mode, just return the user as-is
       return user;
-    }
-
-    const accounts = this.db.getUserAccounts(userId);
-    
-    // Try to refresh from Google if we have a valid token
-    const googleAccount = accounts.find(acc => acc.provider === 'google');
-    if (googleAccount && googleAccount.access_token) {
-      try {
-        const googleUser = await this.getGoogleUserInfo(googleAccount.access_token);
-        this.db.updateUser(userId, {
-          name: googleUser.name,
-          avatar_url: googleUser.picture
-        });
-        return this.db.getUserById(userId);
-      } catch (error) {
-        // Token might be expired, that's ok
-      }
     }
 
     return user;
@@ -332,14 +369,12 @@ export class AuthService {
       // Create new user
       user = this.db.createUser(
         googleUser.email,
-        googleUser.name,
-        googleUser.picture
+        googleUser.name
       );
     } else {
       // Update user info if needed
       this.db.updateUser(user.id, {
         name: googleUser.name,
-        avatar_url: googleUser.picture
       });
       user = this.db.getUserById(user.id)!;
     }
@@ -359,12 +394,8 @@ export class AuthService {
         userId,
         'google',
         googleUser.id,
-        googleUser.email,
-        tokens.access_token,
-        tokens.refresh_token,
-        tokens.expires_in ? Date.now() + tokens.expires_in * 1000 : undefined
+        googleUser.email
       );
     }
-    // Note: We could update existing account tokens here if needed
   }
 } 

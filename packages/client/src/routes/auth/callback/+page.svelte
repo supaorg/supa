@@ -10,15 +10,17 @@
 
   onMount(async () => {
     try {
-      // Get the token from the URL query parameters
-      const token = page.url.searchParams.get("token");
+      // Get the tokens from the URL query parameters
+      const accessToken = page.url.searchParams.get("access_token");
+      const refreshToken = page.url.searchParams.get("refresh_token");
+      const expiresIn = page.url.searchParams.get("expires_in");
       
-      if (!token) {
-        throw new Error("No token found in URL");
+      if (!accessToken || !refreshToken || !expiresIn) {
+        throw new Error("Missing required tokens");
       }
 
-      // Parse and validate the JWT token
-      const payload = parseJWT(token);
+      // Parse and validate the access token
+      const payload = parseJWT(accessToken);
       if (!payload) {
         throw new Error("Invalid token format");
       }
@@ -28,13 +30,19 @@
         throw new Error("Token has expired");
       }
 
-      // Store the token and user info
-      await authStore.setAuth(token, {
-        id: payload.sub,
-        email: payload.email,
-        name: payload.name,
-        avatarUrl: payload.avatar_url,
-      });
+      // Store the tokens and user info
+      await authStore.setAuth(
+        {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          expires_in: parseInt(expiresIn)
+        },
+        {
+          id: payload.sub,
+          email: payload.email,
+          name: payload.name
+        }
+      );
 
       status = "success";
       
@@ -77,12 +85,12 @@
         <h2 class="h3">Welcome!</h2>
         <p class="text-surface-600">Successfully signed in. Redirecting...</p>
       </div>
-    {:else if status === "error"}
+    {:else}
       <div class="text-center space-y-4">
         <div class="text-6xl">❌</div>
         <h2 class="h3">Authentication Error</h2>
         <p class="text-error-500">{errorMessage}</p>
-        <a href="/" class="btn preset-filled">Go Home</a>
+        <a href="/auth/login" class="btn preset-filled">Try Again</a>
       </div>
     {/if}
   </div>
