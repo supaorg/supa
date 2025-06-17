@@ -12,7 +12,8 @@ Facts:
 
 Structure:
 - packages/client/src is the client code
-- packages/core/src is the core functionality shared with client; in the future will be used by servers (when we create a server)
+- packages/core/src is the core functionality shared with client
+- packages/server/src is the server for syncing changes and auth
 
 ## Updating deps in npm
 Sometimes packages get cached with old versions. In that case remove the cache and `npm run dev` again.
