@@ -38,7 +38,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
       try {
         const spaceId = this._space.getId();
         const ops = await getTreeOps(spaceId, appTreeId);
-        
+
         if (ops.length === 0) {
           return undefined;
         }
@@ -180,13 +180,22 @@ export class InBrowserSpaceSync implements SpaceConnection {
 export async function createNewInBrowserSpaceSync(): Promise<SpaceConnection> {
   const space = Space.newSpace(uuid());
   const sync = new InBrowserSpaceSync(space);
-
+  
   // Get all operations that created the space tree and add them to be saved
   const initOps = space.tree.getAllOps();
   sync.addOpsToSave(space.getId(), initOps);
 
   await sync.connect();
+  return sync;
+}
+
+export async function createNewInBrowserSpaceSyncWithOps(ops: ReadonlyArray<VertexOperation>): Promise<SpaceConnection> {
+  const space = Space.existingSpaceFromOps(ops);
+  const sync = new InBrowserSpaceSync(space);
+
+  sync.addOpsToSave(space.getId(), ops);
   
+  await sync.connect();
   return sync;
 }
 
@@ -194,15 +203,15 @@ export async function loadExistingInBrowserSpaceSync(spaceId: string): Promise<S
   try {
     // Load operations for the main space tree
     const spaceOps = await getTreeOps(spaceId, spaceId);
-    
+
     if (spaceOps.length === 0) {
       // No operations found - this might be a new space, create it
       throw new Error(`No operations found for space ${spaceId}`);
     }
-    
+
     // Create the space from operations
     const space = new Space(new RepTree(uuid(), spaceOps));
-    
+
     const sync = new InBrowserSpaceSync(space);
     await sync.connect();
     return sync;

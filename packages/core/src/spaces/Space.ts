@@ -1,7 +1,7 @@
 import { RepTree } from "reptree";
 import AppTree from "./AppTree";
 import type { AppConfig, CustomProviderConfig } from "../models";
-import type { VertexPropertyType } from "reptree";
+import type { VertexOperation, VertexPropertyType } from "reptree";
 import type { ModelProviderConfig } from "../models";
 import { validateKey } from "../tools/providerKeyValidators";
 import { Vertex } from "reptree";
@@ -52,6 +52,11 @@ export default class Space {
     tree.newNamedVertex(rootId, 'providers');
     tree.newNamedVertex(rootId, 'settings');
 
+    return new Space(tree);
+  }
+
+  static existingSpaceFromOps(ops: ReadonlyArray<VertexOperation>): Space {
+    const tree = new RepTree(uuid(), ops);
     return new Space(tree);
   }
 
