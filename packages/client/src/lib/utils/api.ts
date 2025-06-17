@@ -17,9 +17,12 @@ export async function apiRequest<T = any>(
     const url = `${API_BASE_URL}${endpoint}`;
     
     // Set up headers
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    const headers: Record<string, string> = {};
+
+    // Only set Content-Type if there's a body
+    if (options.body) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     // Merge in any existing headers
     if (options.headers) {

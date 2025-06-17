@@ -3,13 +3,7 @@ import { AuthService } from '../auth';
 import { createAuthMiddleware } from '../middleware/auth.middleware';
 import { createNewServerSpaceSync, loadExistingServerSpaceSync } from '../lib/ServerSpaceSync';
 import { v4 as uuidv4 } from 'uuid';
-
-// Types
-interface Space {
-  id: string;
-  created_at: number;
-  owner_id: string;
-}
+import { SpaceCreationResponse } from '@core/apiTypes';
 
 export class SpaceError extends Error {
   constructor(
@@ -36,7 +30,7 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
       // Create new space with ServerSpaceSync
       const spaceSync = await createNewServerSpaceSync(spaceId, ownerId);
 
-      const space: Space = {
+      const space: SpaceCreationResponse = {
         id: spaceId,
         created_at: Date.now(),
         owner_id: ownerId
@@ -68,7 +62,7 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
       // Load existing space with ServerSpaceSync
       const spaceSync = await loadExistingServerSpaceSync(id);
 
-      const space: Space = {
+      const space: SpaceCreationResponse = {
         id,
         created_at: Date.now(), // TODO: Get actual creation time from database
         owner_id: request.user!.id // TODO: Get actual owner from database

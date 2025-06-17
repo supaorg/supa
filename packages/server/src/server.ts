@@ -4,6 +4,7 @@ import { Database } from './database';
 import { AuthService, AuthError } from './auth';
 import { registerAuthRoutes } from './routes/auth.routes';
 import { registerHealthRoutes } from './routes/health.routes';
+import { registerSpaceRoutes } from './routes/space.routes';
 
 // Use cloud-provided PORT or default for development
 const PORT = parseInt(process.env.PORT || '3131', 10);
@@ -37,6 +38,7 @@ await fastify.register(cors, {
 // Register routes
 registerAuthRoutes(fastify, auth, FRONTEND_URL);
 registerHealthRoutes(fastify, auth, API_BASE_URL);
+registerSpaceRoutes(fastify, auth);
 
 // Error handler
 fastify.setErrorHandler((error, request, reply) => {

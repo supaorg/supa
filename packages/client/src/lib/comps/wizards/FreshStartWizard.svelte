@@ -4,6 +4,8 @@
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { swins } from "$lib/swins";
   import { authStore } from "$lib/stores/auth.svelte";
+  import { api } from "$lib/utils/api";
+  import type { SpaceCreationResponse } from "@core/apiTypes";
 
   function handleSignIn() {
     console.log("handleSignIn");
@@ -22,8 +24,20 @@
   }
 
   async function handleNewSyncedSpace() {
-    // TODO: ask the server to create a new space and connect to it
-    // and then sync changes to the browser space
+    try {
+      const response = await api.post<SpaceCreationResponse>('/spaces');
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to create space');
+      }
+
+      const sync = await createNewInBrowserSpaceSync();
+      spaceStore.addLocalSpace(sync, "localhost:3131/spaces/" + sync.space.getId());
+      spaceStore.currentSpaceId = sync.space.getId();
+    } catch (error) {
+      console.error('Failed to create synced space:', error);
+      // TODO: Show error to user
+    }
   }
 </script>
 
