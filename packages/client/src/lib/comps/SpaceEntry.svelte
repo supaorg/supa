@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import Loading from "$lib/comps/basic/Loading.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { authStore } from "$lib/stores/auth.svelte";
   import FreshStartWizard from "$lib/comps/wizards/FreshStartWizard.svelte";
   import {
     initializeDatabase,
@@ -9,18 +10,22 @@
     saveCurrentSpaceId,
     saveConfig,
   } from "$lib/localDb";
-    import Space from "./apps/Space.svelte";
+  import Space from "./apps/Space.svelte";
 
   type Status = "initializing" | "needsSpace" | "ready";
 
   let status: Status = $state("initializing");
 
-  onMount(() => {
-    initializeSpaceData();
+  onMount(async () => {
+    // Check auth first
+    await authStore.checkAuth();
 
-    return () => {
-      spaceStore.disconnectAllSpaces();
-    };
+    // Initialize space data regardless of auth status
+    initializeSpaceData();
+  });
+
+  onDestroy(() => {
+    spaceStore.disconnectAllSpaces();
   });
 
   $effect(() => {

@@ -16,11 +16,11 @@ interface AuthTokens {
 }
 
 class AuthStore {
-  user: User | null = $state(null);
-  accessToken: string | null = $state(null);
-  refreshToken: string | null = $state(null);
-  tokenExpiry: number | null = $state(null);
-  isAuthenticated = $derived(!!this.user && !!this.accessToken);
+  private accessToken: string | null = null;
+  private refreshToken: string | null = null;
+  private tokenExpiry: number | null = null;
+  public user: User | null = $state(null);
+  public isAuthenticated = $state(false);
 
   constructor() {
     // Load auth state from cookies on initialization
@@ -34,6 +34,7 @@ class AuthStore {
     this.refreshToken = tokens.refresh_token;
     this.tokenExpiry = Date.now() + (tokens.expires_in * 1000);
     this.user = user;
+    this.isAuthenticated = true;
     
     if (browser) {
       // Store tokens in httpOnly-style cookies (secure)
@@ -50,6 +51,7 @@ class AuthStore {
     this.refreshToken = null;
     this.tokenExpiry = null;
     this.user = null;
+    this.isAuthenticated = false;
     
     if (browser) {
       // Clear cookies
@@ -80,6 +82,7 @@ class AuthStore {
           this.refreshToken = refreshToken;
           this.tokenExpiry = payload.exp * 1000;
           this.user = user;
+          this.isAuthenticated = true;
         } else {
           // Access token expired, try to refresh
           this.refreshTokens();
@@ -91,37 +94,54 @@ class AuthStore {
     }
   }
 
-  private async refreshTokens() {
+  public async refreshTokens(): Promise<void> {
     if (!this.refreshToken) {
       this.logout();
       return;
     }
 
     try {
-      const response = await apiRequest<AuthTokens>('/auth/refresh', {
-        method: 'POST',
-        body: JSON.stringify({ refresh_token: this.refreshToken })
+      const response = await apiRequest<AuthTokens>("/auth/refresh", {
+        method: "POST",
+        body: JSON.stringify({ refresh_token: this.refreshToken }),
       });
 
-      if (response.success && response.data) {
-        // Get fresh user info
-        const userResponse = await apiRequest<User>('/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${response.data.access_token}`
-          }
-        });
-
-        if (userResponse.success && userResponse.data) {
-          await this.setAuth(response.data, userResponse.data);
-        } else {
-          throw new Error('Failed to get user info');
-        }
-      } else {
-        throw new Error(response.error || 'Failed to refresh tokens');
+      if (!response.success || !response.data) {
+        throw new Error(response.error || "Failed to refresh tokens");
       }
+
+      // Get fresh user info
+      const userResponse = await apiRequest<User>("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${response.data.access_token}`,
+        },
+      });
+
+      if (!userResponse.success || !userResponse.data) {
+        throw new Error("Failed to get user info");
+      }
+
+      this.setAuth(response.data, userResponse.data);
     } catch (error) {
-      console.error("Error refreshing tokens:", error);
+      console.error("Failed to refresh tokens:", error);
       this.logout();
+    }
+  }
+
+  public async checkAuth(): Promise<boolean> {
+    if (!this.refreshToken) {
+      this.isAuthenticated = false;
+      return false;
+    }
+
+    try {
+      await this.refreshTokens();
+      this.isAuthenticated = true;
+      return true;
+    } catch (error) {
+      // Just clear tokens and return false instead of throwing
+      this.logout();
+      return false;
     }
   }
 

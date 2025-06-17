@@ -92,11 +92,11 @@
         </div>
 
         <button
-        class="btn btn-lg preset-outlined-surface-500"
-        onclick={handleSignOut}
-      >
-        Sign out
-      </button>
+          class="btn btn-lg preset-outlined-surface-500"
+          onclick={handleSignOut}
+        >
+          Sign out
+        </button>
       {:else}
         <div class="flex flex-col gap-2">
           <button
