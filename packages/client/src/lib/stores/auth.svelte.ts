@@ -39,7 +39,10 @@ class AuthStore {
 
   async setAuth(tokens: AuthTokens, user: User) {
     this.accessToken = tokens.access_token;
-    this.refreshToken = tokens.refresh_token;
+    // Only update refresh token if it's a new one (during initial auth)
+    if (tokens.refresh_token) {
+      this.refreshToken = tokens.refresh_token;
+    }
     this.tokenExpiry = Date.now() + (tokens.expires_in * 1000);
     this.user = user;
     this.isAuthenticated = true;
@@ -48,10 +51,14 @@ class AuthStore {
       // Store tokens in cookies
       // Convert expires_in (seconds) to days for cookie expiration
       const accessTokenDays = Math.ceil(tokens.expires_in / (24 * 60 * 60));
-      const refreshTokenDays = 30; // 30 days for refresh token
       
       setCookie(document, "access_token", tokens.access_token, accessTokenDays);
-      setCookie(document, "refresh_token", tokens.refresh_token, refreshTokenDays);
+      
+      // Only update refresh token cookie if it's a new one
+      if (tokens.refresh_token) {
+        const refreshTokenDays = 30; // 30 days for refresh token
+        setCookie(document, "refresh_token", tokens.refresh_token, refreshTokenDays);
+      }
       
       // Store user info in localStorage for easy access
       localStorage.setItem("user", JSON.stringify(user));
@@ -108,20 +115,24 @@ class AuthStore {
 
   public async refreshTokens(): Promise<void> {
     if (!this.refreshToken) {
+      console.log('No refresh token available, logging out');
       this.logout();
       return;
     }
 
     try {
+      console.log('Refreshing tokens...');
       const response = await apiRequest<AuthTokens>("/auth/refresh", {
         method: "POST",
         body: JSON.stringify({ refresh_token: this.refreshToken }),
       });
 
       if (!response.success || !response.data) {
+        console.error('Token refresh failed:', response.error);
         throw new Error(response.error || "Failed to refresh tokens");
       }
 
+      console.log('Tokens refreshed, getting user info...');
       // Get fresh user info
       const userResponse = await apiRequest<User>("/auth/me", {
         headers: {
@@ -130,10 +141,24 @@ class AuthStore {
       });
 
       if (!userResponse.success || !userResponse.data) {
+        console.error('Failed to get user info after token refresh');
         throw new Error("Failed to get user info");
       }
 
-      this.setAuth(response.data, userResponse.data);
+      console.log('User info retrieved, updating auth state...');
+      // Update auth state with new tokens
+      this.accessToken = response.data.access_token;
+      this.tokenExpiry = Date.now() + (response.data.expires_in * 1000);
+      this.user = userResponse.data;
+      this.isAuthenticated = true;
+
+      // Update access token cookie
+      if (browser) {
+        const accessTokenDays = Math.ceil(response.data.expires_in / (24 * 60 * 60));
+        setCookie(document, "access_token", response.data.access_token, accessTokenDays);
+      }
+
+      console.log('Token refresh completed successfully');
     } catch (error) {
       console.error("Failed to refresh tokens:", error);
       this.logout();
@@ -175,6 +200,7 @@ class AuthStore {
     
     // Check if token is expired or about to expire (within 5 minutes)
     if (this.tokenExpiry && this.tokenExpiry - Date.now() < 5 * 60 * 1000) {
+      console.log('Token about to expire, refreshing...');
       // Token is expired or about to expire, refresh it
       this.refreshTokens();
     }

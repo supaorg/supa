@@ -233,8 +233,15 @@ export class AuthService {
 
   async refreshTokens(refreshToken: string): Promise<AuthTokens> {
     try {
+      console.log('Refreshing tokens...');
+      
       // Verify refresh token
       const decoded = jwt.verify(refreshToken, VALIDATED_JWT_SECRET) as jwt.JwtPayload;
+      console.log('Refresh token verified, payload:', { 
+        sub: decoded.sub, 
+        type: decoded.type,
+        exp: new Date(decoded.exp! * 1000).toISOString()
+      });
       
       // Check if it's actually a refresh token
       if (decoded.type !== 'refresh') {
@@ -247,10 +254,32 @@ export class AuthService {
         throw new AuthError('User not found', 'USER_NOT_FOUND', 401);
       }
       
-      // Generate new tokens
-      return this.generateTokens(user);
+      // Generate new access token only
+      const now = Math.floor(Date.now() / 1000);
+      const accessTokenExpiry = now + (this.ACCESS_TOKEN_EXPIRY_DAYS * 24 * 60 * 60);
+      
+      const accessToken = jwt.sign(
+        {
+          sub: user.id,
+          email: user.email,
+          name: user.name,
+          type: 'access',
+          iat: now,
+          exp: accessTokenExpiry,
+        },
+        VALIDATED_JWT_SECRET
+      );
+
+      console.log('Generated new access token, expires:', new Date(accessTokenExpiry * 1000).toISOString());
+
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken, // Return the same refresh token
+        expires_in: this.ACCESS_TOKEN_EXPIRY_DAYS * 24 * 60 * 60
+      };
       
     } catch (error) {
+      console.error('Token refresh error:', error);
       if (error instanceof jwt.JsonWebTokenError) {
         throw new AuthError('Invalid refresh token', 'INVALID_REFRESH_TOKEN', 401);
       }
