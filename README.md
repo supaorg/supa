@@ -27,15 +27,15 @@ you can use t69 without relying on t69 servers
 
 **tabs like in vscode**
 
-you can create and switch between tabs, and split windows
+create and switch between tabs, and split windows
 
 **any ai**
 
-from OpenAI and Anthropic to Ollama and any OpenAI-compatible API
+from OpenAI and Anthropic to Ollama and any OpenAI-compatible API; bring your own keys
 
 **many themes**
 
-you can switch between many themes and distinguish your workspaces
+use different themes for your workspaces; from colorful to boring
 
 **assistants**
 
