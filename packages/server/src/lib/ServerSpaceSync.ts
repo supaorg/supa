@@ -261,7 +261,7 @@ export class ServerSpaceSync {
 /**
  * Create a new server space with fresh RepTree and save initial operations
  */
-export async function createNewServerSpaceSync(spaceId: string, ownerId: string, dataDir: string = './data'): Promise<ServerSpaceSync> {
+export async function createNewServerSpaceSync(spaceId: string, ownerId: string, dataDir: string = './data/spaces'): Promise<ServerSpaceSync> {
   // Create directory structure based on UUID partitioning (first 2 chars)
   const partitionDir = path.join(dataDir, spaceId.substring(0, 2));
   if (!fs.existsSync(partitionDir)) {
