@@ -15,7 +15,13 @@ export class SpaceError extends Error {
 }
 
 export class SpaceService {
-  constructor(private db: Database) { }
+  constructor(private db: Database) {
+    // Cache loaded spaces in memory with reference counts
+    this.loadedSpaces = new Map();
+  }
+
+  // Cache loaded spaces in memory with reference counts
+  private loadedSpaces: Map<string, { sync: ServerSpaceSync; connections: number }> = new Map();
 
   /**
    * Create a new space with metadata and ServerSpaceSync
@@ -120,16 +126,52 @@ export class SpaceService {
    * Load existing space with ServerSpaceSync
    */
   async loadSpace(spaceId: string): Promise<ServerSpaceSync> {
+    // Return cached instance if already loaded.
+    const cached = this.loadedSpaces.get(spaceId);
+    if (cached) return cached.sync;
+
     const space = this.getSpace(spaceId);
     if (!space) {
       throw new SpaceError('Space not found', 'SPACE_NOT_FOUND', 404);
     }
 
     try {
-      return await loadExistingServerSpaceSync(spaceId);
+      const sync = await loadExistingServerSpaceSync(spaceId);
+      // Initialize with 0 connections; caller should increment via acquireConnection
+      this.loadedSpaces.set(spaceId, { sync, connections: 0 });
+      return sync;
     } catch (error) {
       console.error('Failed to load space:', error);
       throw new SpaceError('Failed to load space', 'SPACE_LOAD_FAILED', 500);
+    }
+  }
+
+  /**
+   * Acquire a reference to the space sync, incrementing connection counter.
+   */
+  async acquireConnection(spaceId: string): Promise<ServerSpaceSync> {
+    const sync = await this.loadSpace(spaceId);
+    const entry = this.loadedSpaces.get(spaceId)!;
+    entry.connections += 1;
+    return sync;
+  }
+
+  /**
+   * Release a connection reference; if count reaches zero unload from memory.
+   */
+  releaseConnection(spaceId: string): void {
+    const entry = this.loadedSpaces.get(spaceId);
+    if (!entry) return;
+
+    entry.connections = Math.max(0, entry.connections - 1);
+
+    if (entry.connections === 0) {
+      try {
+        entry.sync.disconnect().catch(console.error);
+      } catch (err) {
+        console.error('Failed to disconnect space sync', err);
+      }
+      this.loadedSpaces.delete(spaceId);
     }
   }
 } 

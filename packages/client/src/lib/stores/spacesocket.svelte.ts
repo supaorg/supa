@@ -91,7 +91,18 @@ export function queueOpsForSync(
   treeId: string,
   ops: ReadonlyArray<VertexOperation>
 ): void {
-  /* TODO: implement server sync logic */
+  // If the socket connection is live, emit immediately. Otherwise, log a warning.
+  if (spaceSocketStore.socket && spaceSocketStore.socket.connected) {
+    spaceSocketStore.socket.emit("sync-ops", { spaceId, treeId, ops });
+    console.log("🚀 Sent ops for sync:", { spaceId, treeId, ops });
+  } else {
+    // For now we simply log. In a future iteration we can queue these for retry.
+    console.warn("⚠️  Could not sync ops – socket not connected. They will be retried later.", {
+      spaceId,
+      treeId,
+      ops,
+    });
+  }
 }
 
 /**
@@ -102,5 +113,13 @@ export function queueSecretsForSync(
   spaceId: string,
   secrets: Record<string, string>
 ): void {
-  /* TODO: implement server sync logic */
+  if (spaceSocketStore.socket && spaceSocketStore.socket.connected) {
+    spaceSocketStore.socket.emit("sync-secrets", { spaceId, secrets });
+    console.log("🚀 Sent secrets for sync:", { spaceId, secrets });
+  } else {
+    console.warn("⚠️  Could not sync secrets – socket not connected. They will be retried later.", {
+      spaceId,
+      secrets,
+    });
+  }
 } 
