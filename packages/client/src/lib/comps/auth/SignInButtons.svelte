@@ -1,6 +1,5 @@
 <script lang="ts">
-  // API server configuration
-  const API_BASE_URL = 'http://localhost:3131'; // TODO: Make this configurable
+  import { API_BASE_URL } from "$lib/utils/api";
 
   const handleGoogleLogin = async () => {
     try {

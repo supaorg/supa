@@ -1,7 +1,7 @@
 import { authStore } from "$lib/stores/auth.svelte";
 
 // API Base URL - should match the server
-const API_BASE_URL = 'http://localhost:3131';
+export const API_BASE_URL = 'http://localhost:3131';
 
 export interface APIResponse<T = any> {
   data?: T;

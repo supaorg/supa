@@ -1,4 +1,4 @@
-import { api } from "$lib/utils/api";
+import { api, API_BASE_URL } from "$lib/utils/api";
 import type { SpaceCreationResponse } from "@core/apiTypes";
 import { createNewInBrowserSpaceSync, createNewInBrowserSpaceSyncWithOps, InBrowserSpaceSync, loadExistingInBrowserSpaceSync } from "./InBrowserSpaceSync";
 import { spaceStore } from "./spaceStore.svelte";
@@ -19,6 +19,6 @@ export async function createNewSyncedSpace() {
   }
 
   const sync = await createNewInBrowserSpaceSyncWithOps(response.data.operations);
-  spaceStore.addLocalSpace(sync, "localhost:3131/spaces/" + sync.space.getId());
+  spaceStore.addLocalSpace(sync, `${API_BASE_URL}/spaces/` + sync.space.getId());
   spaceStore.currentSpaceId = sync.space.getId();
 }

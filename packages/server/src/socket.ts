@@ -24,19 +24,19 @@ export function setupSocketIO(httpServer: HTTPServer, services: Services, fronte
   io.use(async (socket: any, next) => {
     try {
       const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
-      
+
       if (!token) {
         return next(new Error('Authentication required'));
       }
 
       // Verify JWT token
       const user = await services.auth.verifyToken(token);
-      
+
       // Attach user info to socket
       socket.userId = user.id;
       socket.userEmail = user.email;
       socket.userName = user.name;
-      
+
       next();
     } catch (error) {
       console.error('Socket authentication error:', error);
@@ -47,6 +47,15 @@ export function setupSocketIO(httpServer: HTTPServer, services: Services, fronte
   io.on('connection', (socket: any) => {
     console.log(`🔌 User connected: ${socket.userName} (${socket.userId})`);
 
+    // Handle disconnection
+    socket.on('disconnect', (reason: string) => {
+      console.log(`🔌 User disconnected: ${socket.userName} (${reason})`);
+
+      // You could notify all spaces the user was in that they left
+      // This would require tracking which spaces each socket is in
+    });
+
+    /*
     // Join a space
     socket.on('join-space', async (spaceId: string) => {
       try {
@@ -174,14 +183,7 @@ export function setupSocketIO(httpServer: HTTPServer, services: Services, fronte
       });
     });
 
-    // Handle disconnection
-    socket.on('disconnect', (reason: string) => {
-      console.log(`🔌 User disconnected: ${socket.userName} (${reason})`);
-      
-      // You could notify all spaces the user was in that they left
-      // This would require tracking which spaces each socket is in
-    });
-
+    /*
     // Get active users in a space
     socket.on('get-space-users', async (spaceId: string) => {
       try {
@@ -212,6 +214,8 @@ export function setupSocketIO(httpServer: HTTPServer, services: Services, fronte
         socket.emit('error', { message: 'Failed to get space users', code: 'GET_USERS_FAILED' });
       }
     });
+
+    */
   });
 
   console.log('🔌 Socket.IO server initialized');

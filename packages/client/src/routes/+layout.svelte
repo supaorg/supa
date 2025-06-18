@@ -6,7 +6,7 @@
   import { onMount } from "svelte";
   import { destroyShortcuts, initShortcuts } from "$lib/shortcuts/shortcuts";
   import { authStore } from "$lib/stores/auth.svelte";
-  import { api } from "$lib/utils/api";
+  import { api, API_BASE_URL } from "$lib/utils/api";
   import { savePointers, appendTreeOps } from "$lib/localDb";
   import type { SpaceCreationResponse } from "@core/apiTypes";
 
@@ -39,7 +39,7 @@
         // Transform spaces to SpacePointer format
         const spaces = response.data.map((space: any) => ({
           id: space.id,
-          uri: `http://localhost:3131/spaces/${space.id}`,
+          uri: `${API_BASE_URL}/spaces/${space.id}`,
           name: space.name,
           createdAt: new Date(space.createdAt),
         }));
