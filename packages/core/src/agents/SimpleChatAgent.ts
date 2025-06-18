@@ -37,10 +37,18 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
 
     const remappedMessages = [
       { role: "system", content: systemPrompt },
-      ...messages.map((m) => ({
-        role: m.role || "user",
-        content: m.text || "",
-      })),
+      ...messages.map((m) => {
+        // Validate and normalize the role - only allow "assistant" or "user"
+        let normalizedRole = m.role || "user";
+        if (normalizedRole !== "assistant" && normalizedRole !== "user") {
+          normalizedRole = "user";
+        }
+        
+        return {
+          role: normalizedRole,
+          content: m.text || "",
+        };
+      }),
     ];
 
     const promptStartPerf = performance.now();
