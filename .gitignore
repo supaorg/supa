@@ -9,6 +9,3 @@ jwt.key
 env.json
 
 node_modules
-
-.windsurfrules
-.cursorrules
