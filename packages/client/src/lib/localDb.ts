@@ -300,7 +300,7 @@ export async function getTreeOps(spaceId: string, treeId: string): Promise<Verte
   }
 }
 
-export async function appendTreeOps(spaceId: string, treeId: string, ops: VertexOperation[]): Promise<void> {
+export async function appendTreeOps(spaceId: string, treeId: string, ops: ReadonlyArray<VertexOperation>): Promise<void> {
   if (ops.length === 0) return;
 
   const treeOpsEntries = ops.map(op => fromVertexOperation(op, spaceId, treeId));

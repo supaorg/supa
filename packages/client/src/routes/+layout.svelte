@@ -7,12 +7,18 @@
   import { destroyShortcuts, initShortcuts } from "$lib/shortcuts/shortcuts";
   import { authStore } from "$lib/stores/auth.svelte";
   import { api } from "$lib/utils/api";
-  import { savePointers } from "$lib/localDb";
+  import { savePointers, appendTreeOps } from "$lib/localDb";
+  import type { SpaceCreationResponse } from "@core/apiTypes";
 
   let { children } = $props();
 
   onMount(() => {
     initShortcuts();
+
+    // Fetch spaces when authenticated
+    if (authStore.isAuthenticated) {
+      fetchSpaces();
+    }
 
     return () => {
       destroyShortcuts();
@@ -42,10 +48,15 @@
         for (const space of spaces) {
           console.log(`Fetching details for space ${space.id}`);
           try {
-            const spaceResponse = await api.get(`/spaces/${space.id}`);
+            const spaceResponse = await api.get<SpaceCreationResponse>(
+              `/spaces/${space.id}`,
+            );
             if (spaceResponse.success && spaceResponse.data) {
-              // Here we can handle any additional space data if needed
-              // For now we just log success
+              // Save operations for each tree in the space
+              const operations = spaceResponse.data.operations;
+              if (operations && operations.length > 0) {
+                await appendTreeOps(space.id, space.id, operations);
+              }
               console.log(
                 `Successfully fetched details for space ${space.id}, ops: ${spaceResponse.data.operations.length}`,
               );
@@ -59,7 +70,7 @@
         }
 
         // Save to local database
-        //await savePointers(spaces);
+        await savePointers(spaces);
       }
     } catch (error) {
       console.error("Failed to fetch spaces:", error);
