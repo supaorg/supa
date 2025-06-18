@@ -18,21 +18,27 @@ npm install && npm run dev
 ## features
 
 **workspaces**
+
 organize your conversations and assistants into separate workspaces
 
 **local first**
+
 you can use t69 without relying on t69 servers
 
 **tabs like in vscode**
+
 you can create and switch between tabs, and split windows
 
 **any ai**
+
 from OpenAI and Anthropic to Ollama and any OpenAI-compatible API
 
 **many themes**
+
 you can switch between many themes and distinguish your workspaces
 
 **assistants**
+
 create your own assistants with their own prompts, prompts, and models
 
 ## related projects
