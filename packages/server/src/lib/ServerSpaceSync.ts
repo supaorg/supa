@@ -20,7 +20,7 @@ export interface TreeOperation {
 }
 
 export class ServerSpaceSync {
-  _space: Space;
+  private _space: Space;
   private _spaceId: string;
   private _db: Database.Database;
   private _connected: boolean = false;
@@ -146,8 +146,8 @@ export class ServerSpaceSync {
 
   // Convert TreeOperation to VertexOperation for RepTree
   private toVertexOperation(op: TreeOperation): VertexOperation {
-    if (op.parentId !== undefined) {
-      // Move operation detected by presence of parentId
+    if (!op.key) {
+      // Move operation detected by absence of key
       return {
         id: { counter: op.clock, peerId: op.peerId },
         targetId: op.targetId,

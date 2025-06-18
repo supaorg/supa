@@ -29,9 +29,6 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
 
       // Create new space with ServerSpaceSync
       const spaceSync = await createNewServerSpaceSync(spaceId, ownerId);
-      // Get initial operations
-      // @TODO: this doesn't work correctly for some reason; fix it.
-      //const operations = await spaceSync.getTreeOps(spaceId);
       const operations = spaceSync.space.tree.getAllOps();
 
       const space: SpaceCreationResponse = {
