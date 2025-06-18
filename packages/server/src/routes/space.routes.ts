@@ -65,7 +65,7 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
       const spaceSync = await loadExistingServerSpaceSync(id);
 
       // Get operations for the space
-      const operations = await spaceSync.getTreeOps(id);
+      const operations = await spaceSync.loadTreeOps(id);
 
       const space: SpaceCreationResponse = {
         id,

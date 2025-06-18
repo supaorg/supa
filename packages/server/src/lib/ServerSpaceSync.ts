@@ -50,7 +50,7 @@ export class ServerSpaceSync {
     // Register tree loader for app trees
     space.registerTreeLoader(async (appTreeId: string) => {
       try {
-        const ops = await this.getTreeOps(appTreeId);
+        const ops = await this.loadTreeOps(appTreeId);
 
         if (ops.length === 0) {
           return undefined;
@@ -165,7 +165,7 @@ export class ServerSpaceSync {
   }
 
   // Get operations for a specific tree
-  async getTreeOps(treeId: string): Promise<VertexOperation[]> {
+  async loadTreeOps(treeId: string): Promise<VertexOperation[]> {
     try {
       const stmt = this._db.prepare(`
         SELECT * FROM tree_ops 
