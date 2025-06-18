@@ -10,5 +10,8 @@
     "preinstall": "cd packages/client && npm install && cd ../core && npm install && cd ../server && npm install",
     "dev": "concurrently \"cd packages/client && npm run dev\" \"cd packages/server && npm run dev\" --names \"client,server\" --prefix-colors \"cyan,magenta\"",
     "rules": "airul gen"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1"
   }
 }

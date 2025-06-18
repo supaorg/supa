@@ -1,11 +1,13 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import { Server as SocketIOServer } from 'socket.io';
 import { Database } from './database';
 import { AuthError } from './auth';
 import { createServices } from './services';
 import { registerAuthRoutes } from './routes/auth.routes';
 import { registerHealthRoutes } from './routes/health.routes';
 import { registerSpaceRoutes } from './routes/space.routes';
+import { setupSocketIO } from './socket'
 
 // Use cloud-provided PORT or default for development
 const PORT = parseInt(process.env.PORT || '3131', 10);
@@ -88,8 +90,12 @@ const start = async () => {
       host: '0.0.0.0' // Listen on all interfaces
     });
 
+    // Setup Socket.IO after Fastify is listening
+    setupSocketIO(fastify.server, services, FRONTEND_URL);
+
     fastify.log.info(`🚀 Server running on http://localhost:${PORT}`);
     fastify.log.info(`📱 Frontend URL: ${FRONTEND_URL}`);
+    fastify.log.info(`🔌 Socket.IO ready for connections`);
 
     if (services.auth.isMockMode()) {
       fastify.log.info(`🔧 MOCK AUTH MODE - Visit ${API_BASE_URL}/dev/info for details`);
