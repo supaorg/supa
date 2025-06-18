@@ -8,7 +8,7 @@
 
   async function handleNewSpace() {
     const sync = await createNewInBrowserSpaceSync();
-    spaceStore.addLocalSpace(sync, "browser://" + sync.space.getId());
+    spaceStore.addSpaceConnection(sync, "browser://" + sync.space.getId());
     spaceStore.currentSpaceId = sync.space.getId();
     swins.clear();
   }

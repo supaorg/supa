@@ -7,7 +7,7 @@ import Space from "@core/spaces/Space";
 
 export async function createNewLocalSpace() {
   const sync = await createNewInBrowserSpaceSync();
-  spaceStore.addLocalSpace(sync, "browser://" + sync.space.getId());
+  spaceStore.addSpaceConnection(sync, "browser://" + sync.space.getId());
   spaceStore.currentSpaceId = sync.space.getId();
 }
 
@@ -19,6 +19,6 @@ export async function createNewSyncedSpace() {
   }
 
   const sync = await createNewInBrowserSpaceSyncWithOps(response.data.operations);
-  spaceStore.addLocalSpace(sync, `${API_BASE_URL}/spaces/` + sync.space.getId());
+  spaceStore.addSpaceConnection(sync, `${API_BASE_URL}/spaces/` + sync.space.getId());
   spaceStore.currentSpaceId = sync.space.getId();
 }

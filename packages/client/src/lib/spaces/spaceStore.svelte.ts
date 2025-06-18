@@ -106,7 +106,7 @@ class SpaceStore {
   /**
    * Add a local space to the stores
    */
-  addLocalSpace(connection: SpaceConnection, path: string): void {
+  addSpaceConnection(connection: SpaceConnection, path: string): void {
     this.connections = [...this.connections, connection];
 
     const pointer: SpacePointer = {
