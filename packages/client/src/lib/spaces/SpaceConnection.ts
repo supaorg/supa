@@ -10,10 +10,6 @@ export interface SpaceConnection {
 }
 
 export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<SpaceConnection> {
-  if (pointer.uri.startsWith("http")) {
-    throw new Error("Remote spaces are not supported by local space sync. Use a different connection method.");
-  }
-
   // For now, assume all non-http URIs are in-browser spaces
   // Load the existing space from database operations
   return await loadExistingInBrowserSpaceSync(pointer.id);

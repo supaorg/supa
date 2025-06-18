@@ -134,7 +134,7 @@ export class ServerSpaceSync {
   }
 
   // Convert TreeOperation to VertexOperation for RepTree
-  private toVertexOperation(op: TreeOperation): VertexOperation {
+  static toVertexOperation(op: TreeOperation): VertexOperation {
     if (!op.key) {
       // Move operation detected by absence of key
       return {
@@ -163,7 +163,7 @@ export class ServerSpaceSync {
       `);
 
       const rows = stmt.all(this._spaceId, treeId) as TreeOperation[];
-      return rows.map(row => this.toVertexOperation(row));
+      return rows.map(row => ServerSpaceSync.toVertexOperation(row));
     } catch (error) {
       console.error(`Failed to get ops for tree ${treeId} in space ${this._spaceId}:`, error);
       return [];
@@ -247,17 +247,19 @@ export class ServerSpaceSync {
   }
 }
 
+const SPACES_DATA_DIR = './data/spaces';
+
 /**
  * Create a new server space with fresh RepTree and save initial operations
  */
-export async function createNewServerSpaceSync(dataDir: string = './data/spaces'): Promise<ServerSpaceSync> {
+export async function createNewServerSpaceSync(): Promise<ServerSpaceSync> {
   // Create new space with a unique peer ID for the server
   const serverPeerId = `${uuidv4()}`;
   const space = Space.newSpace(serverPeerId);
   const spaceId = space.getId();
 
   // Create directory structure based on UUID partitioning (first 2 chars)
-  const partitionDir = path.join(dataDir, spaceId.substring(0, 2));
+  const partitionDir = path.join(SPACES_DATA_DIR, spaceId.substring(0, 2));
   if (!fs.existsSync(partitionDir)) {
     fs.mkdirSync(partitionDir, { recursive: true });
   }
@@ -279,8 +281,8 @@ export async function createNewServerSpaceSync(dataDir: string = './data/spaces'
 /**
  * Load an existing server space from database
  */
-export async function loadExistingServerSpaceSync(spaceId: string, dataDir: string = './data'): Promise<ServerSpaceSync> {
-  const partitionDir = path.join(dataDir, spaceId.substring(0, 2));
+export async function loadExistingServerSpaceSync(spaceId: string): Promise<ServerSpaceSync> {
+  const partitionDir = path.join(SPACES_DATA_DIR, spaceId.substring(0, 2));
   const dbPath = path.join(partitionDir, `${spaceId}.db`);
 
   if (!fs.existsSync(dbPath)) {
@@ -303,22 +305,7 @@ export async function loadExistingServerSpaceSync(spaceId: string, dataDir: stri
   }
 
   // Convert to VertexOperations
-  const spaceOps = rows.map(row => {
-    if (row.parentId !== undefined) {
-      return {
-        id: { counter: row.clock, peerId: row.peerId },
-        targetId: row.targetId,
-        parentId: row.parentId
-      } as VertexOperation;
-    } else {
-      return {
-        id: { counter: row.clock, peerId: row.peerId },
-        targetId: row.targetId,
-        key: row.key!,
-        value: row.value ? JSON.parse(row.value) : row.value,
-      } as VertexOperation;
-    }
-  });
+  const spaceOps = rows.map(row => ServerSpaceSync.toVertexOperation(row));
 
   // Create the space from operations with a new server peer ID
   const serverPeerId = `${uuidv4()}`;
