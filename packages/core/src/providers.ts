@@ -1,4 +1,4 @@
-import { ModelProvider } from "./models.ts";
+import { ModelProvider } from "./models";
 
 export const providers: ModelProvider[] = [
   {

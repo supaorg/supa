@@ -14,8 +14,9 @@ function enrichDefaultConfig(configs: AppConfig[]): AppConfig[] {
   }
 
   return configs.sort((a, b) => {
-    const aDate = new Date(a._c).getTime();
-    const bDate = new Date(b._c).getTime();
+    // @TODO: fix this, make sure we do have _c in our configs
+    const aDate = new Date((a as any)._c).getTime();
+    const bDate = new Date((b as any)._c).getTime();
     return aDate - bDate;
   });
 }
