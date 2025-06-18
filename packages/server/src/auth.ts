@@ -249,6 +249,10 @@ export class AuthService {
       }
       
       // Get user
+      if (!decoded.sub || typeof decoded.sub !== 'string') {
+        throw new AuthError('Invalid token payload', 'INVALID_TOKEN_PAYLOAD', 401);
+      }
+      
       const user = this.db.getUserById(decoded.sub);
       if (!user) {
         throw new AuthError('User not found', 'USER_NOT_FOUND', 401);
@@ -312,7 +316,7 @@ export class AuthService {
         throw new AuthError('Token expired', 'TOKEN_EXPIRED', 401);
       }
       
-      const user = this.db.getUserById(decoded.sub);
+      const user = this.db.getUserById(decoded.sub as string);
       
       if (!user) {
         throw new AuthError('User not found', 'USER_NOT_FOUND', 401);

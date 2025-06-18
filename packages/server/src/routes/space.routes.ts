@@ -1,40 +1,48 @@
 import { FastifyInstance } from 'fastify';
-import { AuthService } from '../auth';
 import { createAuthMiddleware } from '../middleware/auth.middleware';
-import { createNewServerSpaceSync, loadExistingServerSpaceSync } from '../lib/ServerSpaceSync';
-import { v4 as uuidv4 } from 'uuid';
 import { SpaceCreationResponse } from '@core/apiTypes';
+import { Services, SpaceError } from '../services';
 
-export class SpaceError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public statusCode: number = 400
-  ) {
-    super(message);
-    this.name = 'SpaceError';
-  }
-}
+export function registerSpaceRoutes(fastify: FastifyInstance, services: Services) {
+  const authMiddleware = createAuthMiddleware(services.auth);
 
-export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService) {
-  const authMiddleware = createAuthMiddleware(auth);
+  // List user's spaces
+  fastify.get('/spaces', {
+    preHandler: authMiddleware
+  }, async (request, reply) => {
+    try {
+      const spaces = services.spaces.listUserSpaces(request.user!.id);
+      return reply.send(spaces);
+    } catch (error) {
+      console.error('Failed to list spaces:', error);
+      if (error instanceof SpaceError) {
+        return reply.code(error.statusCode).send({
+          error: error.message,
+          code: error.code
+        });
+      }
+      return reply.code(500).send({
+        error: 'Failed to list spaces',
+        code: 'SPACE_LIST_FAILED'
+      });
+    }
+  });
 
   // Create a new space
   fastify.post('/spaces', {
     preHandler: authMiddleware
   }, async (request, reply) => {
     try {
-      const spaceId = uuidv4();
       const ownerId = request.user!.id;
 
-      // Create new space with ServerSpaceSync
-      const spaceSync = await createNewServerSpaceSync(spaceId, ownerId);
-      const operations = spaceSync.space.tree.getAllOps();
+      // Create new space with SpaceService
+      const { metadata, sync } = await services.spaces.createSpace(ownerId);
+      const operations = sync.space.tree.getAllOps();
 
       const space: SpaceCreationResponse = {
-        id: spaceId,
-        created_at: Date.now(),
-        owner_id: ownerId,
+        id: metadata.id,
+        created_at: metadata.created_at,
+        owner_id: metadata.owner_id,
         operations
       };
 
@@ -60,17 +68,27 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
   }, async (request, reply) => {
     try {
       const { id } = request.params;
+      const userId = request.user!.id;
 
-      // Load existing space with ServerSpaceSync
-      const spaceSync = await loadExistingServerSpaceSync(id);
+      // Check if user can access this space
+      if (!services.spaces.canUserAccessSpace(userId, id)) {
+        return reply.code(403).send({
+          error: 'Access denied',
+          code: 'ACCESS_DENIED'
+        });
+      }
+
+      // Load space with SpaceService
+      const sync = await services.spaces.loadSpace(id);
+      const metadata = services.spaces.getSpace(id)!;
 
       // Get operations for the space
-      const operations = await spaceSync.loadTreeOps(id);
+      const operations = await sync.loadTreeOps(id);
 
       const space: SpaceCreationResponse = {
-        id,
-        created_at: Date.now(), // TODO: Get actual creation time from database
-        owner_id: request.user!.id, // TODO: Get actual owner from database
+        id: metadata.id,
+        created_at: metadata.created_at,
+        owner_id: metadata.owner_id,
         operations
       };
 
@@ -83,15 +101,80 @@ export function registerSpaceRoutes(fastify: FastifyInstance, auth: AuthService)
           code: error.code
         });
       }
-      if (error instanceof Error && error.message.includes('Space database not found')) {
-        return reply.code(404).send({
-          error: 'Space not found',
-          code: 'SPACE_NOT_FOUND'
-        });
-      }
       return reply.code(500).send({
         error: 'Failed to load space',
         code: 'SPACE_LOAD_FAILED'
+      });
+    }
+  });
+
+  // Update space metadata
+  fastify.put<{ Params: { id: string } }>('/spaces/:id', {
+    preHandler: authMiddleware
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params;
+      const userId = request.user!.id;
+      const { name } = request.body as { name?: string };
+
+      // Check if user owns this space
+      if (!services.spaces.isSpaceOwner(userId, id)) {
+        return reply.code(403).send({
+          error: 'Access denied',
+          code: 'ACCESS_DENIED'
+        });
+      }
+
+      if (name) {
+        services.spaces.updateSpace(id, { name });
+      }
+
+      const metadata = services.spaces.getSpace(id)!;
+      return reply.send(metadata);
+    } catch (error) {
+      console.error('Failed to update space:', error);
+      if (error instanceof SpaceError) {
+        return reply.code(error.statusCode).send({
+          error: error.message,
+          code: error.code
+        });
+      }
+      return reply.code(500).send({
+        error: 'Failed to update space',
+        code: 'SPACE_UPDATE_FAILED'
+      });
+    }
+  });
+
+  // Delete space
+  fastify.delete<{ Params: { id: string } }>('/spaces/:id', {
+    preHandler: authMiddleware
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params;
+      const userId = request.user!.id;
+
+      // Check if user owns this space
+      if (!services.spaces.isSpaceOwner(userId, id)) {
+        return reply.code(403).send({
+          error: 'Access denied',
+          code: 'ACCESS_DENIED'
+        });
+      }
+
+      await services.spaces.deleteSpace(id);
+      return reply.code(204).send();
+    } catch (error) {
+      console.error('Failed to delete space:', error);
+      if (error instanceof SpaceError) {
+        return reply.code(error.statusCode).send({
+          error: error.message,
+          code: error.code
+        });
+      }
+      return reply.code(500).send({
+        error: 'Failed to delete space',
+        code: 'SPACE_DELETE_FAILED'
       });
     }
   });

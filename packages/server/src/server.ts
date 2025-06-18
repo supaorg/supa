@@ -1,7 +1,8 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { Database } from './database';
-import { AuthService, AuthError } from './auth';
+import { AuthError } from './auth';
+import { createServices } from './services';
 import { registerAuthRoutes } from './routes/auth.routes';
 import { registerHealthRoutes } from './routes/health.routes';
 import { registerSpaceRoutes } from './routes/space.routes';
@@ -11,9 +12,9 @@ const PORT = parseInt(process.env.PORT || '3131', 10);
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:6969';
 const API_BASE_URL = process.env.API_BASE_URL || `http://localhost:${PORT}`;
 
-// Initialize database and auth service
+// Initialize database and services
 const db = new Database('./data/platform.db');
-const auth = new AuthService(db);
+const services = createServices(db);
 
 // Create Fastify instance
 const fastify = Fastify({
@@ -36,9 +37,9 @@ await fastify.register(cors, {
 });
 
 // Register routes
-registerAuthRoutes(fastify, auth, FRONTEND_URL);
-registerHealthRoutes(fastify, auth, API_BASE_URL);
-registerSpaceRoutes(fastify, auth);
+registerAuthRoutes(fastify, services.auth, FRONTEND_URL);
+registerHealthRoutes(fastify, services.auth, API_BASE_URL);
+registerSpaceRoutes(fastify, services);
 
 // Error handler
 fastify.setErrorHandler((error, request, reply) => {
@@ -90,7 +91,7 @@ const start = async () => {
     fastify.log.info(`🚀 Server running on http://localhost:${PORT}`);
     fastify.log.info(`📱 Frontend URL: ${FRONTEND_URL}`);
 
-    if (auth.isMockMode()) {
+    if (services.auth.isMockMode()) {
       fastify.log.info(`🔧 MOCK AUTH MODE - Visit ${API_BASE_URL}/dev/info for details`);
       fastify.log.info(`   Quick test: ${API_BASE_URL}/auth/login/google`);
     }

@@ -19,6 +19,14 @@ export interface Account {
   created_at: string;
 }
 
+export interface SpaceMetadata {
+  id: string;
+  name?: string;
+  owner_id: string;
+  created_at: number;
+  updated_at: number;
+}
+
 export class Database {
   private db: SQLiteDatabase.Database;
 
@@ -55,8 +63,19 @@ export class Database {
         UNIQUE(provider, provider_account_id)
       );
 
+      CREATE TABLE IF NOT EXISTS spaces (
+        id TEXT PRIMARY KEY,
+        name TEXT,
+        owner_id TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE
+      );
+
       CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts(user_id);
       CREATE INDEX IF NOT EXISTS idx_accounts_provider ON accounts(provider, provider_account_id);
+      CREATE INDEX IF NOT EXISTS idx_spaces_owner ON spaces(owner_id);
+      CREATE INDEX IF NOT EXISTS idx_spaces_created_at ON spaces(created_at);
     `);
   }
 
@@ -144,5 +163,54 @@ export class Database {
 
   close() {
     this.db.close();
+  }
+
+  // Space methods
+  createSpaceMetadata(id: string, ownerId: string, name?: string): SpaceMetadata {
+    const now = Date.now();
+    
+    const stmt = this.db.prepare(`
+      INSERT INTO spaces (id, name, owner_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    
+    stmt.run(id, name || null, ownerId, now, now);
+    
+    return {
+      id,
+      name,
+      owner_id: ownerId,
+      created_at: now,
+      updated_at: now
+    };
+  }
+
+  getSpaceMetadata(id: string): SpaceMetadata | null {
+    const stmt = this.db.prepare('SELECT * FROM spaces WHERE id = ?');
+    return stmt.get(id) as SpaceMetadata | null;
+  }
+
+  listUserSpaces(userId: string): SpaceMetadata[] {
+    const stmt = this.db.prepare('SELECT * FROM spaces WHERE owner_id = ? ORDER BY created_at DESC');
+    return stmt.all(userId) as SpaceMetadata[];
+  }
+
+  updateSpaceMetadata(id: string, updates: Partial<Pick<SpaceMetadata, 'name'>>): void {
+    const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+    const values = Object.values(updates);
+    
+    if (fields) {
+      const stmt = this.db.prepare(`
+        UPDATE spaces 
+        SET ${fields}, updated_at = ? 
+        WHERE id = ?
+      `);
+      stmt.run(...values, Date.now(), id);
+    }
+  }
+
+  deleteSpaceMetadata(id: string): void {
+    const stmt = this.db.prepare('DELETE FROM spaces WHERE id = ?');
+    stmt.run(id);
   }
 } 

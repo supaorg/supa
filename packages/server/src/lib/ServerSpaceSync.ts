@@ -25,8 +25,8 @@ export class ServerSpaceSync {
   private _db: Database.Database;
   private _connected: boolean = false;
 
-  constructor(spaceId: string, space: Space, dbPath: string) {
-    this._spaceId = spaceId;
+  constructor(space: Space, dbPath: string) {
+    this._spaceId = space.getId();
     this._space = space;
     this._db = new Database(dbPath);
 
@@ -82,18 +82,7 @@ export class ServerSpaceSync {
       
       CREATE INDEX IF NOT EXISTS idx_space_tree ON tree_ops(spaceId, treeId);
       CREATE INDEX IF NOT EXISTS idx_space_tree_clock ON tree_ops(spaceId, treeId, clock);
-      
-      CREATE TABLE IF NOT EXISTS spaces (
-        id TEXT PRIMARY KEY,
-        created_at INTEGER
-      );
     `);
-
-    // Insert space record if it doesn't exist
-    const insertSpace = this._db.prepare(`
-      INSERT OR IGNORE INTO spaces (id, created_at) VALUES (?, ?)
-    `);
-    insertSpace.run(this._spaceId, Date.now());
   }
 
   get space(): Space {
@@ -261,7 +250,12 @@ export class ServerSpaceSync {
 /**
  * Create a new server space with fresh RepTree and save initial operations
  */
-export async function createNewServerSpaceSync(spaceId: string, ownerId: string, dataDir: string = './data/spaces'): Promise<ServerSpaceSync> {
+export async function createNewServerSpaceSync(dataDir: string = './data/spaces'): Promise<ServerSpaceSync> {
+  // Create new space with a unique peer ID for the server
+  const serverPeerId = `${uuidv4()}`;
+  const space = Space.newSpace(serverPeerId);
+  const spaceId = space.getId();
+
   // Create directory structure based on UUID partitioning (first 2 chars)
   const partitionDir = path.join(dataDir, spaceId.substring(0, 2));
   if (!fs.existsSync(partitionDir)) {
@@ -270,12 +264,8 @@ export async function createNewServerSpaceSync(spaceId: string, ownerId: string,
 
   const dbPath = path.join(partitionDir, `${spaceId}.db`);
 
-  // Create new space with a unique peer ID for the server
-  const serverPeerId = `${uuidv4()}`;
-  const space = Space.newSpace(serverPeerId);
-
   // Create the sync instance
-  const sync = new ServerSpaceSync(spaceId, space, dbPath);
+  const sync = new ServerSpaceSync(space, dbPath);
 
   // Get all operations that created the space tree and save them
   const initOps = space.tree.getAllOps();
@@ -334,7 +324,7 @@ export async function loadExistingServerSpaceSync(spaceId: string, dataDir: stri
   const serverPeerId = `${uuidv4()}`;
   const space = new Space(new RepTree(serverPeerId, spaceOps));
 
-  const sync = new ServerSpaceSync(spaceId, space, dbPath);
+  const sync = new ServerSpaceSync(space, dbPath);
   await sync.connect();
 
   return sync;
