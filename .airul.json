@@ -12,6 +12,6 @@
     "windsurf": false,
     "copilot": false,
     "cline": false,
-    "claude": false
+    "claude": true
   }
 }
