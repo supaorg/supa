@@ -12,5 +12,5 @@ export interface SpaceConnection {
 export async function loadSpaceFromPointer(pointer: SpacePointer): Promise<SpaceConnection> {
   // For now, assume all non-http URIs are in-browser spaces
   // Load the existing space from database operations
-  return await loadExistingInBrowserSpaceSync(pointer.id);
+  return await loadExistingInBrowserSpaceSync(pointer);
 }

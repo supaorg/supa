@@ -4,8 +4,9 @@
   import { createNewInBrowserSpaceSync } from "$lib/spaces/InBrowserSpaceSync";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { Plus } from "lucide-svelte";
-    import { swins } from "../swinsLayout";
+  import { swins } from "../swinsLayout";
 
+  // @TODO: use space creation ts
   async function handleNewSpace() {
     const sync = await createNewInBrowserSpaceSync();
     spaceStore.addSpaceConnection(sync, "browser://" + sync.space.getId());

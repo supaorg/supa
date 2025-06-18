@@ -1,5 +1,7 @@
 import type { VertexOperation } from "@core";
 import { getTreeOps, appendTreeOps, getAllSecrets, saveAllSecrets } from "$lib/localDb";
+// Placeholder helpers for future server sync (not yet implemented)
+import { queueOpsForSync, queueSecretsForSync } from "$lib/stores/spacesocket.svelte";
 
 /**
  * A queue that manages operations and secrets that need to be saved to the database.
@@ -11,9 +13,12 @@ export default class SpacePersistenceQueue {
   private spaceId: string;
   private savingOpsToDatabase = false;
   private savingSecretsToDatabase = false;
+  // remote location of the space
+  private uri?: string;
 
-  constructor(spaceId: string) {
+  constructor(spaceId: string, uri?: string) {
     this.spaceId = spaceId;
+    this.uri = uri;
   }
 
   // === Tree Operations Management ===
@@ -42,7 +47,10 @@ export default class SpacePersistenceQueue {
           if (ops.length > 0) {
             // Clear ops immediately before saving
             this.opsMap.delete(treeId);
-            
+
+            // Queue for server sync 
+            queueOpsForSync(this.spaceId, treeId, ops);
+
             try {
               await appendTreeOps(this.spaceId, treeId, ops);
             } catch (error) {
@@ -81,10 +89,12 @@ export default class SpacePersistenceQueue {
     // Take a snapshot but don't clear yet
     const secretsToSave = { ...this.secretsToSave };
 
+    queueSecretsForSync(this.spaceId, secretsToSave);
+
     try {
       await saveAllSecrets(this.spaceId, secretsToSave);
-      
-      // Only clear if save was successful
+
+      // Only clear local queue if save was successful
       this.secretsToSave = {};
     } catch (error) {
       console.error("Failed to save secrets:", error);

@@ -7,6 +7,7 @@ import type { VertexOperation } from "@core";
 import { RepTree, isAnyPropertyOp } from "@core";
 import AppTree from "@core/spaces/AppTree";
 import SpacePersistenceQueue from "./SpacePersistenceQueue";
+import type { SpacePointer } from "./SpacePointer";
 
 export class InBrowserSpaceSync implements SpaceConnection {
   private _space: Space;
@@ -14,7 +15,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
   private _backend: Backend | undefined;
   private thingsToSave: SpacePersistenceQueue;
 
-  constructor(space: Space) {
+  constructor(space: Space, uri?: string) {
     this._space = space;
     this.thingsToSave = new SpacePersistenceQueue(space.getId());
 
@@ -189,9 +190,9 @@ export async function createNewInBrowserSpaceSync(): Promise<SpaceConnection> {
   return sync;
 }
 
-export async function createNewInBrowserSpaceSyncWithOps(ops: ReadonlyArray<VertexOperation>): Promise<SpaceConnection> {
+export async function createNewInBrowserSpaceSyncWithOps(ops: ReadonlyArray<VertexOperation>, uri?: string): Promise<SpaceConnection> {
   const space = Space.existingSpaceFromOps(ops);
-  const sync = new InBrowserSpaceSync(space);
+  const sync = new InBrowserSpaceSync(space, uri);
 
   sync.addOpsToSave(space.getId(), ops);
   
@@ -199,7 +200,10 @@ export async function createNewInBrowserSpaceSyncWithOps(ops: ReadonlyArray<Vert
   return sync;
 }
 
-export async function loadExistingInBrowserSpaceSync(spaceId: string): Promise<SpaceConnection> {
+export async function loadExistingInBrowserSpaceSync(pointer: SpacePointer): Promise<SpaceConnection> {
+  const spaceId = pointer.id;
+  const uri = pointer.uri;
+  
   try {
     // Load operations for the main space tree
     const spaceOps = await getTreeOps(spaceId, spaceId);
@@ -212,7 +216,7 @@ export async function loadExistingInBrowserSpaceSync(spaceId: string): Promise<S
     // Create the space from operations
     const space = new Space(new RepTree(uuid(), spaceOps));
 
-    const sync = new InBrowserSpaceSync(space);
+    const sync = new InBrowserSpaceSync(space, uri);
     await sync.connect();
     return sync;
   } catch (error) {

@@ -18,7 +18,9 @@ export async function createNewSyncedSpace() {
     throw new Error(response.error || 'Failed to create space');
   }
 
-  const sync = await createNewInBrowserSpaceSyncWithOps(response.data.operations);
-  spaceStore.addSpaceConnection(sync, `${API_BASE_URL}/spaces/` + sync.space.getId());
+  const uri = `${API_BASE_URL}/spaces/` + response.data.id;
+
+  const sync = await createNewInBrowserSpaceSyncWithOps(response.data.operations, uri);
+  spaceStore.addSpaceConnection(sync, uri);
   spaceStore.currentSpaceId = sync.space.getId();
 }

@@ -2,6 +2,7 @@ import { browser } from "$app/environment";
 import { io, type Socket } from "socket.io-client";
 import { API_BASE_URL } from "$lib/utils/api";
 import { authStore } from "./auth.svelte";
+import type { VertexOperation } from "@core";
 
 export class SpaceSocketStore {
   // Reactive state - same as SpaceEntry.svelte
@@ -76,4 +77,30 @@ export class SpaceSocketStore {
 }
 
 // Export singleton instance
-export const spaceSocketStore = new SpaceSocketStore(); 
+export const spaceSocketStore = new SpaceSocketStore();
+
+// === Placeholder server-sync helpers ===
+// These will be fleshed out in upcoming server-sync work.
+
+/**
+ * Queue a batch of vertex operations to be synced with the remote server.
+ * NOTE: implementation will be added in a future iteration.
+ */
+export function queueOpsForSync(
+  spaceId: string,
+  treeId: string,
+  ops: ReadonlyArray<VertexOperation>
+): void {
+  /* TODO: implement server sync logic */
+}
+
+/**
+ * Queue a collection of secrets to be synced with the remote server.
+ * NOTE: implementation will be added in a future iteration.
+ */
+export function queueSecretsForSync(
+  spaceId: string,
+  secrets: Record<string, string>
+): void {
+  /* TODO: implement server sync logic */
+} 
