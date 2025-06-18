@@ -130,7 +130,7 @@ export class AgentServices {
 
     if (configuredProviderIds.length > 0) {
       // Prioritize certain providers
-      const providerOrder = ["openai", "anthropic", "google", "xai", "deepseek", "groq", "mistral", "ollama"];
+      const providerOrder = ["openrouter", "openai", "anthropic", "google", "xai", "deepseek", "groq", "mistral", "ollama"];
       const sortedProviders = configuredProviderIds.sort((a, b) => {
         // Custom providers get lower priority than built-in ones
         if (a.startsWith('custom-') && !b.startsWith('custom-')) return 1;
@@ -169,7 +169,7 @@ export class AgentServices {
     }
 
     // Legacy implementation as fallback
-    const providerOrder = ["openai", "anthropic", "deepseek", "groq", "ollama"];
+    const providerOrder = ["openrouter", "openai", "anthropic", "deepseek", "groq", "ollama"];
 
     // Check custom providers first before trying the static providers
     const customProviders = providerConfigs.filter(config => config.id.startsWith('custom-'));
