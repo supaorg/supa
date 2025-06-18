@@ -1,0 +1,55 @@
+name: Build and Deploy t69 to S3 and Invalidate CloudFront
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: 'us-east-1'
+      AWS_S3_BUCKET: 't69.chat'
+      AWS_CLOUDFRONT: '@TODO' 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install client dependencies
+        run: cd packages/client && npm install
+
+      - name: Install core dependencies
+        run: cd packages/core && npm install
+
+      - name: Build SvelteKit app
+        run: cd packages/client && npm run build
+        env:
+          VITE_API_URL: https://api.t69.chat
+
+      - name: Deploy to S3
+        uses: shallwefootball/s3-upload-action@master
+        with:
+          source_dir: 'packages/client/.svelte-kit/output/client'
+          destination_dir: ''
+          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_bucket: ${{ env.AWS_S3_BUCKET }}
+
+      - name: Invalidate CloudFront distribution
+        uses: chetan/invalidate-cloudfront-action@v2
+        env:
+          DISTRIBUTION: ${{ env.AWS_CLOUDFRONT }}
+          PATHS: '/*'
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
