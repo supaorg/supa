@@ -466,7 +466,12 @@ export async function saveAllSecrets(spaceId: string, secrets: Record<string, st
     await db.spaces
       .where('id')
       .equals(spaceId)
-      .modify({ secrets: secrets });
+      .modify((space) => {
+        if (!space.secrets) {
+          space.secrets = {};
+        }
+        Object.assign(space.secrets, secrets);
+      });
   } catch (error) {
     console.error(`Failed to save all secrets for space ${spaceId}:`, error);
   }
