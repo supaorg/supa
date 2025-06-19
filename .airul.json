@@ -4,7 +4,6 @@
   "sources": [
     "README.md",
     "docs/for-ai/rules.md",
-    "docs/for-ai/skeleton.md",
     "docs/for-ai/svelte.md"
   ],
   "output": {
