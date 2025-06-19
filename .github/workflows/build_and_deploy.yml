@@ -11,7 +11,7 @@ jobs:
     env:
       AWS_REGION: 'us-east-1'
       AWS_S3_BUCKET: 't69.chat'
-      AWS_CLOUDFRONT: 'd1lpya5l5m7tjt' 
+      AWS_CLOUDFRONT: 'E3146AB9E1G7ZQ' 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
