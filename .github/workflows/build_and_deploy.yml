@@ -24,6 +24,14 @@ jobs:
       - name: Install dependencies for all packages
         run: npm ci
 
+      - name: Clean client node_modules and package-lock
+        run: |
+          rm -rf packages/client/node_modules
+          rm -f packages/client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm install --prefix packages/client
+
       - name: Build SvelteKit app
         run: cd packages/client && npm run build
         env:
