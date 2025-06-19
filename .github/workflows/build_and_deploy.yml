@@ -21,16 +21,16 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies for all packages
-        run: npm ci
-
-      - name: Clean client node_modules and package-lock
+      - name: Clear all caches and node_modules
         run: |
-          rm -rf packages/client/node_modules
-          rm -f packages/client/package-lock.json
+          npm cache clean --force
+          rm -rf node_modules package-lock.json
+          rm -rf packages/client/node_modules packages/client/package-lock.json
+          rm -rf packages/core/node_modules packages/core/package-lock.json
+          rm -rf packages/server/node_modules packages/server/package-lock.json
 
-      - name: Install client dependencies
-        run: npm install --prefix packages/client
+      - name: Install dependencies for all packages
+        run: npm install
 
       - name: Build SvelteKit app
         run: cd packages/client && npm run build
