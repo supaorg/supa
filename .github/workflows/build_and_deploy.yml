@@ -11,7 +11,7 @@ jobs:
     env:
       AWS_REGION: 'us-east-1'
       AWS_S3_BUCKET: 't69.chat'
-      AWS_CLOUDFRONT: '@TODO' 
+      AWS_CLOUDFRONT: 'd1lpya5l5m7tjt' 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,14 +22,8 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install root dependencies
+      - name: Install dependencies for all packages
         run: npm install
-
-      - name: Install client dependencies
-        run: cd packages/client && npm install
-
-      - name: Install core dependencies
-        run: cd packages/core && npm install
 
       - name: Build SvelteKit app
         run: cd packages/client && npm run build
@@ -39,7 +33,7 @@ jobs:
       - name: Deploy to S3
         uses: shallwefootball/s3-upload-action@master
         with:
-          source_dir: 'packages/client/.svelte-kit/output/client'
+          source_dir: 'packages/client/build'
           destination_dir: ''
           aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
