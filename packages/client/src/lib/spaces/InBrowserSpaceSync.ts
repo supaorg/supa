@@ -4,7 +4,7 @@ import uuid from "@core/uuid/uuid";
 import { Backend } from "@core/spaces/Backend";
 import { getTreeOps } from "$lib/localDb";
 import type { VertexOperation } from "@core";
-import { RepTree, isAnyPropertyOp } from "@core";
+import { RepTree, isAnyPropertyOp, isMoveVertexOp } from "@core";
 import AppTree from "@core/spaces/AppTree";
 import SpacePersistenceQueue from "./SpacePersistenceQueue";
 import type { SpacePointer } from "./SpacePointer";
@@ -81,7 +81,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
    */
   private startSaveLoop() {
     const saveLoop = () => {
-      this.thingsToSave.saveData();
+      this.thingsToSave.saveAll();
       requestAnimationFrame(saveLoop);
     };
     requestAnimationFrame(saveLoop);
@@ -114,7 +114,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
     }
 
     // Save any pending operations and secrets
-    await this.thingsToSave.saveData();
+    await this.thingsToSave.saveAll();
 
     this._connected = false;
   }
@@ -143,7 +143,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
     const treeId = tree.root!.id;
 
     // Only save move ops or non-transient property ops (so, no transient properties)
-    if (!isAnyPropertyOp(op) || !op.transient) {
+    if (isMoveVertexOp(op) || (isAnyPropertyOp(op) && !op.transient)) {
       this.thingsToSave.addOps(treeId, [op]);
     }
   }
@@ -157,7 +157,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
       return;
     }
 
-    const ops = appTree.tree.popLocalOps();
+    const ops = appTree.tree.getAllOps();
     this.thingsToSave.addOps(appTreeId, ops);
 
     appTree.tree.observeOpApplied((op) => {
