@@ -62,7 +62,7 @@ export function registerSpaceRoutes(fastify: FastifyInstance, services: Services
     }
   });
 
-  // Get space by ID
+  // Get space by ID and its tree operations
   fastify.get<{ Params: { id: string } }>('/spaces/:id', {
     preHandler: authMiddleware
   }, async (request, reply) => {
@@ -106,6 +106,28 @@ export function registerSpaceRoutes(fastify: FastifyInstance, services: Services
         code: 'SPACE_LOAD_FAILED'
       });
     }
+  });
+
+  // Get operations for a specific tree
+  fastify.get<{ Params: { spaceId: string, treeId: string } }>('/spaces/:spaceId/:treeId', {
+    preHandler: authMiddleware
+  }, async (request, reply) => {
+    const { spaceId, treeId } = request.params;
+
+    const userId = request.user!.id;
+
+    // Check if user can access this space
+    if (!services.spaces.canUserAccessSpace(userId, spaceId)) {
+      return reply.code(403).send({
+        error: 'Access denied',
+        code: 'ACCESS_DENIED'
+      });
+    }
+
+    const sync = await services.spaces.loadSpace(spaceId);
+    const operations = await sync.loadTreeOps(treeId);
+
+    return reply.send(operations);
   });
 
   // Update space metadata

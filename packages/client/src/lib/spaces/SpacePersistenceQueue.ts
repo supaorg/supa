@@ -39,10 +39,6 @@ export default class SpacePersistenceQueue {
     this.remoteOpsMap.set(treeId, [...existingRemoteOps, ...ops]);
   }
 
-  async getSavedOps(treeId: string): Promise<VertexOperation[]> {
-    return await getTreeOps(this.spaceId, treeId);
-  }
-
   private async saveLocalOps(): Promise<void> {
     if (this.savingLocalOps) return;
     if (this.localOpsMap.size === 0) return;
