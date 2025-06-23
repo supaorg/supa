@@ -1,5 +1,5 @@
 import { authStore } from "$lib/stores/auth.svelte";
-import { savePointers, appendTreeOps } from "$lib/localDb";
+import { savePointers, appendTreeOps, saveAllSecrets } from "$lib/localDb";
 import type { SpaceCreationResponse } from "@core/apiTypes";
 
 // API Base URL - should match the server
@@ -141,8 +141,15 @@ export async function fetchSpaces() {
             if (operations && operations.length > 0) {
               await appendTreeOps(space.id, space.id, operations);
             }
+            
+            // Save secrets for the space
+            const secrets = spaceResponse.data.secrets;
+            if (secrets && Object.keys(secrets).length > 0) {
+              await saveAllSecrets(space.id, secrets);
+            }
+            
             console.log(
-              `Successfully fetched details for space ${space.id}, ops: ${spaceResponse.data.operations.length}`,
+              `Successfully fetched details for space ${space.id}, ops: ${spaceResponse.data.operations.length}, secrets: ${Object.keys(spaceResponse.data.secrets).length}`,
             );
           }
         } catch (spaceError) {

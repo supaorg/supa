@@ -4,6 +4,7 @@ _site
 _cache
 deno.lock
 .env
+.env.disabled
 jwt.key
 
 env.json

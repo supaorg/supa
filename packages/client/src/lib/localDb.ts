@@ -19,12 +19,19 @@ export type SpaceSetup = {
   theme?: string | null;
   colorScheme?: 'light' | 'dark' | null;
   drafts?: { [draftId: string]: string } | null;
-  secrets?: { [key: string]: string } | null;
+  // Note: secrets moved to separate table
 };
 
 export interface ConfigEntry {
   key: string;
   value: unknown;
+}
+
+// Individual secret record - matches server schema
+export interface SecretRecord {
+  spaceId: string;
+  key: string;
+  value: string;
 }
 
 // Table for operations with split operation IDs
@@ -50,6 +57,7 @@ class LocalDb extends Dexie {
   spaces!: Dexie.Table<SpaceSetup, string>;
   config!: Dexie.Table<ConfigEntry, string>;
   treeOps!: Dexie.Table<TreeOperation, string>; // Primary key is composite
+  secrets!: Dexie.Table<SecretRecord, [string, string]>; // Composite primary key [spaceId, key]
 
   constructor() {
     super('localDb');
@@ -57,7 +65,8 @@ class LocalDb extends Dexie {
     this.version(1).stores({
       spaces: '&id, uri, name, createdAt',
       config: '&key',
-      treeOps: '&[clock+peerId+treeId+spaceId], spaceId, treeId, [spaceId+treeId], [spaceId+treeId+clock]'
+      treeOps: '&[clock+peerId+treeId+spaceId], spaceId, treeId, [spaceId+treeId], [spaceId+treeId+clock]',
+      secrets: '&[spaceId+key], spaceId' // Composite primary key [spaceId+key], indexed by spaceId
     });
   }
 }
@@ -184,7 +193,6 @@ export async function savePointers(pointers: SpacePointer[]): Promise<void> {
             ttabsLayout: null,
             theme: null,
             drafts: null,
-            secrets: null
           });
         }
       } catch (spaceError) {
@@ -382,9 +390,15 @@ export async function saveSpaceColorScheme(spaceId: string, colorScheme: 'light'
 // Delete a space from the database
 export async function deleteSpace(spaceId: string): Promise<void> {
   try {
-    await db.transaction('rw', [db.spaces, db.treeOps, db.config], async () => {
+    await db.transaction('rw', [db.spaces, db.treeOps, db.secrets, db.config], async () => {
       // Delete all operations for this space
       await db.treeOps
+        .where('spaceId')
+        .equals(spaceId)
+        .delete();
+
+      // Delete all secrets for this space
+      await db.secrets
         .where('spaceId')
         .equals(spaceId)
         .delete();
@@ -452,8 +466,21 @@ export async function deleteDraft(spaceId: string, draftId: string): Promise<voi
 // Get all secrets for a space
 export async function getAllSecrets(spaceId: string): Promise<Record<string, string> | undefined> {
   try {
-    const space = await db.spaces.get(spaceId);
-    return space?.secrets || undefined;
+    const secretRecords = await db.secrets
+      .where('spaceId')
+      .equals(spaceId)
+      .toArray();
+      
+    if (secretRecords.length === 0) {
+      return undefined;
+    }
+    
+    const secrets: Record<string, string> = {};
+    for (const record of secretRecords) {
+      secrets[record.key] = record.value;
+    }
+    
+    return secrets;
   } catch (error) {
     console.error(`Failed to get all secrets for space ${spaceId}:`, error);
     return undefined;
@@ -463,15 +490,14 @@ export async function getAllSecrets(spaceId: string): Promise<Record<string, str
 // Save all secrets for a space
 export async function saveAllSecrets(spaceId: string, secrets: Record<string, string>): Promise<void> {
   try {
-    await db.spaces
-      .where('id')
-      .equals(spaceId)
-      .modify((space) => {
-        if (!space.secrets) {
-          space.secrets = {};
-        }
-        Object.assign(space.secrets, secrets);
-      });
+    const secretRecords: SecretRecord[] = Object.entries(secrets).map(([key, value]) => ({
+      spaceId,
+      key,
+      value
+    }));
+    
+    // Use bulkPut to insert/update all secrets
+    await db.secrets.bulkPut(secretRecords);
   } catch (error) {
     console.error(`Failed to save all secrets for space ${spaceId}:`, error);
   }
@@ -480,8 +506,12 @@ export async function saveAllSecrets(spaceId: string, secrets: Record<string, st
 // Get a specific secret for a space
 export async function getSecret(spaceId: string, key: string): Promise<string | undefined> {
   try {
-    const space = await db.spaces.get(spaceId);
-    return space?.secrets?.[key];
+    const secretRecord = await db.secrets
+      .where('[spaceId+key]')
+      .equals([spaceId, key])
+      .first();
+      
+    return secretRecord?.value;
   } catch (error) {
     console.error(`Failed to get secret ${key} for space ${spaceId}:`, error);
     return undefined;
@@ -491,17 +521,25 @@ export async function getSecret(spaceId: string, key: string): Promise<string | 
 // Set a specific secret for a space
 export async function setSecret(spaceId: string, key: string, value: string): Promise<void> {
   try {
-    await db.spaces
-      .where('id')
-      .equals(spaceId)
-      .modify((space) => {
-        if (!space.secrets) {
-          space.secrets = {};
-        }
-        space.secrets[key] = value;
-      });
+    await db.secrets.put({
+      spaceId,
+      key,
+      value
+    });
   } catch (error) {
     console.error(`Failed to set secret ${key} for space ${spaceId}:`, error);
+  }
+}
+
+// Delete a specific secret for a space
+export async function deleteSecret(spaceId: string, key: string): Promise<void> {
+  try {
+    await db.secrets
+      .where('[spaceId+key]')
+      .equals([spaceId, key])
+      .delete();
+  } catch (error) {
+    console.error(`Failed to delete secret ${key} for space ${spaceId}:`, error);
   }
 }
 

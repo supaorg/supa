@@ -63,6 +63,10 @@ export class ServerSpaceSync {
         return undefined;
       }
     });
+
+    // Observe secrets changes and save them to database
+    // Note: We'll need to wrap the space's setSecret method to track changes
+    this.wrapSecretsMethod();
   }
 
   private initializeDatabase(): void {
@@ -82,6 +86,15 @@ export class ServerSpaceSync {
       
       CREATE INDEX IF NOT EXISTS idx_space_tree ON tree_ops(spaceId, treeId);
       CREATE INDEX IF NOT EXISTS idx_space_tree_clock ON tree_ops(spaceId, treeId, clock);
+      
+      CREATE TABLE IF NOT EXISTS secrets (
+        spaceId TEXT NOT NULL,
+        key TEXT NOT NULL,
+        value TEXT NOT NULL,
+        PRIMARY KEY (spaceId, key)
+      );
+      
+      CREATE INDEX IF NOT EXISTS idx_secrets_space ON secrets(spaceId);
     `);
   }
 
@@ -199,6 +212,67 @@ export class ServerSpaceSync {
     transaction(treeOpsEntries);
   }
 
+  // Save secrets to the database
+  async saveSecrets(secrets: Record<string, string>): Promise<void> {
+    if (Object.keys(secrets).length === 0) return;
+
+    const stmt = this._db.prepare(`
+      INSERT OR REPLACE INTO secrets (spaceId, key, value)
+      VALUES (?, ?, ?)
+    `);
+
+    const transaction = this._db.transaction((secretEntries: Array<[string, string]>) => {
+      for (const [key, value] of secretEntries) {
+        stmt.run(this._spaceId, key, value);
+      }
+    });
+
+    transaction(Object.entries(secrets));
+  }
+
+  // Load secrets from the database
+  async loadSecrets(): Promise<Record<string, string>> {
+    try {
+      const stmt = this._db.prepare(`
+        SELECT key, value FROM secrets WHERE spaceId = ?
+      `);
+
+      const rows = stmt.all(this._spaceId) as Array<{ key: string; value: string }>;
+      const secrets: Record<string, string> = {};
+      
+      for (const row of rows) {
+        secrets[row.key] = row.value;
+      }
+
+      return secrets;
+    } catch (error) {
+      console.error(`Failed to load secrets for space ${this._spaceId}:`, error);
+      return {};
+    }
+  }
+
+  // Wrap the space's secret methods to automatically save changes to database
+  private wrapSecretsMethod(): void {
+    const originalSetSecret = this._space.setSecret.bind(this._space);
+    const originalSaveAllSecrets = this._space.saveAllSecrets.bind(this._space);
+
+    this._space.setSecret = (key: string, value: string) => {
+      originalSetSecret(key, value);
+      // Save individual secret to database
+      this.saveSecrets({ [key]: value }).catch(error => {
+        console.error('Failed to save secret to database:', error);
+      });
+    };
+
+    this._space.saveAllSecrets = (secrets: Record<string, string>) => {
+      originalSaveAllSecrets(secrets);
+      // Save all secrets to database
+      this.saveSecrets(secrets).catch(error => {
+        console.error('Failed to save secrets to database:', error);
+      });
+    };
+  }
+
   private handleOpAppliedFromSamePeer(tree: RepTree, op: VertexOperation) {
     // Important that we don't save ops from other peers here
     if (op.id.peerId !== tree.peerId) {
@@ -313,6 +387,12 @@ export async function loadExistingServerSpaceSync(spaceId: string): Promise<Serv
 
   const sync = new ServerSpaceSync(space, dbPath);
   await sync.connect();
+
+  // Load and apply secrets to the space
+  const secrets = await sync.loadSecrets();
+  if (Object.keys(secrets).length > 0) {
+    space.saveAllSecrets(secrets);
+  }
 
   return sync;
 } 

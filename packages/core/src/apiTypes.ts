@@ -5,4 +5,5 @@ export interface SpaceCreationResponse {
   created_at: number;
   owner_id: string;
   operations: ReadonlyArray<VertexOperation>;
+  secrets: Record<string, string>;
 }

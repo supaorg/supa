@@ -108,7 +108,18 @@ export function setupSocketIO(httpServer: HTTPServer, services: Services, fronte
           spaceId: data.spaceId,
           numSecrets: Object.keys(data.secrets || {}).length,
         });
-        // TODO: Persist secrets securely, e.g., via services.spaceService.saveSecrets(...)
+
+        // Check if user can access this space
+        if (!services.spaces.canUserAccessSpace(socket.userId!, data.spaceId)) {
+          console.error(`❌ User ${socket.userId} cannot access space ${data.spaceId}`);
+          return;
+        }
+
+        // Load the space's ServerSpaceSync instance and save secrets
+        const sync = await services.spaces.loadSpace(data.spaceId);
+        await sync.saveSecrets(data.secrets);
+
+        console.log(`✅ Successfully saved ${Object.keys(data.secrets).length} secrets for space ${data.spaceId}`);
       } catch (err) {
         console.error('❌ Failed to process synced secrets:', err);
       }

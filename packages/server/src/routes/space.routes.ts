@@ -38,12 +38,14 @@ export function registerSpaceRoutes(fastify: FastifyInstance, services: Services
       // Create new space with SpaceService
       const { metadata, sync } = await services.spaces.createSpace(ownerId);
       const operations = sync.space.tree.getAllOps();
+      const secrets = sync.space.getAllSecrets() || {};
 
       const space: SpaceCreationResponse = {
         id: metadata.id,
         created_at: metadata.created_at,
         owner_id: metadata.owner_id,
-        operations
+        operations,
+        secrets
       };
 
       return reply.code(201).send(space);
@@ -84,12 +86,14 @@ export function registerSpaceRoutes(fastify: FastifyInstance, services: Services
 
       // Get operations for the space
       const operations = await sync.loadTreeOps(id);
+      const secrets = sync.space.getAllSecrets() || {};
 
       const space: SpaceCreationResponse = {
         id: metadata.id,
         created_at: metadata.created_at,
         owner_id: metadata.owner_id,
-        operations
+        operations,
+        secrets
       };
 
       return reply.send(space);
