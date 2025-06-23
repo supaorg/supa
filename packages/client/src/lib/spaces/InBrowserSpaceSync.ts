@@ -41,14 +41,20 @@ export class InBrowserSpaceSync implements SpaceConnection {
         const spaceId = this._space.getId();
         let ops = await getTreeOps(spaceId, appTreeId);
 
-        if (ops.length === 0) {
+        const awaitForSpaceOps = ops.length === 0;
+
+        if (awaitForSpaceOps) {
           // Try to load from the server
           console.log(`No local operations found for tree ${appTreeId}, trying to load from server`);
           ops = await getSpaceTreeOps(spaceId, appTreeId);
-          
+
           if (ops.length === 0) {
             return undefined;
           }
+        } else {
+          // We have local ops, so we can use them immediately and meanwhile we'll try to load from the server
+          // in the background
+          this.loadAndApplyRemoteOps(appTreeId);
         }
 
         const tree = new RepTree(uuid(), ops);
@@ -64,6 +70,16 @@ export class InBrowserSpaceSync implements SpaceConnection {
 
     // Set up continuous frame loop to save data
     this.startSaveLoop();
+  }
+
+  private async loadAndApplyRemoteOps(appTreeId: string) {
+    const spaceId = this._space.getId();
+    const ops = await getSpaceTreeOps(spaceId, appTreeId);
+
+    const appTree = this._space.getAppTree(appTreeId);
+    if (appTree) {
+      appTree.tree.merge(ops);
+    }
   }
 
   private wrapSecretsMethod() {
