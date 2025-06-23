@@ -159,4 +159,19 @@ export async function fetchSpaces() {
   } catch (error) {
     console.error("Failed to fetch spaces:", error);
   }
+}
+
+export async function getSpaceTreeOps(spaceId: string, treeId: string) {
+  try {
+    const response = await api.get(`/spaces/${spaceId}/${treeId}`);
+    if (response.success && response.data) {
+      // Save the operations to local database
+      await appendTreeOps(spaceId, treeId, response.data);
+      return response.data;
+    }
+    return [];
+  } catch (error) {
+    console.error(`Failed to fetch tree operations for space ${spaceId}, tree ${treeId}:`, error);
+    return [];
+  }
 } 

@@ -8,6 +8,7 @@ import { RepTree, isAnyPropertyOp, isMoveVertexOp } from "@core";
 import AppTree from "@core/spaces/AppTree";
 import SpacePersistenceQueue from "./SpacePersistenceQueue";
 import type { SpacePointer } from "./SpacePointer";
+import { getSpaceTreeOps } from "$lib/utils/api";
 
 export class InBrowserSpaceSync implements SpaceConnection {
   private _space: Space;
@@ -38,10 +39,16 @@ export class InBrowserSpaceSync implements SpaceConnection {
     space.registerTreeLoader(async (appTreeId) => {
       try {
         const spaceId = this._space.getId();
-        const ops = await getTreeOps(spaceId, appTreeId);
+        let ops = await getTreeOps(spaceId, appTreeId);
 
         if (ops.length === 0) {
-          return undefined;
+          // Try to load from the server
+          console.log(`No local operations found for tree ${appTreeId}, trying to load from server`);
+          ops = await getSpaceTreeOps(spaceId, appTreeId);
+          
+          if (ops.length === 0) {
+            return undefined;
+          }
         }
 
         const tree = new RepTree(uuid(), ops);
