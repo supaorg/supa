@@ -22,10 +22,13 @@ export default class SpacePersistenceQueue {
 
   private spaceId: string;
   private uri?: string;
+  private isLocal: boolean;
 
   constructor(spaceId: string, uri?: string) {
     this.spaceId = spaceId;
     this.uri = uri;
+
+    this.isLocal = !uri || !uri.startsWith('http');
   }
 
   // === Tree Operations Management ===
@@ -36,7 +39,10 @@ export default class SpacePersistenceQueue {
     const existingRemoteOps = this.remoteOpsMap.get(treeId) || [];
     
     this.localOpsMap.set(treeId, [...existingLocalOps, ...ops]);
-    this.remoteOpsMap.set(treeId, [...existingRemoteOps, ...ops]);
+
+    if (!this.isLocal) {
+      this.remoteOpsMap.set(treeId, [...existingRemoteOps, ...ops]);
+    }
   }
 
   private async saveLocalOps(): Promise<void> {
@@ -112,7 +118,10 @@ export default class SpacePersistenceQueue {
   addSecret(key: string, value: string): void {
     // Add to both local and remote queues
     this.localSecretsToSave[key] = value;
-    this.remoteSecretsToSync[key] = value;
+    
+    if (!this.isLocal) {
+      this.remoteSecretsToSync[key] = value;
+    }
   }
 
   async getSavedSecrets(): Promise<Record<string, string>> {

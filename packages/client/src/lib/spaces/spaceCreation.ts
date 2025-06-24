@@ -21,6 +21,18 @@ export async function createNewSyncedSpace() {
   const uri = `${API_BASE_URL}/spaces/` + response.data.id;
 
   const sync = await createNewInBrowserSpaceSyncWithOps(response.data.operations, uri);
-  spaceStore.addSpaceConnection(sync, uri);
+  
+  // Add space connection with the userId from the server response
+  const pointer = {
+    id: sync.space.getId(),
+    uri: uri,
+    name: sync.space.name || null,
+    createdAt: sync.space.createdAt,
+    userId: response.data.owner_id,
+  };
+  
+  spaceStore.connections = [...spaceStore.connections, sync];
+  spaceStore.pointers = [...spaceStore.pointers, pointer];
+  
   spaceStore.currentSpaceId = sync.space.getId();
 }

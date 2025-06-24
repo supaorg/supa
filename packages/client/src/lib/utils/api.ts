@@ -1,6 +1,8 @@
 import { authStore } from "$lib/stores/auth.svelte";
 import { savePointers, appendTreeOps, saveAllSecrets } from "$lib/localDb";
 import type { SpaceCreationResponse } from "@core/apiTypes";
+import type { SpacePointer } from "$lib/spaces/SpacePointer";
+import { spaceStore } from "$lib/spaces/spaceStore.svelte";
 
 // API Base URL - should match the server
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3131';
@@ -121,11 +123,12 @@ export async function fetchSpaces() {
     const response = await api.get("/spaces");
     if (response.success && response.data) {
       // Transform spaces to SpacePointer format
-      const spaces = response.data.map((space: any) => ({
+      const spaces: SpacePointer[] = response.data.map((space: any) => ({
         id: space.id,
         uri: `${API_BASE_URL}/spaces/${space.id}`,
         name: space.name,
-        createdAt: new Date(space.createdAt),
+        createdAt: new Date(space.created_at || space.createdAt),
+        userId: space.owner_id, // Map server's owner_id to client's userId
       }));
 
       // Fetch details for each space
@@ -162,6 +165,11 @@ export async function fetchSpaces() {
 
       // Save to local database
       await savePointers(spaces);
+
+      // Filter out duplicates by space.id before adding to store
+      const existingIds = new Set(spaceStore.pointers.map(p => p.id));
+      const newSpaces = spaces.filter(space => !existingIds.has(space.id));
+      spaceStore.pointers = [...spaceStore.pointers, ...newSpaces];
     }
   } catch (error) {
     console.error("Failed to fetch spaces:", error);

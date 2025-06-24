@@ -1,8 +1,9 @@
 import type Space from "@core/spaces/Space";
 import { loadSpaceFromPointer, type SpaceConnection } from "./SpaceConnection";
 import type { SpacePointer } from "./SpacePointer";
-import { deleteSpace, getDraft, saveDraft, deleteDraft, getAllSecrets, saveAllSecrets, getSecret, setSecret } from "$lib/localDb";
+import { deleteSpace, getDraft, saveDraft, deleteDraft, getAllSecrets, saveAllSecrets, getSecret, setSecret, getPointersForUser, associateSpacesWithUser, updateSpaceUserId, associateLocalSpaceWithUser, makeSpaceLocal } from "$lib/localDb";
 import { untrack } from "svelte";
+import { authStore } from "$lib/stores/auth.svelte";
 
 class SpaceStore {
   pointers: SpacePointer[] = $state([]);
@@ -86,6 +87,8 @@ class SpaceStore {
         if (connection.space.getId() === this.currentSpaceId) {
           currentConnection = connection;
         }
+
+        pointer.name = connection.space.name || null;
       } catch (error) {
         console.error("Could not load space", pointer, error);
       }
@@ -114,6 +117,7 @@ class SpaceStore {
       uri: path,
       name: connection.space.name || null,
       createdAt: connection.space.createdAt,
+      userId: authStore.user?.id || null,
     };
 
     this.pointers = [...this.pointers, pointer];
@@ -232,6 +236,104 @@ class SpaceStore {
    */
   getSpaceConnectionById(spaceId: string): SpaceConnection | null {
     return this.connections.find(conn => conn.space.getId() === spaceId) || null;
+  }
+
+  /**
+   * Filter spaces for the current user
+   */
+  async filterSpacesForCurrentUser(): Promise<void> {
+    const userId = authStore.user?.id || null;
+    const userPointers = await getPointersForUser(userId);
+    
+    // Update pointers to only show user's spaces
+    this.pointers = userPointers;
+    
+    // If current space is not visible to user, clear it
+    const currentSpaceVisible = userPointers.find(p => p.id === this.currentSpaceId);
+    if (!currentSpaceVisible) {
+      this.currentSpaceId = userPointers.length > 0 ? userPointers[0].id : null;
+    }
+    
+    // Filter connections to match visible pointers
+    const visibleSpaceIds = new Set(userPointers.map(p => p.id));
+    this.connections = this.connections.filter(conn => visibleSpaceIds.has(conn.space.getId()));
+  }
+
+  /**
+   * Handle user sign in - filter spaces but keep local spaces accessible
+   */
+  async handleUserSignIn(userId: string): Promise<void> {
+    // Don't automatically associate existing spaces with the user
+    // Just filter spaces to show user's spaces + local spaces
+    await this.filterSpacesForCurrentUser();
+  }
+
+  /**
+   * Handle user sign out - show only anonymous spaces
+   */
+  async handleUserSignOut(): Promise<void> {
+    // Filter spaces for anonymous user (null userId)
+    await this.filterSpacesForCurrentUser();
+  }
+
+  /**
+   * Update userId for a specific space
+   */
+  async updateSpaceUser(spaceId: string, userId: string | null): Promise<void> {
+    await updateSpaceUserId(spaceId, userId);
+    
+    // Update the pointer in memory
+    const pointerIndex = this.pointers.findIndex(p => p.id === spaceId);
+    if (pointerIndex !== -1) {
+      this.pointers[pointerIndex] = { ...this.pointers[pointerIndex], userId };
+    }
+  }
+
+  /**
+   * Associate a local space with the current user
+   */
+  async associateSpaceWithCurrentUser(spaceId: string): Promise<void> {
+    if (!authStore.user) {
+      throw new Error('No user is currently signed in');
+    }
+    
+    await associateLocalSpaceWithUser(spaceId, authStore.user.id);
+    
+    // Update the pointer in memory
+    const pointerIndex = this.pointers.findIndex(p => p.id === spaceId);
+    if (pointerIndex !== -1) {
+      this.pointers[pointerIndex] = { ...this.pointers[pointerIndex], userId: authStore.user.id };
+    }
+  }
+
+  /**
+   * Make a space local (remove user association)
+   */
+  async makeSpaceLocal(spaceId: string): Promise<void> {
+    await makeSpaceLocal(spaceId);
+    
+    // Update the pointer in memory
+    const pointerIndex = this.pointers.findIndex(p => p.id === spaceId);
+    if (pointerIndex !== -1) {
+      this.pointers[pointerIndex] = { ...this.pointers[pointerIndex], userId: null };
+    }
+  }
+
+  /**
+   * Check if a space is local (has no user association)
+   */
+  isSpaceLocal(spaceId: string): boolean {
+    const pointer = this.pointers.find(p => p.id === spaceId);
+    return pointer?.userId === null;
+  }
+
+  /**
+   * Check if current user owns a space
+   */
+  doesCurrentUserOwnSpace(spaceId: string): boolean {
+    if (!authStore.user) return false;
+    const pointer = this.pointers.find(p => p.id === spaceId);
+    return pointer?.userId === authStore.user.id;
   }
 }
 

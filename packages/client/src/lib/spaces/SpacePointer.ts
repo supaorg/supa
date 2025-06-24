@@ -3,4 +3,5 @@ export type SpacePointer = {
   uri: string;
   name: string | null;
   createdAt: Date;
+  userId: string | null; // null for spaces created before user authentication
 }

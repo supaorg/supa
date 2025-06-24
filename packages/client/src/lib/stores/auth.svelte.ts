@@ -38,8 +38,6 @@ class AuthStore {
   }
 
   async setAuth(tokens: AuthTokens, user: User) {
-    console.log("usr", user);
-
     this.accessToken = tokens.access_token;
     // Only update refresh token if it's a new one (during initial auth)
     if (tokens.refresh_token) {

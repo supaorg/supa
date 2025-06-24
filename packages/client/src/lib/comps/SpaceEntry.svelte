@@ -11,7 +11,7 @@
     saveConfig,
   } from "$lib/localDb";
   import Space from "./apps/Space.svelte";
-    import { spaceSocketStore } from "$lib/stores/spacesocket.svelte";
+  import { spaceSocketStore } from "$lib/stores/spacesocket.svelte";
 
   type Status = "initializing" | "needsSpace" | "ready";
 
@@ -22,7 +22,7 @@
     await authStore.checkAuth();
 
     // Initialize space data regardless of auth status
-    initializeSpaceData();
+    await initializeSpaceData();
   });
 
   $effect(() => {
@@ -30,6 +30,20 @@
       spaceSocketStore.setupSocketConnection();
     } else {
       spaceSocketStore.cleanupSocketConnection();
+    }
+  });
+
+  $effect(() => {
+    if (status === "ready") {
+      if (spaceStore.pointers.length === 0) {
+        status = "needsSpace";
+      }
+    }
+
+    console.log(status, spaceStore.pointers.length);
+
+    if (status === "needsSpace" && spaceStore.pointers.length > 0) {
+      status = "ready";
     }
   });
 
@@ -57,6 +71,9 @@
         currentSpaceId,
         config,
       });
+
+      // Filter spaces for the current user (if authenticated)
+      await spaceStore.filterSpacesForCurrentUser();
 
       const connection = await spaceStore.loadSpacesAndConnectToCurrent();
 

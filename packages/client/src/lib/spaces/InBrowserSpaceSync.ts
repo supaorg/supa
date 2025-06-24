@@ -18,7 +18,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
 
   constructor(space: Space, uri?: string) {
     this._space = space;
-    this.thingsToSave = new SpacePersistenceQueue(space.getId());
+    this.thingsToSave = new SpacePersistenceQueue(space.getId(), uri);
 
     // Observe operations from the main space tree
     space.tree.observeOpApplied((op) => {

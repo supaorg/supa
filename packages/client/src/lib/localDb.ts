@@ -13,6 +13,7 @@ export type SpaceSetup = {
   uri: string;
   name: string | null;
   createdAt: Date;
+  userId: string | null; // null for spaces created before user authentication
 
   // Additional fields
   ttabsLayout?: string | null;
@@ -68,6 +69,19 @@ class LocalDb extends Dexie {
       treeOps: '&[clock+peerId+treeId+spaceId], spaceId, treeId, [spaceId+treeId], [spaceId+treeId+clock]',
       secrets: '&[spaceId+key], spaceId' // Composite primary key [spaceId+key], indexed by spaceId
     });
+
+    // Version 2: Add userId to spaces table
+    this.version(2).stores({
+      spaces: '&id, uri, name, createdAt, userId',
+      config: '&key',
+      treeOps: '&[clock+peerId+treeId+spaceId], spaceId, treeId, [spaceId+treeId], [spaceId+treeId+clock]',
+      secrets: '&[spaceId+key], spaceId'
+    }).upgrade(tx => {
+      // Migration: add userId field to existing spaces (set to null for backward compatibility)
+      return tx.table('spaces').toCollection().modify(space => {
+        space.userId = null;
+      });
+    });
   }
 }
 
@@ -122,10 +136,44 @@ export async function getAllPointers(): Promise<SpacePointer[]> {
       id: space.id,
       uri: space.uri,
       name: space.name,
-      createdAt: space.createdAt
+      createdAt: space.createdAt,
+      userId: space.userId
     }));
   } catch (error) {
     console.error('Failed to get pointers from database:', error);
+    return [];
+  }
+}
+
+// Get spaces for a specific user ID (including local spaces with null userId)
+export async function getPointersForUser(userId: string | null): Promise<SpacePointer[]> {
+  try {
+    const spaces = await db.spaces.toArray();
+    
+    // Filter spaces: always show local spaces (null userId) + user's spaces when authenticated
+    const filteredSpaces = spaces.filter(space => {
+      // Always show local spaces (null userId)
+      if (space.userId === null) {
+        return true;
+      }
+      
+      // Show user's spaces only when authenticated and userId matches
+      if (userId !== null && space.userId === userId) {
+        return true;
+      }
+      
+      return false;
+    });
+    
+    return filteredSpaces.map(space => ({
+      id: space.id,
+      uri: space.uri,
+      name: space.name,
+      createdAt: space.createdAt,
+      userId: space.userId
+    }));
+  } catch (error) {
+    console.error('Failed to get pointers for user from database:', error);
     return [];
   }
 }
@@ -184,7 +232,8 @@ export async function savePointers(pointers: SpacePointer[]): Promise<void> {
           await db.spaces.update(pointer.id, {
             uri: pointer.uri,
             name: pointer.name,
-            createdAt: pointer.createdAt
+            createdAt: pointer.createdAt,
+            userId: pointer.userId
           });
         } else {
           // Create a new space setup
@@ -540,6 +589,59 @@ export async function deleteSecret(spaceId: string, key: string): Promise<void> 
       .delete();
   } catch (error) {
     console.error(`Failed to delete secret ${key} for space ${spaceId}:`, error);
+  }
+}
+
+// Associate existing spaces (with null userId) to a user - this is now optional and manual
+export async function associateSpacesWithUser(userId: string): Promise<void> {
+  try {
+    await db.spaces
+      .filter(space => space.userId === null)
+      .modify({ userId });
+    console.log(`Associated existing local spaces with user ${userId}`);
+  } catch (error) {
+    console.error(`Failed to associate spaces with user ${userId}:`, error);
+  }
+}
+
+// Associate a specific local space with the current user
+export async function associateLocalSpaceWithUser(spaceId: string, userId: string): Promise<void> {
+  try {
+    const space = await db.spaces.get(spaceId);
+    if (space && space.userId === null) {
+      await db.spaces.update(spaceId, { userId });
+      console.log(`Associated local space ${spaceId} with user ${userId}`);
+    } else if (space && space.userId !== null) {
+      throw new Error('Space is already associated with a user');
+    } else {
+      throw new Error('Space not found');
+    }
+  } catch (error) {
+    console.error(`Failed to associate space ${spaceId} with user ${userId}:`, error);
+    throw error;
+  }
+}
+
+// Convert a user space back to local space
+export async function makeSpaceLocal(spaceId: string): Promise<void> {
+  try {
+    await db.spaces.update(spaceId, { userId: null });
+    console.log(`Made space ${spaceId} local`);
+  } catch (error) {
+    console.error(`Failed to make space ${spaceId} local:`, error);
+    throw error;
+  }
+}
+
+// Update the userId for a specific space
+export async function updateSpaceUserId(spaceId: string, userId: string | null): Promise<void> {
+  try {
+    await db.spaces
+      .where('id')
+      .equals(spaceId)
+      .modify({ userId });
+  } catch (error) {
+    console.error(`Failed to update userId for space ${spaceId}:`, error);
   }
 }
 
