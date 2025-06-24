@@ -9,6 +9,7 @@ import SelectModelPopup from '$lib/comps/popups/SelectModelPopup.svelte';
 import CustomProviderSetup from '$lib/comps/models/CustomProviderSetup.svelte';
 import ModelProviders from '$lib/comps/models/ModelProviders.svelte';
 import SignInButtons from '$lib/comps/auth/SignInButtons.svelte';
+import UserProfile from '$lib/comps/auth/UserProfile.svelte';
 
 export const swins = new SWins();
 
@@ -22,6 +23,7 @@ swins.register('select-model', SelectModelPopup);
 swins.register('custom-provider-setup', CustomProviderSetup);
 swins.register('model-providers', ModelProviders);
 swins.register('sign-in', SignInButtons);
+swins.register('user-profile', UserProfile);
 
 export function openSettings() {
   swins.open('settings', {}, 'Settings');

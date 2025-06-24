@@ -94,12 +94,7 @@ export function registerAuthRoutes(fastify: FastifyInstance, auth: AuthService, 
     preHandler: authMiddleware
   }, async (request, reply) => {
     // User is already attached to request by middleware
-    return {
-      user: request.user,
-      meta: {
-        mockMode: auth.isMockMode()
-      }
-    };
+    return request.user;
   });
 
   // Refresh token endpoint
