@@ -1,6 +1,5 @@
 import { api, API_BASE_URL } from "$lib/utils/api";
 import type { SpaceCreationResponse } from "@core/apiTypes";
-import { createNewInBrowserSpaceSyncWithOps } from "./InBrowserSpaceSync";
 import { spaceStore } from "./spaceStore.svelte";
 import { createNewLocalSpace as createNewManagedLocalSpace } from "./spaceManagerSetup";
 import { authStore } from "$lib/stores/auth.svelte";
@@ -23,6 +22,9 @@ export async function createNewLocalSpace() {
 }
 
 export async function createNewSyncedSpace() {
+  // @TODO: update this to use the latest architecture
+
+  /*
   const response = await api.post<SpaceCreationResponse>('/spaces');
 
   if (!response.success || !response.data) {
@@ -44,4 +46,5 @@ export async function createNewSyncedSpace() {
   
   spaceStore.addSpacePointer(pointer);
   spaceStore.currentSpaceId = sync.space.getId();
+  */
 }

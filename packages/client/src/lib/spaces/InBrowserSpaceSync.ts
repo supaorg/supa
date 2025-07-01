@@ -7,7 +7,6 @@ import type { VertexOperation } from "@core";
 import { RepTree, isAnyPropertyOp, isMoveVertexOp } from "@core";
 import AppTree from "@core/spaces/AppTree";
 import SpacePersistenceQueue from "./SpacePersistenceQueue";
-import type { SpacePointer } from "./SpacePointer";
 import { getSpaceTreeOps } from "$lib/utils/api";
 
 export class InBrowserSpaceSync implements SpaceConnection {
@@ -201,18 +200,7 @@ export class InBrowserSpaceSync implements SpaceConnection {
   }
 }
 
-export async function createNewInBrowserSpaceSync(): Promise<SpaceConnection> {
-  const space = Space.newSpace(uuid());
-  const sync = new InBrowserSpaceSync(space);
-  
-  // Get all operations that created the space tree and add them to be saved
-  const initOps = space.tree.getAllOps();
-  sync.addOpsToSave(space.getId(), initOps);
-
-  await sync.connect();
-  return sync;
-}
-
+// @TODO: figure out if we need this function here or can move it somewhere else
 export async function createNewInBrowserSpaceSyncWithOps(ops: ReadonlyArray<VertexOperation>, uri?: string): Promise<SpaceConnection> {
   const space = Space.existingSpaceFromOps(ops);
   const sync = new InBrowserSpaceSync(space, uri);
@@ -221,29 +209,4 @@ export async function createNewInBrowserSpaceSyncWithOps(ops: ReadonlyArray<Vert
   
   await sync.connect();
   return sync;
-}
-
-export async function loadExistingInBrowserSpaceSync(pointer: SpacePointer): Promise<SpaceConnection> {
-  const spaceId = pointer.id;
-  const uri = pointer.uri;
-  
-  try {
-    // Load operations for the main space tree
-    const spaceOps = await getTreeOps(spaceId, spaceId);
-
-    if (spaceOps.length === 0) {
-      // No operations found - this might be a new space, create it
-      throw new Error(`No operations found for space ${spaceId}`);
-    }
-
-    // Create the space from operations
-    const space = new Space(new RepTree(uuid(), spaceOps));
-
-    const sync = new InBrowserSpaceSync(space, uri);
-    await sync.connect();
-    return sync;
-  } catch (error) {
-    console.error(`Failed to load space ${spaceId} from database:`, error);
-    throw error;
-  }
 }
