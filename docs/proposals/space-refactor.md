@@ -209,6 +209,22 @@ class SpaceManager {
 }
 ```
 
+### Sync Models
+
+The persistence system supports two distinct sync models:
+
+#### One-Way Persistence (Write-Only)
+- **Use Case**: Local storage, database persistence, backup
+- **Behavior**: Saves operations without listening for incoming changes
+- **Examples**: IndexedDB (client), SQLite (server)
+- **Properties**: `supportsIncomingSync = false`
+
+#### Two-Way Persistence (Bidirectional Sync) 
+- **Use Case**: Real-time collaboration, server sync, peer-to-peer
+- **Behavior**: Saves operations AND receives incoming changes from other sources
+- **Examples**: WebSocket server sync, future P2P protocols
+- **Properties**: `supportsIncomingSync = true`, implements `startListening()` and `stopListening()`
+
 ### Concrete Persistence Layer Implementations
 
 #### IndexedDBPersistenceLayer (One-way)
@@ -360,6 +376,7 @@ const space = await spaceManager.loadSpace(spaceId, [sqliteLayer])
 7. **Conflict Resolution**: RepTree handles merging operations from multiple persistence sources
 8. **Lazy Loading**: Maintains existing AppTree lazy loading pattern
 9. **Simplified Architecture**: No unnecessary abstraction layers or composite patterns
+10. **Flexible Sync Models**: Clear distinction between one-way (write-only) and two-way (bidirectional) persistence
 
 ## Migration Plan
 
