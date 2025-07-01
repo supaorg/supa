@@ -1,6 +1,6 @@
 <script lang="ts">
   import { PlusCircle } from "lucide-svelte";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
 
   let {
     onProviderAdded = () => {},
@@ -9,10 +9,10 @@
   } = $props();
 
   function handleAdd() {
-    swins.open('custom-provider-setup', {
+    clientState.layout.swins.open('custom-provider-setup', {
       onSave: () => {
         onProviderAdded();
-        swins.pop();
+        clientState.layout.swins.pop();
       }
     }, 'Add Custom OpenAI-like Provider');
   }

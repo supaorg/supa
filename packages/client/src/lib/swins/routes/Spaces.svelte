@@ -1,13 +1,12 @@
 <script lang="ts">
   import SpaceList from "$lib/comps/spaces/SpaceList.svelte";
   import { txtStore } from "$lib/stores/txtStore";
-  import { createNewLocalSpace } from "$lib/spaces/spaceCreation";
+  import { clientState } from "$lib/clientState.svelte";
   import { Plus } from "lucide-svelte";
-  import { swins } from "../swinsLayout";
 
   async function handleNewSpace() {
-    await createNewLocalSpace();
-    swins.clear();
+    await clientState.createNewSpace('local');
+    clientState.layout.swins.clear();
   }
 </script>
 

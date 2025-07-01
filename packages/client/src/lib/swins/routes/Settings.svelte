@@ -9,7 +9,7 @@
     LANGUAGE_NAMES,
   } from "@core/localization/getTexts";
   import { txtStore } from "$lib/stores/txtStore";
-  import { openSpaces } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
   import ThemeSwitcher from "$lib/comps/themes/ThemeSwitcher.svelte";
 </script>
 
@@ -57,7 +57,7 @@
           spaceStore.pointers.length
         )}
       </p>
-      <button class="btn preset-filled" onclick={() => openSpaces()}>
+      <button class="btn preset-filled" onclick={() => clientState.layout.openSpaces()}>
         {$txtStore.settingsPage.spaces.manageButton}
       </button>
     </div>

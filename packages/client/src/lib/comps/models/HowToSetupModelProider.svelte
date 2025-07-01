@@ -3,7 +3,7 @@
   import Link from "../basic/Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import type { ModelProvider } from "@core/models";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
 
   let { provider }: { provider: ModelProvider } = $props();
 
@@ -310,7 +310,7 @@
       autofocus={false}
       showCloseButton={false}
       onValidKey={() => {
-        swins.pop();
+        clientState.layout.swins.pop();
       }}
     />
   {/if}
@@ -319,7 +319,7 @@
     onclick={(e) => {
       e.preventDefault();
       e.stopPropagation();
-      swins.pop();
+      clientState.layout.swins.pop();
     }}>Ok</button
   >
 </div>

@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
-  import { authStore } from "$lib/stores/auth.svelte";
+  import { clientState } from "$lib/clientState.svelte";
   import Loading from "$lib/comps/basic/Loading.svelte";
 
   let status = $state<"loading" | "success" | "error">("loading");
@@ -30,8 +30,9 @@
         throw new Error("Token has expired");
       }
 
-      // Store the tokens and user info
-      await authStore.setAuth(
+      // Use orchestrated sign-in workflow
+      // This handles: auth → space filtering → theme loading → socket connection
+      await clientState.signIn(
         {
           access_token: accessToken,
           refresh_token: refreshToken,

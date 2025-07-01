@@ -1,4 +1,4 @@
-import { swins } from "$lib/swins";
+import { clientState } from "$lib/clientState.svelte";
 import { sidebar } from "$lib/ttabs/layout.svelte";
 
 // Platform detection (using userAgent instead of deprecated platform)
@@ -32,7 +32,7 @@ const shortcuts: Shortcut[] = [
     ctrl: !isMac,
     shift: true,
     action: () => {
-      swins.open("new-thread", {}, "New conversation");
+      clientState.layout.swins.open("new-thread", {}, "New conversation");
     },
     description: 'Start new conversation',
     preventDefault: true

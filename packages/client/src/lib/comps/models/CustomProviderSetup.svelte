@@ -1,6 +1,6 @@
 <script lang="ts">
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
   import type { CustomProviderConfig } from "@core/models";
   import { XCircle } from "lucide-svelte";
 
@@ -183,7 +183,7 @@
       <button
         type="button"
         class="btn preset-outlined-surface-500 w-full"
-        onclick={() => swins.pop()}
+        onclick={() => clientState.layout.swins.pop()}
       >
         Cancel
       </button>

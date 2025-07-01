@@ -11,24 +11,19 @@ import ModelProviders from '$lib/comps/models/ModelProviders.svelte';
 import SignInButtons from '$lib/comps/auth/SignInButtons.svelte';
 import UserProfile from '$lib/comps/auth/UserProfile.svelte';
 
-export const swins = new SWins();
-
-swins.register('settings', Settings);
-swins.register('spaces', Spaces);
-swins.register('apps', Apps);
-swins.register('app-config', AppConfigEditing);
-swins.register('new-thread', NewThreadSwins);
-swins.register('how-to-setup-model-provider', HowToSetupModelProider);
-swins.register('select-model', SelectModelPopup);
-swins.register('custom-provider-setup', CustomProviderSetup);
-swins.register('model-providers', ModelProviders);
-swins.register('sign-in', SignInButtons);
-swins.register('user-profile', UserProfile);
-
-export function openSettings() {
-  swins.open('settings', {}, 'Settings');
-} 
-
-export function openSpaces() {
-  swins.open('spaces', {}, 'Spaces');
-} 
+// Setup function that can configure any SWins instance
+export function setupSwins(swinsInstance: SWins): SWins {
+  swinsInstance.register('settings', Settings);
+  swinsInstance.register('spaces', Spaces);
+  swinsInstance.register('apps', Apps);
+  swinsInstance.register('app-config', AppConfigEditing);
+  swinsInstance.register('new-thread', NewThreadSwins);
+  swinsInstance.register('how-to-setup-model-provider', HowToSetupModelProider);
+  swinsInstance.register('select-model', SelectModelPopup);
+  swinsInstance.register('custom-provider-setup', CustomProviderSetup);
+  swinsInstance.register('model-providers', ModelProviders);
+  swinsInstance.register('sign-in', SignInButtons);
+  swinsInstance.register('user-profile', UserProfile);
+  
+  return swinsInstance;
+}

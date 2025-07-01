@@ -1,7 +1,7 @@
 <script lang="ts">
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
-  import { openSpaces } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
   import { ChevronsUpDown } from "lucide-svelte";
 
   let openState = $state(false);
@@ -35,7 +35,7 @@
     </div>
     <div class="flex flex-col gap-1 mt-4">
       <button class="btn btn-sm w-full text-left justify-start" onclick={() => {
-        openSpaces();
+        clientState.layout.openSpaces();
         openState = false;
       }}>
         Manage spaces

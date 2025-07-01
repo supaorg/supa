@@ -7,7 +7,7 @@
   import { txtStore } from "$lib/stores/txtStore";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
@@ -41,7 +41,7 @@
   }: SendMessageFormProps = $props();
 
   function openModelProvidersSettings() {
-    swins.open("model-providers", {}, "Model Providers");
+    clientState.layout.swins.open("model-providers", {}, "Model Providers");
   }
 
   let query = $state("");

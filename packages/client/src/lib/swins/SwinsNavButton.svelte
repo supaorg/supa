@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import { swins } from "./swinsLayout";
+  import { clientState } from "$lib/clientState.svelte";
 
   let {
     children,
@@ -24,14 +24,14 @@
 
   function handleClick() {
     if (pop === 'current') {
-      swins.pop();
+      clientState.layout.swins.pop();
     } else if (pop === 'all') {
-      swins.clear();
+      clientState.layout.swins.clear();
     } else if (popTo) {
-      swins.popTo(popTo);
+      clientState.layout.swins.popTo(popTo);
     }
 
-    swins.open(component, props, title);
+    clientState.layout.swins.open(component, props, title);
 
     if (onclick) {
       onclick();

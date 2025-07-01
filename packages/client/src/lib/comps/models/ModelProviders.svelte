@@ -6,7 +6,7 @@
   import { providers } from "@core/providers";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
   import { getActiveProviders } from "@core/customProviders";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
 
   let customProviders = $state<ModelProvider[]>([]);
 
@@ -19,7 +19,7 @@
   } = $props();
 
   function onHow(provider: ModelProvider) {
-    swins.open("how-to-setup-model-provider", { provider }, provider.name);
+    clientState.layout.swins.open("how-to-setup-model-provider", { provider }, provider.name);
   }
 
   function refreshCustomProviders() {

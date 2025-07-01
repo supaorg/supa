@@ -1,18 +1,20 @@
 <script lang="ts">
-  import { authStore } from "$lib/stores/auth.svelte";
+  import { clientState } from "$lib/clientState.svelte";
   import { LogOut, User } from "lucide-svelte";
 
-  const handleSignOut = () => {
-    authStore.logout();
+  const handleSignOut = async () => {
+    // Use orchestrated sign-out workflow
+    // This handles: auth logout → space filtering → socket cleanup → theme reset
+    await clientState.signOut();
   };
 </script>
 
 <div class="p-4">
   <div class="flex items-center gap-3 mb-3">
     <div class="w-8 h-8 rounded-full bg-surface-500 flex items-center justify-center">
-      {#if authStore.user?.avatarUrl}
+      {#if clientState.auth.user?.avatarUrl}
         <img 
-          src={authStore.user.avatarUrl} 
+          src={clientState.auth.user.avatarUrl} 
           alt="User avatar" 
           class="w-8 h-8 rounded-full object-cover"
         />
@@ -22,11 +24,11 @@
     </div>
     <div class="flex-1 min-w-0">
       <p class="text-sm font-medium truncate">
-        {authStore.user?.name || authStore.user?.email || 'User'}
+        {clientState.auth.user?.name || clientState.auth.user?.email || 'User'}
       </p>
-      {#if authStore.user?.email && authStore.user?.name}
+      {#if clientState.auth.user?.email && clientState.auth.user?.name}
         <p class="text-xs text-surface-500 truncate">
-          {authStore.user.email}
+          {clientState.auth.user.email}
         </p>
       {/if}
     </div>

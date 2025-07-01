@@ -1,11 +1,14 @@
 <script lang="ts">
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
   import { authStore } from "$lib/stores/auth.svelte";
-    import { createNewLocalSpace, createNewSyncedSpace } from "$lib/spaces/spaceCreation";
+  import {
+    createNewLocalSpace,
+    createNewSyncedSpace,
+  } from "$lib/spaces/spaceCreation";
 
   function handleSignIn() {
-    swins.open("sign-in", {}, "Sign in");
+    clientState.layout.swins.open("sign-in", {}, "Sign in");
   }
 
   function handleSignOut() {

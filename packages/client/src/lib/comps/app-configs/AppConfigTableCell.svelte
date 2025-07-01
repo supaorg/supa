@@ -10,7 +10,7 @@
   import { txtStore } from "$lib/stores/txtStore";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
 
   let { config }: { config: AppConfig } = $props();
 
@@ -51,7 +51,7 @@
           title="Start Chat"
           aria-label="Start Chat"
           onclick={() => {
-            swins.open("new-thread", { appConfig: config }, "New conversation");
+            clientState.layout.swins.open("new-thread", { appConfig: config }, "New conversation");
           }}
         >
           <MessageCircle class="w-4 h-4 group-hover:text-primary-600" />
@@ -66,7 +66,7 @@
         class="block text-left min-w-0"
         title={config.name}
         onclick={() => {
-          swins.open("new-thread", { appConfig: config }, "New conversation");
+          clientState.layout.swins.open("new-thread", { appConfig: config }, "New conversation");
         }}
       >
         <strong class="truncate block">{config.name}</strong>

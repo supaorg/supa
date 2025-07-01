@@ -1,14 +1,14 @@
 <script lang="ts">
   import { authStore } from "$lib/stores/auth.svelte";
-  import { swins } from "$lib/swins/swinsLayout";
+  import { clientState } from "$lib/clientState.svelte";
   import { User } from "lucide-svelte";
 
   const handleSignIn = () => {
-    swins.open('sign-in', {}, 'Sign In');
+    clientState.layout.swins.open('sign-in', {}, 'Sign In');
   };
 
   const handleUserProfile = () => {
-    swins.open('user-profile', {}, 'Profile');
+    clientState.layout.swins.open('user-profile', {}, 'Profile');
   };
 </script>
 

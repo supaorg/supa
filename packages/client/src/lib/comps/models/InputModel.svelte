@@ -10,7 +10,7 @@
     isValidModelString,
     getProviderId,
   } from "@core/utils/modelUtils";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
 
   let { value = $bindable(), required }: { value: string; required?: boolean } =
     $props();
@@ -18,7 +18,7 @@
   let inputElement: HTMLInputElement;
 
   function onRequestChange() {
-    swins.open(
+    clientState.layout.swins.open(
       "select-model",
       {
         selectedModel: value,

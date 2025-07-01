@@ -1,7 +1,7 @@
 <script lang="ts">
   import "../app.css";
   import ThemeManager from "$lib/comps/themes/ThemeManager.svelte";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
   import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
   import { onMount } from "svelte";
   import { destroyShortcuts, initShortcuts } from "$lib/shortcuts/shortcuts";
@@ -35,6 +35,6 @@
 <ThemeManager />
 
 <!-- Setup stacking windows (popover windows with navigation) we use for new conversations, settings, etc -->
-<SwinsContainer {swins} />
+<SwinsContainer swins={clientState.layout.swins} />
 
 {@render children?.()}

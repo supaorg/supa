@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { AppConfig } from "@core/models";
-  import { swins } from "../swinsLayout";
+  import { clientState } from "$lib/clientState.svelte";
   import NewThread from "$lib/comps/apps/NewThread.svelte";
 
   let { appConfig }: { appConfig?: AppConfig } = $props();
 
   function onSend() {
-    swins.clear();
+    clientState.layout.swins.clear();
   }
 </script>
 

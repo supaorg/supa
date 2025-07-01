@@ -2,7 +2,7 @@
   import ModelProviderSelector from "../models/ModelProviderSelector.svelte";
   import ModelProviders from "../models/ModelProviders.svelte";
   import { txtStore } from "$lib/stores/txtStore";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
 
   let {
     selectedModel,
@@ -16,7 +16,7 @@
   let status: Status = $state("selecting");
 
   function onRequestClose() {
-    swins.pop();
+    clientState.layout.swins.pop();
   }
 </script>
 

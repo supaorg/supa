@@ -3,7 +3,7 @@
   import { txtStore } from "$lib/stores/txtStore";
   import uuid from "@core/uuid/uuid";
   import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { swins } from "$lib/swins";
+  import { clientState } from "$lib/clientState.svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
 
   let {
@@ -71,8 +71,8 @@
       });
       document.dispatchEvent(event);
 
-      if (!swins.popTo("apps")) {
-        swins.clear();
+      if (!clientState.layout.swins.popTo("apps")) {
+        clientState.layout.swins.clear();
       }
     } else {
       if (isDefault) {
