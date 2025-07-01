@@ -1,40 +1,65 @@
 import type Space from "@core/spaces/Space";
-import { loadSpaceFromPointer, type SpaceConnection } from "./SpaceConnection";
 import type { SpacePointer } from "./SpacePointer";
 import { deleteSpace, getDraft, saveDraft, deleteDraft, getAllSecrets, saveAllSecrets, getSecret, setSecret, getPointersForUser, associateSpacesWithUser, updateSpaceUserId, associateLocalSpaceWithUser, makeSpaceLocal } from "$lib/localDb";
 import { untrack } from "svelte";
 import { authStore } from "$lib/stores/auth.svelte";
+import { spaceManager } from "./spaceManagerSetup";
+import { loadExistingLocalSpace } from "./spaceManagerSetup";
 
 class SpaceStore {
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $state(null);
-  connections: SpaceConnection[] = $state([]);
   config: Record<string, unknown> = $state({});
   setupModelProviders: boolean = $state(false);
 
-  currentSpace = $derived(this.connections.find(conn => conn.space.getId() === this.currentSpaceId)?.space || null);
-  currentSpaceConnection = $derived(this.connections.find(conn => conn.space.getId() === this.currentSpaceId) || null);
+  // Lazy loading of current space through SpaceManager
+  currentSpace: Space | null = $derived.by(() => {
+    if (!this.currentSpaceId) return null;
+    
+    const pointer = this.pointers.find(p => p.id === this.currentSpaceId);
+    if (!pointer) return null;
+
+    // Try to get from SpaceManager first
+    let space = spaceManager.getSpace(this.currentSpaceId);
+    
+    // If not loaded, load it lazily
+    if (!space && pointer.uri.startsWith("local://")) {
+      // Load local space asynchronously - this is a bit tricky with $derived
+      // For now, return null and trigger loading in an effect
+      Promise.resolve().then(async () => {
+        try {
+          await loadExistingLocalSpace(pointer);
+        } catch (error) {
+          console.error("Failed to load space", pointer, error);
+        }
+      });
+      return null;
+    }
+
+    return space || null;
+  });
+
   currentPointer = $derived(this.pointers.find(p => p.id === this.currentSpaceId) || null);
 
   effectd = $effect.root(() => {
     $effect(() => {
       let providersObserver: (() => void) | null = null;
 
-      const currentSpace = spaceStore.currentSpace;
+      const currentSpace = this.currentSpace;
 
       untrack(() => {
         if (currentSpace) {
           const providersVertex = currentSpace.tree.getVertexByPath("providers");
           if (providersVertex) {
-            spaceStore.setupModelProviders = providersVertex.children.length > 0;
+            this.setupModelProviders = providersVertex.children.length > 0;
             providersObserver = providersVertex.observeChildren((children) => {
-              spaceStore.setupModelProviders = children.length > 0;
+              this.setupModelProviders = children.length > 0;
             });
           } else {
-            spaceStore.setupModelProviders = false;
+            this.setupModelProviders = false;
           }
         } else {
-          spaceStore.setupModelProviders = false;
+          this.setupModelProviders = false;
         }
       });
 
@@ -61,74 +86,67 @@ class SpaceStore {
   }
 
   /**
-   * Create space connections from pointers and return the current one.
-   * Use it only once on startup.
-   * @returns The current space connection or null if none.
+   * Load a specific space by pointer if not already loaded
+   * @param pointer The space pointer to load
+   * @returns The loaded space or null if failed
    */
-  async loadSpacesAndConnectToCurrent(): Promise<SpaceConnection | null> {
-    if (this.connections.length > 0) {
-      // Find if any of the existing connections are connected
-      const connectedConnection = this.connections.find(conn => conn.connected);
-      if (connectedConnection) {
-        console.error("Spaces already loaded. Can do it only once. Returning the connected one.");
-        return connectedConnection;
-      }
-    }
+  async loadSpace(pointer: SpacePointer): Promise<Space | null> {
+    // Check if already loaded
+    let space = spaceManager.getSpace(pointer.id);
+    if (space) return space;
 
-    const connections: SpaceConnection[] = [];
-    let currentConnection: SpaceConnection | null = null;
-
-    // Try loading spaces from pointers
-    for (const pointer of this.pointers) {
+    // Load the space based on its URI
+    if (pointer.uri.startsWith("local://")) {
       try {
-        const connection = await loadSpaceFromPointer(pointer);
-        connections.push(connection);
-
-        if (connection.space.getId() === this.currentSpaceId) {
-          currentConnection = connection;
-        }
-
-        pointer.name = connection.space.name || null;
+        const connection = await loadExistingLocalSpace(pointer);
+        return connection.space;
       } catch (error) {
-        console.error("Could not load space", pointer, error);
+        console.error("Failed to load space", pointer, error);
+        return null;
       }
     }
 
-    // If we couldn't connect to the current space in the previous loop, 
-    // use the first one as the current space.
-    if (!currentConnection && connections.length > 0) {
-      currentConnection = connections[0];
-      this.currentSpaceId = currentConnection.space.getId();
-    }
-
-    this.connections = connections;
-
-    return currentConnection;
+    // For non-local spaces, we'll need to implement loading logic
+    // For now, return null
+    console.warn("Loading non-local spaces not yet implemented");
+    return null;
   }
 
   /**
-   * Add a local space to the stores
+   * Ensure current space is loaded and return it
+   * @returns The current space or null if none selected or failed to load
    */
-  addSpaceConnection(connection: SpaceConnection, path: string): void {
-    this.connections = [...this.connections, connection];
+  async ensureCurrentSpaceLoaded(): Promise<Space | null> {
+    if (!this.currentSpaceId) return null;
+    
+    const pointer = this.pointers.find(p => p.id === this.currentSpaceId);
+    if (!pointer) return null;
 
-    const pointer: SpacePointer = {
-      id: connection.space.getId(),
-      uri: path,
-      name: connection.space.name || null,
-      createdAt: connection.space.createdAt,
-      userId: authStore.user?.id || null,
-    };
+    return await this.loadSpace(pointer);
+  }
 
+  /**
+   * Add a space pointer to the store
+   * @param pointer The space pointer to add
+   */
+  addSpacePointer(pointer: SpacePointer): void {
     this.pointers = [...this.pointers, pointer];
+  }
+
+  /**
+   * Get a loaded space by ID
+   * @param spaceId The space ID
+   * @returns The space if loaded, null otherwise
+   */
+  getLoadedSpace(spaceId: string): Space | null {
+    return spaceManager.getSpace(spaceId) || null;
   }
 
   /**
    * Get a loaded space from a pointer
    */
   getLoadedSpaceFromPointer(pointer: SpacePointer): Space | null {
-    const connection = this.connections.find((conn) => conn.space.getId() === pointer.id);
-    return connection ? connection.space : null;
+    return this.getLoadedSpace(pointer.id);
   }
 
   /**
@@ -191,19 +209,14 @@ class SpaceStore {
    * Remove a space
    */
   async removeSpace(pointerId: string): Promise<void> {
-    // Get the connection so we can disconnect it
-    const connection = this.connections.find(conn => conn.space.getId() === pointerId);
-
-    // Disconnect the space first if it exists and is connected
-    if (connection && connection.connected) {
-      await connection.disconnect();
+    // Close space in SpaceManager if loaded
+    const space = spaceManager.getSpace(pointerId);
+    if (space) {
+      await spaceManager.closeSpace(pointerId);
     }
 
     // Remove from pointers
     this.pointers = this.pointers.filter(p => p.id !== pointerId);
-
-    // Remove from loaded space connections
-    this.connections = this.connections.filter(conn => conn.space.getId() !== pointerId);
 
     // If this was the current space, try to select another one
     if (this.currentSpaceId === pointerId) {
@@ -216,26 +229,12 @@ class SpaceStore {
   }
 
   /**
-   * Disconnects all active space connections.
+   * Disconnects all active spaces.
    * Call this when the application is closing/unmounting.
    */
   async disconnectAllSpaces(): Promise<void> {
-    const disconnectPromises: Promise<void>[] = [];
-
-    for (const connection of this.connections) {
-      if (connection.connected) {
-        disconnectPromises.push(connection.disconnect());
-      }
-    }
-
-    await Promise.all(disconnectPromises);
-  }
-
-  /**
-   * Get a space connection by space ID.
-   */
-  getSpaceConnectionById(spaceId: string): SpaceConnection | null {
-    return this.connections.find(conn => conn.space.getId() === spaceId) || null;
+    // SpaceManager handles cleanup internally
+    // No need to manually disconnect individual spaces
   }
 
   /**
@@ -253,10 +252,6 @@ class SpaceStore {
     if (!currentSpaceVisible) {
       this.currentSpaceId = userPointers.length > 0 ? userPointers[0].id : null;
     }
-    
-    // Filter connections to match visible pointers
-    const visibleSpaceIds = new Set(userPointers.map(p => p.id));
-    this.connections = this.connections.filter(conn => visibleSpaceIds.has(conn.space.getId()));
   }
 
   /**

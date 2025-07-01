@@ -7,7 +7,6 @@
   import {
     initializeDatabase,
     savePointers,
-    saveCurrentSpaceId,
     saveConfig,
   } from "$lib/localDb";
   import Space from "./apps/Space.svelte";
@@ -71,10 +70,9 @@
       // Filter spaces for the current user (if authenticated)
       await spaceStore.filterSpacesForCurrentUser();
 
-      const connection = await spaceStore.loadSpacesAndConnectToCurrent();
-
-      // Only change status after loading is complete
-      status = connection ? "ready" : "needsSpace";
+      // With lazy loading, we don't need to preload all spaces
+      // Just set status based on whether we have pointers
+      status = spaceStore.pointers.length > 0 ? "ready" : "needsSpace";
     } catch (error) {
       console.error("Failed to initialize space state from database:", error);
       // Keep initializing state on error? Or maybe add an error state?

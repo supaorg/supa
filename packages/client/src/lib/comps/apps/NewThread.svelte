@@ -33,17 +33,17 @@
       throw new Error("App config not found");
     }
 
-    if (!spaceStore.currentSpaceConnection) {
+    if (!spaceStore.currentSpace) {
       throw new Error("Space or app config not found");
     }
 
     // Create new app tree
     const newTree = ChatAppData.createNewChatTree(
-      spaceStore.currentSpaceConnection.space,
+      spaceStore.currentSpace,
       targetAppConfig.id,
     );
     const chatAppData = new ChatAppData(
-      spaceStore.currentSpaceConnection.space,
+      spaceStore.currentSpace,
       newTree,
     );
     chatAppData.newMessage("user", message);

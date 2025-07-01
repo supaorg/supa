@@ -54,7 +54,7 @@
       <h3 class="h4 mb-4">{$txtStore.settingsPage.spaces.title}</h3>
       <p class="mb-4">
         {$txtStore.settingsPage.spaces.spaceCount(
-          spaceStore.connections.length
+          spaceStore.pointers.length
         )}
       </p>
       <button class="btn preset-filled" onclick={() => openSpaces()}>

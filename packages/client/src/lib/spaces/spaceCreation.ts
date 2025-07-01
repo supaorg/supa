@@ -1,15 +1,24 @@
 import { api, API_BASE_URL } from "$lib/utils/api";
 import type { SpaceCreationResponse } from "@core/apiTypes";
-import { createNewInBrowserSpaceSync, createNewInBrowserSpaceSyncWithOps, InBrowserSpaceSync, loadExistingInBrowserSpaceSync } from "./InBrowserSpaceSync";
+import { createNewInBrowserSpaceSyncWithOps } from "./InBrowserSpaceSync";
 import { spaceStore } from "./spaceStore.svelte";
-import { RepTree, uuid } from "@core";
-import Space from "@core/spaces/Space";
 import { createNewLocalSpace as createNewManagedLocalSpace } from "./spaceManagerSetup";
+import { authStore } from "$lib/stores/auth.svelte";
 
 export async function createNewLocalSpace() {
   // Use new SpaceManager approach for local spaces
   const connection = await createNewManagedLocalSpace();
-  spaceStore.addSpaceConnection(connection, "browser://" + connection.space.getId());
+  
+  // Add pointer to store
+  const pointer = {
+    id: connection.space.getId(),
+    uri: "local://" + connection.space.getId(),
+    name: connection.space.name || null,
+    createdAt: connection.space.createdAt,
+    userId: authStore.user?.id || null,
+  };
+  
+  spaceStore.addSpacePointer(pointer);
   spaceStore.currentSpaceId = connection.space.getId();
 }
 
@@ -24,7 +33,7 @@ export async function createNewSyncedSpace() {
 
   const sync = await createNewInBrowserSpaceSyncWithOps(response.data.operations, uri);
   
-  // Add space connection with the userId from the server response
+  // Add space pointer with the userId from the server response
   const pointer = {
     id: sync.space.getId(),
     uri: uri,
@@ -33,8 +42,6 @@ export async function createNewSyncedSpace() {
     userId: response.data.owner_id,
   };
   
-  spaceStore.connections = [...spaceStore.connections, sync];
-  spaceStore.pointers = [...spaceStore.pointers, pointer];
-  
+  spaceStore.addSpacePointer(pointer);
   spaceStore.currentSpaceId = sync.space.getId();
 }
