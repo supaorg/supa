@@ -40,7 +40,7 @@ export class ClientState {
   layout = {
     ttabs,
     sidebar,
-    swins: setupSwins(new SWins()),
+    swins: setupSwins(),
     layoutRefs,
 
     openSettings: () => {
