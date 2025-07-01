@@ -18,13 +18,13 @@ The current space management system has several architectural issues:
 ```
 Space (Pure business logic)
     ↓
-SpaceManager (Orchestrates spaces)
+SpaceManager (Orchestrates spaces) - in core
     ↓
-PersistenceLayer (Abstract interface)
+PersistenceLayer (Abstract interface) - in core
     ↓
-├── IndexedDBPersistenceLayer (Local browser storage)
-├── ServerPersistenceLayer (Remote sync)
-└── CompositePersistenceLayer (Multiple layers combined)
+├── IndexedDBPersistenceLayer (Client-side browser storage)
+├── ServerPersistenceLayer (Client-side HTTP sync)
+└── SQLitePersistenceLayer (Server-side database)
 ```
 
 ### Key Interfaces
@@ -48,9 +48,16 @@ interface PersistenceLayer {
   loadSecrets(): Promise<Record<string, string> | undefined>
   saveSecrets(secrets: Record<string, string>): Promise<void>
   
+  // Sync capabilities
+  readonly supportsIncomingSync: boolean
+  
+  // Optional: for two-way sync layers
+  startListening?(onIncomingOps: (treeId: string, ops: VertexOperation[]) => void): Promise<void>
+  stopListening?(): Promise<void>
+  
   // Metadata
   readonly id: string
-  readonly type: 'local' | 'remote' | 'composite'
+  readonly type: 'local' | 'remote'
 }
 ```
 
@@ -60,7 +67,7 @@ interface PersistenceLayer {
 interface SpaceManager {
   // Space lifecycle
   createSpace(config?: SpaceConfig): Promise<Space>
-  loadSpace(pointer: SpacePointer, persistenceLayer: PersistenceLayer): Promise<Space>
+  loadSpace(pointer: SpacePointer, persistenceLayers: PersistenceLayer[]): Promise<Space>
   closeSpace(spaceId: string): Promise<void>
   
   // Persistence management
@@ -79,38 +86,77 @@ interface SpaceManager {
 
 ```typescript
 class SpaceManager {
-  async loadSpace(spaceId: string, persistenceLayer: PersistenceLayer): Promise<Space> {
-    await persistenceLayer.connect()
+  private spaceLayers = new Map<string, PersistenceLayer[]>()
+
+  async loadSpace(spaceId: string, persistenceLayers: PersistenceLayer[]): Promise<Space> {
+    // Connect all layers
+    await Promise.all(persistenceLayers.map(layer => layer.connect()))
     
-    // Load the main space tree operations
-    const spaceOps = await persistenceLayer.loadSpaceTreeOps()
-    const space = new Space(new RepTree(uuid(), spaceOps))
-    
-    // Register the tree loader for lazy AppTree loading
-    const treeLoader = persistenceLayer.createTreeLoader()
-    space.registerTreeLoader(async (appTreeId: string) => {
-      const ops = await treeLoader(appTreeId)
-      if (ops.length === 0) return undefined
-      return new AppTree(new RepTree(uuid(), ops))
-    })
-    
-    // Load secrets
-    const secrets = await persistenceLayer.loadSecrets()
-    if (secrets) {
-      space.saveAllSecrets(secrets)
+    // Load operations from all layers and merge
+    const allOps: VertexOperation[] = []
+    for (const layer of persistenceLayers) {
+      const ops = await layer.loadSpaceTreeOps()
+      allOps.push(...ops)
     }
     
-    // Set up operation tracking
-    this.setupOperationTracking(space, persistenceLayer)
+    // RepTree handles deduplication and conflict resolution
+    const space = new Space(new RepTree(uuid(), allOps))
+    
+    // Register tree loader that tries all layers
+    space.registerTreeLoader(async (appTreeId: string) => {
+      const allTreeOps: VertexOperation[] = []
+      for (const layer of persistenceLayers) {
+        const loader = layer.createTreeLoader()
+        const ops = await loader(appTreeId)
+        allTreeOps.push(...ops)
+      }
+      if (allTreeOps.length === 0) return undefined
+      return new AppTree(new RepTree(uuid(), allTreeOps))
+    })
+    
+    // Load secrets from all layers and merge  
+    const allSecrets: Record<string, string> = {}
+    for (const layer of persistenceLayers) {
+      const secrets = await layer.loadSecrets()
+      if (secrets) {
+        Object.assign(allSecrets, secrets)
+      }
+    }
+    if (Object.keys(allSecrets).length > 0) {
+      space.saveAllSecrets(allSecrets)
+    }
+    
+    // Set up operation tracking to save to all layers
+    this.setupOperationTracking(space, persistenceLayers)
+    
+    // Set up two-way sync for layers that support it
+    for (const layer of persistenceLayers) {
+      if (layer.supportsIncomingSync && layer.startListening) {
+        await layer.startListening((treeId, incomingOps) => {
+          // Apply incoming operations to the appropriate tree
+          if (treeId === spaceId) {
+            space.tree.merge(incomingOps)
+          } else {
+            const appTree = space.getAppTree(treeId)
+            if (appTree) {
+              appTree.tree.merge(incomingOps)
+            }
+          }
+        })
+      }
+    }
+    
+    this.spaceLayers.set(spaceId, persistenceLayers)
     
     return space
   }
   
-  private setupOperationTracking(space: Space, layer: PersistenceLayer) {
+  private setupOperationTracking(space: Space, layers: PersistenceLayer[]) {
     // Track main space tree ops
     space.tree.observeOpApplied((op) => {
       if (op.id.peerId === space.tree.peerId && !op.transient) {
-        layer.saveTreeOps(space.getId(), [op])
+        // Save to all layers in parallel
+        Promise.all(layers.map(layer => layer.saveTreeOps(space.getId(), [op])))
       }
     })
     
@@ -118,12 +164,14 @@ class SpaceManager {
     space.observeNewAppTree((appTreeId) => {
       const appTree = space.getAppTree(appTreeId)!
       const ops = appTree.tree.getAllOps()
-      layer.saveTreeOps(appTreeId, ops)
+      
+      // Save initial ops to all layers
+      Promise.all(layers.map(layer => layer.saveTreeOps(appTreeId, ops)))
       
       // Track future ops on this AppTree
       appTree.tree.observeOpApplied((op) => {
         if (op.id.peerId === appTree.tree.peerId && !op.transient) {
-          layer.saveTreeOps(appTreeId, [op])
+          Promise.all(layers.map(layer => layer.saveTreeOps(appTreeId, [op])))
         }
       })
     })
@@ -133,27 +181,29 @@ class SpaceManager {
       const appTree = space.getAppTree(appTreeId)!
       appTree.tree.observeOpApplied((op) => {
         if (op.id.peerId === appTree.tree.peerId && !op.transient) {
-          layer.saveTreeOps(appTreeId, [op])
+          Promise.all(layers.map(layer => layer.saveTreeOps(appTreeId, [op])))
         }
       })
     })
     
     // Track secrets changes
-    this.wrapSecretsMethod(space, layer)
+    this.wrapSecretsMethod(space, layers)
   }
   
-  private wrapSecretsMethod(space: Space, layer: PersistenceLayer) {
+  private wrapSecretsMethod(space: Space, layers: PersistenceLayer[]) {
     const originalSetSecret = space.setSecret.bind(space)
     const originalSaveAllSecrets = space.saveAllSecrets.bind(space)
 
     space.setSecret = (key: string, value: string) => {
       originalSetSecret(key, value)
-      layer.saveSecrets({ [key]: value })
+      // Save to all layers in parallel
+      Promise.all(layers.map(layer => layer.saveSecrets({ [key]: value })))
     }
 
     space.saveAllSecrets = (secrets: Record<string, string>) => {
       originalSaveAllSecrets(secrets)
-      layer.saveSecrets(secrets)
+      // Save to all layers in parallel
+      Promise.all(layers.map(layer => layer.saveSecrets(secrets)))
     }
   }
 }
@@ -161,10 +211,14 @@ class SpaceManager {
 
 ### Concrete Persistence Layer Implementations
 
-#### IndexedDBPersistenceLayer
+#### IndexedDBPersistenceLayer (One-way)
 Wraps existing `localDb.ts` functionality:
 ```typescript
 class IndexedDBPersistenceLayer implements PersistenceLayer {
+  readonly supportsIncomingSync = false // One-way persistence only
+  readonly id = `indexeddb-${this.spaceId}`
+  readonly type = 'local' as const
+  
   constructor(private spaceId: string) {}
   
   async loadSpaceTreeOps(): Promise<VertexOperation[]> {
@@ -172,17 +226,12 @@ class IndexedDBPersistenceLayer implements PersistenceLayer {
   }
   
   async saveTreeOps(treeId: string, ops: ReadonlyArray<VertexOperation>): Promise<void> {
-    await appendTreeOps(this.spaceId, treeId, ops)
+    await appendTreeOps(this.spaceId, treeId, ops) // Just save locally
   }
   
   createTreeLoader(): (treeId: string) => Promise<VertexOperation[]> {
     return async (treeId: string) => {
-      // Try local first, then server if available
-      let ops = await getTreeOps(this.spaceId, treeId)
-      if (ops.length === 0) {
-        ops = await getSpaceTreeOps(this.spaceId, treeId) // Server fallback
-      }
-      return ops
+      return await getTreeOps(this.spaceId, treeId)
     }
   }
   
@@ -193,67 +242,85 @@ class IndexedDBPersistenceLayer implements PersistenceLayer {
   async saveSecrets(secrets: Record<string, string>): Promise<void> {
     await saveAllSecrets(this.spaceId, secrets)
   }
+  
+  // No startListening/stopListening methods - one-way only
 }
 ```
 
-#### ServerPersistenceLayer
-For server-side or client-server sync:
+#### ServerPersistenceLayer (Two-way)
+For client-server bidirectional sync:
 ```typescript
 class ServerPersistenceLayer implements PersistenceLayer {
+  readonly supportsIncomingSync = true // Two-way sync
+  readonly id = `server-${this.spaceId}`
+  readonly type = 'remote' as const
+  
+  private websocket?: WebSocket
+  
   constructor(
     private spaceId: string, 
-    private serverUrl?: string, // For client-side
-    private dbPath?: string     // For server-side
+    private serverUrl: string
   ) {}
   
   async loadSpaceTreeOps(): Promise<VertexOperation[]> {
-    if (this.dbPath) {
-      // Server-side: load from SQLite
-      return await this.loadTreeOpsFromDb(this.spaceId)
-    } else {
-      // Client-side: load from server API
-      return await getSpaceTreeOps(this.spaceId, this.spaceId)
-    }
+    return await getSpaceTreeOps(this.spaceId, this.spaceId)
   }
   
   createTreeLoader(): (treeId: string) => Promise<VertexOperation[]> {
     return async (treeId: string) => {
-      if (this.dbPath) {
-        return await this.loadTreeOpsFromDb(treeId)
-      } else {
-        return await getSpaceTreeOps(this.spaceId, treeId)
-      }
+      return await getSpaceTreeOps(this.spaceId, treeId)
     }
+  }
+  
+  async saveTreeOps(treeId: string, ops: ReadonlyArray<VertexOperation>): Promise<void> {
+    // Send operations to server via HTTP API
+    await postSpaceTreeOps(this.spaceId, treeId, ops)
+  }
+  
+  // Two-way sync methods
+  async startListening(onIncomingOps: (treeId: string, ops: VertexOperation[]) => void): Promise<void> {
+    this.websocket = new WebSocket(`${this.serverUrl}/sync/${this.spaceId}`)
+    this.websocket.onmessage = (event) => {
+      const { treeId, ops } = JSON.parse(event.data)
+      onIncomingOps(treeId, ops) // Push incoming ops back to Space
+    }
+  }
+  
+  async stopListening(): Promise<void> {
+    this.websocket?.close()
   }
 }
 ```
 
-#### CompositePersistenceLayer
-Combines multiple layers with conflict resolution:
+#### SQLitePersistenceLayer (One-way)
+For server-side database storage:
 ```typescript
-class CompositePersistenceLayer implements PersistenceLayer {
-  constructor(private layers: PersistenceLayer[]) {}
+class SQLitePersistenceLayer implements PersistenceLayer {
+  readonly supportsIncomingSync = false // One-way persistence only
+  readonly id = `sqlite-${this.spaceId}`
+  readonly type = 'local' as const
+  
+  constructor(
+    private spaceId: string,
+    private dbPath: string
+  ) {}
   
   async loadSpaceTreeOps(): Promise<VertexOperation[]> {
-    // Load from all layers and merge using RepTree's conflict resolution
-    const allOps: VertexOperation[] = []
-    for (const layer of this.layers) {
-      const ops = await layer.loadSpaceTreeOps()
-      allOps.push(...ops)
+    return await this.loadTreeOpsFromDb(this.spaceId)
+  }
+  
+  createTreeLoader(): (treeId: string) => Promise<VertexOperation[]> {
+    return async (treeId: string) => {
+      return await this.loadTreeOpsFromDb(treeId)
     }
-    
-    // RepTree will handle deduplication and conflict resolution
-    return allOps
   }
   
   async saveTreeOps(treeId: string, ops: ReadonlyArray<VertexOperation>): Promise<void> {
-    // Save to all layers in parallel
-    await Promise.all(
-      this.layers.map(layer => layer.saveTreeOps(treeId, ops))
-    )
+    await this.saveTreeOpsToDb(treeId, ops)
   }
+  
+  // No startListening/stopListening methods - one-way only
 }
-```
 
 ### Usage Examples
 
@@ -262,42 +329,44 @@ class CompositePersistenceLayer implements PersistenceLayer {
 ```typescript
 // Local-only space
 const localLayer = new IndexedDBPersistenceLayer(spaceId)
-const space = await spaceManager.loadSpace(spaceId, localLayer)
+const space = await spaceManager.loadSpace(spaceId, [localLayer])
 
 // Server-synced space  
 const serverLayer = new ServerPersistenceLayer(spaceId, 'https://api.t69.chat')
-const space = await spaceManager.loadSpace(spaceId, serverLayer)
+const space = await spaceManager.loadSpace(spaceId, [serverLayer])
 
-// Hybrid space (local + server)
-const composite = new CompositePersistenceLayer([localLayer, serverLayer])
-const space = await spaceManager.loadSpace(spaceId, composite)
+// Hybrid space (local + server) - multiple layers directly
+const localLayer = new IndexedDBPersistenceLayer(spaceId)
+const serverLayer = new ServerPersistenceLayer(spaceId, 'https://api.t69.chat')
+const space = await spaceManager.loadSpace(spaceId, [localLayer, serverLayer])
 ```
 
 #### Server-Side Usage
 
 ```typescript
 // Server-only space
-const serverLayer = new ServerPersistenceLayer(spaceId, undefined, './data/spaces')
-const space = await spaceManager.loadSpace(spaceId, serverLayer)
+const sqliteLayer = new SQLitePersistenceLayer(spaceId, './data/spaces')
+const space = await spaceManager.loadSpace(spaceId, [sqliteLayer])
 ```
 
 ## Benefits
 
 1. **Separation of Concerns**: Space contains pure business logic, persistence is separate
-2. **Composability**: Mix and match persistence strategies per space
+2. **Multiple Persistence Layers**: Directly support multiple persistence strategies per space without composite pattern complexity
 3. **Testability**: Easy to mock persistence layers for testing
 4. **Extensibility**: Add new persistence types without changing existing code
-5. **Flexibility**: A space can be local-only, server-synced, or both
-6. **Environment Agnostic**: Same SpaceManager API works on client and server
-7. **Conflict Resolution**: RepTree handles merging operations from multiple sources
+5. **Flexibility**: A space can be local-only, server-synced, or both simultaneously
+6. **Environment Agnostic**: Same SpaceManager in core works on client and server
+7. **Conflict Resolution**: RepTree handles merging operations from multiple persistence sources
 8. **Lazy Loading**: Maintains existing AppTree lazy loading pattern
+9. **Simplified Architecture**: No unnecessary abstraction layers or composite patterns
 
 ## Migration Plan
 
-1. **Phase 1**: Create new interfaces and base implementations
-2. **Phase 2**: Implement `IndexedDBPersistenceLayer` wrapping existing `localDb.ts`
-3. **Phase 3**: Implement `ServerPersistenceLayer` wrapping existing server sync logic
-4. **Phase 4**: Create `SpaceManager` and update client code to use it
+1. **Phase 1**: Create `PersistenceLayer` interface in core and `SpaceManager` in core
+2. **Phase 2**: Implement `IndexedDBPersistenceLayer` in client wrapping existing `localDb.ts`
+3. **Phase 3**: Implement `ServerPersistenceLayer` in client and `SQLitePersistenceLayer` in server
+4. **Phase 4**: Update client code to use new `SpaceManager` with persistence layers
 5. **Phase 5**: Update server code to use new architecture
 6. **Phase 6**: Remove old `InBrowserSpaceSync` and `ServerSpaceSync` classes
 
@@ -307,19 +376,21 @@ const space = await spaceManager.loadSpace(spaceId, serverLayer)
 packages/core/src/spaces/
 ├── Space.ts (unchanged)
 ├── AppTree.ts (unchanged)
-├── persistence/
-│   ├── PersistenceLayer.ts (interface)
-│   ├── IndexedDBPersistenceLayer.ts
-│   ├── ServerPersistenceLayer.ts
-│   └── CompositePersistenceLayer.ts
-└── SpaceManager.ts
+├── SpaceManager.ts (environment-agnostic)
+└── persistence/
+    └── PersistenceLayer.ts (interface only)
 
 packages/client/src/lib/spaces/
-├── spaceManager.ts (client-specific setup)
+├── persistence/
+│   ├── IndexedDBPersistenceLayer.ts
+│   └── ServerPersistenceLayer.ts (HTTP client)
+├── spaceManagerSetup.ts (thin factory functions)
 └── (legacy files to be removed after migration)
 
 packages/server/src/lib/
-└── spaceManager.ts (server-specific setup)
+├── persistence/
+│   └── SQLitePersistenceLayer.ts
+└── spaceManagerSetup.ts (thin factory functions)
 ```
 
 This refactor will significantly improve the maintainability and extensibility of the space management system while preserving all existing functionality. 
