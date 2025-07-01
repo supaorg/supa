@@ -34,27 +34,23 @@
   });
 
   $effect(() => {
-    if (status === "ready") {
-      if (spaceStore.pointers.length === 0) {
-        status = "needsSpace";
-      }
+    if (status === "ready" && spaceStore.pointers.length === 0) {
+      status = "needsSpace";
     }
 
     console.log(status, spaceStore.pointers.length);
 
     if (status === "needsSpace" && spaceStore.pointers.length > 0) {
+      if (!spaceStore.currentSpaceId) {
+        spaceStore.currentSpaceId = spaceStore.pointers[0].id;
+      }
+
       status = "ready";
     }
   });
 
   onDestroy(() => {
     spaceStore.disconnectAllSpaces();
-  });
-
-  $effect(() => {
-    if (status === "initializing") return;
-
-    status = spaceStore.currentSpaceId ? "ready" : "needsSpace";
   });
 
   async function initializeSpaceData() {
@@ -89,12 +85,6 @@
   $effect(() => {
     if (status === "ready") {
       savePointers(spaceStore.pointers);
-    }
-  });
-
-  $effect(() => {
-    if (status === "ready" && spaceStore.currentSpaceId !== null) {
-      saveCurrentSpaceId(spaceStore.currentSpaceId);
     }
   });
 
