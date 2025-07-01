@@ -4,11 +4,13 @@ import { createNewInBrowserSpaceSync, createNewInBrowserSpaceSyncWithOps, InBrow
 import { spaceStore } from "./spaceStore.svelte";
 import { RepTree, uuid } from "@core";
 import Space from "@core/spaces/Space";
+import { createNewLocalSpace as createNewManagedLocalSpace } from "./spaceManagerSetup";
 
 export async function createNewLocalSpace() {
-  const sync = await createNewInBrowserSpaceSync();
-  spaceStore.addSpaceConnection(sync, "browser://" + sync.space.getId());
-  spaceStore.currentSpaceId = sync.space.getId();
+  // Use new SpaceManager approach for local spaces
+  const connection = await createNewManagedLocalSpace();
+  spaceStore.addSpaceConnection(connection, "browser://" + connection.space.getId());
+  spaceStore.currentSpaceId = connection.space.getId();
 }
 
 export async function createNewSyncedSpace() {
