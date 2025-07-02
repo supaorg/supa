@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import type { ModelProviderLocalConfig } from "@core/models";
   import { XCircle, CheckCircle, CircleAlert } from "lucide-svelte/icons";
   import { timeout } from "@core/tools/timeout";

@@ -1,9 +1,9 @@
 <script lang="ts">
   import InputModel from "../models/InputModel.svelte";
-  import { txtStore } from "$lib/stores/txtStore";
+  import { txtStore } from "$lib/state/txtStore";
   import uuid from "@core/uuid/uuid";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { clientState } from "$lib/clientState.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
 
   let {

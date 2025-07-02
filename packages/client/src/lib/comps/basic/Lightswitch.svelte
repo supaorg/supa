@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getOSColorScheme } from "$lib/utils/updateColorScheme";
-  import { theme, setColorScheme } from "$lib/stores/theme.svelte";
+  import { theme, setColorScheme } from "$lib/state/theme.svelte";
   import { Moon, Sun } from "lucide-svelte";
   import { onMount } from "svelte";
 

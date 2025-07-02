@@ -1,7 +1,7 @@
 import type { VertexOperation } from "@core";
 import { getTreeOps, appendTreeOps, getAllSecrets, saveAllSecrets } from "$lib/localDb";
 // Placeholder helpers for future server sync (not yet implemented)
-import { queueOpsForSync, queueSecretsForSync } from "$lib/stores/spacesocket.svelte";
+import { queueOpsForSync, queueSecretsForSync } from "$lib/state/spacesocket.svelte";
 
 /**
  * A queue that manages operations and secrets that need to be saved locally and synced remotely.

@@ -1,7 +1,7 @@
 <script lang="ts">
   import Wizard from "$lib/comps/wizards/Wizard.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { theme, setThemeName } from "$lib/stores/theme.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { theme, setThemeName } from "$lib/state/theme.svelte";
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
   import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
   import { Check } from "lucide-svelte";

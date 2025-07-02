@@ -1,2 +1,2 @@
 export { SWins } from './Swins.svelte';
-export * from './swinsLayout'; 
+export * from '../state/swinsLayout'; 

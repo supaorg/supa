@@ -1,7 +1,7 @@
 <script lang="ts">
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
-  import { clientState } from "$lib/clientState.svelte";
-  import { authStore } from "$lib/stores/auth.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
+  import { authStore } from "$lib/state/auth.svelte";
   import {
     createNewLocalSpace,
     createNewSyncedSpace,

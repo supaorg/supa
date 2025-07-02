@@ -1,6 +1,6 @@
 <script lang="ts">
   import { PlusCircle } from "lucide-svelte";
-  import { clientState } from "$lib/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   let {
     onProviderAdded = () => {},

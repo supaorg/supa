@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import Loading from "$lib/comps/basic/Loading.svelte";
-  import { clientState } from "$lib/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import FreshStartWizard from "$lib/comps/wizards/FreshStartWizard.svelte";
   import { initializeDatabase, savePointers, saveConfig } from "$lib/localDb";
   import Space from "./apps/Space.svelte";
-  import type { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import type { spaceStore } from "$lib/state/spaceStore.svelte";
 
   type Status = "initializing" | "needsSpace" | "ready";
 

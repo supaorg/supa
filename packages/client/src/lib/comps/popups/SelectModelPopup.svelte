@@ -1,8 +1,8 @@
 <script lang="ts">
   import ModelProviderSelector from "../models/ModelProviderSelector.svelte";
   import ModelProviders from "../models/ModelProviders.svelte";
-  import { txtStore } from "$lib/stores/txtStore";
-  import { clientState } from "$lib/clientState.svelte";
+  import { txtStore } from "$lib/state/txtStore";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   let {
     selectedModel,

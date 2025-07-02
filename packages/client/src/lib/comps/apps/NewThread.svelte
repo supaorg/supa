@@ -1,9 +1,9 @@
 <script lang="ts">
   import SendMessageForm from "../../comps/forms/SendMessageForm.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
-  import { openChatTab } from "$lib/ttabs/layout.svelte";
+  import { openChatTab } from "$lib/state/layout.svelte";
   import { onMount } from "svelte";
 
   let { appConfig, onSend }: { appConfig?: AppConfig; onSend?: () => void } =

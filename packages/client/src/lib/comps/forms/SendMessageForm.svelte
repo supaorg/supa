@@ -4,10 +4,10 @@
   import { onMount, tick } from "svelte";
   import { focusTrap } from "$lib/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
-  import { txtStore } from "$lib/stores/txtStore";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { txtStore } from "$lib/state/txtStore";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
-  import { clientState } from "$lib/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height

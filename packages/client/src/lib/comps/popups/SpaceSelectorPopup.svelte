@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
-  import { clientState } from "$lib/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { ChevronsUpDown } from "lucide-svelte";
 
   let openState = $state(false);

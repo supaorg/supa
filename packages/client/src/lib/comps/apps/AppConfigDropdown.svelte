@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import type { AppConfig } from "@core/models";
-  import { txtStore } from "$lib/stores/txtStore";
+  import { txtStore } from "$lib/state/txtStore";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { ChevronUp, Pencil, Plus } from "lucide-svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
 
   let {
     configId = "",

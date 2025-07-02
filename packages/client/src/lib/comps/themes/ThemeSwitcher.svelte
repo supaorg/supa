@@ -24,7 +24,7 @@
     { name: "wintry", emoji: "🌨️" },
   ];
 
-  import { theme, setThemeName } from "$lib/stores/theme.svelte";
+  import { theme, setThemeName } from "$lib/state/theme.svelte";
 
   async function handleThemeClick(name: string) {
     await setThemeName(name);

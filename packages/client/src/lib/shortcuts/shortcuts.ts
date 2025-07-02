@@ -1,5 +1,5 @@
-import { clientState } from "$lib/clientState.svelte";
-import { sidebar } from "$lib/ttabs/layout.svelte";
+import { clientState } from "$lib/state/clientState.svelte";
+import { sidebar } from "$lib/state/layout.svelte";
 
 // Platform detection (using userAgent instead of deprecated platform)
 const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);

@@ -2,7 +2,7 @@
   import { EllipsisVertical } from "lucide-svelte";
   import { goto } from "$app/navigation";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
 
   let { appTreeId }: { appTreeId: string } = $props();
   let openState = $state(false);

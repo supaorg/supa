@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { loadSpaceTheme } from "$lib/stores/theme.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { loadSpaceTheme } from "$lib/state/theme.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
     import { onMount } from "svelte";
 
   // @TODO: how about we use it outside of Space and have logic that 

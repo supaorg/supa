@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import type { AppConfig } from "@core/models";
   import { LayoutGrid, MessageCircle } from "lucide-svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
-  import { txtStore } from "$lib/stores/txtStore";
+  import { txtStore } from "$lib/state/txtStore";
   import { untrack } from "svelte";
 
   let appConfigs = $state<AppConfig[]>([]);

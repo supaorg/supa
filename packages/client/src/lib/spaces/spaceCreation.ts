@@ -1,8 +1,8 @@
 import { api, API_BASE_URL } from "$lib/utils/api";
 import type { SpaceCreationResponse } from "@core/apiTypes";
-import { spaceStore } from "./spaceStore.svelte";
+import { spaceStore } from "../state/spaceStore.svelte";
 import { createNewLocalSpace as createNewManagedLocalSpace } from "./spaceManagerSetup";
-import { authStore } from "$lib/stores/auth.svelte";
+import { authStore } from "$lib/state/auth.svelte";
 
 export async function createNewLocalSpace() {
   // Use new SpaceManager approach for local spaces

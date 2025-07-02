@@ -1,8 +1,8 @@
-import { authStore } from "$lib/stores/auth.svelte";
+import { authStore } from "$lib/state/auth.svelte";
 import { savePointers, appendTreeOps, saveAllSecrets } from "$lib/localDb";
 import type { SpaceCreationResponse } from "@core/apiTypes";
 import type { SpacePointer } from "$lib/spaces/SpacePointer";
-import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+import { spaceStore } from "$lib/state/spaceStore.svelte";
 
 // API Base URL - should match the server
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3131';

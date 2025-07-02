@@ -1,7 +1,7 @@
 <script lang="ts">
   import ChatApp from "./ChatApp.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
 
   let { treeId }: { treeId: string } = $props();
 

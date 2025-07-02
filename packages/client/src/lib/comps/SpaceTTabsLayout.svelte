@@ -1,8 +1,8 @@
 <script lang="ts">
   import { TTabsRoot } from "ttabs-svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import { getTtabsLayout, saveTtabsLayout } from "$lib/localDb";
-  import { ttabs, setupLayout } from "$lib/ttabs/layout.svelte";
+  import { ttabs, setupLayout } from "$lib/state/layout.svelte";
   import { onDestroy, untrack } from "svelte";
 
   let unsubscribe: (() => void) | null = null;

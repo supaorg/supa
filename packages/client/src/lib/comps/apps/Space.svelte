@@ -1,12 +1,12 @@
 <script lang="ts">
   import SpaceInspectorWindow from "../space-inspector/SpaceInspectorWindow.svelte";
   import DevPanel from "../dev/DevPanel.svelte";
-  import { isDevMode, spaceInspectorOpen } from "$lib/stores/devMode";
+  import { isDevMode, spaceInspectorOpen } from "$lib/state/devMode";
   import OllamaAutoConfig from "../models/OllamaAutoConfig.svelte";
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
   import SpaceTTabsLayout from "../SpaceTTabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import SpaceSetupWizard from "../wizards/SpaceSetupWizard.svelte";
 
   let onboarding = $state(false);

@@ -1,13 +1,13 @@
-import { authStore, type User } from './stores/auth.svelte';
-import { spaceStore } from './spaces/spaceStore.svelte';
-import { spaceSocketStore } from './stores/spacesocket.svelte';
-import { theme, loadSpaceTheme, setThemeName, setColorScheme } from './stores/theme.svelte';
-import { isDevMode, spaceInspectorOpen } from './stores/devMode';
-import { txtStore } from './stores/txtStore';
-import { ttabs, sidebar, layoutRefs } from './ttabs/layout.svelte';
-import { SWins } from './swins/Swins.svelte';
-import { setupSwins } from './swins/swinsLayout';
-import { createNewLocalSpace, createNewSyncedSpace } from './spaces/spaceCreation';
+import { authStore, type User } from './auth.svelte';
+import { spaceStore } from './spaceStore.svelte';
+import { spaceSocketStore } from './spacesocket.svelte';
+import { theme, loadSpaceTheme, setThemeName, setColorScheme } from './theme.svelte';
+import { isDevMode, spaceInspectorOpen } from './devMode';
+import { txtStore } from './txtStore';
+import { ttabs, sidebar, layoutRefs } from './layout.svelte';
+import { SWins } from '../swins/Swins.svelte';
+import { setupSwins } from './swinsLayout';
+import { createNewLocalSpace, createNewSyncedSpace } from '../spaces/spaceCreation';
 
 interface AuthTokens {
   access_token: string;

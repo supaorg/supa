@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";

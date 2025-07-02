@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { authStore } from "$lib/stores/auth.svelte";
-  import { clientState } from "$lib/clientState.svelte";
+  import { authStore } from "$lib/state/auth.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { User } from "lucide-svelte";
 
   const handleSignIn = () => {

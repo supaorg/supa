@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import type { VertexChangeEvent } from "reptree/treeTypes";
   import { onMount } from "svelte";
   import AppTreeOptionsPopup from "../popups/AppTreeOptionsPopup.svelte";
-  import { openChatTab, ttabs } from "$lib/ttabs/layout.svelte";
+  import { openChatTab, ttabs } from "$lib/state/layout.svelte";
 
   let { id }: { id: string } = $props();
 

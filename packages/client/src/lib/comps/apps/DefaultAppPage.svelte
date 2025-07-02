@@ -1,7 +1,7 @@
 <script lang="ts">
   import CenteredPage from "../basic/CenteredPage.svelte";
   import NewThread from "./NewThread.svelte";
-  import { sidebar } from "$lib/ttabs/layout.svelte";
+  import { sidebar } from "$lib/state/layout.svelte";
   import SidebarToggle from "../sidebar/SidebarToggle.svelte";
 </script>
 

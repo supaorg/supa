@@ -3,7 +3,7 @@
   import type { Tokens } from "marked";
   import { Copy, Check } from "lucide-svelte";
   import { timeout } from "@core/tools/timeout";
-  import { theme } from "$lib/stores/theme.svelte";
+  import { theme } from "$lib/state/theme.svelte";
 </script>
 
 <script lang="ts">

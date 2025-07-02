@@ -7,10 +7,10 @@
     MessageCircle,
   } from "lucide-svelte";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
-  import { txtStore } from "$lib/stores/txtStore";
+  import { txtStore } from "$lib/state/txtStore";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import { clientState } from "$lib/clientState.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   let { config }: { config: AppConfig } = $props();
 

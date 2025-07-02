@@ -3,7 +3,7 @@
   import { Pencil, Trash2, CircleAlert } from "lucide-svelte";
   import { Tooltip } from "@skeletonlabs/skeleton-svelte";
   import CustomProviderForm from "./CustomProviderForm.svelte";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import { getActiveProviders } from "@core/customProviders";
 
   let {

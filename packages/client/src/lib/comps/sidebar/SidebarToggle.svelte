@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { sidebar } from "$lib/ttabs/layout.svelte";
+  import { sidebar } from "$lib/state/layout.svelte";
   import PanelLeftClose from "lucide-svelte/icons/panel-left-close";
   import PanelLeftOpen from "lucide-svelte/icons/panel-left-open";
 </script>

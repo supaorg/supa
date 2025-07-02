@@ -4,9 +4,9 @@
   import CustomProviderCard from "./CustomProviderCard.svelte";
   import AddCustomProviderCard from "./AddCustomProviderCard.svelte";
   import { providers } from "@core/providers";
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import { getActiveProviders } from "@core/customProviders";
-  import { clientState } from "$lib/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   let customProviders = $state<ModelProvider[]>([]);
 

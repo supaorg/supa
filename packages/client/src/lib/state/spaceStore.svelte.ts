@@ -1,10 +1,10 @@
 import type Space from "@core/spaces/Space";
-import type { SpacePointer } from "./SpacePointer";
+import type { SpacePointer } from "../spaces/SpacePointer";
 import { deleteSpace, getDraft, saveDraft, deleteDraft, getAllSecrets, saveAllSecrets, getSecret, setSecret, getPointersForUser, associateSpacesWithUser, updateSpaceUserId, associateLocalSpaceWithUser, makeSpaceLocal } from "$lib/localDb";
 import { untrack } from "svelte";
-import { authStore } from "$lib/stores/auth.svelte";
-import { spaceManager } from "./spaceManagerSetup";
-import { loadExistingLocalSpace } from "./spaceManagerSetup";
+import { authStore } from "$lib/state/auth.svelte";
+import { spaceManager } from "../spaces/spaceManagerSetup";
+import { loadExistingLocalSpace } from "../spaces/spaceManagerSetup";
 
 class SpaceStore {
   pointers: SpacePointer[] = $state([]);

@@ -1,11 +1,11 @@
 <script lang="ts">
   import "../app.css";
   import ThemeManager from "$lib/comps/themes/ThemeManager.svelte";
-  import { clientState } from "$lib/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
   import { onMount } from "svelte";
   import { destroyShortcuts, initShortcuts } from "$lib/shortcuts/shortcuts";
-  import { authStore } from "$lib/stores/auth.svelte";
+  import { authStore } from "$lib/state/auth.svelte";
   import { fetchSpaces } from "$lib/utils/api";
 
   let { children } = $props();

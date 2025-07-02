@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { sidebar } from "$lib/ttabs/layout.svelte";
+  import { sidebar } from "$lib/state/layout.svelte";
   import { onDestroy, onMount, untrack } from "svelte";
   import Sidebar from "./Sidebar.svelte";
 

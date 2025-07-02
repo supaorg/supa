@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
-  import { clientState } from "$lib/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import Loading from "$lib/comps/basic/Loading.svelte";
 
   let status = $state<"loading" | "success" | "error">("loading");

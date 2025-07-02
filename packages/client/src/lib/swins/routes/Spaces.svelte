@@ -1,7 +1,7 @@
 <script lang="ts">
   import SpaceList from "$lib/comps/spaces/SpaceList.svelte";
-  import { txtStore } from "$lib/stores/txtStore";
-  import { clientState } from "$lib/clientState.svelte";
+  import { txtStore } from "$lib/state/txtStore";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { Plus } from "lucide-svelte";
 
   async function handleNewSpace() {

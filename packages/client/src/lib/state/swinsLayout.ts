@@ -1,9 +1,9 @@
-import { SWins } from './Swins.svelte';
-import Settings from './routes/Settings.svelte';
-import Spaces from './routes/Spaces.svelte';
-import Apps from './routes/Apps.svelte';
+import { SWins } from '../swins/Swins.svelte';
+import Settings from '../swins/routes/Settings.svelte';
+import Spaces from '../swins/routes/Spaces.svelte';
+import Apps from '../swins/routes/Apps.svelte';
 import AppConfigEditing from '$lib/comps/app-configs/AppConfigEditing.svelte';
-import NewThreadSwins from './routes/NewThreadSwins.svelte';
+import NewThreadSwins from '../swins/routes/NewThreadSwins.svelte';
 import HowToSetupModelProider from '$lib/comps/models/HowToSetupModelProider.svelte';
 import SelectModelPopup from '$lib/comps/popups/SelectModelPopup.svelte';
 import CustomProviderSetup from '$lib/comps/models/CustomProviderSetup.svelte';

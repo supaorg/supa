@@ -1,6 +1,6 @@
 import { getCurrentColorScheme, applyColorSchemeToDocument } from "$lib/utils/updateColorScheme";
 import { saveSpaceTheme, saveSpaceColorScheme, getSpaceSetup } from "$lib/localDb";
-import { spaceStore } from "$lib/spaces/spaceStore.svelte";
+import { spaceStore } from "$lib/state/spaceStore.svelte";
 
 const DEFAULT_THEME = 'cerberus';
 type ColorScheme = 'light' | 'dark';
