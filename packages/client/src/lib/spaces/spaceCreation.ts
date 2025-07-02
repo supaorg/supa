@@ -1,8 +1,7 @@
 import { api, API_BASE_URL } from "$lib/utils/api";
 import type { SpaceCreationResponse } from "@core/apiTypes";
-import { spaceStore } from "../state/spaceStore.svelte";
+import { clientState } from "../state/clientState.svelte";
 import { createNewLocalSpace as createNewManagedLocalSpace } from "./spaceManagerSetup";
-import { authStore } from "$lib/state/auth.svelte";
 
 export async function createNewLocalSpace() {
   // Use new SpaceManager approach for local spaces
@@ -14,11 +13,11 @@ export async function createNewLocalSpace() {
     uri: "local://" + connection.space.getId(),
     name: connection.space.name || null,
     createdAt: connection.space.createdAt,
-    userId: authStore.user?.id || null,
+    userId: clientState.auth.user?.id || null,
   };
   
-  spaceStore.addSpacePointer(pointer);
-  spaceStore.currentSpaceId = connection.space.getId();
+  clientState.spaces.addSpacePointer(pointer);
+  clientState.spaces.currentSpaceId = connection.space.getId();
 }
 
 export async function createNewSyncedSpace() {
@@ -44,7 +43,7 @@ export async function createNewSyncedSpace() {
     userId: response.data.owner_id,
   };
   
-  spaceStore.addSpacePointer(pointer);
-  spaceStore.currentSpaceId = sync.space.getId();
+  clientState.spaces.addSpacePointer(pointer);
+  clientState.spaces.currentSpaceId = sync.space.getId();
   */
 }

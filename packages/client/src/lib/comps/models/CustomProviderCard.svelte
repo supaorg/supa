@@ -3,7 +3,7 @@
   import { Pencil, Trash2, CircleAlert } from "lucide-svelte";
   import { Tooltip } from "@skeletonlabs/skeleton-svelte";
   import CustomProviderForm from "./CustomProviderForm.svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { getActiveProviders } from "@core/customProviders";
 
   let {
@@ -27,12 +27,12 @@
 
   // Check if provider is configured
   $effect(() => {
-    if (!spaceStore.currentSpace) return;
-    
-    const customConfigs = spaceStore.currentSpace.getCustomProviders();
+    if (!clientState.spaces.currentSpace) return;
+
+    const customConfigs = clientState.spaces.currentSpace.getCustomProviders();
     const allProviders = getActiveProviders(customConfigs);
-    const activeProvider = allProviders.find(p => p.id === provider.id);
-    
+    const activeProvider = allProviders.find((p) => p.id === provider.id);
+
     isConfigured = !!activeProvider;
     if (isConfigured) {
       checkConfigurationAndStatus();
@@ -40,32 +40,38 @@
   });
 
   async function checkConfigurationAndStatus() {
-    if (!spaceStore.currentSpace) return;
-    
+    if (!clientState.spaces.currentSpace) return;
+
     isChecking = true;
     showValidationWarning = false;
     validationError = null;
-    
+
     try {
-      const customConfigs = spaceStore.currentSpace.getCustomProviders();
+      const customConfigs =
+        clientState.spaces.currentSpace.getCustomProviders();
       const allProviders = getActiveProviders(customConfigs);
-      const activeProvider = allProviders.find(p => p.id === provider.id);
-      
+      const activeProvider = allProviders.find((p) => p.id === provider.id);
+
       if (!activeProvider) {
         isConfigured = false;
         return;
       }
-      
+
       // Check provider status
-      const status = await spaceStore.currentSpace.getModelProviderStatus(provider.id);
-      
+      const status =
+        await clientState.spaces.currentSpace.getModelProviderStatus(
+          provider.id,
+        );
+
       if (status === "invalid") {
         showValidationWarning = true;
-        validationError = "API key validation failed. The key might be invalid or expired.";
+        validationError =
+          "API key validation failed. The key might be invalid or expired.";
       }
     } catch (error) {
       showValidationWarning = true;
-      validationError = error instanceof Error ? error.message : 'Unknown error occurred';
+      validationError =
+        error instanceof Error ? error.message : "Unknown error occurred";
     } finally {
       isChecking = false;
     }
@@ -89,9 +95,9 @@
   }
 
   function deleteProvider() {
-    if (!spaceStore.currentSpace) return;
-    
-    spaceStore.currentSpace.removeCustomProvider(provider.id);
+    if (!clientState.spaces.currentSpace) return;
+
+    clientState.spaces.currentSpace.removeCustomProvider(provider.id);
     onDeleted?.();
   }
 </script>
@@ -102,19 +108,27 @@
   class:border-warning-500={showValidationWarning}
 >
   {#if !isEditing}
-    <div class="w-10 h-10 bg-white flex flex-shrink-0 items-center justify-center rounded">
+    <div
+      class="w-10 h-10 bg-white flex flex-shrink-0 items-center justify-center rounded"
+    >
       <img src="/providers/openai-like.png" alt={provider.name} class="w-4/5" />
     </div>
-    
+
     <div class="flex items-center justify-between flex-grow">
       <div class="flex items-center gap-2">
         <span class="font-semibold">{provider.name}</span>
         {#if isConfigured}
           <div class="flex items-center gap-1">
-            <span class="badge badge-sm {showValidationWarning ? 'preset-filled-warning-500' : 'preset-filled-success-500'} {isChecking ? 'animate-pulse' : ''}">Connected</span>
+            <span
+              class="badge badge-sm {showValidationWarning
+                ? 'preset-filled-warning-500'
+                : 'preset-filled-success-500'} {isChecking
+                ? 'animate-pulse'
+                : ''}">Connected</span
+            >
             {#if showValidationWarning}
-              <Tooltip 
-                positioning={{ placement: 'top' }}
+              <Tooltip
+                positioning={{ placement: "top" }}
                 triggerBase="underline"
                 contentBase="card preset-filled p-4"
                 openDelay={200}
@@ -124,7 +138,8 @@
                 {/snippet}
                 {#snippet content()}
                   <div class="text-sm max-w-[200px]">
-                    {validationError || 'Validation failed. Check your API key or connection.'}
+                    {validationError ||
+                      "Validation failed. Check your API key or connection."}
                   </div>
                 {/snippet}
               </Tooltip>
@@ -132,19 +147,19 @@
           </div>
         {/if}
       </div>
-      
+
       {#if !confirmingDelete}
         <div class="flex gap-2">
-          <button 
-            class="btn btn-sm preset-outlined-surface-500" 
+          <button
+            class="btn btn-sm preset-outlined-surface-500"
             onclick={handleEdit}
             title="Edit provider"
           >
             <Pencil size={14} />
             <span>Edit</span>
           </button>
-          <button 
-            class="btn btn-sm preset-outlined-error-500" 
+          <button
+            class="btn btn-sm preset-outlined-error-500"
             onclick={handleDelete}
             title="Delete provider"
           >
@@ -155,14 +170,14 @@
       {:else}
         <div class="flex items-center gap-2">
           <div class="text-sm text-error-500">Delete?</div>
-          <button 
-            class="btn btn-sm preset-filled-error-500" 
+          <button
+            class="btn btn-sm preset-filled-error-500"
             onclick={deleteProvider}
           >
             Confirm
           </button>
-          <button 
-            class="btn btn-sm preset-outlined-surface-500" 
+          <button
+            class="btn btn-sm preset-outlined-surface-500"
             onclick={cancelDelete}
           >
             Cancel
@@ -172,11 +187,11 @@
     </div>
   {:else}
     <div class="w-full">
-      <CustomProviderForm 
+      <CustomProviderForm
         providerId={provider.id}
         onSave={handleSave}
         onCancel={() => (isEditing = false)}
       />
     </div>
   {/if}
-</div> 
+</div>

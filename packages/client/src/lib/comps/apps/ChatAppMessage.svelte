@@ -11,7 +11,7 @@
   import { onMount } from "svelte";
   import { timeout } from "@core/tools/timeout";
   import Markdown from "../markdown/Markdown.svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
 
@@ -64,8 +64,8 @@
   $effect(() => {
     if (message?.role === "assistant") {
       const configId = vertex.getProperty("configId") as string;
-      if (configId && spaceStore.currentSpace) {
-        const config = spaceStore.currentSpace.getAppConfig(configId);
+      if (configId && clientState.spaces.currentSpace) {
+        const config = clientState.spaces.currentSpace.getAppConfig(configId);
         if (config) {
           configName = config.name;
           return;

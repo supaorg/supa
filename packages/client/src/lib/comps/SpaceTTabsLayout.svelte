@@ -1,6 +1,6 @@
 <script lang="ts">
   import { TTabsRoot } from "ttabs-svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { getTtabsLayout, saveTtabsLayout } from "$lib/localDb";
   import { ttabs, setupLayout } from "$lib/state/layout.svelte";
   import { onDestroy, untrack } from "svelte";
@@ -9,7 +9,7 @@
   let lastSavedLayout: string | null = null;
 
   async function saveSpaceLayout(): Promise<void> {
-    const spaceId = spaceStore.currentSpaceId;
+    const spaceId = clientState.spaces.currentSpaceId;
     if (!spaceId) return;
 
     const layoutJson = ttabs.serializeLayout();
@@ -34,7 +34,7 @@
   }
 
   $effect(() => {
-    const spaceId = spaceStore.currentSpaceId;
+    const spaceId = clientState.spaces.currentSpaceId;
 
     untrack(() => {
       setupSpaceLayout(spaceId);

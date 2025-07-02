@@ -23,7 +23,7 @@ interface AuthTokens {
   expires_in: number;
 }
 
-class AuthStore {
+export class AuthStore {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
   private tokenExpiry: number | null = null;
@@ -224,6 +224,3 @@ class AuthStore {
     return `Bearer ${this.accessToken}`;
   }
 }
-
-// Export singleton instance
-export const authStore = new AuthStore(); 

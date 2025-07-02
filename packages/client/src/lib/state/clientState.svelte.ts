@@ -1,5 +1,5 @@
-import { authStore, type User } from './auth.svelte';
-import { spaceStore } from './spaceStore.svelte';
+import { AuthStore, type User } from './auth.svelte';
+import { SpaceStore } from './spaceStore.svelte';
 import { spaceSocketStore } from './spacesocket.svelte';
 import { theme, loadSpaceTheme, setThemeName, setColorScheme } from './theme.svelte';
 import { isDevMode, spaceInspectorOpen } from './devMode';
@@ -21,8 +21,8 @@ interface AuthTokens {
  */
 export class ClientState {
   // Direct references to focused stores
-  auth = authStore;
-  spaces = spaceStore;
+  auth = new AuthStore();
+  spaces = new SpaceStore();
   sockets = spaceSocketStore;
   theme = {
     current: theme,
@@ -96,7 +96,7 @@ export class ClientState {
     } else {
       await createNewSyncedSpace();
     }
-    // Space creation functions already handle spaceStore updates
+    // Space creation functions already handle spaces updates
     await this.theme.loadSpaceTheme();
   }
   

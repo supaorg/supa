@@ -1,7 +1,7 @@
 <script lang="ts">
   import { loadSpaceTheme } from "$lib/state/theme.svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
-    import { onMount } from "svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
+  import { onMount } from "svelte";
 
   // @TODO: how about we use it outside of Space and have logic that 
   // first checks for a default theme (outside of space) and then a space theme 
@@ -12,7 +12,7 @@
   });
 
   $effect(() => {
-    const currentSpaceId = spaceStore.currentSpaceId;
+    	const currentSpaceId = clientState.spaces.currentSpaceId;
     if (currentSpaceId) {
       loadSpaceTheme();
     }

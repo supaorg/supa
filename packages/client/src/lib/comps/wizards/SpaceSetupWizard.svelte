@@ -1,6 +1,6 @@
 <script lang="ts">
   import Wizard from "$lib/comps/wizards/Wizard.svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { theme, setThemeName } from "$lib/state/theme.svelte";
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
   import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
@@ -35,8 +35,8 @@
   let currentWizardStep = $state(0);
 
   $effect(() => {
-    if (spaceStore.currentSpace) {
-      const providerVertex = spaceStore.currentSpace.tree.getVertexByPath("providers");
+    if (clientState.spaces.currentSpace) {
+      const providerVertex = clientState.spaces.currentSpace.tree.getVertexByPath("providers");
       if (providerVertex) {
         hasSetupProvider = providerVertex.children.length > 0;
       }
@@ -44,15 +44,15 @@
   });
 
   function handleCancel() {
-    if (!spaceStore.currentSpaceId) {
+    if (!clientState.spaces.currentSpaceId) {
       return;
     }
 
-    spaceStore.removeSpace(spaceStore.currentSpaceId);
+    clientState.spaces.removeSpace(clientState.spaces.currentSpaceId);
   }
 
   onMount(() => {
-    spaceName = spaceStore.currentSpace?.name || presetNames[0];
+    spaceName = clientState.spaces.currentSpace?.name || presetNames[0];
   });
 
   function handleProviderConnect() {
@@ -68,16 +68,16 @@
       }
       
       // Save space name
-      if (spaceStore.currentSpace) {
-        const updatedPointers = spaceStore.pointers.map((space) =>
-          space.id === spaceStore.currentSpaceId ? { ...space, name: spaceName } : space
+      if (clientState.spaces.currentSpace) {
+        const updatedPointers = clientState.spaces.pointers.map((space) =>
+          space.id === clientState.spaces.currentSpaceId ? { ...space, name: spaceName } : space
         );
-        spaceStore.pointers = updatedPointers;
+        clientState.spaces.pointers = updatedPointers;
         
         // Also update the loaded space name
-        const currentPointer = spaceStore.pointers.find(p => p.id === spaceStore.currentSpaceId);
+        const currentPointer = clientState.spaces.pointers.find(p => p.id === clientState.spaces.currentSpaceId);
         if (currentPointer) {
-          const space = spaceStore.getLoadedSpaceFromPointer(currentPointer);
+          const space = clientState.spaces.getLoadedSpaceFromPointer(currentPointer);
           if (space) {
             space.name = spaceName;
           }
@@ -88,9 +88,9 @@
   }
 
   function completeSetup() {
-    if (spaceStore.currentSpace) {
-      const rootVertex = spaceStore.currentSpace.rootVertex;
-      spaceStore.currentSpace.tree.setVertexProperty(rootVertex.id, 'onboarding', false);
+    if (clientState.spaces.currentSpace) {
+      const rootVertex = clientState.spaces.currentSpace.rootVertex;
+      clientState.spaces.currentSpace.tree.setVertexProperty(rootVertex.id, 'onboarding', false);
       // Potentially navigate away or show a success message
     }
   }

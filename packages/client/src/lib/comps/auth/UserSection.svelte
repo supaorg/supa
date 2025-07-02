@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { authStore } from "$lib/state/auth.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
   import { User } from "lucide-svelte";
 
@@ -12,7 +11,7 @@
   };
 </script>
 
-{#if authStore.isAuthenticated}
+{#if clientState.auth.isAuthenticated}
   <button
     type="button"
     class="w-full text-left p-4"
@@ -20,9 +19,9 @@
   >
     <div class="flex items-center gap-3">
       <div class="w-8 h-8 rounded-full bg-surface-500 flex items-center justify-center">
-        {#if authStore.user?.avatarUrl}
+        {#if clientState.auth.user?.avatarUrl}
           <img 
-            src={authStore.user.avatarUrl} 
+            src={clientState.auth.user.avatarUrl} 
             alt="User avatar" 
             class="w-8 h-8 rounded-full object-cover"
           />
@@ -32,7 +31,7 @@
       </div>
       <div class="flex-1 min-w-0">
         <p class="text-sm font-medium truncate">
-          {authStore.user?.name || authStore.user?.email || 'User'}
+          {clientState.auth.user?.name || clientState.auth.user?.email || 'User'}
         </p>
       </div>
     </div>

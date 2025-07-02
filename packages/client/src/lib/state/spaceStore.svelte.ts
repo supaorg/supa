@@ -2,11 +2,11 @@ import type Space from "@core/spaces/Space";
 import type { SpacePointer } from "../spaces/SpacePointer";
 import { deleteSpace, getDraft, saveDraft, deleteDraft, getAllSecrets, saveAllSecrets, getSecret, setSecret, getPointersForUser, associateSpacesWithUser, updateSpaceUserId, associateLocalSpaceWithUser, makeSpaceLocal } from "$lib/localDb";
 import { untrack } from "svelte";
-import { authStore } from "$lib/state/auth.svelte";
+import { clientState } from "$lib/state/clientState.svelte";
 import { spaceManager } from "../spaces/spaceManagerSetup";
 import { loadExistingLocalSpace } from "../spaces/spaceManagerSetup";
 
-class SpaceStore {
+export class SpaceStore {
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $state(null);
   config: Record<string, unknown> = $state({});
@@ -241,7 +241,7 @@ class SpaceStore {
    * Filter spaces for the current user
    */
   async filterSpacesForCurrentUser(): Promise<void> {
-    const userId = authStore.user?.id || null;
+    const userId = clientState.auth.user?.id || null;
     const userPointers = await getPointersForUser(userId);
     
     // Update pointers to only show user's spaces
@@ -288,16 +288,16 @@ class SpaceStore {
    * Associate a local space with the current user
    */
   async associateSpaceWithCurrentUser(spaceId: string): Promise<void> {
-    if (!authStore.user) {
+    if (!clientState.auth.user) {
       throw new Error('No user is currently signed in');
     }
     
-    await associateLocalSpaceWithUser(spaceId, authStore.user.id);
+    await associateLocalSpaceWithUser(spaceId, clientState.auth.user.id);
     
     // Update the pointer in memory
     const pointerIndex = this.pointers.findIndex(p => p.id === spaceId);
     if (pointerIndex !== -1) {
-      this.pointers[pointerIndex] = { ...this.pointers[pointerIndex], userId: authStore.user.id };
+      this.pointers[pointerIndex] = { ...this.pointers[pointerIndex], userId: clientState.auth.user.id };
     }
   }
 
@@ -326,9 +326,9 @@ class SpaceStore {
    * Check if current user owns a space
    */
   doesCurrentUserOwnSpace(spaceId: string): boolean {
-    if (!authStore.user) return false;
+    if (!clientState.auth.user) return false;
     const pointer = this.pointers.find(p => p.id === spaceId);
-    return pointer?.userId === authStore.user.id;
+    return pointer?.userId === clientState.auth.user.id;
   }
 }
 

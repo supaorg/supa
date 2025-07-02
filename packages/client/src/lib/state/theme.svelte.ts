@@ -1,6 +1,6 @@
 import { getCurrentColorScheme, applyColorSchemeToDocument } from "$lib/utils/updateColorScheme";
 import { saveSpaceTheme, saveSpaceColorScheme, getSpaceSetup } from "$lib/localDb";
-import { spaceStore } from "$lib/state/spaceStore.svelte";
+import { clientState } from "$lib/state/clientState.svelte";
 
 const DEFAULT_THEME = 'cerberus';
 type ColorScheme = 'light' | 'dark';
@@ -13,13 +13,13 @@ export const theme = $state({
 
 // Load theme and color scheme for the current space
 export async function loadSpaceTheme() {
-  if (!spaceStore.currentSpaceId) {
+  	if (!clientState.spaces.currentSpaceId) {
     setDefaultTheme();
     return;
   }
   
   try {
-    const spaceSetup = await getSpaceSetup(spaceStore.currentSpaceId);
+    	const spaceSetup = await getSpaceSetup(clientState.spaces.currentSpaceId);
     
     // Load theme name
     if (spaceSetup?.theme) {
@@ -66,8 +66,8 @@ export async function setThemeName(name: string) {
   document.documentElement.setAttribute("data-theme", name);
   
   // Save to the current space if available
-  if (spaceStore.currentSpaceId) {
-    await saveSpaceTheme(spaceStore.currentSpaceId, name);
+  	if (clientState.spaces.currentSpaceId) {
+		await saveSpaceTheme(clientState.spaces.currentSpaceId, name);
   }
 }
 
@@ -77,7 +77,7 @@ export async function setColorScheme(colorScheme: ColorScheme) {
   applyColorScheme(colorScheme);
   
   // Save to the current space if available
-  if (spaceStore.currentSpaceId) {
-    await saveSpaceColorScheme(spaceStore.currentSpaceId, colorScheme);
+  	if (clientState.spaces.currentSpaceId) {
+		await saveSpaceColorScheme(clientState.spaces.currentSpaceId, colorScheme);
   }
 }

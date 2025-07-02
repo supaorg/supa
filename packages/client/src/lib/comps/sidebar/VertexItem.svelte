@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
-  import type { VertexChangeEvent } from "reptree/treeTypes";
+  import { clientState } from "$lib/state/clientState.svelte";
+  import type { VertexChangeEvent } from "@core/tree/treeTypes";
   import { onMount } from "svelte";
   import AppTreeOptionsPopup from "../popups/AppTreeOptionsPopup.svelte";
   import { openChatTab, ttabs } from "$lib/state/layout.svelte";
@@ -48,13 +48,13 @@
   }
 
   onMount(() => {
-    const vertex = spaceStore.currentSpace?.getVertex(id);
+    const vertex = clientState.spaces.currentSpace?.getVertex(id);
     appTreeId = vertex?.getProperty("tid") as string | undefined;
     name = vertex?.getProperty("_n") as string | undefined;
   });
 
   $effect(() => {
-    const unobserve = spaceStore.currentSpace?.tree.observe(id, onSpaceChange);
+    const unobserve = clientState.spaces.currentSpace?.tree.observe(id, onSpaceChange);
     return () => {
       unobserve?.();
     };
@@ -62,7 +62,7 @@
 
   function onSpaceChange(events: VertexChangeEvent[]) {
     if (events.some((e) => e.type === "property")) {
-      const vertex = spaceStore.currentSpace?.getVertex(id);
+      const vertex = clientState.spaces.currentSpace?.getVertex(id);
       name = vertex?.getProperty("_n") as string | undefined;
       
       // Update any open tab for this conversation with the new name

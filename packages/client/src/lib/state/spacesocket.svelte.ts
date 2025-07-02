@@ -1,7 +1,7 @@
 import { browser } from "$app/environment";
 import { io, type Socket } from "socket.io-client";
 import { API_BASE_URL } from "$lib/utils/api";
-import { authStore } from "./auth.svelte";
+import { clientState } from "./clientState.svelte";
 import type { VertexOperation } from "@core";
 
 export class SpaceSocketStore {
@@ -13,12 +13,12 @@ export class SpaceSocketStore {
   private pingInterval: NodeJS.Timeout | null = null;
 
   async setupSocketConnection() {
-    if (!authStore.isAuthenticated || this.socket) return;
+    if (!clientState.auth.isAuthenticated || this.socket) return;
 
     console.log("Setting up WebSocket connection...");
 
     // Get auth header (async)
-    const authHeader = await authStore.getAuthHeader();
+    const authHeader = await clientState.auth.getAuthHeader();
 
     // Connect to server WebSocket
     this.socket = io(API_BASE_URL, {

@@ -5,7 +5,7 @@
   import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
   import { onMount } from "svelte";
   import { destroyShortcuts, initShortcuts } from "$lib/shortcuts/shortcuts";
-  import { authStore } from "$lib/state/auth.svelte";
+
   import { fetchSpaces } from "$lib/utils/api";
 
   let { children } = $props();
@@ -20,7 +20,7 @@
 
   $effect(() => {
     // Fetch spaces when authenticated
-    if (authStore.isAuthenticated) {
+    if (clientState.auth.isAuthenticated) {
       fetchSpaces();
     }
   });

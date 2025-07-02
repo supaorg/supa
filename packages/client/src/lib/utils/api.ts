@@ -1,8 +1,7 @@
-import { authStore } from "$lib/state/auth.svelte";
+import { clientState } from "$lib/state/clientState.svelte";
 import { savePointers, appendTreeOps, saveAllSecrets } from "$lib/localDb";
 import type { SpaceCreationResponse } from "@core/apiTypes";
 import type { SpacePointer } from "$lib/spaces/SpacePointer";
-import { spaceStore } from "$lib/state/spaceStore.svelte";
 
 // API Base URL - should match the server
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3131';
@@ -35,7 +34,7 @@ export async function apiRequest<T = any>(
     }
 
     // Add authorization header if user is authenticated
-    const authHeader = await authStore.getAuthHeader();
+    const authHeader = await clientState.auth.getAuthHeader();
     if (authHeader) {
       headers['Authorization'] = authHeader;
     }
@@ -48,7 +47,7 @@ export async function apiRequest<T = any>(
     // Handle unauthorized responses
     if (response.status === 401) {
       // Token might be expired, logout user
-      authStore.logout();
+      clientState.auth.logout();
       return {
         success: false,
         error: 'Authentication required',
@@ -167,9 +166,9 @@ export async function fetchSpaces() {
       await savePointers(spaces);
 
       // Filter out duplicates by space.id before adding to store
-      const existingIds = new Set(spaceStore.pointers.map(p => p.id));
+      const existingIds = new Set(clientState.spaces.pointers.map(p => p.id));
       const newSpaces = spaces.filter(space => !existingIds.has(space.id));
-      spaceStore.pointers = [...spaceStore.pointers, ...newSpaces];
+      clientState.spaces.pointers = [...clientState.spaces.pointers, ...newSpaces];
     }
   } catch (error) {
     console.error("Failed to fetch spaces:", error);

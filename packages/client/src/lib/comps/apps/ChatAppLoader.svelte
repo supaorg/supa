@@ -1,21 +1,21 @@
 <script lang="ts">
   import ChatApp from "./ChatApp.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   let { treeId }: { treeId: string } = $props();
 
   let data = $derived.by(async () => {
-    if (!spaceStore.currentSpace) {
+    if (!clientState.spaces.currentSpace) {
       throw new Error("No current space id");
     }
 
-    const appTree = await spaceStore.currentSpace.loadAppTree(treeId);
+    const appTree = await clientState.spaces.currentSpace.loadAppTree(treeId);
     if (!appTree) {
       throw new Error("Failed to load app tree");
     }
 
-    return new ChatAppData(spaceStore.currentSpace, appTree);
+    return new ChatAppData(clientState.spaces.currentSpace, appTree);
   });
 </script>
 

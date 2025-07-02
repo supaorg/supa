@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import type { AppConfig } from "@core/models";
   import { LayoutGrid, MessageCircle } from "lucide-svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
@@ -10,7 +10,7 @@
   let appConfigUnobserve: (() => void) | undefined;
 
   $effect(() => {
-    const space = spaceStore.currentSpace;
+    const space = clientState.spaces.currentSpace;
     if (!space) {
       return;
     }

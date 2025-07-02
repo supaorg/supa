@@ -1,7 +1,7 @@
 <script lang="ts">
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
-  import { authStore } from "$lib/state/auth.svelte";
+
   import {
     createNewLocalSpace,
     createNewSyncedSpace,
@@ -12,7 +12,7 @@
   }
 
   function handleSignOut() {
-    authStore.logout();
+    clientState.auth.logout();
   }
 </script>
 
@@ -69,7 +69,7 @@
     </div>
 
     <div class="flex flex-col gap-4 pt-4">
-      {#if authStore.isAuthenticated}
+      		{#if clientState.auth.isAuthenticated}
         <div class="flex flex-col gap-2">
           <button
             class="btn btn-lg preset-filled-primary-500"

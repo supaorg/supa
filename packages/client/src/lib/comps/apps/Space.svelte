@@ -6,13 +6,13 @@
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
   import SpaceTTabsLayout from "../SpaceTTabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import SpaceSetupWizard from "../wizards/SpaceSetupWizard.svelte";
 
   let onboarding = $state(false);
 
   $effect(() => {
-    const space = spaceStore.currentSpace;
+    const space = clientState.spaces.currentSpace;
 
     if (!space) {
       return;
