@@ -1,11 +1,10 @@
 import { AuthStore, type User } from './auth.svelte';
 import { SpaceStore } from './spaceStore.svelte';
-import { spaceSocketStore } from './spacesocket.svelte';
-import { theme, loadSpaceTheme, setThemeName, setColorScheme } from './theme.svelte';
+import { SpaceSocketStore } from './spacesocket.svelte';
+import { ThemeStore } from './theme.svelte';
 import { isDevMode, spaceInspectorOpen } from './devMode';
 import { txtStore } from './txtStore';
 import { ttabs, sidebar, layoutRefs } from './layout.svelte';
-import { SWins } from '../swins/Swins.svelte';
 import { setupSwins } from './swinsLayout';
 import { createNewLocalSpace, createNewSyncedSpace } from '../spaces/spaceCreation';
 
@@ -23,19 +22,26 @@ export class ClientState {
   // Direct references to focused stores
   auth = new AuthStore();
   spaces = new SpaceStore();
-  sockets = spaceSocketStore;
-  theme = {
-    current: theme,
-    loadSpaceTheme,
-    setThemeName,
-    setColorScheme
-  };
+  sockets = new SpaceSocketStore();
+  private themeStore = new ThemeStore();
+
+  get theme() {
+    return {
+      current: {
+        colorScheme: this.themeStore.colorScheme,
+        themeName: this.themeStore.themeName
+      },
+      loadSpaceTheme: () => this.themeStore.loadSpaceTheme(this.spaces.currentSpaceId),
+      setThemeName: (name: string) => this.themeStore.setThemeName(name, this.spaces.currentSpaceId),
+      setColorScheme: (colorScheme: 'light' | 'dark') => this.themeStore.setColorScheme(colorScheme, this.spaces.currentSpaceId)
+    };
+  }
   dev = {
     isDevMode,
     spaceInspectorOpen
   };
   text = txtStore;
-  
+
   // Layout and UI orchestration - create fresh instances to avoid initialization order issues
   layout = {
     ttabs,
@@ -48,9 +54,9 @@ export class ClientState {
     },
     openSpaces: () => {
       this.layout.swins.open('spaces', {}, 'Spaces');
-    } 
+    }
   };
-  
+
   /**
    * Orchestrated sign-in workflow
    * Handles: auth → space filtering → theme loading → socket connection
@@ -61,7 +67,7 @@ export class ClientState {
     await this.theme.loadSpaceTheme();
     this.sockets.setupSocketConnection();
   }
-  
+
   /**
    * Orchestrated sign-out workflow
    * Handles: auth logout → space filtering → socket cleanup → theme reset
@@ -72,7 +78,7 @@ export class ClientState {
     this.sockets.cleanupSocketConnection();
     await this.theme.loadSpaceTheme(); // Reset to defaults
   }
-  
+
   /**
    * Orchestrated space switching workflow
    * Handles: space selection → theme loading → potential sync updates
@@ -80,12 +86,12 @@ export class ClientState {
   async switchSpace(spaceId: string): Promise<void> {
     this.spaces.currentSpaceId = spaceId;
     await this.theme.loadSpaceTheme();
-    
+
     // Future: Could trigger layout updates, sync state, etc.
     // this.layout.ttabs.refreshLayout();
     // await this.syncSpaceState(spaceId);
   }
-  
+
   /**
    * Orchestrated space creation workflow
    * Handles: space creation → theme loading → UI updates
@@ -99,7 +105,7 @@ export class ClientState {
     // Space creation functions already handle spaces updates
     await this.theme.loadSpaceTheme();
   }
-  
+
   /**
    * Initialize the entire client state system
    * Used during app startup
@@ -107,16 +113,16 @@ export class ClientState {
   async initialize(): Promise<void> {
     // Check authentication state
     await this.auth.checkAuth();
-    
+
     // If authenticated, set up connections
     if (this.auth.isAuthenticated) {
       this.sockets.setupSocketConnection();
     }
-    
+
     // Load theme for current space
     await this.theme.loadSpaceTheme();
   }
-  
+
   /**
    * Cleanup all client state
    * Used during app shutdown or navigation away
@@ -125,17 +131,17 @@ export class ClientState {
     await this.spaces.disconnectAllSpaces();
     this.sockets.cleanupSocketConnection();
   }
-  
+
   // Cross-system reactive derivations
-  
+
   /**
    * Check if the application is fully initialized and ready
    */
   get isFullyInitialized(): boolean {
-    return this.auth.isAuthenticated !== undefined && 
-           this.spaces.pointers.length >= 0; // Could be 0 for new users
+    return this.auth.isAuthenticated !== undefined &&
+      this.spaces.pointers.length >= 0; // Could be 0 for new users
   }
-  
+
   /**
    * Get comprehensive current workspace status
    */
@@ -150,15 +156,15 @@ export class ClientState {
       layoutReady: !!this.layout.layoutRefs.contentGrid
     };
   }
-  
+
   /**
    * Check if user can create new spaces
    */
   get canCreateSpaces(): boolean {
-    return this.auth.isAuthenticated || 
-           this.spaces.pointers.some(p => p.userId === null);
+    return this.auth.isAuthenticated ||
+      this.spaces.pointers.some(p => p.userId === null);
   }
-  
+
   /**
    * Get current space theme information
    */
@@ -170,14 +176,14 @@ export class ClientState {
       spaceId: this.spaces.currentSpaceId
     };
   }
-  
+
   /**
    * Check if current space is ready for use
    */
   get isCurrentSpaceReady(): boolean {
     return !!(this.spaces.currentSpaceId && this.spaces.currentSpace);
   }
-  
+
   /**
    * Get authentication and space readiness status
    */

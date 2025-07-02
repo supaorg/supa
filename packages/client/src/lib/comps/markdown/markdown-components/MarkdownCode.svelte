@@ -3,17 +3,19 @@
   import type { Tokens } from "marked";
   import { Copy, Check } from "lucide-svelte";
   import { timeout } from "@core/tools/timeout";
-  import { theme } from "$lib/state/theme.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 </script>
 
 <script lang="ts">
-
   let { token }: { token: Tokens.Code } = $props();
   let lang = $derived(token.lang || "text");
   let isCopied = $state(false);
 
   let generatedHtml = $derived.by(async () => {
-    const codeTheme = theme.colorScheme === "dark" ? "github-dark" : "github-light";
+    const codeTheme =
+      clientState.theme.current.colorScheme === "dark"
+        ? "github-dark"
+        : "github-light";
     return await generatedHighlightedHtml(token.text, codeTheme, token.lang);
   });
 
@@ -25,14 +27,14 @@
     try {
       return await codeToHtml(source, {
         lang: lang || "text",
-        theme: codeTheme
+        theme: codeTheme,
       });
     } catch (e) {
       // If the language is not supported, fallback to plaintext
       try {
         return await codeToHtml(source, {
           lang: "text",
-          theme: codeTheme
+          theme: codeTheme,
         });
       } catch (e) {
         return null;
@@ -49,7 +51,11 @@
   }
 </script>
 
-<div class="relative group min-w-0 {lang !== 'text' ? '[&_pre]:!pt-10' : '[&_pre]:!pr-10'}">
+<div
+  class="relative group min-w-0 {lang !== 'text'
+    ? '[&_pre]:!pt-10'
+    : '[&_pre]:!pr-10'}"
+>
   {#if lang !== "text"}
     <div class="absolute left-4 top-3 z-10 flex items-center">
       <span class="text-xs opacity-70 flex items-center">{lang}</span>
@@ -70,12 +76,16 @@
   </div>
   <div class="min-w-0">
     {#await generatedHtml}
-      <pre class="overflow-x-auto"><code class="block min-w-fit">{token.text}</code></pre>
+      <pre class="overflow-x-auto"><code class="block min-w-fit"
+          >{token.text}</code
+        ></pre>
     {:then html}
       {#if html}
         {@html html}
       {:else}
-        <pre class="overflow-x-auto"><code class="block min-w-fit">{token.text}</code></pre>
+        <pre class="overflow-x-auto"><code class="block min-w-fit"
+            >{token.text}</code
+          ></pre>
       {/if}
     {:catch error}
       Error: {error}

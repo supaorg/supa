@@ -1,83 +1,81 @@
 import { getCurrentColorScheme, applyColorSchemeToDocument } from "$lib/utils/updateColorScheme";
 import { saveSpaceTheme, saveSpaceColorScheme, getSpaceSetup } from "$lib/localDb";
-import { clientState } from "$lib/state/clientState.svelte";
 
 const DEFAULT_THEME = 'cerberus';
 type ColorScheme = 'light' | 'dark';
 
-// Initialize with default values, will be updated when space loads
-export const theme = $state({
-  colorScheme: getCurrentColorScheme(),
-  themeName: DEFAULT_THEME,
-});
+export class ThemeStore {
+  colorScheme: ColorScheme = $state(getCurrentColorScheme());
+  themeName: string = $state(DEFAULT_THEME);
 
-// Load theme and color scheme for the current space
-export async function loadSpaceTheme() {
-  	if (!clientState.spaces.currentSpaceId) {
-    setDefaultTheme();
-    return;
-  }
-  
-  try {
-    	const spaceSetup = await getSpaceSetup(clientState.spaces.currentSpaceId);
-    
-    // Load theme name
-    if (spaceSetup?.theme) {
-      theme.themeName = spaceSetup.theme;
-      document.documentElement.setAttribute("data-theme", spaceSetup.theme);
-    } else {
-      // If no theme is set for this space, use the default
-      theme.themeName = DEFAULT_THEME;
-      document.documentElement.setAttribute("data-theme", DEFAULT_THEME);
+  // Load theme and color scheme for the current space
+  async loadSpaceTheme(currentSpaceId: string | null) {
+    if (!currentSpaceId) {
+      this.setDefaultTheme();
+      return;
     }
     
-    // Load color scheme if available
-    if (spaceSetup?.colorScheme) {
-      theme.colorScheme = spaceSetup.colorScheme;
-      applyColorScheme(spaceSetup.colorScheme);
-    } else {
-      // If no color scheme is set for this space, use the system preference
-      const systemColorScheme = getCurrentColorScheme();
-      theme.colorScheme = systemColorScheme;
-      applyColorScheme(systemColorScheme);
+    try {
+      const spaceSetup = await getSpaceSetup(currentSpaceId);
+      
+      // Load theme name
+      if (spaceSetup?.theme) {
+        this.themeName = spaceSetup.theme;
+        document.documentElement.setAttribute("data-theme", spaceSetup.theme);
+      } else {
+        // If no theme is set for this space, use the default
+        this.themeName = DEFAULT_THEME;
+        document.documentElement.setAttribute("data-theme", DEFAULT_THEME);
+      }
+      
+      // Load color scheme if available
+      if (spaceSetup?.colorScheme) {
+        this.colorScheme = spaceSetup.colorScheme;
+        this.applyColorScheme(spaceSetup.colorScheme);
+      } else {
+        // If no color scheme is set for this space, use the system preference
+        const systemColorScheme = getCurrentColorScheme();
+        this.colorScheme = systemColorScheme;
+        this.applyColorScheme(systemColorScheme);
+      }
+    } catch (error) {
+      console.error('Failed to load space theme:', error);
+      // Fall back to defaults
+      this.setDefaultTheme();
     }
-  } catch (error) {
-    console.error('Failed to load space theme:', error);
-    // Fall back to defaults
-    setDefaultTheme();
   }
-}
 
-function setDefaultTheme() {
-  theme.themeName = DEFAULT_THEME;
-  theme.colorScheme = getCurrentColorScheme();
-  document.documentElement.setAttribute("data-theme", DEFAULT_THEME);
-  applyColorScheme(theme.colorScheme);
-}
-
-// Apply the color scheme to the document
-function applyColorScheme(colorScheme: ColorScheme) {
-  applyColorSchemeToDocument(colorScheme);
-}
-
-// Update the themeName and persist it to the current space
-export async function setThemeName(name: string) {
-  theme.themeName = name;
-  document.documentElement.setAttribute("data-theme", name);
-  
-  // Save to the current space if available
-  	if (clientState.spaces.currentSpaceId) {
-		await saveSpaceTheme(clientState.spaces.currentSpaceId, name);
+  private setDefaultTheme() {
+    this.themeName = DEFAULT_THEME;
+    this.colorScheme = getCurrentColorScheme();
+    document.documentElement.setAttribute("data-theme", DEFAULT_THEME);
+    this.applyColorScheme(this.colorScheme);
   }
-}
 
-// Update the color scheme and persist it to the current space
-export async function setColorScheme(colorScheme: ColorScheme) {
-  theme.colorScheme = colorScheme;
-  applyColorScheme(colorScheme);
-  
-  // Save to the current space if available
-  	if (clientState.spaces.currentSpaceId) {
-		await saveSpaceColorScheme(clientState.spaces.currentSpaceId, colorScheme);
+  // Apply the color scheme to the document
+  private applyColorScheme(colorScheme: ColorScheme) {
+    applyColorSchemeToDocument(colorScheme);
+  }
+
+  // Update the themeName and persist it to the current space
+  async setThemeName(name: string, currentSpaceId: string | null) {
+    this.themeName = name;
+    document.documentElement.setAttribute("data-theme", name);
+    
+    // Save to the current space if available
+    if (currentSpaceId) {
+      await saveSpaceTheme(currentSpaceId, name);
+    }
+  }
+
+  // Update the color scheme and persist it to the current space
+  async setColorScheme(colorScheme: ColorScheme, currentSpaceId: string | null) {
+    this.colorScheme = colorScheme;
+    this.applyColorScheme(colorScheme);
+    
+    // Save to the current space if available
+    if (currentSpaceId) {
+      await saveSpaceColorScheme(currentSpaceId, colorScheme);
+    }
   }
 }

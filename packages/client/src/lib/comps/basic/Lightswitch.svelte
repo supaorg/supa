@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getOSColorScheme } from "$lib/utils/updateColorScheme";
-  import { theme, setColorScheme } from "$lib/state/theme.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { Moon, Sun } from "lucide-svelte";
   import { onMount } from "svelte";
 
@@ -13,17 +13,18 @@
   onMount(() => {
     // If the theme's colorScheme matches the OS preference, show as "system"
     const osColorScheme = getOSColorScheme();
-    if (theme.colorScheme === osColorScheme) {
+    if (clientState.theme.current.colorScheme === osColorScheme) {
       currentColorScheme = "system";
     } else {
-      currentColorScheme = theme.colorScheme;
+      currentColorScheme = clientState.theme.current.colorScheme;
     }
   });
 
   // Handle the toggle button click (tiny mode)
   async function handleSwitch() {
-    const targetColorScheme = theme.colorScheme === "dark" ? "light" : "dark";
-    await setColorScheme(targetColorScheme);
+    const targetColorScheme =
+      clientState.theme.current.colorScheme === "dark" ? "light" : "dark";
+    await clientState.theme.setColorScheme(targetColorScheme);
     currentColorScheme = targetColorScheme;
   }
 
@@ -32,10 +33,10 @@
     if (currentColorScheme === "system") {
       // Use the OS preference
       const osColorScheme = getOSColorScheme();
-      await setColorScheme(osColorScheme);
+      await clientState.theme.setColorScheme(osColorScheme);
     } else {
       // Use the explicitly selected scheme
-      await setColorScheme(currentColorScheme);
+      await clientState.theme.setColorScheme(currentColorScheme);
     }
   }
 </script>

@@ -1,42 +1,28 @@
 <script lang="ts">
   import Wizard from "$lib/comps/wizards/Wizard.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
-  import { theme, setThemeName } from "$lib/state/theme.svelte";
+
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
   import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
-  import { Check } from "lucide-svelte";
   import { onMount } from "svelte";
   import ThemeSwitcher from "../themes/ThemeSwitcher.svelte";
 
   let spaceName = $state("");
   let spaceNameError = $state(""); // Kept for potential future use, though Wizard handles its own validation display
   let hasSetupProvider = $state(false);
-  let selectedTheme = $state(theme.themeName);
 
-  const presetNames = [
-    "Personal",
-    "Work",
-    "Studies",
-    "School"
-  ];
+  const presetNames = ["Personal", "Work", "Studies", "School"];
 
-  const wizardSteps = [
-    "name",
-    "provider",
-    "theme"
-  ];
+  const wizardSteps = ["name", "provider", "theme"];
 
-  const wizardTitles = [
-    "Name",
-    "Brains",
-    "Theme"
-  ];
+  const wizardTitles = ["Name", "Brains", "Theme"];
 
   let currentWizardStep = $state(0);
 
   $effect(() => {
     if (clientState.spaces.currentSpace) {
-      const providerVertex = clientState.spaces.currentSpace.tree.getVertexByPath("providers");
+      const providerVertex =
+        clientState.spaces.currentSpace.tree.getVertexByPath("providers");
       if (providerVertex) {
         hasSetupProvider = providerVertex.children.length > 0;
       }
@@ -61,23 +47,29 @@
 
   function handleStepChange(newStep: number) {
     currentWizardStep = newStep;
-    if (newStep === 1) { // Moving from step 0 (Name) to step 1 (Provider)
+    if (newStep === 1) {
+      // Moving from step 0 (Name) to step 1 (Provider)
       // Allow empty space name (skip naming)
       if (!spaceName.trim()) {
         spaceName = "My Space"; // Default name if skipped
       }
-      
+
       // Save space name
       if (clientState.spaces.currentSpace) {
         const updatedPointers = clientState.spaces.pointers.map((space) =>
-          space.id === clientState.spaces.currentSpaceId ? { ...space, name: spaceName } : space
+          space.id === clientState.spaces.currentSpaceId
+            ? { ...space, name: spaceName }
+            : space,
         );
         clientState.spaces.pointers = updatedPointers;
-        
+
         // Also update the loaded space name
-        const currentPointer = clientState.spaces.pointers.find(p => p.id === clientState.spaces.currentSpaceId);
+        const currentPointer = clientState.spaces.pointers.find(
+          (p) => p.id === clientState.spaces.currentSpaceId,
+        );
         if (currentPointer) {
-          const space = clientState.spaces.getLoadedSpaceFromPointer(currentPointer);
+          const space =
+            clientState.spaces.getLoadedSpaceFromPointer(currentPointer);
           if (space) {
             space.name = spaceName;
           }
@@ -90,7 +82,11 @@
   function completeSetup() {
     if (clientState.spaces.currentSpace) {
       const rootVertex = clientState.spaces.currentSpace.rootVertex;
-      clientState.spaces.currentSpace.tree.setVertexProperty(rootVertex.id, 'onboarding', false);
+      clientState.spaces.currentSpace.tree.setVertexProperty(
+        rootVertex.id,
+        "onboarding",
+        false,
+      );
       // Potentially navigate away or show a success message
     }
   }
@@ -101,24 +97,26 @@
     }
     return true;
   });
-
 </script>
 
-<Wizard 
-  steps={wizardSteps} 
-  titles={wizardTitles} 
-  onComplete={completeSetup} 
+<Wizard
+  steps={wizardSteps}
+  titles={wizardTitles}
+  onComplete={completeSetup}
   onStepChange={handleStepChange}
-  onCancel={handleCancel} 
-  canAdvance={canAdvance}
+  onCancel={handleCancel}
+  {canAdvance}
   bind:step={currentWizardStep}
 >
-  {#snippet children({ currentStep }: { currentStep: number })} 
+  {#snippet children({ currentStep }: { currentStep: number })}
     {#if currentStep === 0}
       <!-- Step 1: Space Name -->
       <h2 class="h3 mb-4">Name your space</h2>
-      <p class="mb-4">Give your space a name to help you identify it, or skip to continue with a default name. You can always change it later.</p>
-      
+      <p class="mb-4">
+        Give your space a name to help you identify it, or skip to continue with
+        a default name. You can always change it later.
+      </p>
+
       <div class="form-control w-full mb-4">
         <label class="label" for="spaceName">
           <span class="label-text">Space name</span>
@@ -134,15 +132,18 @@
           <p class="text-error-500 text-sm mt-1">{spaceNameError}</p>
         {/if}
       </div>
-      
+
       <div class="mb-6">
-        <p class="text-sm mb-2">You can give a simple name that describes the purpose of the space:</p>
+        <p class="text-sm mb-2">
+          You can give a simple name that describes the purpose of the space:
+        </p>
         <div class="flex flex-wrap gap-2">
           {#each presetNames as name}
-            <button 
+            <button
               class="btn btn-sm preset-outlined"
-              class:preset-filled={name.toLocaleLowerCase() === spaceName.toLocaleLowerCase()} 
-              onclick={() => spaceName = name}
+              class:preset-filled={name.toLocaleLowerCase() ===
+                spaceName.toLocaleLowerCase()}
+              onclick={() => (spaceName = name)}
             >
               {name}
             </button>
@@ -156,13 +157,13 @@
         Connect at least one AI model provider to start using t69. We recommend
         setting up OpenAI, Anthropic or DeepSeek first.
       </p>
-      
+
       <div class="overflow-y-auto pr-2">
         <ModelProviders onConnect={handleProviderConnect} />
       </div>
     {:else if currentStep === 2}
       <!-- Step 3: Theme -->
-      <h2 class="h3 mb-4">Choose the look of your space</h2>      
+      <h2 class="h3 mb-4">Choose the look of your space</h2>
       <div class="mb-4 space-y-4">
         <label class="label">
           <span>Color scheme</span>

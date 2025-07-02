@@ -8,7 +8,7 @@ export class SpaceSocketStore {
   // Reactive state - same as SpaceEntry.svelte
   socket: Socket | null = $state(null);
   socketConnected: boolean = $state(false);
-  
+
   // Private properties
   private pingInterval: NodeJS.Timeout | null = null;
 
@@ -74,42 +74,36 @@ export class SpaceSocketStore {
       this.pingInterval = null;
     }
   }
-}
 
-// Export singleton instance
-export const spaceSocketStore = new SpaceSocketStore();
-
-// === Placeholder server-sync helpers ===
-// These will be fleshed out in upcoming server-sync work.
-
-/**
+  /**
  * Queue a batch of vertex operations to be synced with the remote server.
  */
-export function queueOpsForSync(
-  spaceId: string,
-  treeId: string,
-  ops: ReadonlyArray<VertexOperation>
-): void {
-  // If the socket connection is live, emit immediately. Otherwise, log a warning.
-  if (spaceSocketStore.socket && spaceSocketStore.socket.connected) {
-    spaceSocketStore.socket.emit("sync-ops", { spaceId, treeId, ops });
-    console.log("🚀 Sent ops for sync:", { spaceId, treeId, ops });
-  } else {
-    throw new Error("Socket not connected or not authenticated, cannot sync ops");
+  queueOpsForSync(
+    spaceId: string,
+    treeId: string,
+    ops: ReadonlyArray<VertexOperation>
+  ): void {
+    // If the socket connection is live, emit immediately. Otherwise, log a warning.
+    if (this.socket && this.socket.connected) {
+      this.socket.emit("sync-ops", { spaceId, treeId, ops });
+      console.log("🚀 Sent ops for sync:", { spaceId, treeId, ops });
+    } else {
+      throw new Error("Socket not connected or not authenticated, cannot sync ops");
+    }
+  }
+
+  /**
+   * Queue a collection of secrets to be synced with the remote server.
+   */
+  queueSecretsForSync(
+    spaceId: string,
+    secrets: Record<string, string>
+  ): void {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit("sync-secrets", { spaceId, secrets });
+      console.log("🚀 Sent secrets for sync:", { spaceId, secrets });
+    } else {
+      throw new Error("Socket not connected or not authenticated, cannot sync secrets");
+    }
   }
 }
-
-/**
- * Queue a collection of secrets to be synced with the remote server.
- */
-export function queueSecretsForSync(
-  spaceId: string,
-  secrets: Record<string, string>
-): void {
-  if (spaceSocketStore.socket && spaceSocketStore.socket.connected) {
-    spaceSocketStore.socket.emit("sync-secrets", { spaceId, secrets });
-    console.log("🚀 Sent secrets for sync:", { spaceId, secrets });
-  } else {
-    throw new Error("Socket not connected or not authenticated, cannot sync secrets");
-  }
-} 

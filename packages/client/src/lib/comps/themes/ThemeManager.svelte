@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { loadSpaceTheme } from "$lib/state/theme.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
   import { onMount } from "svelte";
 
@@ -8,13 +7,13 @@
   // if space is loaded
 
   onMount(() => {
-    loadSpaceTheme();
+    clientState.theme.loadSpaceTheme();
   });
 
   $effect(() => {
     	const currentSpaceId = clientState.spaces.currentSpaceId;
     if (currentSpaceId) {
-      loadSpaceTheme();
+      clientState.theme.loadSpaceTheme();
     }
   });
 </script>
