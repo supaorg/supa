@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
-  import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
+  import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { ChevronsUpDown } from "lucide-svelte";
 
   let openState = $state(false);
@@ -9,35 +8,43 @@
 
 <ContextMenu
   open={openState}
-  onOpenChange={(e) => openState = e.open}
+  onOpenChange={(e) => (openState = e.open)}
   placement="bottom"
   triggerClassNames="w-full"
 >
   {#snippet trigger()}
     <div class="w-full h-full">
-      <div class="flex items-center gap-2 w-full h-full py-1 px-1 rounded hover:preset-tonal">
+      <div
+        class="flex items-center gap-2 w-full h-full py-1 px-1 rounded hover:preset-tonal"
+      >
         <ChevronsUpDown size={18} class="flex-shrink-0" />
-        <span class="flex-1 min-w-0 truncate text-left">{spaceStore.currentSpace?.name}</span>
+        <span class="flex-1 min-w-0 truncate text-left"
+          >{clientState.spaces.currentSpace?.name}</span
+        >
       </div>
     </div>
   {/snippet}
   {#snippet content()}
     <div class="flex flex-col gap-1">
-      {#each spaceStore.pointers as pointer (pointer.id)}
+      {#each clientState.spaces.pointers as pointer (pointer.id)}
         <button
           class="btn btn-sm w-full text-left justify-start"
-          class:preset-filled-secondary-500={pointer.id === spaceStore.currentSpaceId}
-          onclick={() => spaceStore.currentSpaceId = pointer.id}
+          class:preset-filled-secondary-500={pointer.id ===
+            clientState.spaces.currentSpaceId}
+          onclick={() => (clientState.spaces.currentSpaceId = pointer.id)}
         >
           <span><strong>{pointer.name || "Space"}</strong></span>
         </button>
       {/each}
     </div>
     <div class="flex flex-col gap-1 mt-4">
-      <button class="btn btn-sm w-full text-left justify-start" onclick={() => {
-        clientState.layout.openSpaces();
-        openState = false;
-      }}>
+      <button
+        class="btn btn-sm w-full text-left justify-start"
+        onclick={() => {
+          clientState.layout.openSpaces();
+          openState = false;
+        }}
+      >
         Manage spaces
       </button>
     </div>

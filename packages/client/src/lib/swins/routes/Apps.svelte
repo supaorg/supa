@@ -1,7 +1,7 @@
 <script lang="ts">
   import AppConfigTableCell from "$lib/comps/app-configs/AppConfigTableCell.svelte";
   import { txtStore } from "$lib/state/txtStore";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import type { AppConfig } from "@core/models";
   import SwinsNavButton from "../SwinsNavButton.svelte";
   import { Plus } from "lucide-svelte";
@@ -10,7 +10,7 @@
   let appConfigUnobserve: (() => void) | undefined;
 
   $effect(() => {
-    appConfigUnobserve = spaceStore.currentSpace?.appConfigs.observe(
+    appConfigUnobserve = clientState.spaces.currentSpace?.appConfigs.observe(
       (configs) => {
         appConfigs = configs;
       }

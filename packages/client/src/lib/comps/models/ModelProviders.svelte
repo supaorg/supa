@@ -4,9 +4,8 @@
   import CustomProviderCard from "./CustomProviderCard.svelte";
   import AddCustomProviderCard from "./AddCustomProviderCard.svelte";
   import { providers } from "@core/providers";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
-  import { getActiveProviders } from "@core/customProviders";
   import { clientState } from "$lib/state/clientState.svelte";
+  import { getActiveProviders } from "@core/customProviders";
 
   let customProviders = $state<ModelProvider[]>([]);
 
@@ -19,13 +18,17 @@
   } = $props();
 
   function onHow(provider: ModelProvider) {
-    clientState.layout.swins.open("how-to-setup-model-provider", { provider }, provider.name);
+    clientState.layout.swins.open(
+      "how-to-setup-model-provider",
+      { provider },
+      provider.name,
+    );
   }
 
   function refreshCustomProviders() {
-    if (!spaceStore.currentSpace) return;
+    if (!clientState.spaces.currentSpace) return;
 
-    const customConfigs = spaceStore.currentSpace.getCustomProviders();
+    const customConfigs = clientState.spaces.currentSpace.getCustomProviders();
     // Get all active providers (built-in + custom)
     const allProviders = getActiveProviders(customConfigs);
     // Filter to just the custom ones
@@ -34,7 +37,7 @@
 
   // Load custom providers on mount and when space changes
   $effect(() => {
-    if (spaceStore.currentSpace) {
+    if (clientState.spaces.currentSpace) {
       refreshCustomProviders();
     }
   });

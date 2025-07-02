@@ -332,4 +332,3 @@ export class SpaceStore {
   }
 }
 
-export const spaceStore = new SpaceStore();

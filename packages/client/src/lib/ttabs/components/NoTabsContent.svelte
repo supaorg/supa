@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
@@ -9,15 +9,15 @@
   let setupProviderFromScratch = $state(false);
 
   $effect(() => {
-    if (!spaceStore.currentSpace) {
+    if (!clientState.spaces.currentSpace) {
       return;
     }
 
     showProviderSetupPage =
-      spaceStore.currentSpace.getModelProviderConfigs().length === 0;
+      clientState.spaces.currentSpace.getModelProviderConfigs().length === 0;
 
     const providerVertex =
-      spaceStore.currentSpace.tree.getVertexByPath("providers");
+      clientState.spaces.currentSpace.tree.getVertexByPath("providers");
     console.log(providerVertex);
     if (!providerVertex) {
       return;

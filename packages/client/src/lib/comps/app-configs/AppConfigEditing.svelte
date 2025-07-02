@@ -2,7 +2,6 @@
   import InputModel from "../models/InputModel.svelte";
   import { txtStore } from "$lib/state/txtStore";
   import uuid from "@core/uuid/uuid";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
 
@@ -28,7 +27,7 @@
 
   $effect(() => {
     if (configId) {
-      const config = spaceStore.currentSpace?.getAppConfig(configId);
+      const config = clientState.spaces.currentSpace?.getAppConfig(configId);
       if (config) {
         name = config.name;
         description = config.description;
@@ -55,7 +54,7 @@
 
     if (!configId) {
       const newConfigId = uuid();
-      spaceStore.currentSpace?.insertIntoArray("app-configs", {
+      clientState.spaces.currentSpace?.insertIntoArray("app-configs", {
         id: newConfigId,
         name: name,
         description: description,
@@ -76,11 +75,11 @@
       }
     } else {
       if (isDefault) {
-        spaceStore.currentSpace?.updateAppConfig(configId, {
+        clientState.spaces.currentSpace?.updateAppConfig(configId, {
           targetLLM: targetLLM,
         });
       } else {
-        spaceStore.currentSpace?.updateAppConfig(configId, {
+        clientState.spaces.currentSpace?.updateAppConfig(configId, {
           name: name,
           description: description,
           instructions: instructions,

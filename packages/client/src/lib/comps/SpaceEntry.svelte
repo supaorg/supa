@@ -5,7 +5,7 @@
   import FreshStartWizard from "$lib/comps/wizards/FreshStartWizard.svelte";
   import { initializeDatabase, savePointers, saveConfig } from "$lib/localDb";
   import Space from "./apps/Space.svelte";
-  import type { spaceStore } from "$lib/state/spaceStore.svelte";
+  
 
   type Status = "initializing" | "needsSpace" | "ready";
 

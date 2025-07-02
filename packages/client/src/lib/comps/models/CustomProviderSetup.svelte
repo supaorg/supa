@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
   import type { CustomProviderConfig } from "@core/models";
   import { XCircle } from "lucide-svelte";
@@ -22,9 +21,9 @@
 
   // Load existing provider data if we're editing
   $effect(() => {
-    if (!providerId || !spaceStore.currentSpace) return;
+    if (!providerId || !clientState.spaces.currentSpace) return;
 
-    const config = spaceStore.currentSpace?.getModelProviderConfig(
+    const config = clientState.spaces.currentSpace?.getModelProviderConfig(
       providerId,
     ) as CustomProviderConfig | undefined;
     if (!config) return;
@@ -32,7 +31,7 @@
     name = config.name;
     baseApiUrl = config.baseApiUrl;
     modelId = config.modelId;
-    apiKey = spaceStore.currentSpace?.getServiceApiKey(providerId) || "";
+    apiKey = clientState.spaces.currentSpace?.getServiceApiKey(providerId) || "";
 
     if (config.customHeaders) {
       try {
@@ -48,7 +47,7 @@
   async function handleSubmit(e: Event) {
     e.preventDefault();
 
-    if (!spaceStore.currentSpace) return;
+    if (!clientState.spaces.currentSpace) return;
 
     isSubmitting = true;
     validationError = null;
@@ -88,7 +87,7 @@
         customHeaders: parsedHeaders,
       };
 
-      spaceStore.currentSpace.saveModelProviderConfig(config);
+      clientState.spaces.currentSpace.saveModelProviderConfig(config);
       onSave(id);
     } catch (e) {
       validationError = "Failed to save provider configuration";

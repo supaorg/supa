@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import VertexItem from "./VertexItem.svelte";
   import type { VertexChangeEvent } from "reptree/treeTypes";
 
@@ -7,10 +7,10 @@
   let appTreesUnobserve: (() => void) | undefined;
 
   $effect(() => {
-    if (spaceStore.currentSpace) {
-      appTreeIds = [...(spaceStore.currentSpace.getAppTreeIds() ?? [])];
-      appTreesUnobserve = spaceStore.currentSpace.tree.observe(
-        spaceStore.currentSpace.appTreesVertex.id,
+    if (clientState.spaces.currentSpace) {
+      appTreeIds = [...(clientState.spaces.currentSpace.getAppTreeIds() ?? [])];
+      appTreesUnobserve = clientState.spaces.currentSpace.tree.observe(
+        clientState.spaces.currentSpace.appTreesVertex.id,
         onAppTreeChange
       );
     } else {
@@ -24,7 +24,7 @@
 
   function onAppTreeChange(events: VertexChangeEvent[]) {
     if (events.some((e) => e.type === "children")) {
-      appTreeIds = [...(spaceStore.currentSpace?.getAppTreeIds() ?? [])];
+      appTreeIds = [...(clientState.spaces.currentSpace?.getAppTreeIds() ?? [])];
     }
   }
 </script>

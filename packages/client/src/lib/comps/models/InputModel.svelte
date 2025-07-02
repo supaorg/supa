@@ -4,13 +4,12 @@
   import { Sparkles, CircleAlert } from "lucide-svelte/icons";
   import { providers } from "@core/providers";
   import { getActiveProviders } from "@core/customProviders";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import {
     splitModelString,
     isValidModelString,
     getProviderId,
   } from "@core/utils/modelUtils";
-  import { clientState } from "$lib/state/clientState.svelte";
 
   let { value = $bindable(), required }: { value: string; required?: boolean } =
     $props();
@@ -26,7 +25,7 @@
           value = model;
         },
       },
-      "Select Model"
+      "Select Model",
     );
   }
 
@@ -38,9 +37,9 @@
 
   // Load all providers including custom ones
   $effect(() => {
-    if (spaceStore.currentSpace) {
+    if (clientState.spaces.currentSpace) {
       const customProviders =
-        spaceStore.currentSpace.getCustomProviders() || [];
+        clientState.spaces.currentSpace.getCustomProviders() || [];
       allProviders = getActiveProviders(customProviders);
     } else {
       allProviders = [...providers];

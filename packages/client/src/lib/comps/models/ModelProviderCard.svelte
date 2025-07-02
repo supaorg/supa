@@ -2,25 +2,24 @@
   import type { ModelProvider, ModelProviderLocalConfig } from "@core/models";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import ModelProviderOllamaAddressForm from "./ModelProviderOllamaAddressForm.svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { onMount } from "svelte";
   import { checkOllamaStatus } from "./ollama";
-  import { Tooltip } from '@skeletonlabs/skeleton-svelte';
+  import { Tooltip } from "@skeletonlabs/skeleton-svelte";
   import { CircleAlert } from "lucide-svelte/icons";
   import { interval } from "@core/tools/interval";
   import { ExternalLink } from "lucide-svelte";
 
-  type ProviderStatus =
-    | "disconnected"
-    | "invalid-key"
-    | "connected";
-    
+  type ProviderStatus = "disconnected" | "invalid-key" | "connected";
+
   let status: ProviderStatus = $state("disconnected");
   let isEditing = $state(false);
   let isConfigured = $state(false);
   let isChecking = $state(false);
   let validationError = $state<string | null>(null);
-  let showValidationWarning = $derived(status === "invalid-key" as ProviderStatus);
+  let showValidationWarning = $derived(
+    status === ("invalid-key" as ProviderStatus),
+  );
 
   let {
     provider,
@@ -44,14 +43,15 @@
 
   // Observe provider configuration changes
   $effect(() => {
-    if (!spaceStore.currentSpace) return;
+    if (!clientState.spaces.currentSpace) return;
 
-    const providersVertex = spaceStore.currentSpace.tree.getVertexByPath("providers");
+    const providersVertex =
+      clientState.spaces.currentSpace.tree.getVertexByPath("providers");
     if (!providersVertex) return;
 
     const unobserve = providersVertex.observe((events) => {
       // Check if this event affects our provider
-      if (events.some(e => e.type === "property" || e.type === "children")) {
+      if (events.some((e) => e.type === "property" || e.type === "children")) {
         checkConfigurationAndStatus();
       }
     });
@@ -61,7 +61,9 @@
 
   async function checkConfigurationAndStatus() {
     // First check if the provider is configured
-    const config = spaceStore.currentSpace?.getModelProviderConfig(provider.id) as ModelProviderLocalConfig | undefined;
+    const config = clientState.spaces.currentSpace?.getModelProviderConfig(
+      provider.id,
+    ) as ModelProviderLocalConfig | undefined;
     isConfigured = !!config;
 
     // For Ollama, check if it's running
@@ -94,16 +96,18 @@
     // For cloud providers, check their status
     isChecking = true;
     try {
-      const providerStatus = await spaceStore.currentSpace?.getModelProviderStatus(
-        provider.id,
-      );
+      const providerStatus =
+        await clientState.spaces.currentSpace?.getModelProviderStatus(
+          provider.id,
+        );
 
       if (providerStatus === "valid") {
         status = "connected";
         onConnect(provider);
       } else if (providerStatus === "invalid") {
         status = "invalid-key";
-        validationError = "API key validation failed. The key might be invalid or expired.";
+        validationError =
+          "API key validation failed. The key might be invalid or expired.";
         onDisconnect(provider);
       } else {
         status = "disconnected";
@@ -123,7 +127,7 @@
     isConfigured = false;
     validationError = null;
     onDisconnect(provider);
-    spaceStore.currentSpace?.deleteModelProviderConfig(provider.id);
+    clientState.spaces.currentSpace?.deleteModelProviderConfig(provider.id);
   }
 </script>
 
@@ -132,15 +136,17 @@
   class:border-token={isConfigured && !showValidationWarning}
   class:border-warning-500={showValidationWarning}
 >
-  <div class="w-12 h-12 bg-white flex flex-shrink-0 items-center justify-center rounded">
+  <div
+    class="w-12 h-12 bg-white flex flex-shrink-0 items-center justify-center rounded"
+  >
     <img class="p-2" src={provider.logoUrl} alt={provider.name} />
   </div>
   <div class="flex items-center justify-between flex-grow">
     <div class="flex items-center gap-2">
       <span class="font-semibold">{provider.name}</span>
-      <a 
-        href={provider.url} 
-        target="_blank" 
+      <a
+        href={provider.url}
+        target="_blank"
         class="text-surface-500 hover:text-surface-700 transition-colors"
         title="Visit provider website"
       >
@@ -148,10 +154,16 @@
       </a>
       {#if isConfigured}
         <div class="flex items-center gap-1">
-          <span class="badge badge-sm {showValidationWarning ? 'preset-filled-warning-500' : 'preset-filled-success-500'} {isChecking ? 'animate-pulse' : ''}">Connected</span>
+          <span
+            class="badge badge-sm {showValidationWarning
+              ? 'preset-filled-warning-500'
+              : 'preset-filled-success-500'} {isChecking
+              ? 'animate-pulse'
+              : ''}">Connected</span
+          >
           {#if showValidationWarning}
-            <Tooltip 
-              positioning={{ placement: 'top' }}
+            <Tooltip
+              positioning={{ placement: "top" }}
               triggerBase="underline"
               contentBase="card preset-filled p-4"
               openDelay={200}
@@ -161,7 +173,8 @@
               {/snippet}
               {#snippet content()}
                 <div class="text-sm max-w-[200px]">
-                  {validationError || 'Validation failed. Check your API key or connection.'}
+                  {validationError ||
+                    "Validation failed. Check your API key or connection."}
                 </div>
               {/snippet}
             </Tooltip>
@@ -174,8 +187,8 @@
       <div class="flex gap-2">
         {#if isConfigured}
           {#if provider.access !== "local"}
-            <button 
-              class="btn btn-sm preset-outlined-surface-500" 
+            <button
+              class="btn btn-sm preset-outlined-surface-500"
               onclick={disconnect}
             >
               Disconnect
@@ -217,42 +230,40 @@
           </button>
         {/if}
       </div>
-    {:else}
-      {#if provider.access === "cloud"}
-        <ModelProviderApiKeyForm
-          id={provider.id}
-          onValidKey={(key) => {
+    {:else if provider.access === "cloud"}
+      <ModelProviderApiKeyForm
+        id={provider.id}
+        onValidKey={(key) => {
+          isEditing = false;
+          isConfigured = true;
+          status = "connected";
+          onConnect(provider);
+        }}
+        onBlur={(key) => {
+          if (!key) {
             isEditing = false;
-            isConfigured = true;
-            status = "connected";
-            onConnect(provider);
-          }}
-          onBlur={(key) => {
-            if (!key) {
-              isEditing = false;
-            }
-          }}
-          onClose={() => {
+          }
+        }}
+        onClose={() => {
+          isEditing = false;
+        }}
+      />
+    {:else if provider.name === "Ollama"}
+      <ModelProviderOllamaAddressForm
+        id={provider.id}
+        onValidAddress={(address) => {
+          isEditing = false;
+          checkConfigurationAndStatus();
+        }}
+        onBlur={(address) => {
+          if (!address) {
             isEditing = false;
-          }}
-        />
-      {:else if provider.name === "Ollama"}
-        <ModelProviderOllamaAddressForm
-          id={provider.id}
-          onValidAddress={(address) => {
-            isEditing = false;
-            checkConfigurationAndStatus();
-          }}
-          onBlur={(address) => {
-            if (!address) {
-              isEditing = false;
-            }
-          }}
-          onClose={() => {
-            isEditing = false;
-          }}
-        />
-      {/if}
+          }
+        }}
+        onClose={() => {
+          isEditing = false;
+        }}
+      />
     {/if}
   </div>
 </div>

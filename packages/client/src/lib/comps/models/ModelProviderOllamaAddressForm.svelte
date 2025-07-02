@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import type { ModelProviderLocalConfig } from "@core/models";
   import { XCircle, CheckCircle, CircleAlert } from "lucide-svelte/icons";
   import { timeout } from "@core/tools/timeout";
@@ -39,7 +39,7 @@
           type: "local",
           apiUrl: addressToCheck,
         };
-        spaceStore.currentSpace?.saveModelProviderConfig(config);
+        clientState.spaces.currentSpace?.saveModelProviderConfig(config);
         onValidAddress(addressToCheck);
         onClose();
         return true;

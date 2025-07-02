@@ -5,7 +5,7 @@
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { ChevronUp, Pencil, Plus } from "lucide-svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   let {
     configId = "",
@@ -22,7 +22,7 @@
   let openState = $state(false);
 
   onMount(() => {
-    const unobserve = spaceStore.currentSpace?.appConfigs.observe((configs) => {
+    const unobserve = clientState.spaces.currentSpace?.appConfigs.observe((configs) => {
       appConfigs = configs;
       visibleAppConfigs = configs.filter((config) => config.visible);
     });

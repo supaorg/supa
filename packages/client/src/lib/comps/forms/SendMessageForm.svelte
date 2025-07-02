@@ -5,9 +5,8 @@
   import { focusTrap } from "$lib/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
   import { txtStore } from "$lib/state/txtStore";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
-  import type { ChatAppData } from "@core/spaces/ChatAppData";
   import { clientState } from "$lib/state/clientState.svelte";
+  import type { ChatAppData } from "@core/spaces/ChatAppData";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
@@ -89,7 +88,7 @@
       return;
     }
 
-    const draftContent = await spaceStore.getDraft(draftId);
+    const draftContent = await clientState.spaces.getDraft(draftId);
     if (draftContent) {
       query = draftContent;
       // Adjust height after loading draft content into the textarea
@@ -151,9 +150,9 @@
       const trimmedQuery = query.trim();
 
       if (trimmedQuery.length > 0) {
-        await spaceStore.saveDraft(draftId, trimmedQuery);
+        await clientState.spaces.saveDraft(draftId, trimmedQuery);
       } else {
-        await spaceStore.deleteDraft(draftId);
+        await clientState.spaces.deleteDraft(draftId);
       }
     }
   }
@@ -167,11 +166,11 @@
 
     // Clear draft when message is sent
     if (draftId) {
-      await spaceStore.deleteDraft(draftId);
+      await clientState.spaces.deleteDraft(draftId);
     }
 
     onSend(query);
-    
+
     query = "";
     // Force reset to base height after clearing content
     if (textareaElement) {
@@ -198,7 +197,7 @@
   }
 </script>
 
-{#if spaceStore.setupModelProviders}
+{#if clientState.spaces.setupModelProviders}
   <form class="w-full" use:focusTrap={isFocused} onsubmit={handleSubmit}>
     <div class="relative flex w-full items-center">
       <div
@@ -265,9 +264,7 @@
   <div
     class="relative flex w-full flex-col items-center justify-center rounded-lg bg-surface-50-950 p-4 transition-colors ring ring-surface-300-700"
   >
-    <p class="mb-4 text-center">
-      Set up a model provider to chat with AI.
-    </p>
+    <p class="mb-4 text-center">Set up a model provider to chat with AI.</p>
     <button class="btn preset-filled" onclick={openModelProvidersSettings}>
       Setup brains
     </button>

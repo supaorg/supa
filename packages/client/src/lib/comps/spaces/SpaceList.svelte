@@ -1,16 +1,15 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import SpaceOptionsPopup from "$lib/comps/popups/SpaceOptionsPopup.svelte";
   import RenamingPopup from "$lib/comps/popups/RenamingPopup.svelte";
   import type { SpacePointer } from "$lib/spaces/SpacePointer";
-  import { clientState } from "$lib/state/clientState.svelte";
   import { Circle, CircleCheckBig } from "lucide-svelte";
 
   let renamingPopupOpen = $state(false);
   let spaceToRename = $state<SpacePointer | null>(null);
 
   function selectSpace(spaceId: string) {
-    spaceStore.currentSpaceId = spaceId;
+    clientState.spaces.currentSpaceId = spaceId;
   }
 
   function handleRename(newName: string) {
@@ -18,15 +17,15 @@
       return;
     }
 
-    const space = spaceStore.getLoadedSpaceFromPointer(spaceToRename);
+    const space = clientState.spaces.getLoadedSpaceFromPointer(spaceToRename);
     if (space) {
       space.name = newName;
     }
 
-    const updatedPointers = spaceStore.pointers.map((space) =>
+    const updatedPointers = clientState.spaces.pointers.map((space) =>
       space.id === spaceToRename?.id ? { ...space, name: newName } : space,
     );
-    spaceStore.pointers = updatedPointers;
+    clientState.spaces.pointers = updatedPointers;
     spaceToRename = null;
   }
 
@@ -36,18 +35,18 @@
   }
 
   function handleRemoveSpace(space: SpacePointer) {
-    spaceStore.removeSpace(space.id);
+    clientState.spaces.removeSpace(space.id);
     // So if we access the list from swins - close it
     clientState.layout.swins.pop();
   }
 </script>
 
-{#if spaceStore.pointers.length > 0}
+{#if clientState.spaces.pointers.length > 0}
   <div class="space-y-2">
-    {#each spaceStore.pointers as space (space.id)}
+    {#each clientState.spaces.pointers as space (space.id)}
       <div
         class="p-4 rounded-lg bg-surface-200-800-token border-2 {space.id ===
-        spaceStore.currentSpaceId
+        clientState.spaces.currentSpaceId
           ? 'border-primary-500'
           : 'border-surface-100-900'} flex items-center gap-3"
       >
@@ -59,7 +58,7 @@
           role="button"
           tabindex="0"
         >
-          {#if space.id === spaceStore.currentSpaceId}
+          {#if space.id === clientState.spaces.currentSpaceId}
             <CircleCheckBig size={20} class="text-primary-500" />
           {:else}
             <Circle size={20} class="text-surface-500" />

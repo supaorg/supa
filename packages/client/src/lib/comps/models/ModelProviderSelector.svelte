@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import ModelSelectCard from "./ModelSelectCard.svelte";
   import AutoModelSelectCard from "./AutoModelSelectCard.svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { getActiveProviders } from "@core/customProviders";
   import { splitModelString, combineModelString } from "@core/utils/modelUtils";
 
@@ -28,26 +28,27 @@
   let selectedPair: SelectedPair | null = $state(null);
 
   onMount(async () => {
-    const configs = spaceStore.currentSpace?.getModelProviderConfigs();
+    const configs = clientState.spaces.currentSpace?.getModelProviderConfigs();
     if (!configs) return;
 
     // Get custom providers
-    const customProviders = spaceStore.currentSpace?.getCustomProviders() || [];
-    
+    const customProviders =
+      clientState.spaces.currentSpace?.getCustomProviders() || [];
+
     // Get all active providers (built-in + custom)
     const allProviders = getActiveProviders(customProviders);
 
     // Process all providers
     setupProviders = allProviders
-      .map(provider => {
+      .map((provider) => {
         // For custom providers, config should already exist in the configs array
         // because custom providers are saved as provider configs
-        const config = configs.find(config => config.id === provider.id);
-        
+        const config = configs.find((config) => config.id === provider.id);
+
         if (!config) {
           return null; // Skip providers without configs
         }
-        
+
         return {
           provider,
           config,
@@ -60,9 +61,9 @@
     if (selectedModel) {
       const modelParts = splitModelString(selectedModel);
       if (modelParts) {
-        selectedPair = { 
-          providerId: modelParts.providerId, 
-          model: modelParts.modelId 
+        selectedPair = {
+          providerId: modelParts.providerId,
+          model: modelParts.modelId,
         };
       }
     }

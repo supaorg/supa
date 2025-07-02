@@ -1,7 +1,7 @@
 <script lang="ts">
   import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
   import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { isDevMode } from "$lib/state/devMode";
   import { currentLanguage } from "$lib/state/txtStore";
   import {
@@ -9,7 +9,6 @@
     LANGUAGE_NAMES,
   } from "@core/localization/getTexts";
   import { txtStore } from "$lib/state/txtStore";
-  import { clientState } from "$lib/state/clientState.svelte";
   import ThemeSwitcher from "$lib/comps/themes/ThemeSwitcher.svelte";
 </script>
 
@@ -54,7 +53,7 @@
       <h3 class="h4 mb-4">{$txtStore.settingsPage.spaces.title}</h3>
       <p class="mb-4">
         {$txtStore.settingsPage.spaces.spaceCount(
-          spaceStore.pointers.length
+          clientState.spaces.pointers.length
         )}
       </p>
       <button class="btn preset-filled" onclick={() => clientState.layout.openSpaces()}>

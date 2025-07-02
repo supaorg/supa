@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { spaceStore } from "$lib/state/spaceStore.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { ttabs } from "$lib/state/layout.svelte";
   import VertexView from "./VertexView.svelte";
   import type { Vertex } from "@core";
 
-  let spaceRootVertex = $derived(spaceStore.currentSpace?.rootVertex);
+  let spaceRootVertex = $derived(clientState.spaces.currentSpace?.rootVertex);
   let appTreeRootVertex = $state<Vertex | undefined>(undefined);
   let showingAppTree = $state(false);
 
@@ -18,7 +18,7 @@
   });
 
   async function onTreeOpen(treeId: string) {
-    const appTree = await spaceStore.currentSpace?.loadAppTree(treeId);
+    const appTree = await clientState.spaces.currentSpace?.loadAppTree(treeId);
     if (appTree) {
       appTreeRootVertex = appTree.tree.root;
       showingAppTree = true;
