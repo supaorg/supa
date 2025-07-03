@@ -27,7 +27,7 @@ export class ClientState {
   // Internal initialization state
   private _initializationStatus: InitializationStatus = $state("initializing");
   private _initializationError: string | null = $state(null);
-  
+
   // Space state (integrated from SpaceStore)
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $state(null);
@@ -44,15 +44,15 @@ export class ClientState {
   get isInitializing(): boolean {
     return this._initializationStatus === "initializing";
   }
-  
+
   get needsSpace(): boolean {
     return this._initializationStatus === "needsSpace";
   }
-  
+
   get isReady(): boolean {
     return this._initializationStatus === "ready";
   }
-  
+
   get initializationError(): string | null {
     return this._initializationError;
   }
@@ -102,16 +102,16 @@ export class ClientState {
     try {
       this._initializationStatus = "initializing";
       this._initializationError = null;
-      
+
       // Initialize database and load space data
       const { pointers, currentSpaceId, config } = await initializeDatabase();
       this.pointers = pointers;
       this.currentSpaceId = currentSpaceId;
       this.config = config;
-      
+
       // Also update the legacy SpaceStore for compatibility
       this.spaces.setInitialState({ pointers, currentSpaceId, config });
-      
+
       // Check authentication and filter spaces
       await this.auth.checkAuth();
       if (this.auth.isAuthenticated) {
@@ -121,13 +121,13 @@ export class ClientState {
         this.pointers = this.spaces.pointers;
         this.currentSpaceId = this.spaces.currentSpaceId;
       }
-      
+
       // Load theme for current space
       await this.theme.loadSpaceTheme();
-      
+
       // Set final status
       this._updateInitializationStatus();
-      
+
     } catch (error) {
       console.error('Failed to initialize client state:', error);
       this._initializationStatus = "error";
@@ -142,14 +142,14 @@ export class ClientState {
     // Create space directly via SpaceManager
     const space = await this.spaces.spaceManager.createSpace();
     const spaceId = space.getId();
-    
+
     // Set up IndexedDB persistence directly
     const indexedDBLayer = new IndexedDBPersistenceLayer(spaceId);
     await indexedDBLayer.connect();
     const initialOps = space.tree.getAllOps();
     await indexedDBLayer.saveTreeOps(spaceId, initialOps);
     this.spaces.spaceManager.addPersistenceLayer(spaceId, indexedDBLayer);
-    
+
     // Add pointer and set as current
     const pointer: SpacePointer = {
       id: spaceId,
@@ -158,19 +158,19 @@ export class ClientState {
       createdAt: space.createdAt,
       userId: this.auth.user?.id || null,
     };
-    
+
     this.pointers = [...this.pointers, pointer];
     this.currentSpaceId = spaceId;
-    
+
     // Also update legacy SpaceStore for compatibility
     this.spaces.addSpacePointer(pointer);
     this.spaces.currentSpaceId = spaceId;
-    
+
     this._updateInitializationStatus();
-    
+
     // Explicitly save after changes
     await this._saveState();
-    
+
     return spaceId;
   }
 
@@ -181,7 +181,7 @@ export class ClientState {
     // Check if already loaded
     let space = this.spaces.spaceManager.getSpace(pointer.id);
     if (space) return space;
-    
+
     // Load local spaces directly
     if (pointer.uri.startsWith("local://")) {
       try {
@@ -193,7 +193,7 @@ export class ClientState {
         return null;
       }
     }
-    
+
     // For non-local spaces, fall back to existing logic for now
     return await this.spaces.loadSpace(pointer);
   }
@@ -204,16 +204,16 @@ export class ClientState {
   async removeSpace(spaceId: string): Promise<void> {
     // Remove from our pointers
     this.pointers = this.pointers.filter(p => p.id !== spaceId);
-    
+
     // Update current space if it was removed
     if (this.currentSpaceId === spaceId) {
       this.currentSpaceId = this.pointers.length > 0 ? this.pointers[0].id : null;
     }
-    
+
     // Also update legacy SpaceStore
     await this.spaces.removeSpace(spaceId);
     this.spaces.currentSpaceId = this.currentSpaceId;
-    
+
     // Update status and save
     this._updateInitializationStatus();
     await this._saveState();
@@ -224,16 +224,16 @@ export class ClientState {
    */
   async updateSpaceName(spaceId: string, name: string): Promise<void> {
     // Update in pointers
-    this.pointers = this.pointers.map(p => 
+    this.pointers = this.pointers.map(p =>
       p.id === spaceId ? { ...p, name } : p
     );
-    
+
     // Update loaded space if exists
     const space = this.spaces.spaceManager.getSpace(spaceId);
     if (space) {
       space.name = name;
     }
-    
+
     // Save changes
     await this._saveState();
   }
@@ -278,7 +278,7 @@ export class ClientState {
     this._updateInitializationStatus();
     await this.theme.loadSpaceTheme();
     this.sockets.setupSocketConnection();
-    
+
     // Save state after sign-in changes
     await this._saveState();
   }
@@ -296,7 +296,7 @@ export class ClientState {
     this._updateInitializationStatus();
     this.sockets.cleanupSocketConnection();
     await this.theme.loadSpaceTheme(); // Reset to defaults
-    
+
     // Save state after sign-out changes
     await this._saveState();
   }
@@ -388,25 +388,6 @@ export class ClientState {
     };
   }
 
-  /**
-   * Check if user can create new spaces
-   */
-  get canCreateSpaces(): boolean {
-    return this.auth.isAuthenticated ||
-      this.pointers.some(p => p.userId === null);
-  }
-
-  /**
-   * Get current space theme information
-   */
-  get currentSpaceThemeInfo() {
-    return {
-      space: this.currentSpace,
-      theme: this.theme.current.themeName,
-      colorScheme: this.theme.current.colorScheme,
-      spaceId: this.currentSpaceId
-    };
-  }
 
   /**
    * Check if current space is ready for use
