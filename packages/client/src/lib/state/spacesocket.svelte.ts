@@ -1,4 +1,3 @@
-import { browser } from "$app/environment";
 import { io, type Socket } from "socket.io-client";
 import { API_BASE_URL } from "$lib/utils/api";
 import { clientState } from "./clientState.svelte";

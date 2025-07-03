@@ -5,7 +5,6 @@
   import FreshStartWizard from "$lib/comps/wizards/FreshStartWizard.svelte";
   import { initializeDatabase, savePointers, saveConfig } from "$lib/localDb";
   import Space from "./apps/Space.svelte";
-  
 
   type Status = "initializing" | "needsSpace" | "ready";
 
@@ -17,11 +16,6 @@
 
     // Initialize space data regardless of auth status
     await initializeSpaceData();
-  });
-
-  $effect(() => {
-    // Socket connection is now handled by clientState.initialize()
-    // No manual coordination needed
   });
 
   $effect(() => {

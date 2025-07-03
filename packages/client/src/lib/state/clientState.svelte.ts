@@ -23,7 +23,7 @@ export class ClientState {
   auth = new AuthStore();
   spaces = new SpaceStore();
   sockets = new SpaceSocketStore();
-  private themeStore = new ThemeStore();
+  private themeStore = new ThemeStore(); // @TODO: refactor to use ThemeStore just as "theme"
 
   get theme() {
     return {
@@ -39,8 +39,8 @@ export class ClientState {
   dev = {
     isDevMode,
     spaceInspectorOpen
-  };
-  text = txtStore;
+  }; // @TODO: upd to use runes
+  text = txtStore; // @TODO: upd to use runes
 
   // Layout and UI orchestration - create fresh instances to avoid initialization order issues
   layout = {
@@ -198,5 +198,4 @@ export class ClientState {
   }
 }
 
-// Export singleton instance
 export const clientState = new ClientState(); 
