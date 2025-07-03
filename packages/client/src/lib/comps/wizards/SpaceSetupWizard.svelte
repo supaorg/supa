@@ -20,9 +20,9 @@
   let currentWizardStep = $state(0);
 
   $effect(() => {
-    if (clientState.spaces.currentSpace) {
+    if (clientState.currentSpace) {
       const providerVertex =
-        clientState.spaces.currentSpace.tree.getVertexByPath("providers");
+        clientState.currentSpace.tree.getVertexByPath("providers");
       if (providerVertex) {
         hasSetupProvider = providerVertex.children.length > 0;
       }
@@ -30,15 +30,16 @@
   });
 
   function handleCancel() {
-    if (!clientState.spaces.currentSpaceId) {
+    if (!clientState.currentSpaceId) {
       return;
     }
 
-    clientState.spaces.removeSpace(clientState.spaces.currentSpaceId);
+    // Use legacy system for removal operations to maintain compatibility
+    clientState.spaces.removeSpace(clientState.currentSpaceId);
   }
 
   onMount(() => {
-    spaceName = clientState.spaces.currentSpace?.name || presetNames[0];
+    spaceName = clientState.currentSpace?.name || presetNames[0];
   });
 
   function handleProviderConnect() {
@@ -54,35 +55,18 @@
         spaceName = "My Space"; // Default name if skipped
       }
 
-      // Save space name
-      if (clientState.spaces.currentSpace) {
-        const updatedPointers = clientState.spaces.pointers.map((space) =>
-          space.id === clientState.spaces.currentSpaceId
-            ? { ...space, name: spaceName }
-            : space,
-        );
-        clientState.spaces.pointers = updatedPointers;
-
-        // Also update the loaded space name
-        const currentPointer = clientState.spaces.pointers.find(
-          (p) => p.id === clientState.spaces.currentSpaceId,
-        );
-        if (currentPointer) {
-          const space =
-            clientState.spaces.getLoadedSpaceFromPointer(currentPointer);
-          if (space) {
-            space.name = spaceName;
-          }
-        }
+      // Save space name using the new method
+      if (clientState.currentSpace && clientState.currentSpaceId) {
+        clientState.updateSpaceName(clientState.currentSpaceId, spaceName);
       }
       spaceNameError = ""; // Clear any previous error
     }
   }
 
   function completeSetup() {
-    if (clientState.spaces.currentSpace) {
-      const rootVertex = clientState.spaces.currentSpace.rootVertex;
-      clientState.spaces.currentSpace.tree.setVertexProperty(
+    if (clientState.currentSpace) {
+      const rootVertex = clientState.currentSpace.rootVertex;
+      clientState.currentSpace.tree.setVertexProperty(
         rootVertex.id,
         "onboarding",
         false,

@@ -3,32 +3,34 @@ import type { SpacePointer } from "../spaces/SpacePointer";
 import { deleteSpace, getDraft, saveDraft, deleteDraft, getAllSecrets, saveAllSecrets, getSecret, setSecret, getPointersForUser, associateSpacesWithUser, updateSpaceUserId, associateLocalSpaceWithUser, makeSpaceLocal } from "$lib/localDb";
 import { untrack } from "svelte";
 import { clientState } from "$lib/state/clientState.svelte";
-import { spaceManager } from "../spaces/spaceManagerSetup";
-import { loadExistingLocalSpace } from "../spaces/spaceManagerSetup";
+import { SpaceManager } from "@core/spaces/SpaceManager";
+import { IndexedDBPersistenceLayer } from "../spaces/persistence/IndexedDBPersistenceLayer";
 
 export class SpaceStore {
+  // Create our own SpaceManager instance instead of using global one
+  spaceManager = new SpaceManager();
+  
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $state(null);
   config: Record<string, unknown> = $state({});
   setupModelProviders: boolean = $state(false);
 
-  // Lazy loading of current space through SpaceManager
+  // Lazy loading of current space through our SpaceManager
   currentSpace: Space | null = $derived.by(() => {
     if (!this.currentSpaceId) return null;
     
     const pointer = this.pointers.find(p => p.id === this.currentSpaceId);
     if (!pointer) return null;
 
-    // Try to get from SpaceManager first
-    let space = spaceManager.getSpace(this.currentSpaceId);
+    // Try to get from our SpaceManager first
+    let space = this.spaceManager.getSpace(this.currentSpaceId);
     
     // If not loaded, load it lazily
     if (!space && pointer.uri.startsWith("local://")) {
-      // Load local space asynchronously - this is a bit tricky with $derived
-      // For now, return null and trigger loading in an effect
+      // Load local space asynchronously
       Promise.resolve().then(async () => {
         try {
-          await loadExistingLocalSpace(pointer);
+          await this.loadSpace(pointer);
         } catch (error) {
           console.error("Failed to load space", pointer, error);
         }
@@ -92,13 +94,13 @@ export class SpaceStore {
    */
   async loadSpace(pointer: SpacePointer): Promise<Space | null> {
     // Check if already loaded
-    let space = spaceManager.getSpace(pointer.id);
+    let space = this.spaceManager.getSpace(pointer.id);
     if (space) return space;
 
     // Load the space based on its URI
     if (pointer.uri.startsWith("local://")) {
       try {
-        const connection = await loadExistingLocalSpace(pointer);
+        const connection = await this.loadExistingLocalSpace(pointer);
         return connection.space;
       } catch (error) {
         console.error("Failed to load space", pointer, error);
@@ -110,6 +112,15 @@ export class SpaceStore {
     // For now, return null
     console.warn("Loading non-local spaces not yet implemented");
     return null;
+  }
+
+  /**
+   * Load an existing local space using our SpaceManager with IndexedDB persistence
+   */
+  private async loadExistingLocalSpace(pointer: SpacePointer): Promise<{ space: Space }> {
+    const indexedDBLayer = new IndexedDBPersistenceLayer(pointer.id);
+    const space = await this.spaceManager.loadSpace(pointer, [indexedDBLayer]);
+    return { space };
   }
 
   /**
@@ -139,7 +150,7 @@ export class SpaceStore {
    * @returns The space if loaded, null otherwise
    */
   getLoadedSpace(spaceId: string): Space | null {
-    return spaceManager.getSpace(spaceId) || null;
+    return this.spaceManager.getSpace(spaceId) || null;
   }
 
   /**
@@ -210,9 +221,9 @@ export class SpaceStore {
    */
   async removeSpace(pointerId: string): Promise<void> {
     // Close space in SpaceManager if loaded
-    const space = spaceManager.getSpace(pointerId);
+    const space = this.spaceManager.getSpace(pointerId);
     if (space) {
-      await spaceManager.closeSpace(pointerId);
+      await this.spaceManager.closeSpace(pointerId);
     }
 
     // Remove from pointers

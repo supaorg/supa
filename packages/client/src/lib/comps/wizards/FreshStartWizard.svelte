@@ -2,17 +2,20 @@
   import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
 
-  import {
-    createNewLocalSpace,
-    createNewSyncedSpace,
-  } from "$lib/spaces/spaceCreation";
-
   function handleSignIn() {
     clientState.layout.swins.open("sign-in", {}, "Sign in");
   }
 
   function handleSignOut() {
     clientState.auth.logout();
+  }
+
+  async function handleCreateLocalSpace() {
+    await clientState.createNewSpace('local');
+  }
+
+  async function handleCreateSyncedSpace() {
+    await clientState.createNewSpace('synced');
   }
 </script>
 
@@ -73,7 +76,7 @@
         <div class="flex flex-col gap-2">
           <button
             class="btn btn-lg preset-filled-primary-500"
-            onclick={createNewSyncedSpace}
+            onclick={handleCreateSyncedSpace}
           >
             Let's go!
           </button>
@@ -86,11 +89,11 @@
         >
           Sign out
         </button>
-      {:else}
+      
         <div class="flex flex-col gap-2">
           <button
             class="btn btn-lg preset-filled-primary-500"
-            onclick={createNewLocalSpace}
+            onclick={handleCreateLocalSpace}
           >
             Go local, sync later
           </button>

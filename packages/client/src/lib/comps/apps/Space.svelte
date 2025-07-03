@@ -12,7 +12,7 @@
   let onboarding = $state(false);
 
   $effect(() => {
-    const space = clientState.spaces.currentSpace;
+    const space = clientState.currentSpace;
 
     if (!space) {
       return;

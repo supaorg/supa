@@ -1,7 +1,7 @@
 import type { VertexOperation } from "@core";
 import { getTreeOps, appendTreeOps, getAllSecrets, saveAllSecrets } from "$lib/localDb";
-// Placeholder helpers for future server sync (not yet implemented)
-import { queueOpsForSync, queueSecretsForSync } from "$lib/state/spacesocket.svelte";
+// Use the socket store instance from clientState instead of non-existent standalone functions
+import { clientState } from "$lib/state/clientState.svelte";
 
 /**
  * A queue that manages operations and secrets that need to be saved locally and synced remotely.
@@ -95,8 +95,8 @@ export default class SpacePersistenceQueue {
             // Clear ops immediately before syncing
             this.remoteOpsMap.delete(treeId);
 
-            try {
-              queueOpsForSync(this.spaceId, treeId, ops);
+                          try {
+                clientState.sockets.queueOpsForSync(this.spaceId, treeId, ops);
             } catch (error) {
               // Re-add ops back to REMOTE queue only if sync failed
               const existingOps = this.remoteOpsMap.get(treeId) || [];
@@ -160,8 +160,8 @@ export default class SpacePersistenceQueue {
     // Take a snapshot but don't clear yet
     const secretsToSync = { ...this.remoteSecretsToSync };
 
-    try {
-      queueSecretsForSync(this.spaceId, secretsToSync);
+          try {
+        clientState.sockets.queueSecretsForSync(this.spaceId, secretsToSync);
 
       // Only clear remote queue if sync was successful
       this.remoteSecretsToSync = {};
