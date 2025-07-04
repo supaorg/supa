@@ -8,7 +8,7 @@ import { ttabs, sidebar, layoutRefs } from './layout.svelte';
 import { setupSwins } from './swinsLayout';
 import type { SpacePointer } from "../spaces/SpacePointer";
 import { IndexedDBPersistenceLayer } from "../spaces/persistence/IndexedDBPersistenceLayer";
-import { initializeDatabase, savePointers, saveConfig, deleteSpace } from "$lib/localDb";
+import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "$lib/localDb";
 import { SpaceManager } from "@core/spaces/SpaceManager";
 import type Space from '@core/spaces/Space';
 
@@ -317,7 +317,8 @@ export class ClientState {
     try {
       await Promise.all([
         savePointers(this.pointers),
-        saveConfig(this.config)
+        saveConfig(this.config),
+        saveCurrentSpaceId(this.currentSpaceId)
       ]);
     } catch (error) {
       console.error("Failed to save state:", error);
