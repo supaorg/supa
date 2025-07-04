@@ -17,12 +17,7 @@
       return;
     }
 
-    // @TODO: figure out how to rename a space that may not be loaded
-
-    const space = clientState.spaces.getLoadedSpaceFromPointer(spaceToRename);
-    if (space) {
-      space.name = newName;
-    }
+    clientState.updateSpaceName(spaceToRename.id, newName);
 
     const updatedPointers = clientState.pointers.map((space) =>
       space.id === spaceToRename?.id ? { ...space, name: newName } : space,

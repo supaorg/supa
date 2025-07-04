@@ -239,6 +239,11 @@ export class ClientState {
     const spaceState = this.spaceStates.find(s => s.pointer.id === spaceId);
     if (spaceState) {
       spaceState.pointer = { ...spaceState.pointer, name };
+
+      if (!spaceState.isConnected) {
+        await spaceState.connect();
+      }
+
       // Update loaded space if exists
       if (spaceState.space) {
         spaceState.space.name = name;
