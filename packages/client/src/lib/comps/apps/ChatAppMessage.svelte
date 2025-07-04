@@ -64,8 +64,8 @@
   $effect(() => {
     if (message?.role === "assistant") {
       const configId = vertex.getProperty("configId") as string;
-      if (configId && clientState.spaces.currentSpace) {
-        const config = clientState.spaces.currentSpace.getAppConfig(configId);
+      if (configId && clientState.currentSpace) {
+        const config = clientState.currentSpace.getAppConfig(configId);
         if (config) {
           configName = config.name;
           return;

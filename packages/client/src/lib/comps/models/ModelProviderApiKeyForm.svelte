@@ -37,7 +37,7 @@
   );
 
   function saveCloudProviderWithApiKey(apiKey: string) {
-    if (!clientState.spaces.currentSpace) return false;
+    if (!clientState.currentSpace) return false;
     
     config = {
       id: id,
@@ -45,7 +45,7 @@
       apiKey,
     } as ModelProviderCloudConfig;
 
-    clientState.spaces.currentSpace?.saveModelProviderConfig(config);
+    clientState.currentSpace?.saveModelProviderConfig(config);
     return true;
   }
 

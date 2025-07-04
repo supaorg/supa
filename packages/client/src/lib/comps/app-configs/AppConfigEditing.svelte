@@ -27,7 +27,7 @@
 
   $effect(() => {
     if (configId) {
-      const config = clientState.spaces.currentSpace?.getAppConfig(configId);
+      const config = clientState.currentSpace?.getAppConfig(configId);
       if (config) {
         name = config.name;
         description = config.description;
@@ -54,7 +54,7 @@
 
     if (!configId) {
       const newConfigId = uuid();
-      clientState.spaces.currentSpace?.insertIntoArray("app-configs", {
+      clientState.currentSpace?.insertIntoArray("app-configs", {
         id: newConfigId,
         name: name,
         description: description,
@@ -75,11 +75,11 @@
       }
     } else {
       if (isDefault) {
-        clientState.spaces.currentSpace?.updateAppConfig(configId, {
+        clientState.currentSpace?.updateAppConfig(configId, {
           targetLLM: targetLLM,
         });
       } else {
-        clientState.spaces.currentSpace?.updateAppConfig(configId, {
+        clientState.currentSpace?.updateAppConfig(configId, {
           name: name,
           description: description,
           instructions: instructions,

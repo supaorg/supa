@@ -48,13 +48,13 @@
   }
 
   onMount(() => {
-    const vertex = clientState.spaces.currentSpace?.getVertex(id);
+    const vertex = clientState.currentSpace?.getVertex(id);
     appTreeId = vertex?.getProperty("tid") as string | undefined;
     name = vertex?.getProperty("_n") as string | undefined;
   });
 
   $effect(() => {
-    const unobserve = clientState.spaces.currentSpace?.tree.observe(id, onSpaceChange);
+    const unobserve = clientState.currentSpace?.tree.observe(id, onSpaceChange);
     return () => {
       unobserve?.();
     };
@@ -62,7 +62,7 @@
 
   function onSpaceChange(events: VertexChangeEvent[]) {
     if (events.some((e) => e.type === "property")) {
-      const vertex = clientState.spaces.currentSpace?.getVertex(id);
+      const vertex = clientState.currentSpace?.getVertex(id);
       name = vertex?.getProperty("_n") as string | undefined;
       
       // Update any open tab for this conversation with the new name

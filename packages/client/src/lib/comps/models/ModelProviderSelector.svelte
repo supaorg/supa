@@ -28,12 +28,12 @@
   let selectedPair: SelectedPair | null = $state(null);
 
   onMount(async () => {
-    const configs = clientState.spaces.currentSpace?.getModelProviderConfigs();
+    const configs = clientState.currentSpace?.getModelProviderConfigs();
     if (!configs) return;
 
     // Get custom providers
     const customProviders =
-      clientState.spaces.currentSpace?.getCustomProviders() || [];
+      clientState.currentSpace?.getCustomProviders() || [];
 
     // Get all active providers (built-in + custom)
     const allProviders = getActiveProviders(customProviders);

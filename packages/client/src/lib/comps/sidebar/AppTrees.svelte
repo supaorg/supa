@@ -7,10 +7,10 @@
   let appTreesUnobserve: (() => void) | undefined;
 
   $effect(() => {
-    if (clientState.spaces.currentSpace) {
-      appTreeIds = [...(clientState.spaces.currentSpace.getAppTreeIds() ?? [])];
-      appTreesUnobserve = clientState.spaces.currentSpace.tree.observe(
-        clientState.spaces.currentSpace.appTreesVertex.id,
+    if (clientState.currentSpace) {
+      appTreeIds = [...(clientState.currentSpace.getAppTreeIds() ?? [])];
+      appTreesUnobserve = clientState.currentSpace.tree.observe(
+        clientState.currentSpace.appTreesVertex.id,
         onAppTreeChange
       );
     } else {
@@ -24,7 +24,7 @@
 
   function onAppTreeChange(events: VertexChangeEvent[]) {
     if (events.some((e) => e.type === "children")) {
-      appTreeIds = [...(clientState.spaces.currentSpace?.getAppTreeIds() ?? [])];
+      appTreeIds = [...(clientState.currentSpace?.getAppTreeIds() ?? [])];
     }
   }
 </script>

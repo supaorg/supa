@@ -19,19 +19,19 @@
       >
         <ChevronsUpDown size={18} class="flex-shrink-0" />
         <span class="flex-1 min-w-0 truncate text-left"
-          >{clientState.spaces.currentSpace?.name}</span
+          >{clientState.currentSpace?.name}</span
         >
       </div>
     </div>
   {/snippet}
   {#snippet content()}
     <div class="flex flex-col gap-1">
-      {#each clientState.spaces.pointers as pointer (pointer.id)}
+      {#each clientState.pointers as pointer (pointer.id)}
         <button
           class="btn btn-sm w-full text-left justify-start"
           class:preset-filled-secondary-500={pointer.id ===
-            clientState.spaces.currentSpaceId}
-          onclick={() => (clientState.spaces.currentSpaceId = pointer.id)}
+            clientState.currentSpaceId}
+          onclick={() => (clientState.switchToSpace(pointer.id))}
         >
           <span><strong>{pointer.name || "Space"}</strong></span>
         </button>

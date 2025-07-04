@@ -27,7 +27,7 @@
   }
 
   async function deleteThread() {
-    clientState.spaces.currentSpace?.deleteAppTree(appTreeId);
+    clientState.currentSpace?.deleteAppTree(appTreeId);
     goto("/");
     popoverClose();
   }

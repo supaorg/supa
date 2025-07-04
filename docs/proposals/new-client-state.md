@@ -11,7 +11,7 @@ After the initial refactoring, we still have some architectural issues:
 1. **Global Theme/Layout Stores**: Theme and layout are still global, but they should be space-specific
 2. **All Spaces Loaded**: Currently all spaces in the list are loaded/connected, even when not active
 3. **Scattered Space Concerns**: Space-related functionality (theme, layout, etc.) spread across multiple stores
-4. **Complex API**: Need to access `clientState.spaces.currentSpace.theme` instead of cleaner `clientState.currentSpace.theme`
+4. **Complex API**: Need to access `clientState.currentSpace.theme` instead of cleaner `clientState.currentSpace.theme`
 
 ## Proposed Architecture
 

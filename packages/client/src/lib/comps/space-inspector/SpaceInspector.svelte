@@ -4,7 +4,7 @@
   import VertexView from "./VertexView.svelte";
   import type { Vertex } from "@core";
 
-  let spaceRootVertex = $derived(clientState.spaces.currentSpace?.rootVertex);
+  let spaceRootVertex = $derived(clientState.currentSpace?.rootVertex);
   let appTreeRootVertex = $state<Vertex | undefined>(undefined);
   let showingAppTree = $state(false);
 
@@ -18,7 +18,7 @@
   });
 
   async function onTreeOpen(treeId: string) {
-    const appTree = await clientState.spaces.currentSpace?.loadAppTree(treeId);
+    const appTree = await clientState.currentSpace?.loadAppTree(treeId);
     if (appTree) {
       appTreeRootVertex = appTree.tree.root;
       showingAppTree = true;

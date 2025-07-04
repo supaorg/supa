@@ -9,7 +9,9 @@
   let isChecking = false;
 
   async function checkAndConfigureOllama() {
-    if (isChecking || !clientState.spaces.currentSpace) return;
+    const space = clientState.currentSpace;
+
+    if (isChecking || !space) return;
 
     isChecking = true;
     try {
@@ -17,7 +19,7 @@
       const ollamaProvider = providers.find((p) => p.id === "ollama");
       if (!ollamaProvider) return;
 
-      const existingConfig = clientState.spaces.currentSpace?.getModelProviderConfig(
+      const existingConfig = space.getModelProviderConfig(
         "ollama",
       ) as ModelProviderLocalConfig | undefined;
       if (existingConfig) return;
@@ -34,7 +36,7 @@
           type: "local",
           apiUrl: address,
         };
-        clientState.spaces.currentSpace?.saveModelProviderConfig(config);
+        space.saveModelProviderConfig(config);
       }
     } catch (e) {
       // Ollama is not running, we'll check again later

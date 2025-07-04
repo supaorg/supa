@@ -9,7 +9,7 @@
   let spaceToRename = $state<SpacePointer | null>(null);
 
   function selectSpace(spaceId: string) {
-    clientState.spaces.currentSpaceId = spaceId;
+    clientState.switchToSpace(spaceId);
   }
 
   function handleRename(newName: string) {
@@ -17,15 +17,17 @@
       return;
     }
 
+    // @TODO: figure out how to rename a space that may not be loaded
+
     const space = clientState.spaces.getLoadedSpaceFromPointer(spaceToRename);
     if (space) {
       space.name = newName;
     }
 
-    const updatedPointers = clientState.spaces.pointers.map((space) =>
+    const updatedPointers = clientState.pointers.map((space) =>
       space.id === spaceToRename?.id ? { ...space, name: newName } : space,
     );
-    clientState.spaces.pointers = updatedPointers;
+    clientState.pointers = updatedPointers;
     spaceToRename = null;
   }
 
@@ -35,18 +37,18 @@
   }
 
   function handleRemoveSpace(space: SpacePointer) {
-    clientState.spaces.removeSpace(space.id);
+    clientState.removeSpace(space.id);
     // So if we access the list from swins - close it
     clientState.layout.swins.pop();
   }
 </script>
 
-{#if clientState.spaces.pointers.length > 0}
+{#if clientState.pointers.length > 0}
   <div class="space-y-2">
-    {#each clientState.spaces.pointers as space (space.id)}
+    {#each clientState.pointers as space (space.id)}
       <div
         class="p-4 rounded-lg bg-surface-200-800-token border-2 {space.id ===
-        clientState.spaces.currentSpaceId
+        clientState.currentSpaceId
           ? 'border-primary-500'
           : 'border-surface-100-900'} flex items-center gap-3"
       >
@@ -58,7 +60,7 @@
           role="button"
           tabindex="0"
         >
-          {#if space.id === clientState.spaces.currentSpaceId}
+          {#if space.id === clientState.currentSpaceId}
             <CircleCheckBig size={20} class="text-primary-500" />
           {:else}
             <Circle size={20} class="text-surface-500" />

@@ -11,11 +11,11 @@
   }
 
   async function handleCreateLocalSpace() {
-    await clientState.createNewSpace('local');
+    await clientState.createNewSpace("local");
   }
 
   async function handleCreateSyncedSpace() {
-    await clientState.createNewSpace('synced');
+    await clientState.createNewSpace("synced");
   }
 </script>
 
@@ -72,7 +72,7 @@
     </div>
 
     <div class="flex flex-col gap-4 pt-4">
-      		{#if clientState.auth.isAuthenticated}
+      {#if false}
         <div class="flex flex-col gap-2">
           <button
             class="btn btn-lg preset-filled-primary-500"
@@ -89,7 +89,7 @@
         >
           Sign out
         </button>
-      
+      {:else}
         <div class="flex flex-col gap-2">
           <button
             class="btn btn-lg preset-filled-primary-500"

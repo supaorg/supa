@@ -27,9 +27,9 @@
 
   // Check if provider is configured
   $effect(() => {
-    if (!clientState.spaces.currentSpace) return;
+    if (!clientState.currentSpace) return;
 
-    const customConfigs = clientState.spaces.currentSpace.getCustomProviders();
+    const customConfigs = clientState.currentSpace.getCustomProviders();
     const allProviders = getActiveProviders(customConfigs);
     const activeProvider = allProviders.find((p) => p.id === provider.id);
 
@@ -40,7 +40,7 @@
   });
 
   async function checkConfigurationAndStatus() {
-    if (!clientState.spaces.currentSpace) return;
+    if (!clientState.currentSpace) return;
 
     isChecking = true;
     showValidationWarning = false;
@@ -48,7 +48,7 @@
 
     try {
       const customConfigs =
-        clientState.spaces.currentSpace.getCustomProviders();
+        clientState.currentSpace.getCustomProviders();
       const allProviders = getActiveProviders(customConfigs);
       const activeProvider = allProviders.find((p) => p.id === provider.id);
 
@@ -59,7 +59,7 @@
 
       // Check provider status
       const status =
-        await clientState.spaces.currentSpace.getModelProviderStatus(
+        await clientState.currentSpace.getModelProviderStatus(
           provider.id,
         );
 
@@ -95,9 +95,9 @@
   }
 
   function deleteProvider() {
-    if (!clientState.spaces.currentSpace) return;
+    if (!clientState.currentSpace) return;
 
-    clientState.spaces.currentSpace.removeCustomProvider(provider.id);
+    clientState.currentSpace.removeCustomProvider(provider.id);
     onDeleted?.();
   }
 </script>

@@ -88,7 +88,7 @@
       return;
     }
 
-    const draftContent = await clientState.spaces.getDraft(draftId);
+    const draftContent = await clientState.currentSpaceState?.getDraft(draftId);
     if (draftContent) {
       query = draftContent;
       // Adjust height after loading draft content into the textarea
@@ -150,9 +150,9 @@
       const trimmedQuery = query.trim();
 
       if (trimmedQuery.length > 0) {
-        await clientState.spaces.saveDraft(draftId, trimmedQuery);
+        await clientState.currentSpaceState?.saveDraft(draftId, trimmedQuery);
       } else {
-        await clientState.spaces.deleteDraft(draftId);
+        await clientState.currentSpaceState?.deleteDraft(draftId);
       }
     }
   }
@@ -166,7 +166,7 @@
 
     // Clear draft when message is sent
     if (draftId) {
-      await clientState.spaces.deleteDraft(draftId);
+      await clientState.currentSpaceState?.deleteDraft(draftId);
     }
 
     onSend(query);
@@ -197,7 +197,7 @@
   }
 </script>
 
-{#if clientState.spaces.setupModelProviders}
+{#if clientState.currentSpaceState?.hasModelProviders}
   <form class="w-full" use:focusTrap={isFocused} onsubmit={handleSubmit}>
     <div class="relative flex w-full items-center">
       <div

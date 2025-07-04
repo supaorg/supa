@@ -166,9 +166,9 @@ export async function fetchSpaces() {
       await savePointers(spaces);
 
       // Filter out duplicates by space.id before adding to store
-      const existingIds = new Set(clientState.spaces.pointers.map(p => p.id));
+      const existingIds = new Set(clientState.pointers.map(p => p.id));
       const newSpaces = spaces.filter(space => !existingIds.has(space.id));
-      clientState.spaces.pointers = [...clientState.spaces.pointers, ...newSpaces];
+      clientState.pointers = [...clientState.pointers, ...newSpaces];
     }
   } catch (error) {
     console.error("Failed to fetch spaces:", error);

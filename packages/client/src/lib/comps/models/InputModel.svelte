@@ -37,9 +37,9 @@
 
   // Load all providers including custom ones
   $effect(() => {
-    if (clientState.spaces.currentSpace) {
+    if (clientState.currentSpace) {
       const customProviders =
-        clientState.spaces.currentSpace.getCustomProviders() || [];
+        clientState.currentSpace.getCustomProviders() || [];
       allProviders = getActiveProviders(customProviders);
     } else {
       allProviders = [...providers];

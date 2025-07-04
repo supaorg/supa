@@ -18,11 +18,11 @@
 
   function toggleVisibility() {
     const oppositeVisible = config.visible === undefined ? true : !config.visible;
-    clientState.spaces.currentSpace?.updateAppConfig(config.id, { visible: oppositeVisible });
+    clientState.currentSpace?.updateAppConfig(config.id, { visible: oppositeVisible });
   }
 
   function deleteAppConfig() {
-    clientState.spaces.currentSpace?.appConfigs.delete(config);
+    clientState.currentSpace?.appConfigs.delete(config);
     deletePopoverOpen = false;
   }
 </script>

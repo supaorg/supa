@@ -39,7 +39,7 @@
           type: "local",
           apiUrl: addressToCheck,
         };
-        clientState.spaces.currentSpace?.saveModelProviderConfig(config);
+        clientState.currentSpace?.saveModelProviderConfig(config);
         onValidAddress(addressToCheck);
         onClose();
         return true;

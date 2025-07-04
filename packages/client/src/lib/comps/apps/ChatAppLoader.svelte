@@ -6,16 +6,16 @@
   let { treeId }: { treeId: string } = $props();
 
   let data = $derived.by(async () => {
-    if (!clientState.spaces.currentSpace) {
+    if (!clientState.currentSpace) {
       throw new Error("No current space id");
     }
 
-    const appTree = await clientState.spaces.currentSpace.loadAppTree(treeId);
+    const appTree = await clientState.currentSpace.loadAppTree(treeId);
     if (!appTree) {
       throw new Error("Failed to load app tree");
     }
 
-    return new ChatAppData(clientState.spaces.currentSpace, appTree);
+    return new ChatAppData(clientState.currentSpace, appTree);
   });
 </script>
 

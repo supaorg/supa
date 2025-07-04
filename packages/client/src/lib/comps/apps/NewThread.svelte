@@ -12,7 +12,7 @@
 
   onMount(() => {
     if (!appConfig) {
-      targetAppConfig = clientState.spaces.currentSpace?.getAppConfigs()[0];
+      targetAppConfig = clientState.currentSpace?.getAppConfigs()[0];
     } else {
       targetAppConfig = appConfig;
     }
@@ -33,17 +33,17 @@
       throw new Error("App config not found");
     }
 
-    if (!clientState.spaces.currentSpace) {
+    if (!clientState.currentSpace) {
       throw new Error("Space or app config not found");
     }
 
     // Create new app tree
     const newTree = ChatAppData.createNewChatTree(
-      clientState.spaces.currentSpace,
+      clientState.currentSpace,
       targetAppConfig.id,
     );
     const chatAppData = new ChatAppData(
-      clientState.spaces.currentSpace,
+      clientState.currentSpace,
       newTree,
     );
     chatAppData.newMessage("user", message);

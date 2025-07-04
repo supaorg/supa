@@ -26,9 +26,9 @@
   }
 
   function refreshCustomProviders() {
-    if (!clientState.spaces.currentSpace) return;
+    if (!clientState.currentSpace) return;
 
-    const customConfigs = clientState.spaces.currentSpace.getCustomProviders();
+    const customConfigs = clientState.currentSpace.getCustomProviders();
     // Get all active providers (built-in + custom)
     const allProviders = getActiveProviders(customConfigs);
     // Filter to just the custom ones
@@ -37,7 +37,7 @@
 
   // Load custom providers on mount and when space changes
   $effect(() => {
-    if (clientState.spaces.currentSpace) {
+    if (clientState.currentSpace) {
       refreshCustomProviders();
     }
   });

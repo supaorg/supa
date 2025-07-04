@@ -21,9 +21,9 @@
 
   // Load existing provider data if we're editing
   $effect(() => {
-    if (!providerId || !clientState.spaces.currentSpace) return;
+    if (!providerId || !clientState.currentSpace) return;
 
-    const config = clientState.spaces.currentSpace?.getModelProviderConfig(
+    const config = clientState.currentSpace?.getModelProviderConfig(
       providerId,
     ) as CustomProviderConfig | undefined;
     if (!config) return;
@@ -31,7 +31,7 @@
     name = config.name;
     baseApiUrl = config.baseApiUrl;
     modelId = config.modelId;
-    apiKey = clientState.spaces.currentSpace?.getServiceApiKey(providerId) || "";
+    apiKey = clientState.currentSpace?.getServiceApiKey(providerId) || "";
 
     if (config.customHeaders) {
       try {
@@ -47,7 +47,7 @@
   async function handleSubmit(e: Event) {
     e.preventDefault();
 
-    if (!clientState.spaces.currentSpace) return;
+    if (!clientState.currentSpace) return;
 
     isSubmitting = true;
     validationError = null;
@@ -87,7 +87,7 @@
         customHeaders: parsedHeaders,
       };
 
-      clientState.spaces.currentSpace.saveModelProviderConfig(config);
+      clientState.currentSpace.saveModelProviderConfig(config);
       onSave(id);
     } catch (e) {
       validationError = "Failed to save provider configuration";

@@ -22,7 +22,7 @@
   let openState = $state(false);
 
   onMount(() => {
-    const unobserve = clientState.spaces.currentSpace?.appConfigs.observe((configs) => {
+    const unobserve = clientState.currentSpace?.appConfigs.observe((configs) => {
       appConfigs = configs;
       visibleAppConfigs = configs.filter((config) => config.visible);
     });

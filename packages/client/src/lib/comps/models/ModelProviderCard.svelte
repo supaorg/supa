@@ -43,10 +43,10 @@
 
   // Observe provider configuration changes
   $effect(() => {
-    if (!clientState.spaces.currentSpace) return;
+    if (!clientState.currentSpace) return;
 
     const providersVertex =
-      clientState.spaces.currentSpace.tree.getVertexByPath("providers");
+      clientState.currentSpace.tree.getVertexByPath("providers");
     if (!providersVertex) return;
 
     const unobserve = providersVertex.observe((events) => {
@@ -61,7 +61,7 @@
 
   async function checkConfigurationAndStatus() {
     // First check if the provider is configured
-    const config = clientState.spaces.currentSpace?.getModelProviderConfig(
+    const config = clientState.currentSpace?.getModelProviderConfig(
       provider.id,
     ) as ModelProviderLocalConfig | undefined;
     isConfigured = !!config;
@@ -97,7 +97,7 @@
     isChecking = true;
     try {
       const providerStatus =
-        await clientState.spaces.currentSpace?.getModelProviderStatus(
+        await clientState.currentSpace?.getModelProviderStatus(
           provider.id,
         );
 
@@ -127,7 +127,7 @@
     isConfigured = false;
     validationError = null;
     onDisconnect(provider);
-    clientState.spaces.currentSpace?.deleteModelProviderConfig(provider.id);
+    clientState.currentSpace?.deleteModelProviderConfig(provider.id);
   }
 </script>
 

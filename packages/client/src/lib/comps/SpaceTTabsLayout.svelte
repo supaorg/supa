@@ -9,7 +9,7 @@
   let lastSavedLayout: string | null = null;
 
   async function saveSpaceLayout(): Promise<void> {
-    const spaceId = clientState.spaces.currentSpaceId;
+    const spaceId = clientState.currentSpace?.getId();
     if (!spaceId) return;
 
     const layoutJson = ttabs.serializeLayout();
@@ -34,7 +34,7 @@
   }
 
   $effect(() => {
-    const spaceId = clientState.spaces.currentSpaceId;
+    const spaceId = clientState.currentSpace?.getId() ?? null;
 
     untrack(() => {
       setupSpaceLayout(spaceId);

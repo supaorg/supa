@@ -9,15 +9,15 @@
   let setupProviderFromScratch = $state(false);
 
   $effect(() => {
-    if (!clientState.spaces.currentSpace) {
+    if (!clientState.currentSpace) {
       return;
     }
 
     showProviderSetupPage =
-      clientState.spaces.currentSpace.getModelProviderConfigs().length === 0;
+      clientState.currentSpace.getModelProviderConfigs().length === 0;
 
     const providerVertex =
-      clientState.spaces.currentSpace.tree.getVertexByPath("providers");
+      clientState.currentSpace.tree.getVertexByPath("providers");
     console.log(providerVertex);
     if (!providerVertex) {
       return;

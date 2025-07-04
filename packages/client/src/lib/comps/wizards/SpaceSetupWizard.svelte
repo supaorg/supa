@@ -20,9 +20,9 @@
   let currentWizardStep = $state(0);
 
   $effect(() => {
-    if (clientState.currentSpace) {
-      const providerVertex =
-        clientState.currentSpace.tree.getVertexByPath("providers");
+    const space = clientState.currentSpace;
+    if (space) {
+      const providerVertex = space.tree.getVertexByPath("providers");
       if (providerVertex) {
         hasSetupProvider = providerVertex.children.length > 0;
       }
@@ -30,16 +30,21 @@
   });
 
   function handleCancel() {
-    if (!clientState.currentSpaceId) {
+    const space = clientState.currentSpace;
+
+    if (!space) {
       return;
     }
 
     // Use legacy system for removal operations to maintain compatibility
-    clientState.spaces.removeSpace(clientState.currentSpaceId);
+    clientState.removeSpace(space.getId());
   }
 
   onMount(() => {
-    spaceName = clientState.currentSpace?.name || presetNames[0];
+    const space = clientState.currentSpace;
+    if (space) {
+      spaceName = space.name || presetNames[0];
+    }
   });
 
   function handleProviderConnect() {
@@ -56,7 +61,7 @@
       }
 
       // Save space name using the new method
-      if (clientState.currentSpace && clientState.currentSpaceId) {
+      if (clientState.currentSpaceState && clientState.currentSpaceId) {
         clientState.updateSpaceName(clientState.currentSpaceId, spaceName);
       }
       spaceNameError = ""; // Clear any previous error
@@ -64,9 +69,10 @@
   }
 
   function completeSetup() {
-    if (clientState.currentSpace) {
-      const rootVertex = clientState.currentSpace.rootVertex;
-      clientState.currentSpace.tree.setVertexProperty(
+    const space = clientState.currentSpace;
+    if (space) {
+      const rootVertex = space.tree.root!;
+      space.tree.setVertexProperty(
         rootVertex.id,
         "onboarding",
         false,

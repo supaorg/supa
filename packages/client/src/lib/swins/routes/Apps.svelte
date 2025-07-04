@@ -10,7 +10,7 @@
   let appConfigUnobserve: (() => void) | undefined;
 
   $effect(() => {
-    appConfigUnobserve = clientState.spaces.currentSpace?.appConfigs.observe(
+    appConfigUnobserve = clientState.currentSpace?.appConfigs.observe(
       (configs) => {
         appConfigs = configs;
       }

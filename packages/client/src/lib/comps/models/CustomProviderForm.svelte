@@ -22,9 +22,9 @@
 
   // Load existing provider data if we're editing
   $effect(() => {
-    if (!providerId || !clientState.spaces.currentSpace) return;
+    if (!providerId || !clientState.currentSpace) return;
 
-    const config = clientState.spaces.currentSpace?.getModelProviderConfig(
+    const config = clientState.currentSpace?.getModelProviderConfig(
       providerId,
     ) as CustomProviderConfig | undefined;
     if (!config) return;
@@ -33,7 +33,7 @@
     baseApiUrl = config.baseApiUrl;
     modelId = config.modelId;
     apiKey =
-      clientState.spaces.currentSpace?.getServiceApiKey(providerId) || "";
+      clientState.currentSpace?.getServiceApiKey(providerId) || "";
 
     if (config.customHeaders) {
       try {
@@ -104,7 +104,7 @@
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
 
-    if (!validate() || !clientState.spaces.currentSpace) return;
+    if (!validate() || !clientState.currentSpace) return;
 
     isSubmitting = true;
     try {
@@ -119,14 +119,14 @@
       let id: string;
       if (providerId) {
         // Update existing provider
-        clientState.spaces.currentSpace.updateCustomProvider(
+        clientState.currentSpace.updateCustomProvider(
           providerId,
           config,
         );
         id = providerId;
       } else {
         // Add new provider
-        id = clientState.spaces.currentSpace.addCustomProvider(config) || "";
+        id = clientState.currentSpace.addCustomProvider(config) || "";
       }
 
       onSave(id);
