@@ -13,6 +13,7 @@ import {
   getSecret, 
   setSecret 
 } from "$lib/localDb";
+import { Backend } from '@core/spaces/Backend';
 
 export class SpaceState {
   pointer: SpacePointer;
@@ -21,6 +22,8 @@ export class SpaceState {
   theme: ThemeStore;
   layout: LayoutStore;
   isConnected: boolean = false;
+
+  private backend: Backend | null = null;
 
   constructor(pointer: SpacePointer, spaceManager: SpaceManager) {
     this.pointer = pointer;
@@ -44,6 +47,8 @@ export class SpaceState {
         await this.theme.loadSpaceTheme(this.pointer.id);
         await this.layout.loadSpaceLayout();
         
+        this.backend = new Backend(this.space, this.pointer.uri.startsWith("local://"));
+
         this.isConnected = true;
       } else {
         throw new Error(`Failed to load space ${this.pointer.id}`);
