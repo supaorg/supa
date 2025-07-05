@@ -27,8 +27,8 @@
 </script>
 
 <svelte:head>
-  <title>t69</title>
-  <meta name="description" content="t69" />
+  <title>Supa</title>
+  <meta name="description" content="Supa" />
 </svelte:head>
 
 <!-- Check for a theme and load it (either the default or the space theme) -->

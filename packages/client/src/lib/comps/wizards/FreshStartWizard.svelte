@@ -22,18 +22,11 @@
 <CenteredPage width="2xl">
   <div class="card p-8 mt-4 space-y-6 selectable-text">
     <div class="space-y-4">
-      <h2 class="h2">Welcome to t69.chat</h2>
+      <h2 class="h2">Welcome to Supa</h2>
       <p>
-        This is an open-source alternative to <a
-          class="anchor"
-          href="https://t3.chat">t3.chat</a
-        >, built during a
-        <a class="anchor" href="https://cloneathon.t3.chat/"
-          >hackathon orginized by Theo (t3.gg)</a
-        >. Here's the
-        <a class="anchor" href="https://github.com/mitkury/t69"
-          >source on GitHub</a
-        > (start pls).
+        Supa is like ChatGPT but open source. It allows to use the best AI
+        models from different providers, keeps data private, and doesn't require
+        a subscription.
       </p>
     </div>
     <div>
@@ -49,22 +42,34 @@
           </div>
           <div>
             <dt class="font-semibold">Local first</dt>
-            <dd>You can use t69 without relying on t69 servers</dd>
+            <dd>You can use Supa without relying on Supa servers</dd>
           </div>
           <div>
             <dt class="font-semibold">Tabs like in VSCode</dt>
-            <dd>You can create and switch between tabs, and split windows</dd>
+            <dd>Create and switch between tabs, and split windows</dd>
           </div>
           <div>
             <dt class="font-semibold">Any AI</dt>
             <dd>
-              From OpenAI and Anthropic to Ollama and any OpenAI-compatible API
+              From OpenAI and Anthropic to Ollama and any OpenAI-compatible API; bring your own keys
             </dd>
           </div>
           <div>
             <dt class="font-semibold">Many themes</dt>
             <dd>
-              You can switch between many themes and distinguish your workspaces
+              Use different themes for your workspaces; from colorful to boring
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Assistants</dt>
+            <dd>
+              Create your own assistants with their own prompts, prompts, and models
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold">No subscriptions</dt>
+            <dd>
+              Pay as you go, either for API costs from AI providers or the actual compute if you run models yourself
             </dd>
           </div>
         </dl>

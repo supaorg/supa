@@ -48,7 +48,7 @@ export const japaneseTexts: Partial<Texts> = {
     },
     defaultConfigMessage: "これはデフォルトチャットアプリの設定です。使用するモデルのみ変更可能です。<br /><a href=\"/apps/new-config\" class=\"anchor\">{defaultConfigGotoNew}</a> 新しいチャット設定を作成する場合はこちらをクリックしてください。",
     defaultConfigGotoNew: "こちらへ",
-    description: "デフォルトチャットアプリをベースに、独自のシステムプロンプト（指示）を作成できます。t69の将来のバージョンでは、ツールや外部APIを使用して他のタイプのアプリを作成することが可能になります。"
+    description: "デフォルトチャットアプリをベースに、独自のシステムプロンプト（指示）を作成できます。Supaの将来のバージョンでは、ツールや外部APIを使用して他のタイプのアプリを作成することが可能になります。"
   },
 
   appConfigDropdown: {

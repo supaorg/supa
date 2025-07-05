@@ -1,8 +1,8 @@
 {
-  "name": "t69-client",
+  "name": "supa-client",
   "private": true,
   "version": "1.0.1",
-  "description": "The client for t69",
+  "description": "The client for supa",
   "type": "module",
   "scripts": {
     "dev": "vite dev",

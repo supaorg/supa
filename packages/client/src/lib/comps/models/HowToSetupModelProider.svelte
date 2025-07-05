@@ -252,7 +252,7 @@
   {:else if provider.id === "ollama"}
     <p>
       You will need to install and run Ollama to use its models. You can run it
-      locally and t69 will connect to it.
+      locally and Supa will connect to it.
     </p>
     <ol class="list">
       <li>

@@ -144,7 +144,7 @@
       <!-- Step 2: Model Provider -->
       <h2 class="h3 mb-4">Setup brains for your space</h2>
       <p class="mb-4">
-        Connect at least one AI model provider to start using t69. We recommend
+        Connect at least one AI model provider to start using Supa. We recommend
         setting up OpenAI, Anthropic or DeepSeek first.
       </p>
 

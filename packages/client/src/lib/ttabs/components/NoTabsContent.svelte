@@ -39,9 +39,9 @@
   {#if showProviderSetupPage}
     <!-- Show model providers setup if no provider is configured -->
     <div class="w-full max-w-3xl">
-      <h2 class="h3 mb-4 mt-4">Setup brains for t69</h2>
+      <h2 class="h3 mb-4 mt-4">Setup brains for Supa</h2>
       <p class="mb-4">
-        Let's setup at least one AI model provider to start using t69. We
+        Let's setup at least one AI model provider to start using Supa. We
         recommend setting up OpenAI, Anthropic or DeepSeek first. They have the
         most powerful models.
       </p>

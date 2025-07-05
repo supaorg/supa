@@ -48,7 +48,7 @@ export const spanishTexts: Partial<Texts> = {
     },
     defaultConfigMessage: "Esta es la configuración de la aplicación de chat predeterminada. Solo puedes cambiar el modelo que utiliza.<br /><a href=\"/apps/new-config\" class=\"anchor\">{defaultConfigGotoNew}</a> si quieres crear una nueva configuración de chat.",
     defaultConfigGotoNew: "Ve aquí",
-    description: "Puedes crear tus propios prompts de sistema (instrucciones) basados en la aplicación de chat predeterminada. Será posible crear otros tipos de aplicaciones con herramientas y APIs externas en futuras versiones de t69."
+    description: "Puedes crear tus propios prompts de sistema (instrucciones) basados en la aplicación de chat predeterminada. Será posible crear otros tipos de aplicaciones con herramientas y APIs externas en futuras versiones de Supa."
   },
 
   appConfigDropdown: {

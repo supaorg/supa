@@ -48,7 +48,7 @@ export const koreanTexts: Partial<Texts> = {
     },
     defaultConfigMessage: "이것은 기본 채팅 앱의 설정입니다. 사용하는 모델만 변경할 수 있습니다.<br /><a href=\"/apps/new-config\" class=\"anchor\">{defaultConfigGotoNew}</a> 새로운 채팅 설정을 만들고 싶으시다면 클릭하세요.",
     defaultConfigGotoNew: "여기로 이동",
-    description: "기본 채팅 앱을 기반으로 자신만의 시스템 프롬프트(지시사항)를 만들 수 있습니다. t69의 향후 버전에서는 도구와 외부 API를 사용하여 다른 유형의 앱을 만들 수 있게 될 예정입니다."
+    description: "기본 채팅 앱을 기반으로 자신만의 시스템 프롬프트(지시사항)를 만들 수 있습니다. Supa의 향후 버전에서는 도구와 외부 API를 사용하여 다른 유형의 앱을 만들 수 있게 될 예정입니다."
   },
 
   appConfigDropdown: {
