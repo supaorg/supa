@@ -7,7 +7,8 @@
   },
   "scripts": {
     "preinstall": "cd packages/client && npm install && cd ../core && npm install",
-    "dev": "cd packages/client && npm run dev",
+    "dev": "cd packages/client && npm run tauri dev",
+    "build": "cd packages/client && npm run tauri build",
     "rules": "airul gen"
   }
 }
