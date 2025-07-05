@@ -5,7 +5,7 @@
   "identifier": "cloud.supa.supa",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://localhost:6969",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../build"
   },
