@@ -1,9 +1,11 @@
 # Basics for developers
 
 Facts:
-- t69.chat is a web app
+- Supa is a standalone application (MacOS, Windows, Linux; not yet Android or iOS, but will be)
 - Written in TypeScript
 - Frontend is SvelteKit (Svelte 5)
+- Tauri is used to build desktop and mobile apps
+- Doesn't have a server (yet), everything is local plus using APIs of services, such as OpenAI
 - Tailwind is used for CSS utility classes
 - Skeleton is used as a design system and components
 - AIWrapper is used to interact with AI models
@@ -13,7 +15,6 @@ Facts:
 Structure:
 - packages/client/src is the client code
 - packages/core/src is the core functionality shared with client
-- packages/server/src is the server for syncing changes and auth
 
 ## Updating deps in npm
 Sometimes packages get cached with old versions. In that case remove the cache and `npm run dev` again.
