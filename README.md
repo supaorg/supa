@@ -1,45 +1,51 @@
-# t69 (nice) is a new, open source alternative to t3
+# Open Alternative to ChatGPT
 
-made during a cloneathon https://x.com/theo/status/1931515264497254402
+<p align="center">
+  <img src="packages/client/src-tauri/icons/Square310x310Logo.png" style="width: 25%; height: auto;">
+</p>
 
-![t69 screenshot](https://github.com/mitkury/t69/blob/main/docs/assets/screenshot.png)
+Supa is like ChatGPT but open source. It allows to use the best AI models from different providers, keeps data private, and doesn't require a subscription.
 
-try it here https://t69.chat/
+![Supa screenshot](docs/assets/screenshot.png)
 
-or run yourself:
-```
-clone git@github.com:mitkury/t69.git && cd t69
-```
+> 🚧 Work in progress towards v1.
 
-```
-npm install && npm run dev
-```
+## Features
 
-## features
+**Workspaces**
 
-**workspaces**
+Organize your conversations and assistants into separate workspaces
 
-organize your conversations and assistants into separate workspaces
+**Local first**
 
-**local first**
+You can use Supa without relying on Supa servers
 
-you can use t69 without relying on t69 servers
+**Tabs like in VSCode**
 
-**tabs like in vscode**
+Create and switch between tabs, and split windows
 
-create and switch between tabs, and split windows
+**Any AI**
 
-**any ai**
+From OpenAI and Anthropic to Ollama and any OpenAI-compatible API; bring your own keys
 
-from OpenAI and Anthropic to Ollama and any OpenAI-compatible API; bring your own keys
-
-**many themes**
+**Many themes**
 
 use different themes for your workspaces; from colorful to boring
 
-**assistants**
+**Assistants**
 
-create your own assistants with their own prompts, prompts, and models
+Create your own assistants with their own prompts, prompts, and models
 
-## related projects
-t69 is largely based on [supa](https://github.com/supaorg/supa) (ui) and powered by [aiwrapper](https://github.com/mitkury/aiwrapper) (ai inference), [aimodels](https://github.com/mitkury/aimodels) (info about ai models) [ttabs](https://github.com/mitkury/ttabs), [reptree](https://github.com/mitkury/reptree) (sync), and [airul](https://github.com/mitkury/airul) (ai context) - all projects maintained by t69's author.
+**No subscriptions**
+Pay as you go, either for API costs from AI providers or the actual compute if you run models yourself.
+
+## Related projects
+Supa is powered by several focused libraries:
+
+- **AI inference** - [aiwrapper](https://github.com/mitkury/aiwrapper)
+- **Info about AI models** - [aimodels](https://github.com/mitkury/aimodels)
+- **Tiling tabs** - [ttabs](https://github.com/mitkury/ttabs)
+- **Sync** - [reptree](https://github.com/mitkury/reptree)
+- **AI context** - [airul](https://github.com/mitkury/airul)
+
+All projects are maintained by Supa's author.
