@@ -1,5 +1,4 @@
 import { AuthStore, type User } from './auth.svelte';
-import { SpaceSocketStore } from './spacesocket.svelte';
 import { ThemeStore } from './theme.svelte';
 import { SpaceState } from './SpaceState';
 import { isDevMode, spaceInspectorOpen } from './devMode';
@@ -42,7 +41,6 @@ export class ClientState {
 
   // Direct references to focused stores
   auth = new AuthStore();
-  sockets = new SpaceSocketStore();
   private themeStore = new ThemeStore();
 
   // Status getters for components
@@ -129,8 +127,7 @@ export class ClientState {
       // Check authentication and filter spaces (dummy for now)
       await this.auth.checkAuth();
       if (this.auth.isAuthenticated) {
-        this.sockets.setupSocketConnection();
-        await this._filterSpacesForCurrentUser(); // Dummy implementation
+        // @TODO: implement connection to server
       }
 
       // Set current space and connect to it
@@ -330,9 +327,8 @@ export class ClientState {
    */
   async signIn(tokens: AuthTokens, user: User): Promise<void> {
     await this.auth.setAuth(tokens, user);
-    await this._filterSpacesForCurrentUser(); // Dummy
+    // @TODO: implement connection to server
     this._updateInitializationStatus();
-    this.sockets.setupSocketConnection();
     await this._saveState();
   }
 
@@ -349,7 +345,7 @@ export class ClientState {
     await this.auth.logout();
     await this._handleUserSignOut(); // Dummy
     this._updateInitializationStatus();
-    this.sockets.cleanupSocketConnection();
+    // @TODO: implement disconnect from server
     await this._saveState();
   }
 
@@ -382,7 +378,7 @@ export class ClientState {
 
     // If authenticated, set up connections
     if (this.auth.isAuthenticated) {
-      this.sockets.setupSocketConnection();
+      // @TODO: implement connection to server
     }
 
     // Load theme for current space
@@ -401,7 +397,7 @@ export class ClientState {
       spaceState.disconnect();
     }
     this.currentSpaceState = null;
-    this.sockets.cleanupSocketConnection();
+    // @TODO: implement disconnect from server
   }
 
   // Cross-system reactive derivations
@@ -424,7 +420,7 @@ export class ClientState {
       currentSpace: this.currentSpaceState?.displayName || null,
       theme: this.theme.current.themeName,
       colorScheme: this.theme.current.colorScheme,
-      connected: this.sockets.socketConnected,
+      connected: false,
       layoutReady: !!(this.currentSpaceState?.layout.layoutRefs.contentGrid || this.layout.layoutRefs.contentGrid)
     };
   }
