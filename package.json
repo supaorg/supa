@@ -1,6 +1,6 @@
 {
-  "name": "t69",
-  "description": "Root package for t69 monorepo - coordinates development workflow across client, core, and server packages",
+  "name": "supa",
+  "description": "Root package for Supa monorepo - coordinates development workflow across client, core, and server packages",
   "private": true,
   "devDependencies": {
     "airul": "^0.1.34",

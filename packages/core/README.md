@@ -1,3 +1,3 @@
-# core
+# Core
 
-code that will be used across clients and servers
+Code that is used across clients and servers

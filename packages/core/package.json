@@ -1,7 +1,7 @@
 {
-  "name": "t69-core",
+  "name": "supa-core",
   "version": "1.0.0",
-  "description": "core for t69 that can be used on clients, servers, and inside other services",
+  "description": "Core for Supa that can be used on clients, servers, and inside other services",
   "type": "module",
   "scripts": {
     "test": "vitest run",
