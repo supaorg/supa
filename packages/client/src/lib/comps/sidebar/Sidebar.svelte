@@ -5,7 +5,6 @@
   import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import SidebarToggle from "./SidebarToggle.svelte";
-  import UserSection from "../auth/UserSection.svelte";
 </script>
 
 <div class="space-sidebar flex flex-col h-full">
@@ -28,7 +27,6 @@
       <AppTrees />
     </div>
   </div>
-  <UserSection />
 </div>
 
 <style>
