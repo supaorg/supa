@@ -3,19 +3,26 @@
   import { txtStore } from "$lib/state/txtStore";
   import { clientState } from "$lib/state/clientState.svelte";
   import { Plus } from "lucide-svelte";
+  import SwinsNavButton from "../SwinsNavButton.svelte";
 
+  /*
   async function handleNewSpace() {
     await clientState.createNewSpace('local');
     clientState.layout.swins.clear();
   }
+  */
 </script>
 
 <div class="flex justify-between items-center pb-4">
   <h3 class="h3">{$txtStore.spacesPage.title}</h3>
-  <button class="btn preset-filled-primary-500" onclick={handleNewSpace}>
+  <SwinsNavButton
+    className="btn preset-filled-primary-500"
+    component="open-space"
+    title="Add a space"
+  >
     <Plus size={16} />
-    New Space
-  </button>
+    Add a Space
+  </SwinsNavButton>
 </div>
 <p class="mb-6">
   {$txtStore.spacesPage.description}
