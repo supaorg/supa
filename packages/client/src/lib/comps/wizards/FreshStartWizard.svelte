@@ -11,11 +11,11 @@
   }
 
   async function handleCreateLocalSpace() {
-    await clientState.createNewSpace("local");
+    await clientState.createNewLocalSpace();
   }
 
   async function handleCreateSyncedSpace() {
-    await clientState.createNewSpace("synced");
+    await clientState.createNewSyncedSpace();
   }
 </script>
 

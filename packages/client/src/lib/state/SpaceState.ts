@@ -3,7 +3,8 @@ import { LayoutStore } from './layout.svelte';
 import type { SpacePointer } from '../spaces/SpacePointer';
 import type Space from '@core/spaces/Space';
 import type { SpaceManager } from '@core/spaces/SpaceManager';
-import { IndexedDBPersistenceLayer } from '../spaces/persistence/IndexedDBPersistenceLayer';
+import type { PersistenceLayer } from '@core/spaces/persistence/PersistenceLayer';
+import { createPersistenceLayersForURI, setPeerIdOnLayers } from '../spaces/persistence/persistenceUtils';
 import { 
   getDraft, 
   saveDraft, 
@@ -22,6 +23,7 @@ export class SpaceState {
   theme: ThemeStore;
   layout: LayoutStore;
   isConnected: boolean = false;
+  private persistenceLayers: PersistenceLayer[] = [];
 
   private backend: Backend | null = null;
 
@@ -43,6 +45,9 @@ export class SpaceState {
       this.space = await this.loadSpace();
       
       if (this.space) {
+        // Set peer ID on file system persistence layers
+        setPeerIdOnLayers(this.persistenceLayers, this.space.tree.peerId);
+        
         // Load space-specific theme and layout
         await this.theme.loadSpaceTheme(this.pointer.id);
         await this.layout.loadSpaceLayout();
@@ -73,28 +78,24 @@ export class SpaceState {
   }
 
   /**
-   * Load the space using SpaceManager
+   * Load the space using SpaceManager with appropriate persistence layers
    */
   private async loadSpace(): Promise<Space | null> {
     // Check if already loaded in SpaceManager
     let space = this.spaceManager.getSpace(this.pointer.id);
     if (space) return space;
 
-    // Load the space based on its URI
-    if (this.pointer.uri.startsWith("local://")) {
-      try {
-        const indexedDBLayer = new IndexedDBPersistenceLayer(this.pointer.id);
-        space = await this.spaceManager.loadSpace(this.pointer, [indexedDBLayer]);
-        return space;
-      } catch (error) {
-        console.error("Failed to load local space", this.pointer, error);
-        return null;
-      }
+    try {
+      // Create appropriate persistence layers based on URI
+      this.persistenceLayers = createPersistenceLayersForURI(this.pointer.id, this.pointer.uri);
+      
+      // Load the space using SpaceManager
+      space = await this.spaceManager.loadSpace(this.pointer, this.persistenceLayers);
+      return space;
+    } catch (error) {
+      console.error("Failed to load space", this.pointer, error);
+      return null;
     }
-
-    // For non-local spaces, we'll need to implement loading logic
-    console.warn("Loading non-local spaces not yet implemented");
-    return null;
   }
 
   // === Space-specific operations moved from SpaceStore ===

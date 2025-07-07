@@ -484,6 +484,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   }
 
   private async checkIfSecretsNeedToBeSaved() {
+    // @TODO: Implement this
     // This method would need access to current secrets from the space
     // For now, we'll implement it when we integrate with SpaceManager
     // The old implementation compared current secrets with file secrets
@@ -594,31 +595,9 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   }
 }
 
-// Factory function for creating spaces (commented out migration for now)
-export async function createNewFileSystemSpace(path: string, spaceId: string): Promise<void> {
-  const layer = new FileSystemPersistenceLayer(path, spaceId);
-  await layer.connect();
-  // Space creation logic would be handled by SpaceManager
-}
+// Removed createNewFileSystemSpace - persistence setup is now URI-driven
 
-export async function loadFileSystemSpace(path: string): Promise<{ spaceId: string }> {
-  // Check if space.json exists and read space ID
-  const spaceJsonPath = `${path}/space-v1/space.json`;
-  
-  if (!await exists(spaceJsonPath)) {
-    throw new Error(`space.json not found in space-v1 structure`);
-  }
-  
-  const spaceJson = await readTextFile(spaceJsonPath);
-  const spaceData = JSON.parse(spaceJson);
-  const spaceId = spaceData.id;
-  
-  if (!spaceId) {
-    throw new Error("Space ID not found in space.json");
-  }
-  
-  return { spaceId };
-}
+// Removed loadFileSystemSpace - use loadSpaceMetadataFromPath from fileSystemSpaceUtils.ts instead
 
 // TODO: Implement migration functions later
 // export async function migrateSpaceIfNeeded(path: string): Promise<void> {

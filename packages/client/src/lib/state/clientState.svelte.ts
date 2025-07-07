@@ -6,7 +6,8 @@ import { txtStore } from './txtStore';
 import { ttabs, sidebar, layoutRefs } from './layout.svelte';
 import { setupSwins } from './swinsLayout';
 import type { SpacePointer } from "../spaces/SpacePointer";
-import { IndexedDBPersistenceLayer } from "../spaces/persistence/IndexedDBPersistenceLayer";
+import { createPersistenceLayersForURI } from "../spaces/persistence/persistenceUtils";
+import { loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
 import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "$lib/localDb";
 import { SpaceManager } from "@core/spaces/SpaceManager";
 import type Space from '@core/spaces/Space';
@@ -154,28 +155,28 @@ export class ClientState {
   }
 
   /**
-   * Create a new local space using SpaceManager directly
+   * Create a new local space using SpaceManager with URI-based persistence
    */
   async createNewLocalSpace(): Promise<string> {
-    // Create space directly via SpaceManager
-    const space = await this.spaceManager.createSpace();
-    const spaceId = space.getId();
-
-    // Set up IndexedDB persistence directly
-    const indexedDBLayer = new IndexedDBPersistenceLayer(spaceId);
-    await indexedDBLayer.connect();
-    const initialOps = space.tree.getAllOps();
-    await indexedDBLayer.saveTreeOps(spaceId, initialOps);
-    this.spaceManager.addPersistenceLayer(spaceId, indexedDBLayer);
-
-    // Create pointer and SpaceState
+    // Create pointer first (with local:// URI for IndexedDB-only persistence)
+    const spaceId = crypto.randomUUID();
     const pointer: SpacePointer = {
       id: spaceId,
       uri: "local://" + spaceId,
-      name: space.name || null,
-      createdAt: space.createdAt,
+      name: null,
+      createdAt: new Date(),
       userId: this.auth.user?.id || null,
     };
+
+    // Create persistence layers based on URI
+    const persistenceLayers = createPersistenceLayersForURI(spaceId, pointer.uri);
+    
+    // Create space with appropriate persistence layers
+    const space = await this.spaceManager.createSpace({ persistenceLayers });
+
+    // Update pointer with space metadata
+    pointer.name = space.name || null;
+    pointer.createdAt = space.createdAt;
 
     // Add to our collections
     this.pointers = [...this.pointers, pointer];
@@ -358,14 +359,51 @@ export class ClientState {
   }
 
   /**
-   * Create new space (local or synced)
+   * Load an existing file system space
    */
-  async createNewSpace(type: 'local' | 'synced' = 'local'): Promise<string> {
-    if (type === 'local') {
-      return await this.createNewLocalSpace();
-    } else {
-      return await this.createNewSyncedSpace();
+  async loadFileSystemSpace(path: string): Promise<string> {
+    // Load space metadata from the file system
+    const { spaceId } = await loadSpaceMetadataFromPath(path);
+    
+    // Check if space is already loaded
+    const existingPointer = this.pointers.find(p => p.id === spaceId);
+    if (existingPointer) {
+      // Space already exists, just switch to it
+      await this.switchToSpace(spaceId);
+      return spaceId;
     }
+
+    // Create pointer for the file system space
+    const pointer: SpacePointer = {
+      id: spaceId,
+      uri: path, // File system path as URI triggers dual persistence
+      name: null, // Will be loaded from space data
+      createdAt: new Date(), // Will be updated from space data
+      userId: this.auth.user?.id || null,
+    };
+
+    // Create persistence layers based on URI (will be IndexedDB + FileSystem)
+    const persistenceLayers = createPersistenceLayersForURI(spaceId, path);
+    
+    // Load the space using SpaceManager
+    const space = await this.spaceManager.loadSpace(pointer, persistenceLayers);
+
+    // Update pointer with actual space metadata
+    pointer.name = space.name || null;
+    pointer.createdAt = space.createdAt;
+
+    // Add to our collections
+    this.pointers = [...this.pointers, pointer];
+    const newSpaceState = new SpaceState(pointer, this.spaceManager);
+    this.spaceStates = [...this.spaceStates, newSpaceState];
+
+    // Switch to the loaded space
+    await this.switchToSpace(spaceId);
+
+    this._updateInitializationStatus();
+    await this._saveState();
+
+    return spaceId;
   }
 
   /**

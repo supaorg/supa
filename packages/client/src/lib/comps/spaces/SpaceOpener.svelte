@@ -1,15 +1,10 @@
 <script lang="ts">
-    import { txtStore } from "$lib/state/txtStore";
+  import { txtStore } from "$lib/state/txtStore";
   import { message, open } from "@tauri-apps/plugin-dialog";
-  /*
-  import { spaceStore } from "$lib/spaces/spaceStore.svelte";
-  import {
-  checkIfPathHasValidStructureAndReturnActualRootPath,
-    createNewLocalSpaceAndConnect,
-    loadLocalSpaceAndConnect,
-  } from "$lib/spaces/LocalSpaceSync";
-  import { txtStore } from "$lib/stores/txtStore";
-  */
+  import { clientState } from "$lib/state/clientState.svelte";
+  import { 
+    checkIfPathHasValidStructureAndReturnActualRootPath
+  } from "$lib/spaces/fileSystemSpaceUtils";
 
   type Status = "idle" | "creating" | "opening";
   let status: Status = $state("idle");
@@ -33,13 +28,9 @@
         return;
       }
 
-      /*
-      const spaceSync = await createNewLocalSpaceAndConnect(path as string);
-      const space = spaceSync.space;
-      spaceStore.addLocalSpace(spaceSync, path as string);
-      spaceStore.currentSpaceId = space.getId();
-      onSpaceSetup?.(space.getId());
-      */
+      // Create space with file system persistence
+      const spaceId = await createFileSystemSpace(path as string);
+      onSpaceSetup?.(spaceId);
     } catch (e) {
       console.error(e);
       const errorMessage = e instanceof Error ? e.message : $txtStore.spacesPage.opener.errorCreate;
@@ -47,6 +38,17 @@
     } finally {
       status = "idle";
     }
+  }
+
+  async function createFileSystemSpace(path: string): Promise<string> {
+    // For now, create a local space and we'll add file system support later
+    // TODO: Implement file system space creation in clientState
+    const spaceId = await clientState.createNewLocalSpace();
+    
+    // TODO: Update the space pointer to use the file system path instead of local://
+    // This will require extending clientState to support file system spaces
+    
+    return spaceId;
   }
 
   async function openSpaceDialog() {
@@ -65,14 +67,9 @@
       }
 
       // We do this to allow users open spaces from any directory inside the space directory 
-      /*
       const rootPath = await checkIfPathHasValidStructureAndReturnActualRootPath(path as string);
-      const spaceSync = await loadLocalSpaceAndConnect(rootPath);
-      const space = spaceSync.space;
-      spaceStore.currentSpaceId = space.getId();
-      spaceStore.addLocalSpace(spaceSync, rootPath);
-      onSpaceSetup?.(space.getId());
-      */
+      const spaceId = await openFileSystemSpace(rootPath);
+      onSpaceSetup?.(spaceId);
     } catch (e) {
       console.error(e);
       const errorMessage = e instanceof Error ? e.message : $txtStore.spacesPage.opener.errorOpen;
@@ -80,6 +77,11 @@
     } finally {
       status = "idle";
     }
+  }
+
+  async function openFileSystemSpace(path: string): Promise<string> {
+    // Use clientState to load the file system space
+    return await clientState.loadFileSystemSpace(path);
   }
 </script>
 
