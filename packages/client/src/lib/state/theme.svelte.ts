@@ -8,8 +8,12 @@ export class ThemeStore {
   colorScheme: ColorScheme = $state(getCurrentColorScheme());
   themeName: string = $state(DEFAULT_THEME);
 
+  private currentSpaceId: string | null = null;
+
   // Load theme and color scheme for the current space
   async loadSpaceTheme(currentSpaceId: string | null) {
+    this.currentSpaceId = currentSpaceId;
+
     if (!currentSpaceId) {
       this.setDefaultTheme();
       return;
@@ -58,24 +62,24 @@ export class ThemeStore {
   }
 
   // Update the themeName and persist it to the current space
-  async setThemeName(name: string, currentSpaceId: string | null) {
+  async setThemeName(name: string) {
     this.themeName = name;
     document.documentElement.setAttribute("data-theme", name);
     
     // Save to the current space if available
-    if (currentSpaceId) {
-      await saveSpaceTheme(currentSpaceId, name);
+    if (this.currentSpaceId) {
+      await saveSpaceTheme(this.currentSpaceId, name);
     }
   }
 
   // Update the color scheme and persist it to the current space
-  async setColorScheme(colorScheme: ColorScheme, currentSpaceId: string | null) {
+  async setColorScheme(colorScheme: ColorScheme) {
     this.colorScheme = colorScheme;
     this.applyColorScheme(colorScheme);
     
     // Save to the current space if available
-    if (currentSpaceId) {
-      await saveSpaceColorScheme(currentSpaceId, colorScheme);
+    if (this.currentSpaceId) {
+      await saveSpaceColorScheme(this.currentSpaceId, colorScheme);
     }
   }
 }

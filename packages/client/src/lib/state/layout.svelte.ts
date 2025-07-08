@@ -401,6 +401,7 @@ export class LayoutStore {
   }
 }
 
+// @TODO: remove and update the references to this in the codebase
 // For backward compatibility, we'll export instances that components can use
 // These will be replaced when we move to SpaceState usage
 export const layoutStore = new LayoutStore('temp');

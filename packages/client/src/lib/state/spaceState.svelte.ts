@@ -22,7 +22,7 @@ export class SpaceState {
   space: Space | null = null;
   theme: ThemeStore;
   layout: LayoutStore;
-  isConnected: boolean = false;
+  isConnected: boolean = $state(false);
   private persistenceLayers: PersistenceLayer[] = [];
 
   private backend: Backend | null = null;
@@ -39,7 +39,7 @@ export class SpaceState {
    */
   async connect(): Promise<void> {
     if (this.isConnected && this.space) return;
-    
+
     try {
       // Load the actual space using SpaceManager
       this.space = await this.loadSpace();

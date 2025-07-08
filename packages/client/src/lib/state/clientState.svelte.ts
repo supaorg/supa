@@ -1,6 +1,6 @@
 import { AuthStore, type User } from './auth.svelte';
 import { ThemeStore } from './theme.svelte';
-import { SpaceState } from './SpaceState';
+import { SpaceState } from './spaceState.svelte';
 import { isDevMode, spaceInspectorOpen } from './devMode';
 import { txtStore } from './txtStore';
 import { ttabs, sidebar, layoutRefs } from './layout.svelte';
@@ -19,18 +19,19 @@ interface AuthTokens {
 }
 
 type InitializationStatus = "initializing" | "needsSpace" | "ready" | "error";
+type SpaceStatus = "disconnected" | "loading" | "ready" | "error";
 
 /**
  * Central orchestration hub for client-side state management.
  * Coordinates multiple focused stores and provides unified workflows.
  */
 export class ClientState {
-  // Internal initialization state
+
   private _initializationStatus: InitializationStatus = $state("initializing");
   private _initializationError: string | null = $state(null);
+  private _spaceManager = new SpaceManager();
+  private _defaultTheme = new ThemeStore();
 
-  // Core space management
-  private spaceManager = new SpaceManager();
   spaceStates: SpaceState[] = $state([]);
   currentSpaceState: SpaceState | null = $state(null);
   currentSpace: Space | null = $derived(this.currentSpaceState?.space || null);
@@ -40,64 +41,41 @@ export class ClientState {
   currentSpaceId: string | null = $derived(this.currentSpaceState?.pointer.id || null);
   config: Record<string, unknown> = $state({});
 
-  // Direct references to focused stores
   auth = new AuthStore();
-  private themeStore = new ThemeStore();
 
-  // Status getters for components
-  get isInitializing(): boolean {
-    return this._initializationStatus === "initializing";
-  }
+  spaceStatus: SpaceStatus = $derived.by(() => {
+    if (!this.currentSpaceState) {
+      return "disconnected";
+    }
 
-  get needsSpace(): boolean {
-    return this._initializationStatus === "needsSpace";
-  }
+    if (!this.currentSpaceState.isConnected) {
+      return "loading";
+    }
 
-  get isReady(): boolean {
-    return this._initializationStatus === "ready";
-  }
+    return "ready";
+  });
 
-  get initializationError(): string | null {
-    return this._initializationError;
-  }
+  isInitializing: boolean = $derived(this._initializationStatus === "initializing");
+  needsSpace: boolean = $derived(this._initializationStatus === "needsSpace");
+  isReady: boolean = $derived(this._initializationStatus === "ready");
+  initializationError: string | null = $derived(this._initializationError);
 
-  get theme() {
+  theme: ThemeStore = $derived.by(() => {
     // Use current space's theme if available, otherwise global theme
     if (this.currentSpaceState) {
-      return {
-        current: {
-          colorScheme: this.currentSpaceState.theme.colorScheme,
-          themeName: this.currentSpaceState.theme.themeName
-        },
-        setThemeName: (name: string) => this.currentSpaceState!.theme.setThemeName(name, this.currentSpaceState!.pointer.id),
-        setColorScheme: (colorScheme: 'light' | 'dark') => this.currentSpaceState!.theme.setColorScheme(colorScheme, this.currentSpaceState!.pointer.id)
-      };
+      return this.currentSpaceState.theme;
     } else {
-      return {
-        current: {
-          colorScheme: this.themeStore.colorScheme,
-          themeName: this.themeStore.themeName
-        },
-        setThemeName: (name: string) => this.themeStore.setThemeName(name, this.currentSpaceId),
-        setColorScheme: (colorScheme: 'light' | 'dark') => this.themeStore.setColorScheme(colorScheme, this.currentSpaceId)
-      };
+      return this._defaultTheme;
     }
-  }
+  });
 
   dev = {
     isDevMode,
     spaceInspectorOpen
   };
-  text = txtStore;
+  texts = txtStore;
 
-  // Layout and UI orchestration
   layout = {
-    get ttabs() {
-      return clientState.currentSpaceState?.layout.ttabs || ttabs;
-    },
-    get sidebar() {
-      return clientState.currentSpaceState?.layout.sidebar || sidebar;
-    },
     swins: setupSwins(),
     layoutRefs,
 
@@ -123,7 +101,7 @@ export class ClientState {
       this.config = config;
 
       // Create SpaceState instances for all pointers
-      this.spaceStates = pointers.map(pointer => new SpaceState(pointer, this.spaceManager));
+      this.spaceStates = pointers.map(pointer => new SpaceState(pointer, this._spaceManager));
 
       // Check authentication and filter spaces (dummy for now)
       await this.auth.checkAuth();
@@ -170,9 +148,9 @@ export class ClientState {
 
     // Create persistence layers based on URI
     const persistenceLayers = createPersistenceLayersForURI(spaceId, pointer.uri);
-    
+
     // Create space with appropriate persistence layers
-    const space = await this.spaceManager.createSpace({ persistenceLayers });
+    const space = await this._spaceManager.createSpace({ persistenceLayers });
 
     // Update pointer with space metadata
     pointer.name = space.name || null;
@@ -180,7 +158,7 @@ export class ClientState {
 
     // Add to our collections
     this.pointers = [...this.pointers, pointer];
-    const newSpaceState = new SpaceState(pointer, this.spaceManager);
+    const newSpaceState = new SpaceState(pointer, this._spaceManager);
     this.spaceStates = [...this.spaceStates, newSpaceState];
 
     // Switch to the new space
@@ -285,8 +263,10 @@ export class ClientState {
     const spaceState = this.spaceStates.find(s => s.pointer.id === spaceId);
     if (spaceState) {
       try {
-        await spaceState.connect();
         this.currentSpaceState = spaceState;
+        await spaceState.connect();
+        
+        console.log('space status', this.spaceStatus);
       } catch (error) {
         console.error(`Failed to connect to space ${spaceId}:`, error);
         // Don't set currentSpace if connection failed
@@ -364,7 +344,7 @@ export class ClientState {
   async loadFileSystemSpace(path: string): Promise<string> {
     // Load space metadata from the file system
     const { spaceId } = await loadSpaceMetadataFromPath(path);
-    
+
     // Check if space is already loaded
     const existingPointer = this.pointers.find(p => p.id === spaceId);
     if (existingPointer) {
@@ -384,9 +364,9 @@ export class ClientState {
 
     // Create persistence layers based on URI (will be IndexedDB + FileSystem)
     const persistenceLayers = createPersistenceLayersForURI(spaceId, path);
-    
+
     // Load the space using SpaceManager
-    const space = await this.spaceManager.loadSpace(pointer, persistenceLayers);
+    const space = await this._spaceManager.loadSpace(pointer, persistenceLayers);
 
     // Update pointer with actual space metadata
     pointer.name = space.name || null;
@@ -394,7 +374,7 @@ export class ClientState {
 
     // Add to our collections
     this.pointers = [...this.pointers, pointer];
-    const newSpaceState = new SpaceState(pointer, this.spaceManager);
+    const newSpaceState = new SpaceState(pointer, this._spaceManager);
     this.spaceStates = [...this.spaceStates, newSpaceState];
 
     // Switch to the loaded space
@@ -436,51 +416,6 @@ export class ClientState {
     }
     this.currentSpaceState = null;
     // @TODO: implement disconnect from server
-  }
-
-  // Cross-system reactive derivations
-
-  /**
-   * Check if the application is fully initialized and ready
-   */
-  get isFullyInitialized(): boolean {
-    return this.auth.isAuthenticated !== undefined &&
-      this.pointers.length >= 0; // Could be 0 for new users
-  }
-
-  /**
-   * Get comprehensive current workspace status
-   */
-  get currentWorkspaceStatus() {
-    return {
-      user: this.auth.user,
-      spaceCount: this.pointers.length,
-      currentSpace: this.currentSpaceState?.displayName || null,
-      theme: this.theme.current.themeName,
-      colorScheme: this.theme.current.colorScheme,
-      connected: false,
-      layoutReady: !!(this.currentSpaceState?.layout.layoutRefs.contentGrid || this.layout.layoutRefs.contentGrid)
-    };
-  }
-
-  /**
-   * Check if current space is ready for use
-   */
-  get isCurrentSpaceReady(): boolean {
-    return !!(this.currentSpaceState && this.currentSpaceState.isConnected);
-  }
-
-  /**
-   * Get authentication and space readiness status
-   */
-  get appReadinessStatus() {
-    return {
-      authChecked: this.auth.isAuthenticated !== undefined,
-      authenticated: this.auth.isAuthenticated,
-      hasSpaces: this.pointers.length > 0,
-      currentSpaceReady: this.isCurrentSpaceReady,
-      fullyReady: this.isFullyInitialized && this.isCurrentSpaceReady
-    };
   }
 }
 

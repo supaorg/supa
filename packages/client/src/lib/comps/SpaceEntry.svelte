@@ -18,7 +18,7 @@
   });
 </script>
 
-{#if clientState.isInitializing}
+{#if clientState.isInitializing || clientState.spaceStatus === "loading"}
   <Loading />
 {:else if clientState.needsSpace}
   <FreshStartWizard />
@@ -33,7 +33,7 @@
 
 {#if isTauri()}
   <!-- Save and load the window size and position -->
-  <TauriWindowSetup />
+  <!--<TauriWindowSetup />-->
 
   <!-- Check for a new version of the app -->
   <TauriUpdater />

@@ -13,17 +13,17 @@
   onMount(() => {
     // If the theme's colorScheme matches the OS preference, show as "system"
     const osColorScheme = getOSColorScheme();
-    if (clientState.theme.current.colorScheme === osColorScheme) {
+    if (clientState.theme.colorScheme === osColorScheme) {
       currentColorScheme = "system";
     } else {
-      currentColorScheme = clientState.theme.current.colorScheme;
+      currentColorScheme = clientState.theme.colorScheme;
     }
   });
 
   // Handle the toggle button click (tiny mode)
   async function handleSwitch() {
     const targetColorScheme =
-      clientState.theme.current.colorScheme === "dark" ? "light" : "dark";
+      clientState.theme.colorScheme === "dark" ? "light" : "dark";
     await clientState.theme.setColorScheme(targetColorScheme);
     currentColorScheme = targetColorScheme;
   }

@@ -9,9 +9,11 @@ export class Backend {
   private appBackends: ChatAppBackend[] = [];
 
   constructor(private space: Space, private inLocalMode: boolean = false) {
+    /*
     if (!inLocalMode) {
       throw new Error("Backend is not supported for remote spaces yet");
     }
+    */
 
     space.observeTreeLoad((appTreeId) => {
       const appTree = space.getAppTree(appTreeId);

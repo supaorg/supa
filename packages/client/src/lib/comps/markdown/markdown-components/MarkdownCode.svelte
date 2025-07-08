@@ -13,7 +13,7 @@
 
   let generatedHtml = $derived.by(async () => {
     const codeTheme =
-      clientState.theme.current.colorScheme === "dark"
+      clientState.theme.colorScheme === "dark"
         ? "github-dark"
         : "github-light";
     return await generatedHighlightedHtml(token.text, codeTheme, token.lang);

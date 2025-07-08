@@ -42,11 +42,11 @@
     <button
       data-theme={skeletonTheme.name}
       class="w-full bg-surface-50-950 p-2 preset-outlined-surface-100-900 rounded-md grid grid-cols-[auto_1fr_auto] items-center gap-4 {clientState
-        .theme.current.themeName === skeletonTheme.name
+        .theme.themeName === skeletonTheme.name
         ? 'border-2 border-primary-500'
         : 'border-2 border-transparent'}"
       onclick={() => handleThemeClick(skeletonTheme.name)}
-      aria-pressed={clientState.theme.current.themeName === skeletonTheme.name}
+      aria-pressed={clientState.theme.themeName === skeletonTheme.name}
     >
       <span>{skeletonTheme.emoji}</span>
       <h3 class="text-lg capitalize cap text-left">{skeletonTheme.name}</h3>

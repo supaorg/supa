@@ -253,6 +253,12 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
     return await create(filePath);
   }
 
+  /**
+   * Load all the operations for a given tree.
+   * @param treeId - The ID of the tree to load operations for.
+   * @returns An array of VertexOperation objects.
+   * @throws An error if the file is not a valid JSONL file.
+   */
   private async loadAllTreeOps(treeId: string): Promise<VertexOperation[]> {
     const treeOpsPath = this.makePathForTree(treeId);
 
