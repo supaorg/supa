@@ -1,6 +1,5 @@
 <script lang="ts">
   import { clientState } from "$lib/state/clientState.svelte";
-  import { ttabs } from "$lib/state/layout.svelte";
   import VertexView from "./VertexView.svelte";
   import type { Vertex } from "@core";
 
@@ -8,7 +7,11 @@
   let appTreeRootVertex = $state<Vertex | undefined>(undefined);
   let showingAppTree = $state(false);
 
+  let ttabs = $derived(clientState.currentSpaceState?.layout.ttabs);
+
   let currentTreeId = $derived.by(() => {
+    if (!ttabs) return undefined;
+
     const panel = ttabs.getActivePanelTile();
     if (panel?.activeTab) {
       const content = ttabs.getTabContent(panel.activeTab);

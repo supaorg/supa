@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { sidebar } from "$lib/state/layout.svelte";
   import { onDestroy, onMount, untrack } from "svelte";
   import Sidebar from "./Sidebar.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   let showHoverSidebar = $state(false);
   let hoverTriggerTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -9,8 +9,10 @@
   let recentlyClosed = $state(false);
   let sidebarElement: HTMLElement;
 
+  let sidebarIsOpen = $derived(clientState.currentSpaceState?.layout.sidebar.isOpen);
+
   function handleHoverEnter() {
-    if (!sidebar.isOpen && !recentlyClosed) {
+    if (!sidebarIsOpen && !recentlyClosed) {
       // Clear any closing timeout that might be active
       if (closeSidebarTimeout) {
         clearTimeout(closeSidebarTimeout);
@@ -29,11 +31,13 @@
   function isOverContextMenu(event?: MouseEvent) {
     // If no event provided, check current mouse position
     if (!event) {
-      const openContextMenus = document.querySelectorAll(".context-menu, [data-popover-content]");
+      const openContextMenus = document.querySelectorAll(
+        ".context-menu, [data-popover-content]",
+      );
       for (const menu of openContextMenus) {
         const rect = menu.getBoundingClientRect();
         // We don't have exact mouse position here, so just check if menu exists
-        if (menu.matches(':hover')) {
+        if (menu.matches(":hover")) {
           return true;
         }
       }
@@ -43,24 +47,28 @@
     // Check if the related target is inside a popover (context menu)
     const target = event.relatedTarget as HTMLElement;
     if (!target) return false;
-    
+
     // Check for context menu classes and popover elements
-    const popover = target.closest(".context-menu, [data-popover-content], [role='dialog']");
+    const popover = target.closest(
+      ".context-menu, [data-popover-content], [role='dialog']",
+    );
     return !!popover;
   }
 
   function hasOpenContextMenu() {
     // Check if any context menus are currently open in the document
-    const openContextMenus = document.querySelectorAll(".context-menu, [data-popover-content][data-state='open']");
+    const openContextMenus = document.querySelectorAll(
+      ".context-menu, [data-popover-content][data-state='open']",
+    );
     return openContextMenus.length > 0;
   }
 
   function isMouseOverSidebarArea(event: MouseEvent) {
     if (!sidebarElement) return false;
-    
+
     const rect = sidebarElement.getBoundingClientRect();
     const { clientX, clientY } = event;
-    
+
     return (
       clientX >= rect.left &&
       clientX <= rect.right &&
@@ -70,9 +78,11 @@
   }
 
   function isMouseOverAnyContextMenu(event: MouseEvent) {
-    const openContextMenus = document.querySelectorAll(".context-menu, [data-popover-content]");
+    const openContextMenus = document.querySelectorAll(
+      ".context-menu, [data-popover-content]",
+    );
     const { clientX, clientY } = event;
-    
+
     for (const menu of openContextMenus) {
       const rect = menu.getBoundingClientRect();
       if (
@@ -99,7 +109,7 @@
       if (closeSidebarTimeout) {
         clearTimeout(closeSidebarTimeout);
       }
-      
+
       closeSidebarTimeout = setTimeout(() => {
         // Double-check before closing
         if (!hasOpenContextMenu()) {
@@ -147,7 +157,7 @@
 
   // Watch for sidebar state changes
   $effect(() => {
-    if (!sidebar.isOpen) {
+    if (!sidebarIsOpen) {
       untrack(() => {
         // Force the hover sidebar in a closed state just in case
         showHoverSidebar = false;
@@ -164,9 +174,9 @@
   // Add global mouse tracking when hover sidebar is open
   $effect(() => {
     if (showHoverSidebar) {
-      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener("mousemove", handleGlobalMouseMove);
       return () => {
-        document.removeEventListener('mousemove', handleGlobalMouseMove);
+        document.removeEventListener("mousemove", handleGlobalMouseMove);
       };
     }
   });
@@ -174,12 +184,12 @@
   onDestroy(() => {
     if (hoverTriggerTimeout) clearTimeout(hoverTriggerTimeout);
     if (closeSidebarTimeout) clearTimeout(closeSidebarTimeout);
-    document.removeEventListener('mousemove', handleGlobalMouseMove);
+    document.removeEventListener("mousemove", handleGlobalMouseMove);
   });
 </script>
 
 <!-- Hover trigger area - only present when sidebar is closed and not recently (500ms or so) closed -->
-{#if !sidebar.isOpen && !recentlyClosed}
+{#if !sidebarIsOpen && !recentlyClosed}
   <div
     class="fixed z-10 w-10 h-[calc(100vh-2.5rem)] top-[2.5rem] left-0 opacity-0 cursor-auto"
     onmouseenter={handleHoverEnter}
@@ -190,7 +200,7 @@
 {/if}
 
 <!-- Hoverable sidebar - always rendered but only visible when triggered -->
-{#if !sidebar.isOpen}
+{#if !sidebarIsOpen}
   <div
     bind:this={sidebarElement}
     class="hover-sidebar fixed top-0 h-full w-[300px] bg-surface-50-950 z-10"
@@ -210,9 +220,12 @@
 <style>
   .hover-sidebar {
     transform: translateX(-300px);
-    transition: transform 100ms ease-out, border-color 100ms, box-shadow 100ms;
+    transition:
+      transform 100ms ease-out,
+      border-color 100ms,
+      box-shadow 100ms;
   }
-  
+
   .hover-sidebar.show-sidebar {
     transform: translateX(0);
   }

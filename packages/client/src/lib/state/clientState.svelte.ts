@@ -3,7 +3,6 @@ import { ThemeStore } from './theme.svelte';
 import { SpaceState } from './spaceState.svelte';
 import { isDevMode, spaceInspectorOpen } from './devMode';
 import { txtStore } from './txtStore';
-import { ttabs, sidebar, layoutRefs } from './layout.svelte';
 import { setupSwins } from './swinsLayout';
 import type { SpacePointer } from "../spaces/SpacePointer";
 import { createPersistenceLayersForURI } from "../spaces/persistence/persistenceUtils";
@@ -77,7 +76,6 @@ export class ClientState {
 
   layout = {
     swins: setupSwins(),
-    layoutRefs,
 
     openSettings: () => {
       this.layout.swins.open('settings', {}, 'Settings');

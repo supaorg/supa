@@ -400,14 +400,3 @@ export class LayoutStore {
     return undefined;
   }
 }
-
-// @TODO: remove and update the references to this in the codebase
-// For backward compatibility, we'll export instances that components can use
-// These will be replaced when we move to SpaceState usage
-export const layoutStore = new LayoutStore('temp');
-export const ttabs = layoutStore.ttabs;
-export const layoutRefs = layoutStore.layoutRefs;
-export const sidebar = layoutStore.sidebar;
-export const setupLayout = layoutStore.setupLayout.bind(layoutStore);
-export const openChatTab = layoutStore.openChatTab.bind(layoutStore);
-export const setupDefault = layoutStore.setupDefaultLayout.bind(layoutStore);

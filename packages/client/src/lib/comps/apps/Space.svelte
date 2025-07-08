@@ -6,13 +6,15 @@
   import ContextMenuHandler from "../ContextMenuHandler.svelte";
   import SpaceTTabsLayout from "../SpaceTTabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
-  import { clientState } from "$lib/state/clientState.svelte";
   import SpaceSetupWizard from "../wizards/SpaceSetupWizard.svelte";
+  import type { SpaceState } from "$lib/state/spaceState.svelte";
+
+  let { spaceState }: { spaceState: SpaceState } = $props();
 
   let onboarding = $state(false);
 
   $effect(() => {
-    const space = clientState.currentSpace;
+    const space = spaceState.space;
 
     if (!space) {
       return;
@@ -43,7 +45,7 @@
   >
     <div class="flex overflow-hidden">
       <main class="relative flex-grow h-full overflow-y-auto">
-        <SpaceTTabsLayout />
+        <SpaceTTabsLayout {spaceState} />
       </main>
     </div>
 

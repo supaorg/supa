@@ -1,5 +1,4 @@
 import { clientState } from "$lib/state/clientState.svelte";
-import { sidebar } from "$lib/state/layout.svelte";
 
 // Platform detection (using userAgent instead of deprecated platform)
 const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
@@ -22,7 +21,12 @@ const shortcuts: Shortcut[] = [
     key: 'b',
     meta: isMac,
     ctrl: !isMac,
-    action: () => sidebar.toggle(),
+    action: () => {
+      const sidebar = clientState.currentSpaceState?.layout.sidebar;
+      if (sidebar) {
+        sidebar.toggle();
+      }
+    },
     description: 'Toggle sidebar',
     preventDefault: true
   },

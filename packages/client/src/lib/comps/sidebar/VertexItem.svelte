@@ -1,17 +1,20 @@
 <script lang="ts">
   import { clientState } from "$lib/state/clientState.svelte";
-  import type { VertexChangeEvent } from "@core/tree/treeTypes";
+  import type { VertexChangeEvent } from "@core";
   import { onMount } from "svelte";
   import AppTreeOptionsPopup from "../popups/AppTreeOptionsPopup.svelte";
-  import { openChatTab, ttabs } from "$lib/state/layout.svelte";
 
   let { id }: { id: string } = $props();
 
   let appTreeId = $state<string | undefined>(undefined);
   let name = $state<string | undefined>(undefined);
 
+  let ttabs = $derived(clientState.currentSpaceState?.layout.ttabs);
+
   // Track if this vertex item has an open tab
   let isOpen = $derived.by(() => {
+    if (!ttabs) return false;
+
     // A little hack to force the effect to run when ttabs changes
     const _ = ttabs.tiles;
     if (!appTreeId) return false;
@@ -22,7 +25,7 @@
   });
 
   let isActive = $derived.by(() => {
-    if (!isOpen || !ttabs.focusedActiveTab) return false;
+    if (!isOpen || !ttabs) return false;
 
     const tabId = findTabByTreeId(appTreeId!);
     return tabId === ttabs.focusedActiveTab;
@@ -31,6 +34,8 @@
   // @TODO: consider having an array of open tabs in ttabs so it's cheaper to check
   // Find a tab with a specific treeId
   function findTabByTreeId(treeId: string): string | undefined {
+    if (!ttabs) return undefined;
+
     // Search through all tab tiles
     for (const tileId in ttabs.tiles) {
       const tile = ttabs.tiles[tileId];
@@ -61,10 +66,12 @@
   });
 
   function onSpaceChange(events: VertexChangeEvent[]) {
+    if (!ttabs) return;
+
     if (events.some((e) => e.type === "property")) {
       const vertex = clientState.currentSpace?.getVertex(id);
       name = vertex?.getProperty("_n") as string | undefined;
-      
+
       // Update any open tab for this conversation with the new name
       if (appTreeId) {
         const tabId = findTabByTreeId(appTreeId);
@@ -76,8 +83,10 @@
   }
 
   function openChat() {
-    if (appTreeId) {
-      openChatTab(appTreeId, name ?? "New chat");
+    const layout = clientState.currentSpaceState?.layout;
+
+    if (appTreeId && layout) {
+      layout.openChatTab(appTreeId, name ?? "New chat");
     }
   }
 </script>

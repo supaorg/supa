@@ -3,7 +3,6 @@
   import { clientState } from "$lib/state/clientState.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
-  import { openChatTab } from "$lib/state/layout.svelte";
   import { onMount } from "svelte";
 
   let { appConfig, onSend }: { appConfig?: AppConfig; onSend?: () => void } =
@@ -42,12 +41,13 @@
       clientState.currentSpace,
       targetAppConfig.id,
     );
-    const chatAppData = new ChatAppData(
-      clientState.currentSpace,
-      newTree,
-    );
+    const chatAppData = new ChatAppData(clientState.currentSpace, newTree);
     chatAppData.newMessage("user", message);
-    openChatTab(newTree.tree.root!.id, "New chat");
+
+    const layout = clientState.currentSpaceState?.layout;
+    if (layout) {
+      layout.openChatTab(newTree.tree.root!.id, "New chat");
+    }
 
     onSend?.();
   }

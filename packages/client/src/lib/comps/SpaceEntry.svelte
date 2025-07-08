@@ -23,7 +23,13 @@
 {:else if clientState.needsSpace}
   <FreshStartWizard />
 {:else if clientState.isReady}
-  <Space />
+  {#if clientState.currentSpaceState}
+    <Space spaceState={clientState.currentSpaceState} />
+  {:else}
+    <div class="p-4 text-red-500">
+      <h2>No space selected</h2>
+    </div>
+  {/if}
 {:else if clientState.initializationError}
   <div class="p-4 text-red-500">
     <h2>Initialization Error</h2>
