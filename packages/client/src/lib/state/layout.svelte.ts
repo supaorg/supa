@@ -81,11 +81,6 @@ export class LayoutStore {
         );
       }
 
-      for (const column of row.columns) {
-        const columnTile = tiles[column];
-        console.log('columnTile', columnTile);
-      }
-
       // Find sidebar components
       const sidebarTiles = Object.values(tiles).filter(tile =>
         tile.type === 'content' && tile.componentId === 'sidebar'
