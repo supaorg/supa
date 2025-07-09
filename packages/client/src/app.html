@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark" data-theme="rose">
+<html lang="en" data-theme="cerberus">
 
 <head>
   <meta charset="utf-8" />
@@ -7,6 +7,8 @@
   <link rel="icon" type="image/x-icon" href="%sveltekit.assets%/favicon.ico">
 
   <script>
+    // @TODO: update the logic to load the latest color scheme and theme to prevent flashing
+
     function updateColorScheme() {
       let colorScheme = 'dark';
       // Get the user's theme preference from local storage
@@ -26,9 +28,7 @@
       }
     }
 
-    updateColorScheme();
-    // Check for changes in the user's theme preference
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateColorScheme);
+    //updateColorScheme();
   </script>
   <meta name="viewport" content="width=device-width" />
   %sveltekit.head%

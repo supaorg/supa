@@ -18,7 +18,7 @@ export type SpaceSetup = {
   // Additional fields
   ttabsLayout?: string | null;
   theme?: string | null;
-  colorScheme?: 'light' | 'dark' | null;
+  colorScheme?: 'system' | 'light' | 'dark' | null;
   drafts?: { [draftId: string]: string } | null;
   // Note: secrets moved to separate table
 };
@@ -425,7 +425,7 @@ export async function saveSpaceTheme(spaceId: string, theme: string): Promise<vo
 }
 
 // Save color scheme for a space
-export async function saveSpaceColorScheme(spaceId: string, colorScheme: 'light' | 'dark'): Promise<void> {
+export async function saveSpaceColorScheme(spaceId: string, colorScheme: 'system' | 'light' | 'dark'): Promise<void> {  
   try {
     await db.spaces
       .where('id')

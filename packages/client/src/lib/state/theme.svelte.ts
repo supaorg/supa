@@ -1,11 +1,10 @@
-import { getCurrentColorScheme, applyColorSchemeToDocument } from "$lib/utils/updateColorScheme";
+import { getCurrentColorScheme } from "$lib/utils/updateColorScheme";
 import { saveSpaceTheme, saveSpaceColorScheme, getSpaceSetup } from "$lib/localDb";
 
 const DEFAULT_THEME = 'cerberus';
-type ColorScheme = 'light' | 'dark';
 
 export class ThemeStore {
-  colorScheme: ColorScheme = $state(getCurrentColorScheme());
+  colorScheme: 'system' | 'light' | 'dark' = $state(getCurrentColorScheme());
   themeName: string = $state(DEFAULT_THEME);
 
   private currentSpaceId: string | null = null;
@@ -18,10 +17,10 @@ export class ThemeStore {
       this.setDefaultTheme();
       return;
     }
-    
+
     try {
       const spaceSetup = await getSpaceSetup(currentSpaceId);
-      
+
       // Load theme name
       if (spaceSetup?.theme) {
         this.themeName = spaceSetup.theme;
@@ -29,7 +28,7 @@ export class ThemeStore {
         // If no theme is set for this space, use the default
         this.themeName = DEFAULT_THEME;
       }
-      
+
       // Load color scheme if available
       if (spaceSetup?.colorScheme) {
         this.colorScheme = spaceSetup.colorScheme;
@@ -53,7 +52,7 @@ export class ThemeStore {
   // Update the themeName and persist it to the current space
   async setThemeName(name: string) {
     this.themeName = name;
-    
+
     // Save to the current space if available
     if (this.currentSpaceId) {
       await saveSpaceTheme(this.currentSpaceId, name);
@@ -61,9 +60,9 @@ export class ThemeStore {
   }
 
   // Update the color scheme and persist it to the current space
-  async setColorScheme(colorScheme: ColorScheme) {
+  async setColorScheme(colorScheme: 'system' | 'light' | 'dark') {
     this.colorScheme = colorScheme;
-    
+
     // Save to the current space if available
     if (this.currentSpaceId) {
       await saveSpaceColorScheme(this.currentSpaceId, colorScheme);

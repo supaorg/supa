@@ -6,18 +6,10 @@
 
   let { tiny = false } = $props();
 
-  // Track the current color scheme selection (light, dark, or system)
   let currentColorScheme: "light" | "dark" | "system" = $state("system");
 
-  // Initialize the UI selection based on the current theme state
-  onMount(() => {
-    // If the theme's colorScheme matches the OS preference, show as "system"
-    const osColorScheme = getOSColorScheme();
-    if (clientState.theme.colorScheme === osColorScheme) {
-      currentColorScheme = "system";
-    } else {
-      currentColorScheme = clientState.theme.colorScheme;
-    }
+  $effect(() => {
+    currentColorScheme = clientState.theme.colorScheme;
   });
 
   // Handle the toggle button click (tiny mode)
@@ -28,16 +20,8 @@
     currentColorScheme = targetColorScheme;
   }
 
-  // Handle the dropdown selection change
   async function changeColorScheme() {
-    if (currentColorScheme === "system") {
-      // Use the OS preference
-      const osColorScheme = getOSColorScheme();
-      await clientState.theme.setColorScheme(osColorScheme);
-    } else {
-      // Use the explicitly selected scheme
-      await clientState.theme.setColorScheme(currentColorScheme);
-    }
+    await clientState.theme.setColorScheme(currentColorScheme);
   }
 </script>
 
