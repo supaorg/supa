@@ -7,16 +7,28 @@
   <link rel="icon" type="image/x-icon" href="%sveltekit.assets%/favicon.ico">
 
   <script>
-    // @TODO: update the logic to load the latest color scheme and theme to prevent flashing
-
-    function updateColorScheme() {
-      let colorScheme = 'dark';
-      // Get the user's theme preference from local storage
-      const savedColorScheme = localStorage.getItem("colorScheme");
-      if (savedColorScheme) {
-        colorScheme = savedColorScheme;
+    // Load and apply the latest theme and color scheme to prevent flashing
+    function initializeTheme() {
+      // Load theme name from localStorage
+      const savedThemeName = localStorage.getItem('themeName');
+      if (savedThemeName) {
+        document.documentElement.setAttribute('data-theme', savedThemeName);
       }
-      else {
+
+      // Load and apply color scheme
+      let colorScheme = 'dark';
+      const savedColorScheme = localStorage.getItem('colorScheme');
+      
+      if (savedColorScheme) {
+        if (savedColorScheme === 'system') {
+          // If system preference, check OS setting
+          const darkModeIsOnInOS = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          colorScheme = darkModeIsOnInOS ? 'dark' : 'light';
+        } else {
+          colorScheme = savedColorScheme;
+        }
+      } else {
+        // Fall back to OS preference if no saved scheme
         const darkModeIsOnInOS = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         colorScheme = darkModeIsOnInOS ? 'dark' : 'light';
       }
@@ -28,7 +40,7 @@
       }
     }
 
-    //updateColorScheme();
+    initializeTheme();
   </script>
   <meta name="viewport" content="width=device-width" />
   %sveltekit.head%
