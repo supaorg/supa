@@ -20,7 +20,7 @@ export class SpaceState {
   pointer: SpacePointer;
   private spaceManager: SpaceManager;
   space: Space | null = null;
-  theme: ThemeStore;
+  theme: ThemeStore = $state(new ThemeStore());
   layout: LayoutStore = $state(new LayoutStore(''));
   isConnected: boolean = $state(false);
   private persistenceLayers: PersistenceLayer[] = [];
@@ -30,7 +30,6 @@ export class SpaceState {
   constructor(pointer: SpacePointer, spaceManager: SpaceManager) {
     this.pointer = pointer;
     this.spaceManager = spaceManager;
-    this.theme = new ThemeStore();
     this.layout.spaceId = pointer.id;
   }
 

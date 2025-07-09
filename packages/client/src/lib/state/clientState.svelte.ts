@@ -29,7 +29,7 @@ export class ClientState {
   private _initializationStatus: InitializationStatus = $state("initializing");
   private _initializationError: string | null = $state(null);
   private _spaceManager = new SpaceManager();
-  private _defaultTheme = new ThemeStore();
+  private _defaultTheme: ThemeStore = $state(new ThemeStore());
 
   spaceStates: SpaceState[] = $state([]);
   currentSpaceState: SpaceState | null = $state(null);
@@ -54,6 +54,7 @@ export class ClientState {
     return "ready";
   });
 
+  // @TODO: consider to remove these and just use the status directly
   isInitializing: boolean = $derived(this._initializationStatus === "initializing");
   needsSpace: boolean = $derived(this._initializationStatus === "needsSpace");
   isReady: boolean = $derived(this._initializationStatus === "ready");
@@ -172,9 +173,14 @@ export class ClientState {
    * Remove a space by ID
    */
   async removeSpace(spaceId: string): Promise<void> {
-    // Disconnect the space if it's current
+    // Find and disconnect the space being removed (since we keep spaces connected now)
+    const spaceToRemove = this.spaceStates.find(s => s.pointer.id === spaceId);
+    if (spaceToRemove) {
+      spaceToRemove.disconnect();
+    }
+
+    // Clear current space if it's being removed
     if (this.currentSpaceState?.pointer.id === spaceId) {
-      this.currentSpaceState.disconnect();
       this.currentSpaceState = null;
     }
 
@@ -249,11 +255,8 @@ export class ClientState {
    * Internal method to set and connect to current space
    */
   private async _setCurrentSpace(spaceId: string | null): Promise<void> {
-    // Disconnect current space
-    if (this.currentSpaceState) {
-      this.currentSpaceState.disconnect();
-      this.currentSpaceState = null;
-    }
+    // Don't disconnect current space - keep it connected for fast switching
+    this.currentSpaceState = null;
 
     if (!spaceId) return;
 
@@ -262,12 +265,15 @@ export class ClientState {
     if (spaceState) {
       try {
         this.currentSpaceState = spaceState;
-        await spaceState.connect();
         
-        console.log('space status', this.spaceStatus);
+        // Connect if not already connected
+        if (!spaceState.isConnected) {
+          await spaceState.connect();
+        }
       } catch (error) {
         console.error(`Failed to connect to space ${spaceId}:`, error);
         // Don't set currentSpace if connection failed
+        this.currentSpaceState = null;
       }
     }
   }
@@ -315,11 +321,11 @@ export class ClientState {
    * Orchestrated sign-out workflow (dummy for now)
    */
   async signOut(): Promise<void> {
-    // Disconnect current space
-    if (this.currentSpaceState) {
-      this.currentSpaceState.disconnect();
-      this.currentSpaceState = null;
+    // Disconnect all spaces since we keep them connected during normal operation
+    for (const spaceState of this.spaceStates) {
+      spaceState.disconnect();
     }
+    this.currentSpaceState = null;
 
     await this.auth.logout();
     await this._handleUserSignOut(); // Dummy
@@ -408,7 +414,7 @@ export class ClientState {
    * Used during app shutdown or navigation away
    */
   async cleanup(): Promise<void> {
-    // Disconnect all spaces
+    // Disconnect all spaces since we keep them connected during switching
     for (const spaceState of this.spaceStates) {
       spaceState.disconnect();
     }

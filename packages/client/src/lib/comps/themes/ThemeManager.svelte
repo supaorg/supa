@@ -1,18 +1,16 @@
 <script lang="ts">
   import { clientState } from "$lib/state/clientState.svelte";
-  import { onMount } from "svelte";
+  import { applyColorSchemeToDocument } from "$lib/utils/updateColorScheme";
 
-  // @TODO: how about we use it outside of Space and have logic that
-  // first checks for a default theme (outside of space) and then a space theme
-  // if space is loaded
+  function applyThemeToDocument(themeName: string) {
+    document.documentElement.setAttribute("data-theme", themeName);
+  }
 
-  onMount(() => {
-    //clientState.theme.loadSpaceTheme();
+  $effect(() => {
+    applyThemeToDocument(clientState.theme.themeName);
   });
 
   $effect(() => {
-    if (clientState.currentSpaceState) {
-      //clientState.theme.loadSpaceTheme();
-    }
+    applyColorSchemeToDocument(clientState.theme.colorScheme);
   });
 </script>
