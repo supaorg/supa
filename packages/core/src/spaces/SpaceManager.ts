@@ -66,41 +66,115 @@ export class SpaceManager {
       return existingSpace;
     }
     
-    // Connect all layers
-    await Promise.all(persistenceLayers.map(layer => layer.connect()));
-    
-    // Load operations from all layers and merge
-    const allOps: VertexOperation[] = [];
-    for (const layer of persistenceLayers) {
+    // Start connecting all layers in parallel and load ops
+    const layerPromises = persistenceLayers.map(async (layer) => {
+      await layer.connect();
       const ops = await layer.loadSpaceTreeOps();
-      allOps.push(...ops);
-    }
+      return { layer, ops };
+    });
+
+    let space: Space;
+
+    try {
+      // Use the first layer that successfully loads
+      // One layer is enough to construct the space
+      const firstResult = await Promise.race(layerPromises);
+
+      space = new Space(new RepTree(uuid(), firstResult.ops));
+
+      // Continue with remaining layers as they complete
+      Promise.allSettled(layerPromises).then(results => {
+        results.forEach(result => {
+          if (result.status === 'fulfilled' && result.value !== firstResult) {
+            const { ops } = result.value;
+            if (ops.length > 0) {
+              space.tree.merge(ops);
+            }
+          }
+        });
+      }).catch(error => console.error('Failed to load from additional layers:', error));
+    } catch (error) {
+      console.error('Failed to load space tree from any layer:', error);
+      console.log('As a fallback, will try to load from all layers');
+      
+      // Fallback: gather all ops from all layers that managed to load
+      const allOps: VertexOperation[] = [];
+      const results = await Promise.allSettled(layerPromises);
+      
+      results.forEach(result => {
+        if (result.status === 'fulfilled') {
+          allOps.push(...result.value.ops);
+        }
+      });
+      
+      // Create space with all available ops (RepTree handles deduplication)
+      space = new Space(new RepTree(uuid(), allOps));
+    } 
+
     
-    // RepTree handles deduplication and conflict resolution
-    const space = new Space(new RepTree(uuid(), allOps));
-    
-    // Register tree loader that tries all layers
+    // Register tree loader that uses race-based loading
     space.registerTreeLoader(async (appTreeId: string) => {
-      const allTreeOps: VertexOperation[] = [];
-      for (const layer of persistenceLayers) {
+      const treeLoadPromises = persistenceLayers.map(async (layer) => {
         const loader = layer.createTreeLoader();
         const ops = await loader(appTreeId);
-        allTreeOps.push(...ops);
+        return { layer, ops };
+      });
+
+      try {
+        // Use the first layer that successfully loads the app tree
+        const firstTreeResult = await Promise.race(treeLoadPromises);
+        if (firstTreeResult.ops.length === 0) return undefined;
+        
+        const appTree = new AppTree(new RepTree(uuid(), firstTreeResult.ops));
+
+        // Continue with remaining layers as they complete
+        Promise.allSettled(treeLoadPromises).then(results => {
+          results.forEach(result => {
+            if (result.status === 'fulfilled' && result.value !== firstTreeResult) {
+              const { ops } = result.value;
+              if (ops.length > 0) {
+                appTree.tree.merge(ops);
+              }
+            }
+          });
+        }).catch(error => console.error('Failed to load app tree from additional layers:', error));
+
+        return appTree;
+      } catch {
+        return undefined;
       }
-      if (allTreeOps.length === 0) return undefined;
-      return new AppTree(new RepTree(uuid(), allTreeOps));
     });
     
-    // Load secrets from all layers and merge  
-    const allSecrets: Record<string, string> = {};
-    for (const layer of persistenceLayers) {
+    // Load secrets using race-based approach
+    const secretPromises = persistenceLayers.map(async (layer) => {
       const secrets = await layer.loadSecrets();
-      if (secrets) {
-        Object.assign(allSecrets, secrets);
+      return { layer, secrets };
+    });
+
+    try {
+      // Use the first layer that successfully loads secrets
+      const firstSecretsResult = await Promise.race(secretPromises);
+      if (firstSecretsResult.secrets && Object.keys(firstSecretsResult.secrets).length > 0) {
+        space.saveAllSecrets(firstSecretsResult.secrets);
       }
-    }
-    if (Object.keys(allSecrets).length > 0) {
-      space.saveAllSecrets(allSecrets);
+
+      // Continue with remaining layers as they complete
+      Promise.allSettled(secretPromises).then(results => {
+        const additionalSecrets: Record<string, string> = {};
+        results.forEach(result => {
+          if (result.status === 'fulfilled' && result.value !== firstSecretsResult) {
+            const { secrets } = result.value;
+            if (secrets) {
+              Object.assign(additionalSecrets, secrets);
+            }
+          }
+        });
+        if (Object.keys(additionalSecrets).length > 0) {
+          space.saveAllSecrets(additionalSecrets);
+        }
+      }).catch(error => console.error('Failed to load secrets from additional layers:', error));
+    } catch (error) {
+      console.error('Failed to load secrets from any layer:', error);
     }
     
     // Set up operation tracking to save to all layers
