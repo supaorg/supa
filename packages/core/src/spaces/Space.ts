@@ -154,6 +154,11 @@ export default class Space {
     });
   }
 
+  /**
+   * Load an app tree (a wrapped instance of RepTree) if it's not already loaded
+   * @param appTreeId - The id of the app tree to load
+   * @returns The app tree if it's loaded, undefined otherwise
+   */
   async loadAppTree(appTreeId: string): Promise<AppTree | undefined> {
     let appTree = this.appTrees.get(appTreeId);
     if (appTree) {

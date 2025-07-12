@@ -122,14 +122,12 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
     }
   }
 
-  createTreeLoader(): (treeId: string) => Promise<VertexOperation[]> {
-    return async (treeId: string) => {
-      if (!this._connected) {
-        throw new Error('FileSystemPersistenceLayer not connected');
-      }
-      
-      return await this.loadAllTreeOps(treeId);
-    };
+  async loadTreeOps(treeId: string): Promise<VertexOperation[]> {
+    if (!this._connected) {
+      throw new Error('FileSystemPersistenceLayer not connected');
+    }
+    
+    return await this.loadAllTreeOps(treeId);
   }
 
   async loadSecrets(): Promise<Record<string, string> | undefined> {
@@ -600,10 +598,6 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
     // This could be implemented later if needed
   }
 }
-
-// Removed createNewFileSystemSpace - persistence setup is now URI-driven
-
-// Removed loadFileSystemSpace - use loadSpaceMetadataFromPath from fileSystemSpaceUtils.ts instead
 
 // TODO: Implement migration functions later
 // export async function migrateSpaceIfNeeded(path: string): Promise<void> {

@@ -110,22 +110,28 @@ export class SpaceManager {
       // Create space with all available ops (RepTree handles deduplication)
       space = new Space(new RepTree(uuid(), allOps));
     } 
-
     
     // Register tree loader that uses race-based loading
     space.registerTreeLoader(async (appTreeId: string) => {
       const treeLoadPromises = persistenceLayers.map(async (layer) => {
-        const loader = layer.createTreeLoader();
-        const ops = await loader(appTreeId);
+        const ops = await layer.loadTreeOps(appTreeId);
         return { layer, ops };
       });
 
       try {
         // Use the first layer that successfully loads the app tree
         const firstTreeResult = await Promise.race(treeLoadPromises);
-        if (firstTreeResult.ops.length === 0) return undefined;
+        if (firstTreeResult.ops.length === 0) {
+          throw new Error("No app tree ops found");
+        }
+
+        const tree = new RepTree(uuid(), firstTreeResult.ops);
+        // @NOTE: would make sense to check if the tree has a valid structure for an app tree
+        if (!tree.root) {
+          throw new Error("No root vertex found in app tree");
+        }
         
-        const appTree = new AppTree(new RepTree(uuid(), firstTreeResult.ops));
+        const appTree = new AppTree(tree);
 
         // Continue with remaining layers as they complete
         Promise.allSettled(treeLoadPromises).then(results => {
@@ -141,7 +147,23 @@ export class SpaceManager {
 
         return appTree;
       } catch {
-        return undefined;
+        // Try to get ops from all layers
+        const allOps: VertexOperation[] = [];
+        const results = await Promise.allSettled(treeLoadPromises);
+        
+        results.forEach(result => {
+          if (result.status === 'fulfilled') {
+            allOps.push(...result.value.ops);
+          }
+        });
+
+        const tree = new RepTree(uuid(), allOps);
+        if (!tree.root) {
+          return undefined;
+        }
+
+        const appTree = new AppTree(tree);
+        return appTree;
       }
     });
     

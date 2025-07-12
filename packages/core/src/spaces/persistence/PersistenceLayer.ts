@@ -14,7 +14,7 @@ export interface PersistenceLayer {
   saveTreeOps(treeId: string, ops: ReadonlyArray<VertexOperation>): Promise<void>
   
   // Tree loader callback for lazy loading AppTrees
-  createTreeLoader(): (treeId: string) => Promise<VertexOperation[]>
+  loadTreeOps(treeId: string): Promise<VertexOperation[]>
   
   // Secrets management
   loadSecrets(): Promise<Record<string, string> | undefined>
