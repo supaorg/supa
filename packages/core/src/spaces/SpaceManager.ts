@@ -32,24 +32,24 @@ export class SpaceManager {
     const persistenceLayers = config?.persistenceLayers || [];
     const space = Space.newSpace(uuid());
     const spaceId = space.getId();
-    
+
     if (persistenceLayers.length > 0) {
       // Connect all layers
       await Promise.all(persistenceLayers.map(layer => layer.connect()));
-      
+
       // Save initial operations to all layers
       const initOps = space.tree.getAllOps();
       await Promise.all(
         persistenceLayers.map(layer => layer.saveTreeOps(spaceId, initOps))
       );
-      
+
       // Set up operation tracking and sync
       this.setupOperationTracking(space, persistenceLayers);
       await this.setupTwoWaySync(space, persistenceLayers);
-      
+
       this.spaceLayers.set(spaceId, persistenceLayers);
     }
-    
+
     this.spaces.set(spaceId, space);
     return space;
   }
@@ -59,13 +59,13 @@ export class SpaceManager {
    */
   async loadSpace(pointer: SpacePointer, persistenceLayers: PersistenceLayer[]): Promise<Space> {
     const spaceId = pointer.id;
-    
+
     // Check if already loaded
     const existingSpace = this.spaces.get(spaceId);
     if (existingSpace) {
       return existingSpace;
     }
-    
+
     // Start connecting all layers in parallel and load ops
     const layerPromises = persistenceLayers.map(async (layer) => {
       await layer.connect();
@@ -92,25 +92,27 @@ export class SpaceManager {
             }
           }
         });
+
+        // @TODO: consider to sync the layers with each other here
       }).catch(error => console.error('Failed to load from additional layers:', error));
     } catch (error) {
       console.error('Failed to load space tree from any layer:', error);
       console.log('As a fallback, will try to load from all layers');
-      
+
       // Fallback: gather all ops from all layers that managed to load
       const allOps: VertexOperation[] = [];
       const results = await Promise.allSettled(layerPromises);
-      
+
       results.forEach(result => {
         if (result.status === 'fulfilled') {
           allOps.push(...result.value.ops);
         }
       });
-      
+
       // Create space with all available ops (RepTree handles deduplication)
       space = new Space(new RepTree(uuid(), allOps));
-    } 
-    
+    }
+
     // Register tree loader that uses race-based loading
     space.registerTreeLoader(async (appTreeId: string) => {
       const treeLoadPromises = persistenceLayers.map(async (layer) => {
@@ -130,7 +132,7 @@ export class SpaceManager {
         if (!tree.root) {
           throw new Error("No root vertex found in app tree");
         }
-        
+
         const appTree = new AppTree(tree);
 
         // Continue with remaining layers as they complete
@@ -150,7 +152,7 @@ export class SpaceManager {
         // Try to get ops from all layers
         const allOps: VertexOperation[] = [];
         const results = await Promise.allSettled(treeLoadPromises);
-        
+
         results.forEach(result => {
           if (result.status === 'fulfilled') {
             allOps.push(...result.value.ops);
@@ -166,7 +168,7 @@ export class SpaceManager {
         return appTree;
       }
     });
-    
+
     // Load secrets using race-based approach
     const secretPromises = persistenceLayers.map(async (layer) => {
       const secrets = await layer.loadSecrets();
@@ -198,17 +200,36 @@ export class SpaceManager {
     } catch (error) {
       console.error('Failed to load secrets from any layer:', error);
     }
-    
+
     // Set up operation tracking to save to all layers
     this.setupOperationTracking(space, persistenceLayers);
-    
+
     // Set up two-way sync for layers that support it
     await this.setupTwoWaySync(space, persistenceLayers);
-    
+
     this.spaceLayers.set(spaceId, persistenceLayers);
     this.spaces.set(spaceId, space);
-    
+
     return space;
+  }
+
+  /**
+   * Sync tree operations between layers. It means that layers will share missing ops between each other.
+   * We need it to make sure that all layers converge to the same latest state in case if they were not saving ops at the same time.
+   * @param spaceId - The id of the space
+   * @param treeId - The id of the tree to sync
+   * @param layers - The layers to sync the tree between
+   */
+  syncTreeOpsBetweenLayers(spaceId: string, treeId: string, layers: PersistenceLayer[]) {
+    const space = this.spaces.get(spaceId);
+    if (!space) {
+      throw new Error("Space not found");
+    }
+
+    // Get ops for the tree from all layers and merge them between each other
+
+    // Create a tree for each layer, get ops missing from each other and save the missing ops to layers
+
   }
 
   /**
@@ -223,13 +244,13 @@ export class SpaceManager {
           .filter(layer => layer.supportsIncomingSync && layer.stopListening)
           .map(layer => layer.stopListening!())
       );
-      
+
       // Disconnect all layers
       await Promise.all(layers.map(layer => layer.disconnect()));
-      
+
       this.spaceLayers.delete(spaceId);
     }
-    
+
     this.spaces.delete(spaceId);
   }
 
@@ -253,11 +274,11 @@ export class SpaceManager {
   addPersistenceLayer(spaceId: string, layer: PersistenceLayer): void {
     const existingLayers = this.spaceLayers.get(spaceId) || [];
     const space = this.spaces.get(spaceId);
-    
+
     if (space) {
       const newLayers = [...existingLayers, layer];
       this.spaceLayers.set(spaceId, newLayers);
-      
+
       // Set up tracking for the new layer
       this.setupOperationTrackingForLayer(space, layer);
     }
@@ -271,7 +292,7 @@ export class SpaceManager {
     if (layers) {
       const updatedLayers = layers.filter(layer => layer.id !== layerId);
       this.spaceLayers.set(spaceId, updatedLayers);
-      
+
       // Disconnect the removed layer
       const removedLayer = layers.find(layer => layer.id === layerId);
       if (removedLayer) {
@@ -289,16 +310,16 @@ export class SpaceManager {
           .catch(error => console.error('Failed to save space tree operation:', error));
       }
     });
-    
+
     // Track new AppTree creation
     space.observeNewAppTree((appTreeId) => {
       const appTree = space.getAppTree(appTreeId)!;
       const ops = appTree.tree.getAllOps();
-      
+
       // Save initial ops to all layers
       Promise.all(layers.map(layer => layer.saveTreeOps(appTreeId, ops)))
         .catch(error => console.error('Failed to save new app tree ops:', error));
-      
+
       // Track future ops on this AppTree
       appTree.tree.observeOpApplied((op) => {
         if (op.id.peerId === appTree.tree.peerId && !('transient' in op && op.transient)) {
@@ -307,7 +328,7 @@ export class SpaceManager {
         }
       });
     });
-    
+
     // Track loaded AppTree operations
     space.observeTreeLoad((appTreeId) => {
       const appTree = space.getAppTree(appTreeId)!;
@@ -318,7 +339,7 @@ export class SpaceManager {
         }
       });
     });
-    
+
     // Track secrets changes
     this.wrapSecretsMethod(space, layers);
   }
@@ -331,7 +352,7 @@ export class SpaceManager {
 
   private async setupTwoWaySync(space: Space, layers: PersistenceLayer[]) {
     const spaceId = space.getId();
-    
+
     for (const layer of layers) {
       if (layer.supportsIncomingSync && layer.startListening) {
         await layer.startListening((treeId, incomingOps) => {
