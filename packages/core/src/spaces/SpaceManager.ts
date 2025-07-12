@@ -92,8 +92,6 @@ export class SpaceManager {
             }
           }
         });
-
-        // @TODO: consider to sync the layers with each other here
       }).catch(error => console.error('Failed to load from additional layers:', error));
     } catch (error) {
       console.error('Failed to load space tree from any layer:', error);
@@ -113,12 +111,17 @@ export class SpaceManager {
       space = new Space(new RepTree(uuid(), allOps));
     }
 
+    // Sync the space tree ops between layers in case if they have different ops
+    this.syncTreeOpsBetweenLayers(space.getId(), persistenceLayers);
+
     // Register tree loader that uses race-based loading
     space.registerTreeLoader(async (appTreeId: string) => {
       const treeLoadPromises = persistenceLayers.map(async (layer) => {
         const ops = await layer.loadTreeOps(appTreeId);
         return { layer, ops };
       });
+
+      let appTree: AppTree | undefined;
 
       try {
         // Use the first layer that successfully loads the app tree
@@ -133,7 +136,7 @@ export class SpaceManager {
           throw new Error("No root vertex found in app tree");
         }
 
-        const appTree = new AppTree(tree);
+        appTree = new AppTree(tree);
 
         // Continue with remaining layers as they complete
         Promise.allSettled(treeLoadPromises).then(results => {
@@ -141,13 +144,11 @@ export class SpaceManager {
             if (result.status === 'fulfilled' && result.value !== firstTreeResult) {
               const { ops } = result.value;
               if (ops.length > 0) {
-                appTree.tree.merge(ops);
+                appTree!.tree.merge(ops);
               }
             }
           });
         }).catch(error => console.error('Failed to load app tree from additional layers:', error));
-
-        return appTree;
       } catch {
         // Try to get ops from all layers
         const allOps: VertexOperation[] = [];
@@ -164,9 +165,13 @@ export class SpaceManager {
           return undefined;
         }
 
-        const appTree = new AppTree(tree);
-        return appTree;
+        appTree = new AppTree(tree);
       }
+
+      // Sync the app tree ops between layers in case if they have different ops
+      this.syncTreeOpsBetweenLayers(appTreeId, persistenceLayers);
+
+      return appTree;
     });
 
     // Load secrets using race-based approach
@@ -216,20 +221,81 @@ export class SpaceManager {
   /**
    * Sync tree operations between layers. It means that layers will share missing ops between each other.
    * We need it to make sure that all layers converge to the same latest state in case if they were not saving ops at the same time.
-   * @param spaceId - The id of the space
    * @param treeId - The id of the tree to sync
    * @param layers - The layers to sync the tree between
    */
-  syncTreeOpsBetweenLayers(spaceId: string, treeId: string, layers: PersistenceLayer[]) {
-    const space = this.spaces.get(spaceId);
-    if (!space) {
-      throw new Error("Space not found");
+  async syncTreeOpsBetweenLayers(treeId: string, layers: PersistenceLayer[]): Promise<void> {
+    console.log(`Syncing tree ops between layers: ${treeId}`, layers);
+    
+    if (layers.length <= 1) {
+      return; // No need to sync if there's only one layer
     }
 
-    // Get ops for the tree from all layers and merge them between each other
+    try {
+      // Load operations from all layers
+      const layerOpsPromises = layers.map(async (layer) => {
+        const ops = await layer.loadTreeOps(treeId);
+        return { layer, ops };
+      });
 
-    // Create a tree for each layer, get ops missing from each other and save the missing ops to layers
+      console.log(`Loading ops from all layers: ${layerOpsPromises}`);
 
+      const layerOpsResults = await Promise.allSettled(layerOpsPromises);
+
+      console.log(`Loaded ops from all layers: ${layerOpsResults}`);
+
+      // Filter successful results
+      const layerOpsData = layerOpsResults
+        .filter((result): result is PromiseFulfilledResult<{ layer: PersistenceLayer; ops: VertexOperation[] }> => 
+          result.status === 'fulfilled')
+        .map(result => result.value);
+
+      console.log(`Filtered ops from all layers: ${layerOpsData}`);
+
+      if (layerOpsData.length <= 1) {
+        return; // Need at least 2 layers to sync
+      }
+
+      // Create a map of all unique operations across all layers
+      const allOpsMap = new Map<string, VertexOperation>();
+      
+      for (const { ops } of layerOpsData) {
+        for (const op of ops) {
+          const opId = `${op.id.peerId}:${op.id.counter}`;
+          allOpsMap.set(opId, op);
+        }
+      }
+
+      console.log(`All ops map: ${allOpsMap}`);
+
+      // For each layer, find missing operations and save them
+      const syncPromises = layerOpsData.map(async ({ layer, ops }) => {
+        // Create a set of operation IDs that this layer has
+        const layerOpIds = new Set<string>();
+        for (const op of ops) {
+          const opId = `${op.id.peerId}:${op.id.counter}`;
+          layerOpIds.add(opId);
+        }
+
+        // Find operations that this layer is missing
+        const missingOps: VertexOperation[] = [];
+        for (const [opId, op] of allOpsMap) {
+          if (!layerOpIds.has(opId)) {
+            missingOps.push(op);
+          }
+        }
+
+        // Save missing operations to this layer
+        if (missingOps.length > 0) {
+          console.log(`Saving missing ops to layer: ${layer.id}`, missingOps);
+          await layer.saveTreeOps(treeId, missingOps);
+        }
+      });
+
+      await Promise.allSettled(syncPromises);
+    } catch (error) {
+      console.error(`Failed to sync tree operations for treeId ${treeId}:`, error);
+    }
   }
 
   /**
