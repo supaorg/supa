@@ -43,7 +43,7 @@
   async function createFileSystemSpace(path: string): Promise<string> {
     // For now, create a local space and we'll add file system support later
     // TODO: Implement file system space creation in clientState
-    const spaceId = await clientState.createNewLocalSpace();
+    const spaceId = await clientState.createNewLocalSpace(path);
     
     // TODO: Update the space pointer to use the file system path instead of local://
     // This will require extending clientState to support file system spaces

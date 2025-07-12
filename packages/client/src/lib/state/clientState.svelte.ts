@@ -134,12 +134,17 @@ export class ClientState {
   /**
    * Create a new local space using SpaceManager with URI-based persistence
    */
-  async createNewLocalSpace(): Promise<string> {
-    // Create pointer first (with local:// URI for IndexedDB-only persistence)
+  async createNewLocalSpace(uri?: string): Promise<string> {
     const spaceId = crypto.randomUUID();
+    
+    // If no URI is provided, use the spaceId as the URI
+    if (!uri) {
+      uri = "local://" + spaceId;
+    }
+
     const pointer: SpacePointer = {
       id: spaceId,
-      uri: "local://" + spaceId,
+      uri: uri,
       name: null,
       createdAt: new Date(),
       userId: this.auth.user?.id || null,
@@ -285,8 +290,7 @@ export class ClientState {
       // Ensure we have a current space selected
       if (!this.currentSpaceId && this.pointers.length > 0) {
         const defaultSpaceId = this.pointers[0].id;
-        // Note: We'll connect to it in the next tick
-        Promise.resolve().then(() => this._setCurrentSpace(defaultSpaceId));
+        this._setCurrentSpace(defaultSpaceId);
       }
       this._initializationStatus = "ready";
     }

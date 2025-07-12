@@ -27,7 +27,7 @@
     <Space spaceState={clientState.currentSpaceState} />
   {:else}
     <div class="p-4 text-red-500">
-      <h2>No space selected</h2>
+      <h2>A space didn't load correctly</h2>
     </div>
   {/if}
 {:else if clientState.initializationError}
