@@ -40,7 +40,7 @@ Create your own assistants with their own prompts, prompts, and models
 Pay as you go, either for API costs from AI providers or the actual compute if you run models yourself.
 
 ## Related projects
-Supa is powered by several focused libraries:
+Supa is built alongside several companion projects that enable its features:
 
 - **AI inference** - [aiwrapper](https://github.com/mitkury/aiwrapper)
 - **Info about AI models** - [aimodels](https://github.com/mitkury/aimodels)
