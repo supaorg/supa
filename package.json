@@ -9,8 +9,10 @@
     "preinstall": "cd packages/client && npm install && cd ../core && npm install",
     "dev": "cd packages/client && npm run tauri dev",
     "dev:web": "cd packages/client && npm run dev",
+    "dev:desktop": "cd packages/desktop && npm run dev",
     "build": "cd packages/client && npm run tauri build",
     "build:web": "cd packages/client && npm run build",
+    "build:desktop": "cd packages/desktop && npm run build",
     "rules": "airul gen"
   }
 }

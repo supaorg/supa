@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Supa Desktop - Hello World</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>🚀 Supa Desktop</h1>
+      <p class="subtitle">Hello World - Electron Edition</p>
+    </header>
+    
+    <main class="main">
+      <div class="card">
+        <h2>Welcome to Electron!</h2>
+        <p>This is a simple hello world app built with Electron.</p>
+        <p>We're running:</p>
+        <ul class="info-list">
+          <li><strong>Node.js:</strong> <span id="node-version">Loading...</span></li>
+          <li><strong>Chromium:</strong> <span id="chrome-version">Loading...</span></li>
+          <li><strong>Electron:</strong> <span id="electron-version">Loading...</span></li>
+        </ul>
+      </div>
+      
+      <div class="card">
+        <h3>Test Features</h3>
+        <button id="demo-btn" class="btn">Click Me!</button>
+        <p id="demo-result" class="result"></p>
+      </div>
+    </main>
+    
+    <footer class="footer">
+      <p>This is the foundation for migrating from Tauri to Electron</p>
+    </footer>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html> 

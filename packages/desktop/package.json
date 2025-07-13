@@ -1,0 +1,32 @@
+{
+  "name": "supa-desktop",
+  "version": "1.0.0",
+  "description": "Supa Desktop App - Hello World",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.supa.desktop",
+    "productName": "Supa Desktop",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "renderer.js",
+      "styles.css"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.6.4",
+    "electron-reload": "^2.0.0-alpha.1"
+  }
+}
