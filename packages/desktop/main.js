@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Development mode check
-const isDev = process.argv.includes('--dev');
+const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
 
 // Enable hot reload for development (async initialization)
 async function setupHotReload() {

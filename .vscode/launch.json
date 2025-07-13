@@ -18,6 +18,45 @@
       "url": "http://localhost:6969",
       "webRoot": "${workspaceFolder}/packages/client/src",
       "sourceMaps": true
+    },
+    {
+      "name": "Debug Electron Main Process",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/packages/desktop",
+      "runtimeExecutable": "${workspaceFolder}/packages/desktop/node_modules/.bin/electron",
+      "windows": {
+        "runtimeExecutable": "${workspaceFolder}/packages/desktop/node_modules/.bin/electron.cmd"
+      },
+      "args": [".", "--remote-debugging-port=9222"],
+      "outputCapture": "std",
+      "preLaunchTask": "npm: svelte:dev - packages/desktop",
+      "env": {
+        "NODE_ENV": "development",
+        "ELECTRON_ENABLE_LOGGING": "true",
+        "ELECTRON_ENABLE_STACK_DUMPING": "true"
+      }
+    },
+    {
+      "name": "Debug Electron Renderer Process",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}/packages/desktop/src",
+      "sourceMaps": true,
+      "timeout": 30000
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Electron All",
+      "configurations": [
+        "Debug Electron Main Process",
+        "Debug Electron Renderer Process"
+      ],
+      "presentation": {
+        "order": 1
+      }
     }
   ]
 } 

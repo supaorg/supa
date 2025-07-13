@@ -24,6 +24,27 @@
           "endsPattern": "^.*ready in.*$"
         }
       }
+    },
+    {
+      "type": "npm",
+      "script": "svelte:dev",
+      "path": "packages/desktop/",
+      "label": "npm: svelte:dev - packages/desktop",
+      "detail": "Start SvelteKit dev server for desktop",
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": {
+          "regexp": "^(.*)$",
+          "file": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*Local:.*$",
+          "endsPattern": "^.*ready in.*$"
+        }
+      }
     }
   ]
 } 
