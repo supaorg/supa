@@ -225,8 +225,6 @@ export class SpaceManager {
    * @param layers - The layers to sync the tree between
    */
   async syncTreeOpsBetweenLayers(treeId: string, layers: PersistenceLayer[]): Promise<void> {
-    console.log(`Syncing tree ops between layers: ${treeId}`, layers);
-    
     if (layers.length <= 1) {
       return; // No need to sync if there's only one layer
     }
@@ -237,62 +235,42 @@ export class SpaceManager {
         const ops = await layer.loadTreeOps(treeId);
         return { layer, ops };
       });
+      const allOpsFromLayers = await Promise.all(layerOpsPromises);
 
-      console.log(`Loading ops from all layers: ${layerOpsPromises}`);
-
-      const layerOpsResults = await Promise.allSettled(layerOpsPromises);
-
-      console.log(`Loaded ops from all layers: ${layerOpsResults}`);
-
-      // Filter successful results
-      const layerOpsData = layerOpsResults
-        .filter((result): result is PromiseFulfilledResult<{ layer: PersistenceLayer; ops: VertexOperation[] }> => 
-          result.status === 'fulfilled')
-        .map(result => result.value);
-
-      console.log(`Filtered ops from all layers: ${layerOpsData}`);
-
-      if (layerOpsData.length <= 1) {
-        return; // Need at least 2 layers to sync
-      }
-
-      // Create a map of all unique operations across all layers
-      const allOpsMap = new Map<string, VertexOperation>();
-      
-      for (const { ops } of layerOpsData) {
+      // For each layer, find missing ops by looking at all other layers' ops
+      for (const { layer, ops } of allOpsFromLayers) {
+        // Set of all ops from this layer. We will use it to find missing ops quickly
+        const opsIdSet = new Set<string>();
         for (const op of ops) {
-          const opId = `${op.id.peerId}:${op.id.counter}`;
-          allOpsMap.set(opId, op);
-        }
-      }
-
-      console.log(`All ops map: ${allOpsMap}`);
-
-      // For each layer, find missing operations and save them
-      const syncPromises = layerOpsData.map(async ({ layer, ops }) => {
-        // Create a set of operation IDs that this layer has
-        const layerOpIds = new Set<string>();
-        for (const op of ops) {
-          const opId = `${op.id.peerId}:${op.id.counter}`;
-          layerOpIds.add(opId);
+          opsIdSet.add(`${op.id.counter}@${op.id.peerId}`);
         }
 
-        // Find operations that this layer is missing
         const missingOps: VertexOperation[] = [];
-        for (const [opId, op] of allOpsMap) {
-          if (!layerOpIds.has(opId)) {
-            missingOps.push(op);
+
+        for (const { layer: layerB, ops: opsB } of allOpsFromLayers) {
+          if (layer === layerB) {
+            continue;
+          }
+
+          for (const opB of opsB) {
+            const opBId = `${opB.id.counter}@${opB.id.peerId}`;
+            if (!opsIdSet.has(opBId)) {
+              missingOps.push(opB);
+              opsIdSet.add(opBId);
+            }
           }
         }
 
-        // Save missing operations to this layer
         if (missingOps.length > 0) {
-          console.log(`Saving missing ops to layer: ${layer.id}`, missingOps);
-          await layer.saveTreeOps(treeId, missingOps);
+          if (this.spaces.has(treeId)) {
+            console.log(`Saving missing ops for the SPACE: ${treeId} to layer: ${layer.id}`, missingOps);
+          } else {
+            console.log(`Saving missing ops for tree ${treeId} to layer: ${layer.id}`, missingOps);
+          }
+          
+          //await layer.saveTreeOps(treeId, missingOps);
         }
-      });
-
-      await Promise.allSettled(syncPromises);
+      }
     } catch (error) {
       console.error(`Failed to sync tree operations for treeId ${treeId}:`, error);
     }

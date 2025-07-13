@@ -48,7 +48,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   readonly id: string;
   readonly type = 'local' as const;
   readonly supportsIncomingSync: boolean;
-  
+
   private _connected = false;
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
   private saveOpsTimer: (() => void) | null = null;
@@ -126,7 +126,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
     if (!this._connected) {
       throw new Error('FileSystemPersistenceLayer not connected');
     }
-    
+
     return await this.loadAllTreeOps(treeId);
   }
 
@@ -344,14 +344,29 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
         continue;
       }
 
-      try {
-        const opsJSONLines = this.turnOpsIntoJSONLines(ops);
-        const opsFile = await this.openFileToCurrentTreeOpsJSONLFile(treeId, this.currentPeerId);
-        await opsFile.write(new TextEncoder().encode(opsJSONLines));
-        this.treeOpsToSave.set(treeId, []);
-        await opsFile.close();
-      } catch (error) {
-        console.error("Error saving ops to file", error);
+      // Let's split ops by their peerId
+      const opsByPeerId = new Map<string, VertexOperation[]>();
+      for (const op of ops) {
+        const peerId = op.id.peerId;
+        let opsForPeerId = opsByPeerId.get(peerId);
+        if (!opsForPeerId) {
+          opsForPeerId = [];
+          opsByPeerId.set(peerId, opsForPeerId);
+        }
+        opsForPeerId.push(op);
+      }
+
+      // Save ops for each peerId
+      for (const [peerId, opsForPeerId] of opsByPeerId.entries()) {
+        try {
+          const opsJSONLines = this.turnOpsIntoJSONLines(opsForPeerId);
+          const opsFile = await this.openFileToCurrentTreeOpsJSONLFile(treeId, peerId);
+          await opsFile.write(new TextEncoder().encode(opsJSONLines));
+          this.treeOpsToSave.set(treeId, []);
+          await opsFile.close();
+        } catch (error) {
+          console.error("Error saving ops to file", error);
+        }
       }
     }
 
@@ -528,7 +543,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
 
     let peerId: string | null = null;
     let treeId: string | null = null;
-    
+
     try {
       const splitPath = path.split('/');
 

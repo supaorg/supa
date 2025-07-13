@@ -117,9 +117,12 @@ function fromVertexOperation(op: VertexOperation, spaceId: string, treeId: strin
     targetId: op.targetId
   };
 
+  // Move operation
   if ('parentId' in op) {
     return { ...base, parentId: op.parentId } as TreeOperation;
-  } else {
+  }
+  // Property operation
+  else {
     return {
       ...base,
       key: op.key,
@@ -149,22 +152,22 @@ export async function getAllPointers(): Promise<SpacePointer[]> {
 export async function getPointersForUser(userId: string | null): Promise<SpacePointer[]> {
   try {
     const spaces = await db.spaces.toArray();
-    
+
     // Filter spaces: always show local spaces (null userId) + user's spaces when authenticated
     const filteredSpaces = spaces.filter(space => {
       // Always show local spaces (null userId)
       if (space.userId === null) {
         return true;
       }
-      
+
       // Show user's spaces only when authenticated and userId matches
       if (userId !== null && space.userId === userId) {
         return true;
       }
-      
+
       return false;
     });
-    
+
     return filteredSpaces.map(space => ({
       id: space.id,
       uri: space.uri,
@@ -425,7 +428,7 @@ export async function saveSpaceTheme(spaceId: string, theme: string): Promise<vo
 }
 
 // Save color scheme for a space
-export async function saveSpaceColorScheme(spaceId: string, colorScheme: 'system' | 'light' | 'dark'): Promise<void> {  
+export async function saveSpaceColorScheme(spaceId: string, colorScheme: 'system' | 'light' | 'dark'): Promise<void> {
   try {
     await db.spaces
       .where('id')
@@ -519,16 +522,16 @@ export async function getAllSecrets(spaceId: string): Promise<Record<string, str
       .where('spaceId')
       .equals(spaceId)
       .toArray();
-      
+
     if (secretRecords.length === 0) {
       return undefined;
     }
-    
+
     const secrets: Record<string, string> = {};
     for (const record of secretRecords) {
       secrets[record.key] = record.value;
     }
-    
+
     return secrets;
   } catch (error) {
     console.error(`Failed to get all secrets for space ${spaceId}:`, error);
@@ -544,7 +547,7 @@ export async function saveAllSecrets(spaceId: string, secrets: Record<string, st
       key,
       value
     }));
-    
+
     // Use bulkPut to insert/update all secrets
     await db.secrets.bulkPut(secretRecords);
   } catch (error) {
@@ -559,7 +562,7 @@ export async function getSecret(spaceId: string, key: string): Promise<string | 
       .where('[spaceId+key]')
       .equals([spaceId, key])
       .first();
-      
+
     return secretRecord?.value;
   } catch (error) {
     console.error(`Failed to get secret ${key} for space ${spaceId}:`, error);
