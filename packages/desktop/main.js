@@ -6,9 +6,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Development mode check
+const isDev = process.argv.includes('--dev');
+
 // Enable hot reload for development (async initialization)
 async function setupHotReload() {
-  if (process.argv.includes('--dev')) {
+  if (isDev) {
     try {
       const electronReload = await import('electron-reload');
       electronReload.default(__dirname, {
@@ -29,25 +32,47 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    titleBarStyle: 'hidden', // Hide title bar but keep window controls
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: false,
+      webSecurity: false // Needed for SvelteKit in development
     },
-    titleBarStyle: 'hiddenInset', // Nice macOS title bar
-    icon: path.join(__dirname, 'assets/icon.png') // Optional icon
+    show: false // Don't show until ready
   });
 
-  // Load the index.html file
-  mainWindow.loadFile('index.html');
+  // Load the appropriate URL/file based on environment
+  if (isDev) {
+    // Development: load from SvelteKit dev server
+    mainWindow.loadURL('http://localhost:5173');
+  } else {
+    // Production: load built SvelteKit files
+    mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'));
+  }
+
+  // Show window when ready to prevent visual flash
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
 
   // Open DevTools in development
-  if (process.argv.includes('--dev')) {
+  if (isDev) {
     mainWindow.webContents.openDevTools();
   }
 
-  // Emitted when the window is closed
+  // Handle window closed
   mainWindow.on('closed', function () {
     mainWindow = null;
+  });
+
+  // Handle external links
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // Open external links in the default browser
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      require('electron').shell.openExternal(url);
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
   });
 }
 
@@ -92,6 +117,35 @@ function createMenu() {
           click: function() {
             const currentZoom = mainWindow.webContents.getZoomLevel();
             mainWindow.webContents.setZoomLevel(currentZoom - 1);
+          }
+        }
+      ]
+    },
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'New',
+          accelerator: 'CmdOrCtrl+N',
+          click: function() {
+            // Add file operations here
+            console.log('New file action');
+          }
+        },
+        {
+          label: 'Open',
+          accelerator: 'CmdOrCtrl+O',
+          click: function() {
+            // Add file operations here
+            console.log('Open file action');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Quit',
+          accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
+          click: function() {
+            app.quit();
           }
         }
       ]

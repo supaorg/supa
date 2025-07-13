@@ -1,16 +1,23 @@
 {
   "name": "supa-desktop",
   "version": "1.0.0",
-  "description": "Supa Desktop App - Hello World",
+  "description": "Supa Desktop App - SvelteKit + Electron",
   "type": "module",
   "main": "main.js",
   "scripts": {
+    "dev": "concurrently \"npm run svelte:dev\" \"npm run electron:dev\"",
+    "svelte:dev": "vite dev --port 5173",
+    "electron:dev": "wait-on http://localhost:5173 && electron . --dev",
+    "build": "npm run svelte:build && npm run electron:build",
+    "svelte:build": "vite build",
+    "electron:build": "electron-builder",
+    "electron:build:mac": "electron-builder --mac",
+    "electron:build:win": "electron-builder --win",
+    "electron:build:linux": "electron-builder --linux",
+    "preview": "vite preview",
     "start": "electron .",
-    "dev": "electron . --dev",
-    "build": "electron-builder",
-    "build:mac": "electron-builder --mac",
-    "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "build": {
     "appId": "com.supa.desktop",
@@ -20,14 +27,35 @@
     },
     "files": [
       "main.js",
-      "index.html",
-      "renderer.js",
-      "styles.css"
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      "build/**/*"
     ]
   },
   "devDependencies": {
+    "@sveltejs/adapter-static": "^3.0.5",
+    "@sveltejs/kit": "^2.10.0",
+    "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
     "electron": "^28.0.0",
     "electron-builder": "^24.6.4",
-    "electron-reload": "^2.0.0-alpha.1"
+    "electron-reload": "^2.0.0-alpha.1",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "tslib": "^2.4.1",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "@skeletonlabs/skeleton": "^2.10.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.3.6"
   }
 }

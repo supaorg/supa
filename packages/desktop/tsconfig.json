@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true,
+		"module": "ESNext",
+		"target": "ES2022",
+		"moduleResolution": "bundler",
+		"allowSyntheticDefaultImports": true,
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["vite/client", "svelte", "node"]
+	},
+	"include": [
+		"src/**/*.d.ts",
+		"src/**/*.js",
+		"src/**/*.ts",
+		"src/**/*.svelte"
+	],
+	"exclude": [
+		"node_modules/**",
+		"build/**",
+		"dist/**",
+		".svelte-kit/**"
+	]
+} 
