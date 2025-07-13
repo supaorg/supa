@@ -2,6 +2,7 @@
   "name": "supa-desktop",
   "version": "1.0.0",
   "description": "Supa Desktop App - Hello World",
+  "type": "module",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

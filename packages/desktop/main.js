@@ -1,12 +1,24 @@
-const { app, BrowserWindow, Menu } = require('electron');
-const path = require('path');
+import { app, BrowserWindow, Menu } from 'electron';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Enable hot reload for development
-if (process.argv.includes('--dev')) {
-  require('electron-reload')(__dirname, {
-    electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
-    hardResetMethod: 'exit'
-  });
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Enable hot reload for development (async initialization)
+async function setupHotReload() {
+  if (process.argv.includes('--dev')) {
+    try {
+      const electronReload = await import('electron-reload');
+      electronReload.default(__dirname, {
+        electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
+        hardResetMethod: 'exit'
+      });
+    } catch (error) {
+      console.log('electron-reload not available:', error.message);
+    }
+  }
 }
 
 // Keep a global reference of the window object
@@ -91,7 +103,8 @@ function createMenu() {
 }
 
 // This method will be called when Electron has finished initialization
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await setupHotReload();
   createWindow();
   createMenu();
 
