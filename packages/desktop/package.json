@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "concurrently \"npm run svelte:dev\" \"npm run electron:dev\"",
     "svelte:dev": "vite dev --port 5173",
-    "electron:dev": "wait-on http://localhost:5173 && electron . --dev",
+    "electron:dev": "wait-on http://localhost:5173 && electron . --dev --remote-debugging-port=9222",
     "build": "npm run svelte:build && npm run electron:build",
     "svelte:build": "vite build",
     "electron:build": "electron-builder",

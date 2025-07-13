@@ -18,11 +18,17 @@ export default defineConfig({
 		outDir: 'build',
 		emptyOutDir: true,
 		// Ensure compatibility with Electron
-		target: 'chrome120'
+		target: 'chrome120',
+		sourcemap: true // Enable source maps for debugging
 	},
 	
 	// Define globals for Electron context
 	define: {
 		global: 'globalThis'
+	},
+	
+	// Ensure source maps work properly for debugging
+	css: {
+		devSourcemap: true
 	}
 }); 
