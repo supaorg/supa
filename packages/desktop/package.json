@@ -6,8 +6,8 @@
   "main": "main.js",
   "scripts": {
     "dev": "concurrently \"npm run svelte:dev\" \"npm run electron:dev\"",
-    "svelte:dev": "vite dev --port 5173",
-    "electron:dev": "wait-on http://localhost:5173 && electron . --dev --remote-debugging-port=9222",
+    "svelte:dev": "vite dev --port 6969",
+    "electron:dev": "wait-on http://localhost:6969 && electron . --dev --remote-debugging-port=9222",
     "build": "npm run svelte:build && npm run electron:build",
     "svelte:build": "vite build",
     "electron:build": "electron-builder",
@@ -42,7 +42,6 @@
     "concurrently": "^8.2.2",
     "electron": "^28.0.0",
     "electron-builder": "^24.6.4",
-    "electron-reload": "^2.0.0-alpha.1",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "tslib": "^2.4.1",

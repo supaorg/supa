@@ -9,20 +9,8 @@ const __dirname = path.dirname(__filename);
 // Development mode check
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
 
-// Enable hot reload for development (async initialization)
-async function setupHotReload() {
-  if (isDev) {
-    try {
-      const electronReload = await import('electron-reload');
-      electronReload.default(__dirname, {
-        electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
-        hardResetMethod: 'exit'
-      });
-    } catch (error) {
-      console.log('electron-reload not available:', error.message);
-    }
-  }
-}
+// Note: SvelteKit provides HMR for renderer process changes
+// Main process changes (this file) require manual restart
 
 // Keep a global reference of the window object
 let mainWindow;
@@ -44,7 +32,7 @@ function createWindow() {
   // Load the appropriate URL/file based on environment
   if (isDev) {
     // Development: load from SvelteKit dev server
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL('http://localhost:6969');
   } else {
     // Production: load built SvelteKit files
     mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'));
@@ -158,7 +146,6 @@ function createMenu() {
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
-  await setupHotReload();
   createWindow();
   createMenu();
 

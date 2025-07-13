@@ -229,7 +229,7 @@ export default createViteConfig({
 // packages/desktop/electron/main.ts
 const isDev = process.env.NODE_ENV === 'development';
 const url = isDev 
-  ? 'http://localhost:5173'  // SvelteKit dev server
+  ? 'http://localhost:6969'  // SvelteKit dev server
   : `file://${path.join(__dirname, '../build/index.html')}`;
 ```
 

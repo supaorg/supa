@@ -6,7 +6,7 @@ export default defineConfig({
 	
 	// Configure for Electron compatibility
 	server: {
-		port: 5173,
+		port: 6969,
 		strictPort: true
 	},
 	

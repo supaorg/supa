@@ -24,13 +24,32 @@ npm start
 
 The development setup runs two processes concurrently:
 
-1. **SvelteKit Dev Server** (`npm run svelte:dev`) - Runs on http://localhost:5173
+1. **SvelteKit Dev Server** (`npm run svelte:dev`) - Runs on http://localhost:6969
 2. **Electron App** (`npm run electron:dev`) - Loads the dev server URL
 
 This provides:
 - Hot Module Replacement (HMR) from SvelteKit
 - Automatic DevTools opening
 - Hot reload for Electron main process changes
+- Native title bar with standard window controls
+- Remote debugging support on port 9222
+
+### VS Code Debugging
+
+The project includes VS Code debugging configurations:
+
+1. **Debug Electron Main Process** - Debug the Electron main process (main.js)
+2. **Debug Electron Renderer Process** - Debug SvelteKit code in the renderer
+3. **Debug Electron All** - Debug both processes simultaneously
+
+To start debugging:
+1. Open VS Code in the project root
+2. Press `Ctrl+Shift+D` (or `Cmd+Shift+D` on Mac)
+3. Select "Debug Electron All" from the dropdown
+4. Press F5 to start debugging
+5. Set breakpoints in your `.svelte` files or `main.js`
+
+The debugger will automatically start the SvelteKit dev server and launch Electron with debugging enabled.
 
 ### Building
 
@@ -81,14 +100,18 @@ packages/desktop/
 - **Electron** loads dev server in development, built files in production
 - **Tailwind** integrated with Skeleton UI components
 - **TypeScript** support throughout
+- **VS Code** debugging configured with launch.json and tasks.json
+- **Source Maps** enabled for proper debugging experience
 
 ## Features Demonstrated
 
 1. **SvelteKit Integration** - Full SvelteKit app running in Electron
 2. **Skeleton UI Components** - Modern design system
 3. **Development Workflow** - Hot reloading and DevTools
-4. **Production Building** - Static file generation for Electron
-5. **Cross-Platform** - Windows, macOS, and Linux support
+4. **VS Code Debugging** - Full debugging support for both main and renderer processes
+5. **Native Title Bar** - Standard window controls (minimize, maximize, close)
+6. **Production Building** - Static file generation for Electron
+7. **Cross-Platform** - Windows, macOS, and Linux support
 
 ## Development Scripts
 
@@ -116,9 +139,10 @@ This setup provides:
 ## Next Steps
 
 1. **Test the setup** - Run `npm run dev` and verify everything works
-2. **Add features** - Create new SvelteKit routes and components
-3. **Customize UI** - Modify Skeleton themes and Tailwind configuration
-4. **Add IPC** - Implement Electron main/renderer communication
-5. **Package** - Use electron-builder for distribution
+2. **Try debugging** - Use VS Code's "Debug Electron All" to set breakpoints in your code
+3. **Add features** - Create new SvelteKit routes and components
+4. **Customize UI** - Modify Skeleton themes and Tailwind configuration
+5. **Add IPC** - Implement Electron main/renderer communication
+6. **Package** - Use electron-builder for distribution
 
 This is the foundation for the Tauri → Electron migration as outlined in the [electron-proposal.md](../../docs/dev/proposals/electron-proposal.md). 
