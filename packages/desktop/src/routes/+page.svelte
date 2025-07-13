@@ -31,12 +31,9 @@
 </svelte:head>
 
 <div class="h-full flex flex-col">
-	<!-- Draggable top area - positioned to not interfere with traffic lights -->
-	<div class="draggable-area"></div>
-	
 	<div class="flex-1 container mx-auto p-8 flex flex-col items-center justify-center space-y-8">
 		<!-- Header -->
-		<header class="text-center draggable-header">
+		<header class="text-center">
 			<h1 class="text-4xl font-bold gradient-heading">
 				🚀 Supa Desktop
 			</h1>
@@ -84,7 +81,7 @@
 				</header>
 				<section class="text-center">
 					<button 
-						class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200 non-draggable" 
+						class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200" 
 						on:click={handleClick}
 					>
 						Click Me!
@@ -112,26 +109,5 @@
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
-	}
-	
-	.draggable-area {
-		-webkit-app-region: drag;
-		position: fixed;
-		top: 0;
-		left: 100px; /* Leave space for traffic lights */
-		right: 0;
-		height: 30px;
-		z-index: 9999;
-		background: transparent;
-	}
-	
-	.draggable-header {
-		-webkit-app-region: drag;
-		-webkit-user-select: none;
-		user-select: none;
-	}
-	
-	.non-draggable {
-		-webkit-app-region: no-drag;
 	}
 </style> 

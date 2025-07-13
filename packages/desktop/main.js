@@ -32,7 +32,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    titleBarStyle: 'hidden', // Hide title bar but keep window controls
+    // titleBarStyle: 'default', // Use native title bar with standard controls (this is the default)
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
