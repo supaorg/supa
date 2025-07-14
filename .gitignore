@@ -10,3 +10,6 @@ jwt.key
 env.json
 
 node_modules
+
+.cursorrules
+CLAUDE.md
