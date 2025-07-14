@@ -1,6 +1,6 @@
 <script lang="ts">
   import { txtStore } from "@client/state/txtStore";
-  import { message, open } from "@tauri-apps/plugin-dialog";
+  //import { message, open } from "@tauri-apps/plugin-dialog";
   import { clientState } from "@client/state/clientState.svelte";
   import { 
     checkIfPathHasValidStructureAndReturnActualRootPath
@@ -14,6 +14,7 @@
   }: { onSpaceSetup: (spaceId: string) => void | undefined } = $props();
 
   async function createSpaceDialog() {
+    /*
     if (status !== "idle") return;
 
     status = "creating";
@@ -38,6 +39,7 @@
     } finally {
       status = "idle";
     }
+    */
   }
 
   async function createFileSystemSpace(path: string): Promise<string> {
@@ -52,6 +54,7 @@
   }
 
   async function openSpaceDialog() {
+    /*
     if (status !== "idle") return;
 
     status = "opening";
@@ -77,6 +80,7 @@
     } finally {
       status = "idle";
     }
+    */
   }
 
   async function openFileSystemSpace(path: string): Promise<string> {

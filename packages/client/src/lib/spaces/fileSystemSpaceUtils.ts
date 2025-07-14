@@ -1,8 +1,7 @@
-import {
-  readDir,
-  exists,
-  readTextFile
-} from "@tauri-apps/plugin-fs";
+import { appFs } from "../appFs";
+
+// Extract the functions we need from appFs
+const { readDir, exists, readTextFile } = appFs;
 
 /**
  * Checks if a directory contains a space-v* directory

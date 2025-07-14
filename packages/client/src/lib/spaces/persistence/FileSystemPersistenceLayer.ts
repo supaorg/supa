@@ -6,22 +6,21 @@ import {
   newMoveVertexOp,
   newSetVertexPropertyOp
 } from "@core";
-import {
-  readDir,
-  create,
-  open,
-  mkdir,
-  readTextFile,
-  readTextFileLines,
-  writeTextFile,
-  watch,
-  type WatchEvent,
-  type UnwatchFn,
-  exists,
-  FileHandle
-} from "@tauri-apps/plugin-fs";
+import { appFs, type WatchEvent, type UnwatchFn, type FileHandle } from "../../appFs";
 import { interval } from "@core/tools/interval";
-import { isTauri } from "@client/tauri/isTauri";
+
+// Extract all the file system functions we need
+const { 
+  readDir, 
+  create, 
+  open, 
+  mkdir, 
+  readTextFile, 
+  readTextFileLines, 
+  writeTextFile, 
+  watch, 
+  exists 
+} = appFs;
 
 const opsParserWorker = new Worker(new URL('../opsParser.worker.ts', import.meta.url));
 
@@ -47,7 +46,7 @@ This directory contains a Supa space. Please do not rename or modify the 'space-
 export class FileSystemPersistenceLayer implements PersistenceLayer {
   readonly id: string;
   readonly type = 'local' as const;
-  readonly supportsIncomingSync: boolean;
+  readonly supportsIncomingSync: boolean = true; // @TODO: delete this
 
   private _connected = false;
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
@@ -62,7 +61,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
 
   constructor(private spacePath: string, private spaceId: string) {
     this.id = `filesystem-${spaceId}`;
-    this.supportsIncomingSync = isTauri(); // Only support two-way sync on Tauri
+    this.supportsIncomingSync = true; // @TODO: delete this
   }
 
   async connect(): Promise<void> {
