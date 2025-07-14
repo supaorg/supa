@@ -14,6 +14,10 @@
 		"moduleResolution": "bundler",
 		"allowSyntheticDefaultImports": true,
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"types": ["vite/client", "svelte", "node"]
+		"types": ["vite/client", "svelte", "node"],
+		"paths": {
+			"@client": ["../client/src/lib"],
+			"@client/*": ["../client/src/lib/*"]
+		}
 	}
 } 

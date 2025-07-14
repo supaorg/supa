@@ -30,5 +30,12 @@ export default defineConfig({
 	// Ensure source maps work properly for debugging
 	css: {
 		devSourcemap: true
+	},
+	
+	// Path resolution for importing from client package
+	resolve: {
+		alias: {
+			'@client': '../client/src/lib'
+		}
 	}
 }); 
