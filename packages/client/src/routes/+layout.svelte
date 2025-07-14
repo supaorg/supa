@@ -1,12 +1,12 @@
 <script lang="ts">
   import "../app.css";
-  import ThemeManager from "$lib/comps/themes/ThemeManager.svelte";
-  import { clientState } from "$lib/state/clientState.svelte";
-  import SwinsContainer from "$lib/swins/SwinsContainer.svelte";
+  import ThemeManager from "@client/comps/themes/ThemeManager.svelte";
+  import { clientState } from "@client/state/clientState.svelte";
+  import SwinsContainer from "@client/swins/SwinsContainer.svelte";
   import { onMount } from "svelte";
-  import { destroyShortcuts, initShortcuts } from "$lib/shortcuts/shortcuts";
+  import { destroyShortcuts, initShortcuts } from "@client/shortcuts/shortcuts";
 
-  import { fetchSpaces } from "$lib/utils/api";
+  import { fetchSpaces } from "@client/utils/api";
 
   let { children } = $props();
 

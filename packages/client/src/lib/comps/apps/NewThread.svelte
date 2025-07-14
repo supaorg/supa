@@ -1,6 +1,6 @@
 <script lang="ts">
   import SendMessageForm from "../../comps/forms/SendMessageForm.svelte";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@client/state/clientState.svelte";
   import { ChatAppData } from "@core/spaces/ChatAppData";
   import type { AppConfig } from "@core/models";
   import { onMount } from "svelte";

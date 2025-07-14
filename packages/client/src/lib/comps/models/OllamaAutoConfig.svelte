@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@client/state/clientState.svelte";
   import { providers } from "@core/providers";
   import type { ModelProviderLocalConfig } from "@core/models";
   import { checkOllamaStatus } from "./ollama";

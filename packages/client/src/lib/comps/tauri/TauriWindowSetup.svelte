@@ -10,7 +10,7 @@
   import {
     tauriWindowStore,
     type TauriWindow,
-  } from "$lib/tauri/tauriWindowStore";
+  } from "@client/tauri/tauriWindowStore";
 
   const appWindow = getCurrentWindow();
 

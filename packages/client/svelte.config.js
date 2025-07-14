@@ -13,7 +13,7 @@ const config = {
       strict: true
     }),
     alias: {
-      "@client": "src/lib",
+      "@client": "./src/lib",
       "@core": "../core/src",
     },
   },

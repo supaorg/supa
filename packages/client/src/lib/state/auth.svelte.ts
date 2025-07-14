@@ -1,6 +1,6 @@
 import { browser } from "$app/environment";
-import { setCookie, getCookie } from "$lib/utils/cookies";
-import { apiRequest } from "$lib/utils/api";
+import { setCookie, getCookie } from "@client/utils/cookies";
+import { apiRequest } from "@client/utils/api";
 
 // Cookie configuration
 const COOKIE_OPTIONS = {

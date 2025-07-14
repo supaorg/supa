@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@client/state/clientState.svelte";
   import type { CustomProviderConfig } from "@core/models";
   import { XCircle } from "lucide-svelte";
 

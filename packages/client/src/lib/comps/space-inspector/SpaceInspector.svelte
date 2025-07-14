@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@client/state/clientState.svelte";
   import VertexView from "./VertexView.svelte";
   import type { Vertex } from "@core";
 

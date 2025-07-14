@@ -1,11 +1,11 @@
 <script lang="ts">
   import { Send, StopCircle, Paperclip } from "lucide-svelte";
-  import AppConfigDropdown from "$lib/comps/apps/AppConfigDropdown.svelte";
+  import AppConfigDropdown from "@client/comps/apps/AppConfigDropdown.svelte";
   import { onMount, tick } from "svelte";
-  import { focusTrap } from "$lib/utils/focusTrap";
+  import { focusTrap } from "@client/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
-  import { txtStore } from "$lib/state/txtStore";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { txtStore } from "@client/state/txtStore";
+  import { clientState } from "@client/state/clientState.svelte";
   import type { ChatAppData } from "@core/spaces/ChatAppData";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px

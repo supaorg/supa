@@ -21,7 +21,7 @@ import {
   FileHandle
 } from "@tauri-apps/plugin-fs";
 import { interval } from "@core/tools/interval";
-import { isTauri } from "$lib/tauri/isTauri";
+import { isTauri } from "@client/tauri/isTauri";
 
 const opsParserWorker = new Worker(new URL('../opsParser.worker.ts', import.meta.url));
 

@@ -2,8 +2,8 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
-  import { clientState } from "$lib/state/clientState.svelte";
-  import Loading from "$lib/comps/basic/Loading.svelte";
+  import { clientState } from "@client/state/clientState.svelte";
+  import Loading from "@client/comps/basic/Loading.svelte";
 
   let status = $state<"loading" | "success" | "error">("loading");
   let errorMessage = $state("");

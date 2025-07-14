@@ -29,7 +29,8 @@ const config = {
 		
 		// Path aliases for importing from client package
 		alias: {
-			'@client': '../client/src/lib'
+			'@client': '../client/src/lib',
+			'@core': '../core/src'
 		}
 	}
 };

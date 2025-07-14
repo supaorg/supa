@@ -5,6 +5,7 @@
   "type": "module",
   "main": "main.js",
   "scripts": {
+    "prepare": "svelte-kit sync",
     "dev": "concurrently \"npm run svelte:dev\" \"npm run electron:dev\"",
     "svelte:dev": "vite dev --port 6969",
     "electron:dev": "wait-on http://localhost:6969 && electron . --dev --remote-debugging-port=9222",
