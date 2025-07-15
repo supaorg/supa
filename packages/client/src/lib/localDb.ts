@@ -1,6 +1,6 @@
 import Dexie from 'dexie';
-import type { SpacePointer } from './spaces/SpacePointer';
-import type { VertexOperation } from '@core';
+import type { SpacePointer } from "./spaces/SpacePointer";
+import type { VertexOperation } from "@supa/core";
 
 /**
  * Space setup on a client side

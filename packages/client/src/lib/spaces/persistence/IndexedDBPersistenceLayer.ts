@@ -1,5 +1,5 @@
-import type { PersistenceLayer } from "@core/spaces/persistence/PersistenceLayer";
-import type { VertexOperation } from "@core";
+import type { PersistenceLayer } from "@supa/core/spaces/persistence/PersistenceLayer";
+import type { VertexOperation } from "@supa/core";
 import {
   getTreeOps,
   appendTreeOps,

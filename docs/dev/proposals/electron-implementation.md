@@ -73,7 +73,7 @@ export function createSvelteConfig(overrides = {}) {
       adapter: adapter(),
       alias: {
         '@client': '../client/src',
-        '@core': '../core/src',
+        '@supa/core': '../core/src',
       },
       ...overrides.kit
     },

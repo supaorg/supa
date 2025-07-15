@@ -1,6 +1,6 @@
 <script lang="ts">
   import ChatApp from "./ChatApp.svelte";
-  import { ChatAppData } from "@core/spaces/ChatAppData";
+  import { ChatAppData } from "@supa/core/spaces/ChatAppData";
   import { clientState } from "$lib/state/clientState.svelte";
 
   let { treeId }: { treeId: string } = $props();

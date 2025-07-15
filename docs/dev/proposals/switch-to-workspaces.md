@@ -19,7 +19,7 @@ Here is a high-level map of what you already have and how the three packages tal
                                  │  (TS only)   │
                                  └──────────────┘
                                         ▲
-                                        │   alias "@core"
+                                        │   alias "@supa/core"
                                         │
         alias "$lib"                 │
 ┌──────────────────┐        ┌───────────────────────────────────┐
@@ -205,7 +205,7 @@ That’s the concise history and the issues we ran into.
 ## Further considerations
 
 * **Replace path aliases with real workspace package imports.**  
-  Instead of `import { X } from "@core/..."` backed by `alias: { '@core': '../core/src' }`, give each sub-folder an actual package name (e.g. `@supa/core`, `@supa/client`) and import them the normal npm way:
+  Instead of `import { X } from "@supa/core/..."` backed by `alias: { '@supa/core': '../core/src' }`, give each sub-folder an actual package name (e.g. `@supa/core`, `@supa/client`) and import them the normal npm way:
   ```ts
   // inside client
   import { SpaceManager } from '@supa/core/spaces/SpaceManager';

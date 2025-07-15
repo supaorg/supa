@@ -6,7 +6,7 @@
   import { type MessageFormStatus } from "./messageFormStatus";
   import { txtStore } from "$lib/state/txtStore";
   import { clientState } from "$lib/state/clientState.svelte";
-  import type { ChatAppData } from "@core/spaces/ChatAppData";
+  import type { ChatAppData } from "@supa/core/spaces/ChatAppData";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height

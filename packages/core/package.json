@@ -7,6 +7,12 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "types": "./src/index.ts",
+  "main": "./src/index.ts",
   "dependencies": {
     "aiwrapper": "^0.1.21",
     "reptree": "^0.2.2"

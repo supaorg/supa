@@ -8,8 +8,8 @@ import type { SpacePointer } from "../spaces/SpacePointer";
 import { createPersistenceLayersForURI } from "../spaces/persistence/persistenceUtils";
 import { loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
 import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "$lib/localDb";
-import { SpaceManager } from "@core/spaces/SpaceManager";
-import type Space from '@core/spaces/Space';
+import { SpaceManager } from "@supa/core/spaces/SpaceManager";
+import type Space from "@supa/core/spaces/Space";
 
 interface AuthTokens {
   access_token: string;

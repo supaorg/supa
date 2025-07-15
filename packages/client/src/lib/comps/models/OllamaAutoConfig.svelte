@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { clientState } from "$lib/state/clientState.svelte";
-  import { providers } from "@core/providers";
-  import type { ModelProviderLocalConfig } from "@core/models";
+  import { providers } from "@supa/core/providers";
+  import type { ModelProviderLocalConfig } from "@supa/core/models";
   import { checkOllamaStatus } from "./ollama";
-  import { interval } from "@core/tools/interval";
+  import { interval } from "@supa/core/tools/interval";
 
   let isChecking = false;
 

@@ -2,7 +2,7 @@
   import { codeToHtml } from "shiki";
   import type { Tokens } from "marked";
   import { Copy, Check } from "lucide-svelte";
-  import { timeout } from "@core/tools/timeout";
+  import { timeout } from "@supa/core/tools/timeout";
   import { clientState } from "$lib/state/clientState.svelte";
 </script>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { clientState } from "$lib/state/clientState.svelte";
   import VertexView from "./VertexView.svelte";
-  import type { Vertex } from "@core";
+  import type { Vertex } from "@supa/core";
 
   let spaceRootVertex = $derived(clientState.currentSpace?.rootVertex);
   let appTreeRootVertex = $state<Vertex | undefined>(undefined);

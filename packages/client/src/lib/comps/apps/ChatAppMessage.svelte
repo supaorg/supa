@@ -5,11 +5,11 @@
     ChevronDown,
     ChevronRight,
   } from "lucide-svelte";
-  import type { ThreadMessage } from "@core/models";
-  import type { ChatAppData } from "@core/spaces/ChatAppData";
-  import type { Vertex } from "@core";
+  import type { ThreadMessage } from "@supa/core/models";
+  import type { ChatAppData } from "@supa/core/spaces/ChatAppData";
+  import type { Vertex } from "@supa/core";
   import { onMount } from "svelte";
-  import { timeout } from "@core/tools/timeout";
+  import { timeout } from "@supa/core/tools/timeout";
   import Markdown from "../markdown/Markdown.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";

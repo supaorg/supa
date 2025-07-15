@@ -7,7 +7,7 @@
   import {
     SUPPORTED_LANGUAGES,
     LANGUAGE_NAMES,
-  } from "@core/localization/getTexts";
+  } from "@supa/core/localization/getTexts";
   import { txtStore } from "$lib/state/txtStore";
   import ThemeSwitcher from "$lib/comps/themes/ThemeSwitcher.svelte";
 </script>

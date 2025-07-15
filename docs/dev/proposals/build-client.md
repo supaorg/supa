@@ -35,7 +35,7 @@ export default defineConfig({
   // Keep existing alias
   resolve: {
     alias: {
-      "@core": "../core/src",
+      "@supa/core": "../core/src",
     }
   }
 });

@@ -1,13 +1,13 @@
-import type { PersistenceLayer } from "@core/spaces/persistence/PersistenceLayer";
-import type { VertexOperation } from "@core";
+import type { PersistenceLayer } from "@supa/core/spaces/persistence/PersistenceLayer";
+import type { VertexOperation } from "@supa/core";
 import {
   isMoveVertexOp,
   isAnyPropertyOp,
   newMoveVertexOp,
   newSetVertexPropertyOp
-} from "@core";
+} from "@supa/core";
 import { appFs, type WatchEvent, type UnwatchFn, type FileHandle } from "../../appFs";
-import { interval } from "@core/tools/interval";
+import { interval } from "@supa/core/tools/interval";
 
 // Extract all the file system functions we need
 const { 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { clientState } from "$lib/state/clientState.svelte";
-  import type { AppConfig } from "@core/models";
+  import type { AppConfig } from "@supa/core/models";
   import { LayoutGrid, MessageCircle } from "lucide-svelte";
   import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
   import { txtStore } from "$lib/state/txtStore";

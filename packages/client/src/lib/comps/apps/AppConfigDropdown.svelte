@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { AppConfig } from "@core/models";
+  import type { AppConfig } from "@supa/core/models";
   import { txtStore } from "$lib/state/txtStore";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { ChevronUp, Pencil, Plus } from "lucide-svelte";
