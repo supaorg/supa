@@ -7,8 +7,7 @@
   "scripts": {
     "prepare": "svelte-kit sync",
     "dev": "vite dev",
-    "build": "vite build",
-    "build:lib": "npm run build:lib:pkg && npm run build:css",
+    "build": "npm run build:lib:pkg && npm run build:css",
     "build:lib:pkg": "svelte-package --output dist",
     "build:css": "npx tailwindcss -c tailwind.config.ts -i src/app.css -o dist/style.css --minify",
     "preview": "vite preview",
