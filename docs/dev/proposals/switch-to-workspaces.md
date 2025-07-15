@@ -225,3 +225,23 @@ That’s the concise history and the issues we ran into.
   import { SupaRoot } from '@supa/client';
   ```
   This removes Rollup/Vite rewrite surprises, eliminates extra alias config in every tool, and makes dependencies explicit in `package.json`.  It works both inside the monorepo (using `"workspace:*"` versions) and after publishing to npm.
+
+### Dev-workflow if we rely on `dist` only
+
+If we decide **not** to keep an alias to the raw sources during development, the UX can still be smooth by running the library packager in *watch* mode side-by-side with Electron:
+
+```jsonc
+// root package.json (scripts section)
+{
+  "scripts": {
+    "dev": "npm-run-all -p build:lib:watch desktop:dev",
+    "build:lib:watch": "cd packages/client && svelte-package --watch --sourcemap",
+    "desktop:dev": "cd packages/desktop && npm run dev"
+  }
+}
+```
+* `svelte-package --watch` re-emits `packages/client/dist` whenever you touch a `.svelte` or `.ts` file inside the client.
+* Vite in the desktop process sees the file timestamp change and triggers its own fast HMR reload.
+* You keep a **single source of truth** (no alias), and you still get near-instant feedback.
+
+Any watcher tool you prefer ( `concurrently`, `npm-run-all`, `turbo run`, pnpm `-r` scripts ) works; just make sure the library watch starts **before** the desktop dev server so the first build exists when Electron boots.
