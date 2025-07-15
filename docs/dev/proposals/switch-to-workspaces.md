@@ -245,3 +245,28 @@ If we decide **not** to keep an alias to the raw sources during development, the
 * You keep a **single source of truth** (no alias), and you still get near-instant feedback.
 
 Any watcher tool you prefer ( `concurrently`, `npm-run-all`, `turbo run`, pnpm `-r` scripts ) works; just make sure the library watch starts **before** the desktop dev server so the first build exists when Electron boots.
+
+### What the client **dist** build contains
+
+`svelte-package` compiles every `.svelte` component and `.ts` file into plain ESM **JavaScript** plus source-maps; Tailwind/PostCSS rolls all required utilities into a single `style.css`.  
+Directory outline after `npm run build:lib`:
+
+```
+packages/client/dist/
+├─ index.js          # entry that re-exports public components
+├─ style.css         # Tailwind + Skeleton output (single file)
+├─ *.js              # one per component / util module
+├─ *.d.ts            # matching type declarations
+└─ *.map             # source-maps (point back to original .svelte / .ts)
+```
+
+No raw `.svelte` or Tailwind configs are shipped.
+
+### What desktop has to do
+
+```ts
+import { SupaRoot } from 'supa-client';   // JS bundle
+import 'supa-client/style.css';           // pre-generated CSS
+```
+
+That’s it—desktop never runs Tailwind or PostCSS; it only bundles already-compiled assets.  Source-maps ensure breakpoints still open the real `.svelte` / `.ts` files during debugging.
