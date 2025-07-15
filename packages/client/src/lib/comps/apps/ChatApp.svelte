@@ -2,10 +2,10 @@
   import SendMessageForm from "../forms/SendMessageForm.svelte";
   import ChatAppMessage from "./ChatAppMessage.svelte";
   import { onMount, tick } from "svelte";
-  import { timeout } from "@supa/core/tools/timeout";
-  import { ChatAppData } from "@supa/core/spaces/ChatAppData";
+  import { timeout } from "@supa/core";
+  import { ChatAppData } from "@supa/core";
   import type { Vertex } from "@supa/core";
-  import type { ThreadMessage } from "@supa/core/models";
+  import type { ThreadMessage } from "@supa/core";
   import type { MessageFormStatus } from "../forms/messageFormStatus";
 
   let { data }: { data: ChatAppData } = $props();

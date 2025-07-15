@@ -1,6 +1,6 @@
 import { clientState } from "$lib/state/clientState.svelte";
 import { savePointers, appendTreeOps, saveAllSecrets } from "$lib/localDb";
-import type { SpaceCreationResponse } from "@supa/core/apiTypes";
+import type { SpaceCreationResponse } from "@supa/core";
 import type { SpacePointer } from "$lib/spaces/SpacePointer";
 
 // API Base URL - should match the server

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { ModelProvider, ModelProviderConfig } from "@supa/core/models";
-  import { getProviderModels } from "@supa/core/tools/providerModels";
+  import type { ModelProvider, ModelProviderConfig } from "@supa/core";
+  import { getProviderModels } from "@supa/core";
 
   let {
     provider,

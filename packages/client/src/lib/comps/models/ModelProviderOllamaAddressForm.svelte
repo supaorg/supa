@@ -1,8 +1,8 @@
 <script lang="ts">
   import { clientState } from "$lib/state/clientState.svelte";
-  import type { ModelProviderLocalConfig } from "@supa/core/models";
+  import type { ModelProviderLocalConfig } from "@supa/core";
   import { XCircle, CheckCircle, CircleAlert } from "lucide-svelte/icons";
-  import { timeout } from "@supa/core/tools/timeout";
+  import { timeout } from "@supa/core";
 
   let {
     id,

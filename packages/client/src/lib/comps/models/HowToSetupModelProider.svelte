@@ -2,7 +2,7 @@
   import { XCircle } from "lucide-svelte";
   import Link from "../basic/Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
-  import type { ModelProvider } from "@supa/core/models";
+  import type { ModelProvider } from "@supa/core";
   import { clientState } from "$lib/state/clientState.svelte";
 
   let { provider }: { provider: ModelProvider } = $props();

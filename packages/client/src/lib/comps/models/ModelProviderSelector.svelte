@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { ModelProvider, ModelProviderConfig } from "@supa/core/models";
+  import type { ModelProvider, ModelProviderConfig } from "@supa/core";
   import { onMount } from "svelte";
   import ModelSelectCard from "./ModelSelectCard.svelte";
   import AutoModelSelectCard from "./AutoModelSelectCard.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
-  import { getActiveProviders } from "@supa/core/customProviders";
-  import { splitModelString, combineModelString } from "@supa/core/utils/modelUtils";
+  import { getActiveProviders } from "@supa/core";
+  import { splitModelString, combineModelString } from "@supa/core";
 
   let {
     selectedModel,

@@ -1,15 +1,15 @@
 <script lang="ts">
-  import type { ModelProvider } from "@supa/core/models";
+  import type { ModelProvider } from "@supa/core";
   import { ProgressRing } from "@skeletonlabs/skeleton-svelte";
   import { Sparkles, CircleAlert } from "lucide-svelte/icons";
-  import { providers } from "@supa/core/providers";
-  import { getActiveProviders } from "@supa/core/customProviders";
+  import { providers } from "@supa/core";
+  import { getActiveProviders } from "@supa/core";
   import { clientState } from "$lib/state/clientState.svelte";
   import {
     splitModelString,
     isValidModelString,
     getProviderId,
-  } from "@supa/core/utils/modelUtils";
+  } from "@supa/core";
 
   let { value = $bindable(), required }: { value: string; required?: boolean } =
     $props();

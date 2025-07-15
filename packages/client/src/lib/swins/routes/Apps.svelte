@@ -2,7 +2,7 @@
   import AppConfigTableCell from "$lib/comps/app-configs/AppConfigTableCell.svelte";
   import { txtStore } from "$lib/state/txtStore";
   import { clientState } from "$lib/state/clientState.svelte";
-  import type { AppConfig } from "@supa/core/models";
+  import type { AppConfig } from "@supa/core";
   import SwinsNavButton from "../SwinsNavButton.svelte";
   import { Plus } from "lucide-svelte";
 

@@ -1,4 +1,4 @@
-import type { PersistenceLayer } from "@supa/core/spaces/persistence/PersistenceLayer";
+import type { PersistenceLayer } from "@supa/core";
 import { IndexedDBPersistenceLayer } from "./IndexedDBPersistenceLayer";
 import { FileSystemPersistenceLayer } from "./FileSystemPersistenceLayer";
 

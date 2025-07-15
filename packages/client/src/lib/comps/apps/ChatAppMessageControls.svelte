@@ -7,7 +7,7 @@
     Check,
   } from "lucide-svelte";
 
-  import { timeout } from "@supa/core/tools/timeout";
+  import { timeout } from "@supa/core";
 
   let { showEditAndCopyControls, onCopyMessage, onEditMessage, prevBranch, nextBranch, branchIndex, branchesNumber } = $props();
 

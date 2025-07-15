@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { AppConfig } from "@supa/core/models";
+  import type { AppConfig } from "@supa/core";
   import { clientState } from "$lib/state/clientState.svelte";
   import NewThread from "$lib/comps/apps/NewThread.svelte";
 

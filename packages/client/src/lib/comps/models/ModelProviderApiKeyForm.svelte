@@ -1,13 +1,13 @@
 <script lang="ts">
   import { CheckCircle, CircleAlert, XCircle } from "lucide-svelte/icons";
   import { onMount } from "svelte";
-  import { timeout } from "@supa/core/tools/timeout";
+  import { timeout } from "@supa/core";
   import type {
     ModelProviderCloudConfig,
     ModelProviderConfig,
-  } from "@supa/core/models";
+  } from "@supa/core";
   import { clientState } from "$lib/state/clientState.svelte";
-  import { validateKey } from "@supa/core/tools/providerKeyValidators";
+  import { validateKey } from "@supa/core";
 
   let {
     id,

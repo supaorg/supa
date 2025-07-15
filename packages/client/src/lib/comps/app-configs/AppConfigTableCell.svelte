@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { AppConfig } from "@supa/core/models";
+  import type { AppConfig } from "@supa/core";
   import { Switch, Tooltip } from "@skeletonlabs/skeleton-svelte";
   import {
     TrashIcon,

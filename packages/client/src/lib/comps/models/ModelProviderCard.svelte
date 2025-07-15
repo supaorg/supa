@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ModelProvider, ModelProviderLocalConfig } from "@supa/core/models";
+  import type { ModelProvider, ModelProviderLocalConfig } from "@supa/core";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import ModelProviderOllamaAddressForm from "./ModelProviderOllamaAddressForm.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
@@ -7,7 +7,7 @@
   import { checkOllamaStatus } from "./ollama";
   import { Tooltip } from "@skeletonlabs/skeleton-svelte";
   import { CircleAlert } from "lucide-svelte/icons";
-  import { interval } from "@supa/core/tools/interval";
+  import { interval } from "@supa/core";
   import { ExternalLink } from "lucide-svelte";
 
   type ProviderStatus = "disconnected" | "invalid-key" | "connected";
