@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clientState } from "@client/state/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import PanelLeftClose from "lucide-svelte/icons/panel-left-close";
   import PanelLeftOpen from "lucide-svelte/icons/panel-left-open";
 

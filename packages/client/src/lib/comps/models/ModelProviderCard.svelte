@@ -2,7 +2,7 @@
   import type { ModelProvider, ModelProviderLocalConfig } from "@core/models";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import ModelProviderOllamaAddressForm from "./ModelProviderOllamaAddressForm.svelte";
-  import { clientState } from "@client/state/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { onMount } from "svelte";
   import { checkOllamaStatus } from "./ollama";
   import { Tooltip } from "@skeletonlabs/skeleton-svelte";

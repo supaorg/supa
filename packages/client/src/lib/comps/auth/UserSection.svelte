@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clientState } from "@client/state/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { User } from "lucide-svelte";
 
   const handleSignIn = () => {

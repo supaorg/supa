@@ -1,8 +1,8 @@
 <script lang="ts">
   import { TTabsRoot } from "ttabs-svelte";
-  import { getTtabsLayout, saveTtabsLayout } from "@client/localDb";
+  import { getTtabsLayout, saveTtabsLayout } from "$lib/localDb";
   import { onDestroy, untrack } from "svelte";
-  import type { SpaceState } from "@client/state/spaceState.svelte";
+  import type { SpaceState } from "$lib/state/spaceState.svelte";
 
   let { spaceState }: { spaceState: SpaceState } = $props();
 

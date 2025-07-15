@@ -6,7 +6,7 @@
     ModelProviderCloudConfig,
     ModelProviderConfig,
   } from "@core/models";
-  import { clientState } from "@client/state/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { validateKey } from "@core/tools/providerKeyValidators";
 
   let {

@@ -21,7 +21,7 @@ Here is a high-level map of what you already have and how the three packages tal
                                         ▲
                                         │   alias "@core"
                                         │
-        alias "@client"                 │
+        alias "$lib"                 │
 ┌──────────────────┐        ┌───────────────────────────────────┐
 │   packages/client│  uses  │  packages/desktop (Electron shell)│
 │   (SvelteKit)    │ <──────┤  - SvelteKit SPA bundled into     │

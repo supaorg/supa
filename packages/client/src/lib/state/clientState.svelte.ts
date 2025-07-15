@@ -7,7 +7,7 @@ import { setupSwins } from './swinsLayout';
 import type { SpacePointer } from "../spaces/SpacePointer";
 import { createPersistenceLayersForURI } from "../spaces/persistence/persistenceUtils";
 import { loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
-import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "@client/localDb";
+import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "$lib/localDb";
 import { SpaceManager } from "@core/spaces/SpaceManager";
 import type Space from '@core/spaces/Space';
 

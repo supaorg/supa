@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { clientState } from "@client/state/clientState.svelte";
-  import ModelProviders from "@client/comps/models/ModelProviders.svelte";
-  import CenteredPage from "@client/comps/basic/CenteredPage.svelte";
-  import SwinsNavButton from "@client/swins/SwinsNavButton.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
+  import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
+  import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
+  import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
 
   let showProviderSetupPage = $state(false);
   let allowToStartNewConversationFromProviderSetup = $state(false);

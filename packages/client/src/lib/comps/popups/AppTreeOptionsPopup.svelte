@@ -1,8 +1,8 @@
 <script lang="ts">
   import { EllipsisVertical } from "lucide-svelte";
   import { goto } from "$app/navigation";
-  import ContextMenu from "@client/comps/ui/ContextMenu.svelte";
-  import { clientState } from "@client/state/clientState.svelte";
+  import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   let { appTreeId }: { appTreeId: string } = $props();
   let openState = $state(false);

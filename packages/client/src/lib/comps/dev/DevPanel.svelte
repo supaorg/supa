@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { isDevMode } from "@client/state/devMode";
-  import { spaceInspectorOpen } from "@client/state/devMode";
+  import { isDevMode } from "$lib/state/devMode";
+  import { spaceInspectorOpen } from "$lib/state/devMode";
 </script>
 
 <div class="flex gap-4 items-center justify-between p-2">

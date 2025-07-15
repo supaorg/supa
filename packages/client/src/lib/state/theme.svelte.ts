@@ -1,4 +1,4 @@
-import { saveSpaceTheme, saveSpaceColorScheme, getSpaceSetup } from "@client/localDb";
+import { saveSpaceTheme, saveSpaceColorScheme, getSpaceSetup } from "$lib/localDb";
 
 const DEFAULT_THEME = 'cerberus';
 

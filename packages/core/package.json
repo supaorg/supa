@@ -1,5 +1,5 @@
 {
-  "name": "supa-core",
+  "name": "@supa/core",
   "version": "1.0.0",
   "description": "Core for Supa that can be used on clients, servers, and inside other services",
   "type": "module",

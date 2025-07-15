@@ -24,7 +24,7 @@
     { name: "wintry", emoji: "🌨️" },
   ];
 
-  import { clientState } from "@client/state/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   async function handleThemeClick(name: string) {
     await clientState.theme.setThemeName(name);

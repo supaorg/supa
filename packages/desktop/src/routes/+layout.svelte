@@ -1,12 +1,12 @@
 <script lang="ts">
-  import "../app.css";
-  import ThemeManager from "@client/comps/themes/ThemeManager.svelte";
-  import { clientState } from "@client/state/clientState.svelte";
-  import SwinsContainer from "@client/swins/SwinsContainer.svelte";
+  import "@supa/client/style.css";
+  import ThemeManager from "@supa/client/comps/themes/ThemeManager.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
+  import SwinsContainer from "@supa/client/swins/SwinsContainer.svelte";
   import { onMount } from "svelte";
-  import { destroyShortcuts, initShortcuts } from "@client/shortcuts/shortcuts";
+  import { destroyShortcuts, initShortcuts } from "@supa/client/shortcuts/shortcuts";
 
-  import { fetchSpaces } from "@client/utils/api";
+  import { fetchSpaces } from "@supa/client/utils/api";
 
   let { children } = $props();
 

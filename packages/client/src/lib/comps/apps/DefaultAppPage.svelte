@@ -2,7 +2,7 @@
   import CenteredPage from "../basic/CenteredPage.svelte";
   import NewThread from "./NewThread.svelte";
   import SidebarToggle from "../sidebar/SidebarToggle.svelte";
-  import { clientState } from "@client/state/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
   let sidebarIsOpen = $derived(
     clientState.currentSpaceState?.layout.sidebar.isOpen,

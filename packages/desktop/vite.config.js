@@ -1,14 +1,20 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [sveltekit()],
 	
 	// Configure for Electron compatibility
 	server: {
 		port: 6969,
-		strictPort: true
+		strictPort: true,
+		fs: {
+			allow: [
+				'.',
+				new URL('../core/src', import.meta.url).pathname,
+				new URL('../client/dist', import.meta.url).pathname
+			]
+		},
 	},
 	
 	// Ensure proper base path for electron

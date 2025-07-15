@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { AppConfig } from "@core/models";
-  import { clientState } from "@client/state/clientState.svelte";
-  import NewThread from "@client/comps/apps/NewThread.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
+  import NewThread from "$lib/comps/apps/NewThread.svelte";
 
   let { appConfig }: { appConfig?: AppConfig } = $props();
 

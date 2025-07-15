@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import ModelSelectCard from "./ModelSelectCard.svelte";
   import AutoModelSelectCard from "./AutoModelSelectCard.svelte";
-  import { clientState } from "@client/state/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { getActiveProviders } from "@core/customProviders";
   import { splitModelString, combineModelString } from "@core/utils/modelUtils";
 

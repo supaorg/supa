@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { SupaApp } from '@client';
+	import { onMount } from "svelte";
+	import { SupaApp } from "@supa/client";
 	
 	// Demo state
 	let electronInfo = {

@@ -1,4 +1,4 @@
-import { clientState } from "@client/state/clientState.svelte";
+import { clientState } from "$lib/state/clientState.svelte";
 
 // Platform detection (using userAgent instead of deprecated platform)
 const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);

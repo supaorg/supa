@@ -13,7 +13,7 @@ import {
   saveAllSecrets, 
   getSecret, 
   setSecret 
-} from "@client/localDb";
+} from "$lib/localDb";
 import { Backend } from '@core/spaces/Backend';
 
 export class SpaceState {

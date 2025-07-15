@@ -25,12 +25,6 @@ const config = {
 		// Prerender all pages for static generation
 		prerender: {
 			handleHttpError: 'warn'
-		},
-		
-		// Path aliases for importing from client package
-		alias: {
-			'@client': '../client/src/lib',
-			'@core': '../core/src'
 		}
 	}
 };

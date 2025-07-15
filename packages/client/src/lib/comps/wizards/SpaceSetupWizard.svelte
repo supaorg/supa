@@ -1,9 +1,9 @@
 <script lang="ts">
-  import Wizard from "@client/comps/wizards/Wizard.svelte";
-  import { clientState } from "@client/state/clientState.svelte";
+  import Wizard from "$lib/comps/wizards/Wizard.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
 
-  import ModelProviders from "@client/comps/models/ModelProviders.svelte";
-  import Lightswitch from "@client/comps/basic/Lightswitch.svelte";
+  import ModelProviders from "$lib/comps/models/ModelProviders.svelte";
+  import Lightswitch from "$lib/comps/basic/Lightswitch.svelte";
   import { onMount } from "svelte";
   import ThemeSwitcher from "../themes/ThemeSwitcher.svelte";
 

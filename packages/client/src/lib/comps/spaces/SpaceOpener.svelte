@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { txtStore } from "@client/state/txtStore";
+  import { txtStore } from "$lib/state/txtStore";
   //import { message, open } from "@tauri-apps/plugin-dialog";
-  import { clientState } from "@client/state/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import { 
     checkIfPathHasValidStructureAndReturnActualRootPath
-  } from "@client/spaces/fileSystemSpaceUtils";
+  } from "$lib/spaces/fileSystemSpaceUtils";
 
   type Status = "idle" | "creating" | "opening";
   let status: Status = $state("idle");

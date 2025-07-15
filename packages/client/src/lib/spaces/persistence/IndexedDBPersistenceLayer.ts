@@ -5,7 +5,7 @@ import {
   appendTreeOps,
   getAllSecrets,
   saveAllSecrets
-} from "@client/localDb";
+} from "$lib/localDb";
 
 /**
  * One-way persistence layer that saves space and app tree operations to IndexedDB.

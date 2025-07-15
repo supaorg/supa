@@ -11,7 +11,7 @@
   import { onMount } from "svelte";
   import { timeout } from "@core/tools/timeout";
   import Markdown from "../markdown/Markdown.svelte";
-  import { clientState } from "@client/state/clientState.svelte";
+  import { clientState } from "$lib/state/clientState.svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
 
