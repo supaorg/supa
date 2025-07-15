@@ -212,3 +212,16 @@ will solve the “Failed to resolve import …core/src”.
 Alternatively, keep the original `@core` alias in *client* source so the packager doesn’t rewrite paths at all.
 
 That’s the concise history and the issues we ran into.
+
+<!--- ===================================================================== -->
+## Further considerations
+
+* **Replace path aliases with real workspace package imports.**  
+  Instead of `import { X } from "@core/..."` backed by `alias: { '@core': '../core/src' }`, give each sub-folder an actual package name (e.g. `@supa/core`, `@supa/client`) and import them the normal npm way:
+  ```ts
+  // inside client
+  import { SpaceManager } from '@supa/core/spaces/SpaceManager';
+  // inside desktop
+  import { SupaRoot } from '@supa/client';
+  ```
+  This removes Rollup/Vite rewrite surprises, eliminates extra alias config in every tool, and makes dependencies explicit in `package.json`.  It works both inside the monorepo (using `"workspace:*"` versions) and after publishing to npm.
