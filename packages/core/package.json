@@ -6,12 +6,13 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsup"
   },
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "deno": "./src/index.ts"
     },
     "./*": "./dist/*"
   },
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "typescript": "^5.0.0",
+    "tsup": "^8.5.0",
     "vitest": "^1.6.1"
   }
 }
