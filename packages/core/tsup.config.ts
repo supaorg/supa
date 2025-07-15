@@ -2,7 +2,11 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: ['src/**/*.ts'], // preserve directory structure
-  dts: true,
+  dts: {
+    compilerOptions: {
+      declarationMap: true
+    }
+  },
   format: ['esm'],
   sourcemap: true,
   outDir: 'dist',
