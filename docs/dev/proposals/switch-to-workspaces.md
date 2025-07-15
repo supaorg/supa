@@ -1,27 +1,15 @@
+Read file: package.json
 Read file: packages/client/package.json
 Read file: packages/desktop/package.json
 Read file: packages/client/svelte.config.js
 Read file: packages/desktop/svelte.config.js
 Read file: packages/client/tailwind.config.ts
 Read file: packages/desktop/tailwind.config.ts
-
 Read file: packages/client/vite.config.js
-
 Read file: packages/desktop/vite.config.js
-
 Read file: packages/desktop/src/routes/+layout.svelte
-
 Read file: packages/desktop/src/app.css
-
 Read file: packages/client/src/app.css
-
-Ran tool
-
-Ran tool
-
-Ran tool
-
-Read file: package.json
 
 Here is a high-level map of what you already have and how the three packages talk to each other.  (I’m using the aliases that appear in your `svelte.config.js` files.)
 
