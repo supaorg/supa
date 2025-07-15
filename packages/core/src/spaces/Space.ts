@@ -6,7 +6,7 @@ import type { ModelProviderConfig } from "../models";
 import { validateKey } from "../tools/providerKeyValidators";
 import { Vertex } from "reptree";
 import { AppConfigsData } from "./AppConfigsData";
-import uuid from "../uuid/uuid";
+import uuid from "../utils/uuid";
 
 export default class Space {
   readonly tree: RepTree;

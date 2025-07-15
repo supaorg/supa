@@ -3,7 +3,7 @@ import type { VertexOperation } from "reptree";
 import Space from "./Space";
 import AppTree from "./AppTree";
 import type { PersistenceLayer } from "./persistence/PersistenceLayer";
-import uuid from "../uuid/uuid";
+import uuid from "../utils/uuid";
 
 export interface SpacePointer {
   id: string;

@@ -1,5 +1,6 @@
 .DS_Store
 
+**/dist/
 _site
 _cache
 deno.lock

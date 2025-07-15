@@ -28,6 +28,7 @@ export function getProviderModels(
   // Custom provider (starts with custom-)
   if (provider.startsWith('custom-')) {
     // For custom providers, we check if we have the config object
+    // @ts-ignore
     if (typeof key === 'object' && key !== null && 'baseApiUrl' in key) {
       const config = key as CustomProviderConfig;
       // If we have a model ID already set in the config, prioritize that
