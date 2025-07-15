@@ -1,4 +1,4 @@
-import { AgentServices } from "./AgentServices.ts";
+import { AgentServices } from "./AgentServices";
 
 export interface AgentOutput {
   text: string;

@@ -1,8 +1,8 @@
 import { Lang, LanguageProvider } from 'aiwrapper';
-import { providers } from "../providers.ts";
-import Space from '../spaces/Space.ts';
-import { getProviderModels } from '../tools/providerModels.ts';
-import { splitModelString } from '../utils/modelUtils.ts';
+import { providers } from "../providers";
+import Space from '../spaces/Space';
+import { getProviderModels } from '../tools/providerModels';
+import { splitModelString } from '../utils/modelUtils';
 
 export class AgentServices {
   readonly space: Space;

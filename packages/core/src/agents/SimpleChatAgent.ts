@@ -1,6 +1,6 @@
 import { LangResultWithMessages } from "aiwrapper";
-import { AppConfig, ThreadMessage } from "../models.ts";
-import { Agent, AgentInput, AgentOutput } from "./Agent.ts";
+import { AppConfig, ThreadMessage } from "../models";
+import { Agent, AgentInput, AgentOutput } from "./Agent";
 
 export interface AppConfigForChat extends AppConfig {
   targetLLM?: string;
