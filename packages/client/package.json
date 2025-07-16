@@ -13,14 +13,19 @@
   "files": [
     "dist"
   ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "svelte": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "svelte": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./style.css": "./dist/style.css",
     "./*": "./dist/*"
   },
+  "types": "./dist/index.d.ts",
   "svelte": "./dist/index.js",
   "sideEffects": [
     "**/*.css"
