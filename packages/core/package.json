@@ -6,7 +6,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "vite build"
+    "build": "vite build",
+    "watch": "vite build --watch"
   },
   "exports": {
     ".": {

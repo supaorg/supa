@@ -1,7 +1,3 @@
-<script module>
-  import "katex/dist/contrib/copy-tex.min.js";
-</script>
-
 <script lang="ts">
   import katex from "katex";
   import type { Tokens } from "marked";

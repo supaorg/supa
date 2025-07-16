@@ -1,6 +1,5 @@
 <script lang="ts">
   import { EllipsisVertical } from "lucide-svelte";
-  import { goto } from "$app/navigation";
   import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
   import { clientState } from "$lib/state/clientState.svelte";
 
@@ -28,7 +27,6 @@
 
   async function deleteThread() {
     clientState.currentSpace?.deleteAppTree(appTreeId);
-    goto("/");
     popoverClose();
   }
 </script>

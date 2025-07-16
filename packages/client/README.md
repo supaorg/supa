@@ -28,7 +28,7 @@ import '@supa/client/style.css';
 This CSS file includes:
 - Tailwind CSS utilities
 - Skeleton UI framework styles and themes
-- KaTeX for math rendering
+- KaTeX for math rendering (fonts and styles)
 - All necessary component styles
 
 ### Components

@@ -1,4 +1,3 @@
-import { browser } from "$app/environment";
 import { setCookie, getCookie } from "$lib/utils/cookies";
 import { apiRequest } from "$lib/utils/api";
 
@@ -32,9 +31,7 @@ export class AuthStore {
 
   constructor() {
     // Load auth state from cookies on initialization
-    if (browser) {
-      this.loadFromStorage();
-    }
+    this.loadFromStorage();
   }
 
   async setAuth(tokens: AuthTokens, user: User) {
@@ -46,23 +43,23 @@ export class AuthStore {
     this.tokenExpiry = Date.now() + (tokens.expires_in * 1000);
     this.user = user;
     this.isAuthenticated = true;
-    
-    if (browser) {
-      // Store tokens in cookies
-      // Convert expires_in (seconds) to days for cookie expiration
-      const accessTokenDays = Math.ceil(tokens.expires_in / (24 * 60 * 60));
-      
-      setCookie(document, "access_token", tokens.access_token, accessTokenDays);
-      
-      // Only update refresh token cookie if it's a new one
-      if (tokens.refresh_token) {
-        const refreshTokenDays = 30; // 30 days for refresh token
-        setCookie(document, "refresh_token", tokens.refresh_token, refreshTokenDays);
-      }
-      
-      // Store user info in localStorage for easy access
-      localStorage.setItem("user", JSON.stringify(user));
+
+
+    // Store tokens in cookies
+    // Convert expires_in (seconds) to days for cookie expiration
+    const accessTokenDays = Math.ceil(tokens.expires_in / (24 * 60 * 60));
+
+    setCookie(document, "access_token", tokens.access_token, accessTokenDays);
+
+    // Only update refresh token cookie if it's a new one
+    if (tokens.refresh_token) {
+      const refreshTokenDays = 30; // 30 days for refresh token
+      setCookie(document, "refresh_token", tokens.refresh_token, refreshTokenDays);
     }
+
+    // Store user info in localStorage for easy access
+    localStorage.setItem("user", JSON.stringify(user));
+
   }
 
   logout() {
@@ -71,15 +68,14 @@ export class AuthStore {
     this.tokenExpiry = null;
     this.user = null;
     this.isAuthenticated = false;
-    
-    if (browser) {
-      // Clear cookies by setting expiration to 0 days
-      setCookie(document, "access_token", null, 0);
-      setCookie(document, "refresh_token", null, 0);
-      
-      // Clear localStorage
-      localStorage.removeItem("user");
-    }
+
+    // Clear cookies by setting expiration to 0 days
+    setCookie(document, "access_token", null, 0);
+    setCookie(document, "refresh_token", null, 0);
+
+    // Clear localStorage
+    localStorage.removeItem("user");
+
   }
 
   private loadFromStorage() {
@@ -87,13 +83,13 @@ export class AuthStore {
       // Load tokens from cookies
       const accessToken = getCookie(document, "access_token");
       const refreshToken = getCookie(document, "refresh_token");
-      
+
       // Load user from localStorage
       const userJson = localStorage.getItem("user");
-      
+
       if (accessToken && refreshToken && userJson) {
         const user = JSON.parse(userJson);
-        
+
         // Validate access token is not expired
         const payload = this.parseJWT(accessToken);
         if (payload && payload.exp && payload.exp * 1000 > Date.now()) {
@@ -167,10 +163,9 @@ export class AuthStore {
       this.isAuthenticated = true;
 
       // Update access token cookie
-      if (browser) {
-        const accessTokenDays = Math.ceil(response.data.expires_in / (24 * 60 * 60));
-        setCookie(document, "access_token", response.data.access_token, accessTokenDays);
-      }
+      const accessTokenDays = Math.ceil(response.data.expires_in / (24 * 60 * 60));
+      setCookie(document, "access_token", response.data.access_token, accessTokenDays);
+
 
       console.log('Token refresh completed successfully');
     } catch (error) {
@@ -202,7 +197,7 @@ export class AuthStore {
     try {
       const parts = token.split(".");
       if (parts.length !== 3) return null;
-      
+
       const payload = JSON.parse(atob(parts[1]));
       return payload;
     } catch (error) {
@@ -213,14 +208,14 @@ export class AuthStore {
   // Get the authorization header for API requests
   async getAuthHeader(): Promise<string | null> {
     if (!this.accessToken) return null;
-    
+
     // Check if token is expired or about to expire (within 5 minutes)
     if (this.tokenExpiry && this.tokenExpiry - Date.now() < 5 * 60 * 1000) {
       console.log('Token about to expire, refreshing...');
       // Token is expired or about to expire, refresh it
       await this.refreshTokens();
     }
-    
+
     return `Bearer ${this.accessToken}`;
   }
 }
