@@ -2,61 +2,30 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Chrome against localhost",
-      "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:6969",
-      "webRoot": "${workspaceFolder}/packages/client/src",
-      "sourceMaps": true,
-      "preLaunchTask": "npm: dev"
-    },
-    {
-      "name": "Attach to Chrome",
-      "type": "chrome",
-      "request": "attach",
-      "port": 9222,
-      "url": "http://localhost:6969",
-      "webRoot": "${workspaceFolder}/packages/client/src",
-      "sourceMaps": true
-    },
-    {
-      "name": "Debug Electron Main Process",
+      "name": "Dev: npm run dev (root)",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/packages/desktop",
-      "runtimeExecutable": "${workspaceFolder}/packages/desktop/node_modules/.bin/electron",
-      "windows": {
-        "runtimeExecutable": "${workspaceFolder}/packages/desktop/node_modules/.bin/electron.cmd"
-      },
-      "args": [".", "--remote-debugging-port=9222"],
-      "outputCapture": "std",
-      "preLaunchTask": "npm: svelte:dev - packages/desktop",
-      "env": {
-        "NODE_ENV": "development",
-        "ELECTRON_ENABLE_LOGGING": "true",
-        "ELECTRON_ENABLE_STACK_DUMPING": "true"
-      }
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "presentation": { "reveal": "silent" },
+      "console": "integratedTerminal"
     },
     {
-      "name": "Debug Electron Renderer Process",
+      "name": "Attach to Electron Renderer (port 9222)",
       "type": "chrome",
       "request": "attach",
       "port": 9222,
-      "webRoot": "${workspaceFolder}/packages/desktop/src",
-      "sourceMaps": true,
-      "timeout": 30000
+      "webRoot": "${workspaceFolder}"
     }
   ],
   "compounds": [
     {
-      "name": "Debug Electron All",
+      "name": "Launch & Attach",
       "configurations": [
-        "Debug Electron Main Process",
-        "Debug Electron Renderer Process"
-      ],
-      "presentation": {
-        "order": 1
-      }
+        "Dev: npm run dev (root)",
+        "Attach to Electron Renderer (port 9222)"
+      ]
     }
   ]
 } 
