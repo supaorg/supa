@@ -2,23 +2,9 @@ import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'node:path';
-import { readFileSync } from 'node:fs';
+import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 
-// Read this package's package.json to automatically externalize every declared dep
-const pkgJson = JSON.parse(
-  readFileSync(new URL('./package.json', import.meta.url), 'utf-8')
-);
-
-const externalDeps = [
-  // Everything declared as (runtime) dependency
-  ...Object.keys(pkgJson.dependencies || {}),
-  // Everything declared as peer dependency
-  ...Object.keys(pkgJson.peerDependencies || {}),
-  // Always leave Svelte to the consumer – both runtime and compile-time helpers
-  /^svelte/
-];
-
-export default defineConfig({
+export default defineConfig(() => ({
   plugins: [tailwindcss(), svelte()],
 
   resolve: {
@@ -39,14 +25,12 @@ export default defineConfig({
     },
 
     rollupOptions: {
-      // Externalize peer dependencies and internal packages
-      external: externalDeps,
-      output: {
-        assetFileNames: (assetInfo) =>
-          assetInfo.name === 'style.css' || assetInfo.name === 'index.css'
-            ? 'style.css'
-            : assetInfo.name ?? '[name].[ext]'
-      }
+      plugins: [peerDepsExternal()],
+      // Always preserve individual modules for faster rebuilds
+      preserveModules: true,
+      preserveModulesRoot: 'src',
+      // Externalize Svelte runtime as well
+      external: id => id === 'svelte' || id.startsWith('svelte/'),
     }
   }
-});
+}));
