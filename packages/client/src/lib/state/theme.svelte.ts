@@ -1,4 +1,4 @@
-import { saveSpaceTheme, saveSpaceColorScheme, getSpaceSetup } from "$lib/localDb";
+import { saveSpaceTheme, saveSpaceColorScheme, getSpaceSetup } from "@supa/client/localDb";
 
 const DEFAULT_THEME = 'cerberus';
 

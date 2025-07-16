@@ -6,7 +6,7 @@
     ModelProviderCloudConfig,
     ModelProviderConfig,
   } from "@supa/core";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
   import { validateKey } from "@supa/core";
 
   let {

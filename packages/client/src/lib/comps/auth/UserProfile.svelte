@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
   import { LogOut, User } from "lucide-svelte";
 
   const handleSignOut = async () => {

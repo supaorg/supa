@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2021",
+    "module": "esnext",
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "checkJs": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@supa/core":   ["packages/core/src/*"],
+      "@supa/client": ["packages/client/src/lib/index.ts"],
+      "@supa/client/*": ["packages/client/src/lib/*"]
+    },
+    
+  }
+}

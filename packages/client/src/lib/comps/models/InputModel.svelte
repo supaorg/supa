@@ -4,7 +4,7 @@
   import { Sparkles, CircleAlert } from "lucide-svelte/icons";
   import { providers } from "@supa/core";
   import { getActiveProviders } from "@supa/core";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
   import {
     splitModelString,
     isValidModelString,

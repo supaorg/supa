@@ -13,7 +13,7 @@ import {
   saveAllSecrets, 
   getSecret, 
   setSecret 
-} from "$lib/localDb";
+} from "@supa/client/localDb";
 import { Backend } from "@supa/core";
 
 export class SpaceState {

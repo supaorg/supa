@@ -1,7 +1,7 @@
-import { clientState } from "$lib/state/clientState.svelte";
-import { savePointers, appendTreeOps, saveAllSecrets } from "$lib/localDb";
+import { clientState } from "@supa/client/state/clientState.svelte";
+import { savePointers, appendTreeOps, saveAllSecrets } from "@supa/client/localDb";
 import type { SpaceCreationResponse } from "@supa/core";
-import type { SpacePointer } from "$lib/spaces/SpacePointer";
+import type { SpacePointer } from "@supa/client/spaces/SpacePointer";
 
 // API Base URL - should match the server
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3131';

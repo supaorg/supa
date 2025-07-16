@@ -4,7 +4,7 @@
   import CustomProviderCard from "./CustomProviderCard.svelte";
   import AddCustomProviderCard from "./AddCustomProviderCard.svelte";
   import { providers } from "@supa/core";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
   import { getActiveProviders } from "@supa/core";
 
   let customProviders = $state<ModelProvider[]>([]);

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { clientState } from "$lib/state/clientState.svelte";
-  import Loading from "$lib/comps/basic/Loading.svelte";
-  import FreshStartWizard from "$lib/comps/wizards/FreshStartWizard.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
+  import Loading from "@supa/client/comps/basic/Loading.svelte";
+  import FreshStartWizard from "@supa/client/comps/wizards/FreshStartWizard.svelte";
   import Space from "./apps/Space.svelte";
 
   onMount(async () => {

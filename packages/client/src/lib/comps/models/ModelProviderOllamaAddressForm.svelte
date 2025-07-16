@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
   import type { ModelProviderLocalConfig } from "@supa/core";
   import { XCircle, CheckCircle, CircleAlert } from "lucide-svelte/icons";
   import { timeout } from "@supa/core";

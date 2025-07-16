@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { API_BASE_URL } from "$lib/utils/api";
+  import { API_BASE_URL } from "@supa/client/utils/api";
 
   let serverOnline = $state(true);
   let checkingServer = $state(true);

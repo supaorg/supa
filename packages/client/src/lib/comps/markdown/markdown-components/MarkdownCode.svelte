@@ -3,7 +3,7 @@
   import type { Tokens } from "marked";
   import { Copy, Check } from "lucide-svelte";
   import { timeout } from "@supa/core";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
 </script>
 
 <script lang="ts">

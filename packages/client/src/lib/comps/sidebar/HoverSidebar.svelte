@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount, untrack } from "svelte";
   import Sidebar from "./Sidebar.svelte";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
 
   let showHoverSidebar = $state(false);
   let hoverTriggerTimeout: ReturnType<typeof setTimeout> | null = null;

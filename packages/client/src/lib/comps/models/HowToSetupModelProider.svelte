@@ -3,7 +3,7 @@
   import Link from "../basic/Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
   import type { ModelProvider } from "@supa/core";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
 
   let { provider }: { provider: ModelProvider } = $props();
 

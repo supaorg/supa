@@ -1,6 +1,6 @@
 <script lang="ts">
-  import CenteredPage from "$lib/comps/basic/CenteredPage.svelte";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import CenteredPage from "@supa/client/comps/basic/CenteredPage.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
 
   function handleSignIn() {
     clientState.layout.swins.open("sign-in", {}, "Sign in");

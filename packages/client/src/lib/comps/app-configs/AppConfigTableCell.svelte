@@ -6,10 +6,10 @@
     Pencil,
     MessageCircle,
   } from "lucide-svelte";
-  import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
-  import { txtStore } from "$lib/state/txtStore";
-  import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import ContextMenu from "@supa/client/comps/ui/ContextMenu.svelte";
+  import { txtStore } from "@supa/client/state/txtStore";
+  import SwinsNavButton from "@supa/client/swins/SwinsNavButton.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
 
   let { config }: { config: AppConfig } = $props();
 

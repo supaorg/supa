@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
   import type { CustomProviderConfig } from "@supa/core";
 
   let name = $state("");

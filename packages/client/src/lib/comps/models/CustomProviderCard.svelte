@@ -3,7 +3,7 @@
   import { Pencil, Trash2, CircleAlert } from "lucide-svelte";
   import { Tooltip } from "@skeletonlabs/skeleton-svelte";
   import CustomProviderForm from "./CustomProviderForm.svelte";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
   import { getActiveProviders } from "@supa/core";
 
   let {

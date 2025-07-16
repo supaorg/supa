@@ -1,6 +1,6 @@
-import ChatAppLoader from "$lib/comps/apps/ChatAppLoader.svelte";
-import Sidebar from "$lib/comps/sidebar/Sidebar.svelte";
-import SidebarToggle from "$lib/comps/sidebar/SidebarToggle.svelte";
+import ChatAppLoader from "@supa/client/comps/apps/ChatAppLoader.svelte";
+import Sidebar from "@supa/client/comps/sidebar/Sidebar.svelte";
+import SidebarToggle from "@supa/client/comps/sidebar/SidebarToggle.svelte";
 import {
   createTtabs,
   type TtabsTheme,
@@ -8,10 +8,10 @@ import {
   LayoutValidationError,
   type TTabs,
 } from "ttabs-svelte";
-import { SKELETON_THEME } from "$lib/ttabs/themes/skeleton";
-import TabCloseButton from "$lib/ttabs/components/TabCloseButton.svelte";
-import DefaultAppPage from "$lib/comps/apps/DefaultAppPage.svelte";
-import { getTtabsLayout, saveTtabsLayout } from "$lib/localDb";
+import { SKELETON_THEME } from "@supa/client/ttabs/themes/skeleton";
+import TabCloseButton from "@supa/client/ttabs/components/TabCloseButton.svelte";
+import DefaultAppPage from "@supa/client/comps/apps/DefaultAppPage.svelte";
+import { getTtabsLayout, saveTtabsLayout } from "@supa/client/localDb";
 
 type LayoutRefs = {
   contentGrid: string | undefined,

@@ -1,9 +1,9 @@
 <script lang="ts">
   import InputModel from "../models/InputModel.svelte";
-  import { txtStore } from "$lib/state/txtStore";
+  import { txtStore } from "@supa/client/state/txtStore";
   import { uuid } from "@supa/core";
-  import { clientState } from "$lib/state/clientState.svelte";
-  import SwinsNavButton from "$lib/swins/SwinsNavButton.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
+  import SwinsNavButton from "@supa/client/swins/SwinsNavButton.svelte";
 
   let {
     configId,

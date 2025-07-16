@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { clientState } from "$lib/state/clientState.svelte";
-  import SpaceOptionsPopup from "$lib/comps/popups/SpaceOptionsPopup.svelte";
-  import RenamingPopup from "$lib/comps/popups/RenamingPopup.svelte";
-  import type { SpacePointer } from "$lib/spaces/SpacePointer";
+  import { clientState } from "@supa/client/state/clientState.svelte";
+  import SpaceOptionsPopup from "@supa/client/comps/popups/SpaceOptionsPopup.svelte";
+  import RenamingPopup from "@supa/client/comps/popups/RenamingPopup.svelte";
+  import type { SpacePointer } from "@supa/client/spaces/SpacePointer";
   import { Circle, CircleCheckBig } from "lucide-svelte";
 
   let renamingPopupOpen = $state(false);

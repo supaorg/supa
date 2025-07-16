@@ -12,3 +12,5 @@ export * from './tools';
 export * from './agents';
 export * from './spaces';
 export * from './apps';
+
+export const MSG = "Hello from the core!";

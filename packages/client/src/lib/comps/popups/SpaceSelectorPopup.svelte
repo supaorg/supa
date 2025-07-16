@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { clientState } from "$lib/state/clientState.svelte";
-  import ContextMenu from "$lib/comps/ui/ContextMenu.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
+  import ContextMenu from "@supa/client/comps/ui/ContextMenu.svelte";
   import { ChevronsUpDown } from "lucide-svelte";
 
   let openState = $state(false);

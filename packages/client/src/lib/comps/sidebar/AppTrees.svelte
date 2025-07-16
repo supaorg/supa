@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { clientState } from "$lib/state/clientState.svelte";
+  import { clientState } from "@supa/client/state/clientState.svelte";
   import VertexItem from "./VertexItem.svelte";
-  import type { VertexChangeEvent } from "reptree/treeTypes";
+  import type { VertexChangeEvent } from "reptree";
 
   let appTreeIds: string[] = $state([]);
   let appTreesUnobserve: (() => void) | undefined;

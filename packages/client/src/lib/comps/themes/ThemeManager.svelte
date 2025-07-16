@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { clientState } from "$lib/state/clientState.svelte";
-  import { applyColorSchemeToDocument } from "$lib/utils/updateColorScheme";
+  import { clientState } from "@supa/client/state/clientState.svelte";
+  import { applyColorSchemeToDocument } from "@supa/client/utils/updateColorScheme";
     import { onMount } from "svelte";
 
   function applyThemeToDocument(themeName: string) {

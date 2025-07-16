@@ -1,35 +1,12 @@
 {
   "name": "@supa/client",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "The client for supa",
   "type": "module",
-  "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "watch": "vite build --watch --emptyOutDir false"
-  },
-  "license": "MIT",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "svelte": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./style.css": "./dist/style.css",
-    "./*": "./dist/*"
-  },
-  "types": "./dist/index.d.ts",
-  "svelte": "./dist/index.js",
-  "sideEffects": [
-    "**/*.css"
-  ],
+  "main": "./src/lib/index.ts",
+  "types": "./src/lib/index.ts",
+  "exports": { "./*": "./src/lib/*" },
   "dependencies": {
     "@supa/core": "*",
     "@floating-ui/dom": "1.6.11",

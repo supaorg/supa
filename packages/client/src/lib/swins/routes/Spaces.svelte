@@ -1,7 +1,7 @@
 <script lang="ts">
-  import SpaceList from "$lib/comps/spaces/SpaceList.svelte";
-  import { txtStore } from "$lib/state/txtStore";
-  import { clientState } from "$lib/state/clientState.svelte";
+  import SpaceList from "@supa/client/comps/spaces/SpaceList.svelte";
+  import { txtStore } from "@supa/client/state/txtStore";
+  import { clientState } from "@supa/client/state/clientState.svelte";
   import { Plus } from "lucide-svelte";
   import SwinsNavButton from "../SwinsNavButton.svelte";
 
