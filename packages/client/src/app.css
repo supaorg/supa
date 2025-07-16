@@ -28,6 +28,9 @@
 @import '@skeletonlabs/skeleton/themes/vox';
 @import '@skeletonlabs/skeleton/themes/wintry';
 
+/* KaTeX for math rendering */
+@import 'katex/dist/katex.min.css';
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 html,

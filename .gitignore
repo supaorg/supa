@@ -1,16 +1,15 @@
 .DS_Store
 
 **/dist/
+**/node_modules
+
 _site
 _cache
 deno.lock
 .env
 .env.disabled
 jwt.key
-
 env.json
-
-node_modules
 
 .cursorrules
 CLAUDE.md

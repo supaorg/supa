@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { SupaApp } from "@supa/client";
+  import '@supa/client/style.css';
 
   onMount(() => {
     if (typeof process !== "undefined" && process.versions) {
