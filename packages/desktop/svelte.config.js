@@ -16,6 +16,11 @@ const config = {
 			precompress: false,
 			strict: false
 		}),
+
+    alias: {
+      "@supa/client": "../client/src/lib",
+      "@supa/core": "../core/src",
+    },
 		
 		// Configure paths for Electron - empty string for development, relative path for production
 		paths: {

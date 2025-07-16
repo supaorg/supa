@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { SupaApp } from "@supa/client/comps/SupaApp.svelte";
+  import SupaApp from "@supa/client/comps/SupaApp.svelte";
   //import '@supa/client/style.css';
 
   onMount(() => {
