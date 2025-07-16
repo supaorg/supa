@@ -37,13 +37,17 @@
   },
   "dependencies": {
     "@floating-ui/dom": "1.6.11",
+    "@supa/client": "*",
+    "@supa/core": "*",
     "dexie": "^4.0.11",
     "github-slugger": "^2.0.0",
-    "highlight.js": "11.10.0",
     "katex": "^0.16.21",
     "lucide-svelte": "^0.453.0",
     "marked": "^15.0.6",
-    "svelte-persisted-store": "^0.12.0"
+    "shiki": "^2.0.3",
+    "socket.io-client": "^4.8.1",
+    "svelte-persisted-store": "^0.12.0",
+    "ttabs-svelte": "^0.0.12"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
