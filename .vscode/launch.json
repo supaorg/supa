@@ -8,7 +8,7 @@
       "url": "http://localhost:6969",
       "webRoot": "${workspaceFolder}/packages/client/src",
       "sourceMaps": true,
-      "preLaunchTask": "npm: dev - packages/client"
+      "preLaunchTask": "dev-client"
     },
     {
       "name": "Attach to Chrome",
@@ -30,7 +30,7 @@
       },
       "args": [".", "--remote-debugging-port=9222"],
       "outputCapture": "std",
-      "preLaunchTask": "npm: svelte:dev - packages/desktop",
+      "preLaunchTask": "dev-client",
       "env": {
         "NODE_ENV": "development",
         "ELECTRON_ENABLE_LOGGING": "true",

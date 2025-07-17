@@ -7,6 +7,7 @@
   "scripts": {
     "prepare": "svelte-kit sync",
     "dev": "concurrently \"npm run svelte:dev\" \"npm run electron:dev\" \"npm run client:dev\"",
+    "dev:without-starting-electron": "concurrently \"npm run svelte:dev\" \"npm run client:dev\"",
     "svelte:dev": "vite dev --port 6969",
     "client:dev": "cd ../client && npm run dev",
     "electron:dev": "wait-on http://localhost:6969 && electron . --dev --remote-debugging-port=9222",
