@@ -8,8 +8,8 @@
   "types": "./src/lib/index.ts",
   "exports": { "./*": "./src/lib/*" },
   "scripts": {
-    "dev": "tailwindcss -o ./src/lib/compiled-style.css --watch",
-    "build": "tailwindcss -o ./src/lib/compiled-style.css"
+    "dev": "tailwindcss -i ./src/app.css -o ./src/lib/compiled-style.css --watch",
+    "build": "tailwindcss -i ./src/app.css -o ./src/lib/compiled-style.css"
   },
   "dependencies": {
     "@supa/core": "*",
