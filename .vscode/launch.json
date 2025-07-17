@@ -2,30 +2,61 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Dev: npm run dev (root)",
-      "type": "node",
+      "name": "Launch Chrome against localhost",
+      "type": "chrome",
       "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "presentation": { "reveal": "silent" },
-      "console": "integratedTerminal"
+      "url": "http://localhost:6969",
+      "webRoot": "${workspaceFolder}/packages/client/src",
+      "sourceMaps": true,
+      "preLaunchTask": "npm: dev - packages/client"
     },
     {
-      "name": "Attach to Electron Renderer (port 9222)",
+      "name": "Attach to Chrome",
       "type": "chrome",
       "request": "attach",
       "port": 9222,
-      "webRoot": "${workspaceFolder}"
+      "url": "http://localhost:6969",
+      "webRoot": "${workspaceFolder}/packages/client/src",
+      "sourceMaps": true
+    },
+    {
+      "name": "Debug Electron Main Process",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/packages/desktop",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+      "windows": {
+        "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+      },
+      "args": [".", "--remote-debugging-port=9222"],
+      "outputCapture": "std",
+      "preLaunchTask": "npm: svelte:dev - packages/desktop",
+      "env": {
+        "NODE_ENV": "development",
+        "ELECTRON_ENABLE_LOGGING": "true",
+        "ELECTRON_ENABLE_STACK_DUMPING": "true"
+      }
+    },
+    {
+      "name": "Debug Electron Renderer Process",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "timeout": 30000
     }
   ],
   "compounds": [
     {
-      "name": "Launch & Attach",
+      "name": "Debug Electron All",
       "configurations": [
-        "Dev: npm run dev (root)",
-        "Attach to Electron Renderer (port 9222)"
-      ]
+        "Debug Electron Main Process",
+        "Debug Electron Renderer Process"
+      ],
+      "presentation": {
+        "order": 1
+      }
     }
   ]
-} 
+}
