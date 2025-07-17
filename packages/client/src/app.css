@@ -1,10 +1,9 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
-@source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
 
+@source '../../../node_modules/@skeletonlabs/skeleton-svelte/dist';
 @import '@skeletonlabs/skeleton';
 @import '@skeletonlabs/skeleton/optional/presets';
-
 @import '@skeletonlabs/skeleton/themes/cerberus';
 @import '@skeletonlabs/skeleton/themes/rose';
 @import '@skeletonlabs/skeleton/themes/catppuccin';
@@ -28,8 +27,9 @@
 @import '@skeletonlabs/skeleton/themes/vox';
 @import '@skeletonlabs/skeleton/themes/wintry';
 
+
 /* KaTeX for math rendering */
-@import 'katex/dist/katex.min.css';
+/*@import 'katex/dist/katex.min.css'; */
 
 @custom-variant dark (&:where(.dark, .dark *));
 

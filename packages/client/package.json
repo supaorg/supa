@@ -7,6 +7,10 @@
   "main": "./src/lib/index.ts",
   "types": "./src/lib/index.ts",
   "exports": { "./*": "./src/lib/*" },
+  "scripts": {
+    "dev": "tailwindcss -o ./src/lib/compiled-style.css --watch",
+    "build": "tailwindcss -o ./src/lib/compiled-style.css"
+  },
   "dependencies": {
     "@supa/core": "*",
     "@floating-ui/dom": "1.6.11",
