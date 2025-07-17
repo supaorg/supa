@@ -35,6 +35,7 @@ feat(auth): add user login
 fix(payment): resolve gateway timeout
 ci: update release workflow
 docs: update README
+dev: anything related to the build pipelines and dev convinience
 
 ## Commit types
 Any product-related feature - "feature(name): description"
