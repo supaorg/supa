@@ -23,11 +23,6 @@ const config = {
       "@supa/core": "../core/src",
     },
 
-    // Configure paths for Electron - empty string for development, relative path for production
-    paths: {
-      base: process.env.NODE_ENV === 'production' ? '' : ''
-    },
-
     // Prerender all pages for static generation
     prerender: {
       handleHttpError: 'warn'

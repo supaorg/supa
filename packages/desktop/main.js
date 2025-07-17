@@ -1,4 +1,5 @@
 import { app, BrowserWindow, Menu } from 'electron';
+import serve from 'electron-serve';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -8,6 +9,8 @@ const __dirname = path.dirname(__filename);
 
 // Development mode check
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
+
+const serveURL = serve({ directory: '.' });
 
 // Note: SvelteKit provides HMR for renderer process changes
 // Main process changes (this file) require manual restart
@@ -35,12 +38,13 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:6969');
   } else {
     // Production: load built SvelteKit files
-    mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'));
+    serveURL(mainWindow);
   }
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    mainWindow.focus();
   });
 
   // Open DevTools in development
