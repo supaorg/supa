@@ -45,8 +45,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "electron": "^28.0.0",
-    "electron-builder": "^24.6.4",
+    "electron": "37.2.3",
+    "electron-builder": "26.0.12",
     "wait-on": "^7.2.0",
     "@sveltejs/adapter-static": "^3.0.1",
     "@sveltejs/kit": "^2.0.0",
