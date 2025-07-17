@@ -12,7 +12,7 @@ export default defineConfig({
 			allow: [
 				'.',
 				new URL('../core/src', import.meta.url).pathname,
-				new URL('../client/dist', import.meta.url).pathname
+				new URL('../client/src', import.meta.url).pathname
 			]
 		},
 	},
@@ -37,5 +37,10 @@ export default defineConfig({
 	// Ensure source maps work properly for debugging
 	css: {
 		devSourcemap: true
+	},
+	
+	// Resolve configuration for monorepo debugging
+	resolve: {
+		preserveSymlinks: true
 	}
 }); 
