@@ -24,7 +24,7 @@ npm start
 
 The development setup runs two processes concurrently:
 
-1. **SvelteKit Dev Server** (`npm run svelte:dev`) - Runs on http://localhost:6969
+1. **SvelteKit Dev Server** (`npm run sveltekit:dev`) - Runs on http://localhost:6969
 2. **Electron App** (`npm run electron:dev`) - Loads the dev server URL
 
 This provides:
@@ -118,7 +118,7 @@ packages/desktop/
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start development (SvelteKit + Electron) |
-| `npm run svelte:dev` | Start only SvelteKit dev server |
+| `npm run sveltekit:dev` | Start only SvelteKit dev server |
 | `npm run electron:dev` | Start only Electron (requires SvelteKit server) |
 | `npm run build` | Build both SvelteKit and Electron |
 | `npm run svelte:build` | Build only SvelteKit |

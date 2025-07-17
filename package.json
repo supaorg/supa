@@ -9,8 +9,6 @@
   "scripts": {
     "postinstall": "airul gen",
     "dev": "concurrently \"npm -w packages/core run watch\" \"npm -w packages/client run watch\" \"npm -w packages/desktop run dev\"",
-    "dev:web": "npm -w packages/client run dev",
-    "build": "npm -w packages/desktop run build",
-    "build:web": "npm -w packages/client run build"
+    "build": "npm -w packages/desktop run build"
   }
 }
