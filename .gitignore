@@ -1,16 +1,11 @@
-.DS_Store
-
 **/dist/
 **/build/
 **/node_modules
-
-_site
-_cache
-deno.lock
-.env
-.env.disabled
-jwt.key
-env.json
+**/.svelte-kit
 
 .cursorrules
 CLAUDE.md
+
+.env*
+.DS_Store
+*.log 
