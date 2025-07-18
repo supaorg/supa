@@ -49,7 +49,7 @@
   ],
   "compounds": [
     {
-      "name": "Debug Electron All",
+      "name": "👉 Debug Electron All",
       "configurations": [
         "Debug Electron Main Process",
         "Debug Electron Renderer Process"
