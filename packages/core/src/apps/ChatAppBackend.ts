@@ -1,10 +1,10 @@
 import { type AppConfig, type ThreadMessage } from "../models";
-import Space from "../spaces/Space";
+import { Space } from "../spaces/Space";
 import { AgentServices } from "../agents/AgentServices";
 import { SimpleChatAgent } from "../agents/SimpleChatAgent";
 import { ThreadTitleAgent } from "../agents/ThreadTitleAgent";
 import { ChatAppData } from "../spaces/ChatAppData";
-import AppTree from "../spaces/AppTree";
+import { AppTree } from "../spaces/AppTree";
 
 export default class ChatAppBackend {
   private data: ChatAppData;
@@ -111,7 +111,7 @@ export default class ChatAppBackend {
           text: m.text,
         }))];
 
-      const initialResponse = await simpleChatAgent.input(messagesForLang, (resp) => {        
+      const initialResponse = await simpleChatAgent.input(messagesForLang, (resp) => {
         this.appTree.tree.setTransientVertexProperty(messageToUse.id, "text", resp.text);
         if (resp.thinking && resp.thinking.trim().length > 0) {
           this.appTree.tree.setTransientVertexProperty(messageToUse.id, "thinking", resp.thinking);

@@ -1,18 +1,18 @@
 import { ThemeStore } from "./theme.svelte";
 import { LayoutStore } from "./layout.svelte";
 import type { SpacePointer } from "../spaces/SpacePointer";
-import type Space from "@supa/core";
+import type { Space } from "@supa/core";
 import type { SpaceManager } from "@supa/core";
 import type { PersistenceLayer } from "@supa/core";
 import { createPersistenceLayersForURI, setPeerIdOnLayers } from "../spaces/persistence/persistenceUtils";
-import { 
-  getDraft, 
-  saveDraft, 
-  deleteDraft, 
-  getAllSecrets, 
-  saveAllSecrets, 
-  getSecret, 
-  setSecret 
+import {
+  getDraft,
+  saveDraft,
+  deleteDraft,
+  getAllSecrets,
+  saveAllSecrets,
+  getSecret,
+  setSecret
 } from "@supa/client/localDb";
 import { Backend } from "@supa/core";
 
@@ -42,15 +42,15 @@ export class SpaceState {
     try {
       // Load the actual space using SpaceManager
       this.space = await this.loadSpace();
-      
+
       if (this.space) {
         // Set peer ID on file system persistence layers
         setPeerIdOnLayers(this.persistenceLayers, this.space.tree.peerId);
-        
+
         // Load space-specific theme and layout
         await this.theme.loadSpaceTheme(this.pointer.id);
         await this.layout.loadSpaceLayout();
-        
+
         this.backend = new Backend(this.space, this.pointer.uri.startsWith("local://"));
 
         this.isConnected = true;
@@ -71,7 +71,7 @@ export class SpaceState {
     if (this.space) {
       this.spaceManager.closeSpace(this.pointer.id).catch(console.error);
     }
-    
+
     this.space = null;
     this.isConnected = false;
   }
@@ -87,7 +87,7 @@ export class SpaceState {
     try {
       // Create appropriate persistence layers based on URI
       this.persistenceLayers = createPersistenceLayersForURI(this.pointer.id, this.pointer.uri);
-      
+
       // Load the space using SpaceManager
       space = await this.spaceManager.loadSpace(this.pointer, this.persistenceLayers);
       return space;

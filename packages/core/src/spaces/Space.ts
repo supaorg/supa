@@ -1,5 +1,5 @@
 import { RepTree } from "reptree";
-import AppTree from "./AppTree";
+import { AppTree } from "./AppTree";
 import type { AppConfig, CustomProviderConfig } from "../models";
 import type { VertexOperation, VertexPropertyType } from "reptree";
 import type { ModelProviderConfig } from "../models";
@@ -8,7 +8,7 @@ import { Vertex } from "reptree";
 import { AppConfigsData } from "./AppConfigsData";
 import uuid from "../utils/uuid";
 
-export default class Space {
+export class Space {
   readonly tree: RepTree;
   private secrets: Record<string, string> | undefined;
   private appTrees: Map<string, AppTree> = new Map();
@@ -451,7 +451,7 @@ export default class Space {
   }
 
   // Custom OpenAI-like providers methods
-  
+
   /**
    * Add a new custom OpenAI-like provider
    * @param config Provider configuration
@@ -460,20 +460,20 @@ export default class Space {
   addCustomProvider(config: Omit<CustomProviderConfig, 'id' | 'type'>): string {
     // Generate a unique ID with a custom prefix
     const id = `custom-${uuid()}`;
-    
+
     // Create the full config
     const fullConfig: CustomProviderConfig = {
       ...config,
       id,
       type: 'cloud'
     };
-    
+
     // Save the config
     this.saveModelProviderConfig(fullConfig);
-    
+
     return id;
   }
-  
+
   /**
    * Update an existing custom provider
    * @param id Provider ID
@@ -484,7 +484,7 @@ export default class Space {
     if (!config) {
       throw new Error(`Custom provider with ID ${id} not found`);
     }
-    
+
     // Create updated config
     const updatedConfig: CustomProviderConfig = {
       ...config,
@@ -492,14 +492,14 @@ export default class Space {
       id,
       type: 'cloud'
     };
-    
+
     // Delete the old config
     this.deleteModelProviderConfig(id);
-    
+
     // Save the updated config
     this.saveModelProviderConfig(updatedConfig);
   }
-  
+
   /**
    * Remove a custom provider
    * @param id Provider ID
@@ -507,18 +507,18 @@ export default class Space {
   removeCustomProvider(id: string): void {
     this.deleteModelProviderConfig(id);
   }
-  
+
   /**
    * Get all custom providers
    * @returns Array of custom provider configurations
    */
   getCustomProviders(): CustomProviderConfig[] {
     return this.getModelProviderConfigs()
-      .filter(config => 
+      .filter(config =>
         // Identify custom providers by ID prefix
         config.id.startsWith('custom-') &&
         // Ensure it has the required properties of a custom provider
-        'baseApiUrl' in config && 
+        'baseApiUrl' in config &&
         'modelId' in config
       ) as CustomProviderConfig[];
   }

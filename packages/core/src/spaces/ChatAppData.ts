@@ -1,8 +1,8 @@
 import type { Vertex } from "reptree";
-import type Space from "./Space";
+import type {Space } from "./Space";
 import type { VertexPropertyType } from "reptree";
 import type { ThreadMessage } from "../models";
-import AppTree from "./AppTree";
+import { AppTree } from "./AppTree";
 
 export class ChatAppData {
   private root: Vertex;

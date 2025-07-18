@@ -1,7 +1,7 @@
 import { RepTree } from "reptree";
 import type { VertexOperation } from "reptree";
-import Space from "./Space";
-import AppTree from "./AppTree";
+import { Space } from "./Space";
+import { AppTree } from "./AppTree";
 import type { PersistenceLayer } from "./persistence/PersistenceLayer";
 import uuid from "../utils/uuid";
 
@@ -267,7 +267,7 @@ export class SpaceManager {
           } else {
             console.log(`Saving missing ops for tree ${treeId} to layer: ${layer.id}`, missingOps);
           }
-          
+
           //await layer.saveTreeOps(treeId, missingOps);
         }
       }

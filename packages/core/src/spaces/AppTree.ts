@@ -2,7 +2,7 @@ import { RepTree } from "reptree";
 
 type EventCallback = (event: any) => void;
 
-export default class AppTree {
+export class AppTree {
   readonly tree: RepTree;
   private eventCallbacks: Map<string, Set<EventCallback>> = new Map();
 

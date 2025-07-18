@@ -9,7 +9,7 @@ import { createPersistenceLayersForURI } from "../spaces/persistence/persistence
 import { loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
 import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "@supa/client/localDb";
 import { SpaceManager } from "@supa/core";
-import type Space from "@supa/core";
+import type { Space } from "@supa/core";
 
 interface AuthTokens {
   access_token: string;

@@ -1,4 +1,4 @@
-import Space from "./Space";
+import { Space } from "./Space";
 import ChatAppBackend from "../apps/ChatAppBackend";
 
 /**

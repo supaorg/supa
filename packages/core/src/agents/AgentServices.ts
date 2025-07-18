@@ -1,6 +1,6 @@
 import { Lang, LanguageProvider } from 'aiwrapper';
 import { providers } from "../providers";
-import Space from '../spaces/Space';
+import { Space } from '../spaces/Space';
 import { getProviderModels } from '../tools/providerModels';
 import { splitModelString } from '../utils/modelUtils';
 
