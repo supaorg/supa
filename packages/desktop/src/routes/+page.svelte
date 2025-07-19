@@ -16,9 +16,7 @@
 
       console.log("⚛️ Electron info:", info);
     }
-
-    console.log("electronFsWrapper", electronFsWrapper);
-
+    
     // Initialize config with the Electron file system implementation
     config = {
       fs: electronFsWrapper

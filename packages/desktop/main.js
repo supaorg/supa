@@ -26,7 +26,7 @@ function createWindow() {
     height: 800,
     // titleBarStyle: 'default', // Use native title bar with standard controls (this is the default)
     webPreferences: {
-      nodeIntegration: false,
+      nodeIntegration: true,
       contextIsolation: true,
       webSecurity: !isDev, // Needed for SvelteKit in development
       preload: path.join(__dirname, 'preload.js')
