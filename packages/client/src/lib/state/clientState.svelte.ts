@@ -300,7 +300,7 @@ export class ClientState {
         // Don't set currentSpace if connection failed
         this.currentSpaceState = null;
         // Remove the space from the SpaceManager
-        this._spaceStates = this._spaceStates.filter(s => s.pointer.id !== spaceId);
+        this.removeSpace(spaceId);
 
       }
     }
