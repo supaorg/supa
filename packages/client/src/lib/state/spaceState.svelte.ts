@@ -42,7 +42,7 @@ export class SpaceState {
     try {
       // Load the actual space using SpaceManager
       this.space = await this.loadSpace();
-
+      
       if (this.space) {
         // Set peer ID on file system persistence layers
         setPeerIdOnLayers(this.persistenceLayers, this.space.tree.peerId);
@@ -93,7 +93,14 @@ export class SpaceState {
       return space;
     } catch (error) {
       console.error("Failed to load space", this.pointer, error);
-      return null;
+      console.log("Disconnecting space");
+      try {
+        await this.spaceManager.closeSpace(this.pointer.id);
+      } catch (error) {
+        console.error("Failed to disconnect space", error);
+      }
+
+      throw error;
     }
   }
 

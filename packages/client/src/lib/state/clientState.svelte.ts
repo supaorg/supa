@@ -22,7 +22,6 @@ export type ClientStateConfig = {
   fs?: AppFileSystem;
 }
 
-type InitializationStatus = "initializing" | "needsSpace" | "ready" | "error";
 type SpaceStatus = "disconnected" | "loading" | "ready" | "error";
 
 /**
@@ -30,8 +29,7 @@ type SpaceStatus = "disconnected" | "loading" | "ready" | "error";
  * Coordinates multiple focused stores and provides unified workflows.
  */
 export class ClientState {
-
-  private _initializationStatus: InitializationStatus = $state("initializing");
+  private _init: boolean = $state(false);
   private _initializationError: string | null = $state(null);
   private _spaceManager = new SpaceManager();
   private _defaultTheme: ThemeStore = $state(new ThemeStore());
@@ -45,15 +43,13 @@ export class ClientState {
     return this._fs;
   }
 
-  spaceStates: SpaceState[] = $state([]);
-  currentSpaceState: SpaceState | null = $state(null);
+  private _spaceStates: SpaceState[] = $state([]);
+  currentSpaceState: SpaceState | null = $state(null); // @TODO: consider making it a derived state
   currentSpace: Space | null = $derived(this.currentSpaceState?.space || null);
 
-  // Space data
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $derived(this.currentSpaceState?.pointer.id || null);
   config: Record<string, unknown> = $state({});
-
   auth = new AuthStore();
 
   spaceStatus: SpaceStatus = $derived.by(() => {
@@ -69,9 +65,9 @@ export class ClientState {
   });
 
   // @TODO: consider to remove these and just use the status directly
-  isInitializing: boolean = $derived(this._initializationStatus === "initializing");
-  needsSpace: boolean = $derived(this._initializationStatus === "needsSpace");
-  isReady: boolean = $derived(this._initializationStatus === "ready");
+  isInitializing: boolean = $derived(!this._init);
+  needsSpace: boolean = $derived(this._init && this.pointers.length === 0);
+  isReady: boolean = $derived(this._init && this.pointers.length > 0);
   initializationError: string | null = $derived(this._initializationError);
 
   theme: ThemeStore = $derived.by(() => {
@@ -100,16 +96,23 @@ export class ClientState {
     }
   };
 
-  init(initState: ClientStateConfig): void {
+  async init(initState: ClientStateConfig): Promise<void> {
+    if (this._init) {
+      return;
+    }
+
     this._fs = initState.fs || null;
+
+    await this.loadFromLocalDb();
+
+    this._init = true;
   }
 
   /**
    * Single initialization method that handles database loading and everything
    */
-  async initializeWithDatabase(): Promise<void> {
+  async loadFromLocalDb(): Promise<void> {
     try {
-      this._initializationStatus = "initializing";
       this._initializationError = null;
 
       // Initialize database and load space data
@@ -118,7 +121,7 @@ export class ClientState {
       this.config = config;
 
       // Create SpaceState instances for all pointers
-      this.spaceStates = pointers.map(pointer => new SpaceState(pointer, this._spaceManager));
+      this._spaceStates = pointers.map(pointer => new SpaceState(pointer, this._spaceManager));
 
       // Check authentication and filter spaces (dummy for now)
       await this.auth.checkAuth();
@@ -130,11 +133,10 @@ export class ClientState {
       await this._setCurrentSpace(currentSpaceId);
 
       // Set final status
-      this._updateInitializationStatus();
+      this._updateCurrentSpace();
 
     } catch (error) {
       console.error('Failed to initialize client state:', error);
-      this._initializationStatus = "error";
       this._initializationError = error instanceof Error ? error.message : String(error);
     }
   }
@@ -154,7 +156,7 @@ export class ClientState {
    */
   async createNewLocalSpace(uri?: string): Promise<string> {
     const spaceId = crypto.randomUUID();
-    
+
     // If no URI is provided, use the spaceId as the URI
     if (!uri) {
       uri = "local://" + spaceId;
@@ -181,12 +183,12 @@ export class ClientState {
     // Add to our collections
     this.pointers = [...this.pointers, pointer];
     const newSpaceState = new SpaceState(pointer, this._spaceManager);
-    this.spaceStates = [...this.spaceStates, newSpaceState];
+    this._spaceStates = [...this._spaceStates, newSpaceState];
 
     // Switch to the new space
     await this.switchToSpace(spaceId);
 
-    this._updateInitializationStatus();
+    this._updateCurrentSpace();
     await this._saveState();
 
     return spaceId;
@@ -197,7 +199,7 @@ export class ClientState {
    */
   async removeSpace(spaceId: string): Promise<void> {
     // Find and disconnect the space being removed (since we keep spaces connected now)
-    const spaceToRemove = this.spaceStates.find(s => s.pointer.id === spaceId);
+    const spaceToRemove = this._spaceStates.find(s => s.pointer.id === spaceId);
     if (spaceToRemove) {
       spaceToRemove.disconnect();
     }
@@ -209,7 +211,7 @@ export class ClientState {
 
     // Remove from our collections
     this.pointers = this.pointers.filter(p => p.id !== spaceId);
-    this.spaceStates = this.spaceStates.filter(s => s.pointer.id !== spaceId);
+    this._spaceStates = this._spaceStates.filter(s => s.pointer.id !== spaceId);
 
     // Update current space if it was removed
     if (this.currentSpaceId === spaceId) {
@@ -225,7 +227,7 @@ export class ClientState {
     // Delete from database
     await deleteSpace(spaceId);
 
-    this._updateInitializationStatus();
+    this._updateCurrentSpace();
     await this._saveState();
   }
 
@@ -239,7 +241,7 @@ export class ClientState {
     );
 
     // Update in SpaceState
-    const spaceState = this.spaceStates.find(s => s.pointer.id === spaceId);
+    const spaceState = this._spaceStates.find(s => s.pointer.id === spaceId);
     if (spaceState) {
       spaceState.pointer = { ...spaceState.pointer, name };
 
@@ -284,33 +286,32 @@ export class ClientState {
     if (!spaceId) return;
 
     // Find and connect to new space
-    const spaceState = this.spaceStates.find(s => s.pointer.id === spaceId);
+    const spaceState = this._spaceStates.find(s => s.pointer.id === spaceId);
     if (spaceState) {
       try {
         this.currentSpaceState = spaceState;
-        
+
         // Connect if not already connected
         if (!spaceState.isConnected) {
           await spaceState.connect();
         }
       } catch (error) {
-        console.error(`Failed to connect to space ${spaceId}:`, error);
+        console.log(`Removing space ${spaceId} from SpaceManager`);
         // Don't set currentSpace if connection failed
         this.currentSpaceState = null;
+        // Remove the space from the SpaceManager
+        this._spaceStates = this._spaceStates.filter(s => s.pointer.id !== spaceId);
+
       }
     }
   }
 
-  private _updateInitializationStatus(): void {
-    if (this.pointers.length === 0) {
-      this._initializationStatus = "needsSpace";
-    } else {
-      // Ensure we have a current space selected
-      if (!this.currentSpaceId && this.pointers.length > 0) {
-        const defaultSpaceId = this.pointers[0].id;
-        this._setCurrentSpace(defaultSpaceId);
-      }
-      this._initializationStatus = "ready";
+  // @TODO: not sure if we need this
+  private _updateCurrentSpace(): void {
+    // Ensure we have a current space selected
+    if (!this.currentSpaceState && this.pointers.length > 0) {
+      const defaultSpaceId = this.pointers[0].id;
+      this._setCurrentSpace(defaultSpaceId);
     }
   }
 
@@ -335,7 +336,7 @@ export class ClientState {
   async signIn(tokens: AuthTokens, user: User): Promise<void> {
     await this.auth.setAuth(tokens, user);
     // @TODO: implement connection to server
-    this._updateInitializationStatus();
+    this._updateCurrentSpace();
     await this._saveState();
   }
 
@@ -344,14 +345,14 @@ export class ClientState {
    */
   async signOut(): Promise<void> {
     // Disconnect all spaces since we keep them connected during normal operation
-    for (const spaceState of this.spaceStates) {
+    for (const spaceState of this._spaceStates) {
       spaceState.disconnect();
     }
     this.currentSpaceState = null;
 
     await this.auth.logout();
     await this._handleUserSignOut(); // Dummy
-    this._updateInitializationStatus();
+    this._updateCurrentSpace();
     // @TODO: implement disconnect from server
     await this._saveState();
   }
@@ -401,12 +402,12 @@ export class ClientState {
     // Add to our collections
     this.pointers = [...this.pointers, pointer];
     const newSpaceState = new SpaceState(pointer, this._spaceManager);
-    this.spaceStates = [...this.spaceStates, newSpaceState];
+    this._spaceStates = [...this._spaceStates, newSpaceState];
 
     // Switch to the loaded space
     await this.switchToSpace(spaceId);
 
-    this._updateInitializationStatus();
+    this._updateCurrentSpace();
     await this._saveState();
 
     return spaceId;
@@ -437,7 +438,7 @@ export class ClientState {
    */
   async cleanup(): Promise<void> {
     // Disconnect all spaces since we keep them connected during switching
-    for (const spaceState of this.spaceStates) {
+    for (const spaceState of this._spaceStates) {
       spaceState.disconnect();
     }
     this.currentSpaceState = null;

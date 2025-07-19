@@ -1,18 +1,10 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
   import { clientState } from "@supa/client/state/clientState.svelte";
   import Loading from "@supa/client/comps/basic/Loading.svelte";
   import FreshStartWizard from "@supa/client/comps/wizards/FreshStartWizard.svelte";
   import Space from "./apps/Space.svelte";
-
-  onMount(async () => {
-    // Single method call - all initialization handled internally
-    await clientState.initializeWithDatabase();
-  });
-
-  onDestroy(() => {
-    clientState.cleanup();
-  });
+  import Spaces from "../swins/routes/Spaces.svelte";
+  import CenteredPage from "./basic/CenteredPage.svelte";
 </script>
 
 {#if clientState.isInitializing || clientState.spaceStatus === "loading"}
@@ -23,9 +15,9 @@
   {#if clientState.currentSpaceState}
     <Space spaceState={clientState.currentSpaceState} />
   {:else}
-    <div class="p-4 text-red-500">
-      <h2>A space didn't load correctly</h2>
-    </div>
+    <CenteredPage>
+      <Spaces />
+    </CenteredPage>
   {/if}
 {:else if clientState.initializationError}
   <div class="p-4 text-red-500">
