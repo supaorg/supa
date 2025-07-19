@@ -1,4 +1,8 @@
-<script>
+<script lang="ts">
+  import { type ClientStateConfig } from "@supa/client";
+
+  let { config }: { config: ClientStateConfig | null } = $props();
+
   console.log(
     "👋 Hey, if you see any bugs - please report them to https://github.com/supaorg/supa/issues",
   );
@@ -14,4 +18,8 @@
   import "@supa/client/compiled-style.css";
 </script>
 
-<SpaceEntry />
+{#if config}
+  <SpaceEntry />
+{:else}
+  Loading...
+{/if}

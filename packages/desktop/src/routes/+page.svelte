@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import SupaApp from "@supa/client/comps/SupaApp.svelte";
+  import { SupaApp, type ClientStateConfig } from "@supa/client";
+
+  let config: ClientStateConfig | null = $state(null);
 
   onMount(() => {
     if (typeof process !== "undefined" && process.versions) {
@@ -12,6 +14,8 @@
 
       console.log("⚛️ Electron info:", info);
     }
+
+    config = { };
   });
 </script>
 
@@ -19,4 +23,4 @@
   <title>Supa</title>
 </svelte:head>
 
-<SupaApp />
+<SupaApp {config} />

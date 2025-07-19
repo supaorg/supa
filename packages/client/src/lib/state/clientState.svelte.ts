@@ -17,6 +17,10 @@ interface AuthTokens {
   expires_in: number;
 }
 
+export type ClientStateConfig = {
+
+}
+
 type InitializationStatus = "initializing" | "needsSpace" | "ready" | "error";
 type SpaceStatus = "disconnected" | "loading" | "ready" | "error";
 
@@ -85,6 +89,10 @@ export class ClientState {
       this.layout.swins.open('spaces', {}, 'Spaces');
     }
   };
+
+  init(initState: ClientStateConfig): void {
+    
+  }
 
   /**
    * Single initialization method that handles database loading and everything

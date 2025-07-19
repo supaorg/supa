@@ -25,9 +25,9 @@ function createWindow() {
     height: 800,
     // titleBarStyle: 'default', // Use native title bar with standard controls (this is the default)
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      webSecurity: false // Needed for SvelteKit in development
+      nodeIntegration: false,
+      contextIsolation: true,
+      webSecurity: !isDev // Needed for SvelteKit in development
     },
     show: false // Don't show until ready
   });
