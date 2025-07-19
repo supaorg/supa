@@ -1,14 +1,11 @@
-import { appFs } from "../appFs";
-
-// Extract the functions we need from appFs
-const { readDir, exists, readTextFile } = appFs;
+import { clientState } from "../state/clientState.svelte";
 
 /**
  * Checks if a directory contains a space-v* directory
  */
 async function containsSpaceVersionDir(dir: string): Promise<boolean> {
   try {
-    const entries = await readDir(dir);
+    const entries = await clientState.fs.readDir(dir);
     return entries.some(entry => entry.isDirectory && entry.name.startsWith('space-v'));
   } catch (error) {
     return false;
@@ -32,7 +29,7 @@ export async function checkIfPathHasValidStructureAndReturnActualRootPath(path: 
   const lastPart = pathParts[pathParts.length - 1];
   if (lastPart.startsWith('space-v')) {
     const parentPath = pathParts.slice(0, -1).join('/');
-    if (await exists(`${parentPath}/${lastPart}`)) {
+    if (await clientState.fs.exists(`${parentPath}/${lastPart}`)) {
       return parentPath;
     }
   }
@@ -58,11 +55,11 @@ export async function loadSpaceMetadataFromPath(path: string): Promise<{ spaceId
   // Check if space.json exists and read space ID
   const spaceJsonPath = `${rootPath}/space-v1/space.json`;
   
-  if (!await exists(spaceJsonPath)) {
+  if (!await clientState.fs.exists(spaceJsonPath)) {
     throw new Error(`space.json not found in space-v1 structure at ${rootPath}`);
   }
   
-  const spaceJson = await readTextFile(spaceJsonPath);
+  const spaceJson = await clientState.fs.readTextFile(spaceJsonPath);
   const spaceData = JSON.parse(spaceJson);
   const spaceId = spaceData.id;
   
