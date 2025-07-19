@@ -3,6 +3,12 @@
 
   let { config }: { config: ClientStateConfig | null } = $props();
 
+  $effect(() => {
+    if (config) {
+      clientState.init(config);
+    }
+  });
+
   console.log(
     "👋 Hey, if you see any bugs - please report them to https://github.com/supaorg/supa/issues",
   );
@@ -16,6 +22,7 @@
   // build process, so if you don't see this file, make sure
   // you've run "npm run dev" or "npm run build" in the repository's root.
   import "@supa/client/compiled-style.css";
+    import { clientState } from "../state/clientState.svelte";
 </script>
 
 {#if config}

@@ -10,6 +10,7 @@ import { loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
 import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "@supa/client/localDb";
 import { SpaceManager } from "@supa/core";
 import type { Space } from "@supa/core";
+import { AppFileSystem } from '../appFs';
 
 interface AuthTokens {
   access_token: string;
@@ -18,7 +19,7 @@ interface AuthTokens {
 }
 
 export type ClientStateConfig = {
-
+  fs?: AppFileSystem;
 }
 
 type InitializationStatus = "initializing" | "needsSpace" | "ready" | "error";
@@ -34,6 +35,15 @@ export class ClientState {
   private _initializationError: string | null = $state(null);
   private _spaceManager = new SpaceManager();
   private _defaultTheme: ThemeStore = $state(new ThemeStore());
+  private _fs: AppFileSystem | null = null;
+
+  get fs(): AppFileSystem {
+    if (!this._fs) {
+      throw new Error("fs is not set");
+    }
+
+    return this._fs;
+  }
 
   spaceStates: SpaceState[] = $state([]);
   currentSpaceState: SpaceState | null = $state(null);
@@ -91,7 +101,7 @@ export class ClientState {
   };
 
   init(initState: ClientStateConfig): void {
-    
+    this._fs = initState.fs || null;
   }
 
   /**
