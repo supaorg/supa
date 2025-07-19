@@ -16,6 +16,7 @@ const serveURL = serve({ directory: '.' });
 // Main process changes (this file) require manual restart
 
 // Keep a global reference of the window object
+/** @type {BrowserWindow | null} */
 let mainWindow;
 
 function createWindow() {
@@ -44,8 +45,12 @@ function createWindow() {
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-    mainWindow.focus();
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+    } else {
+      console.error("mainWindow is not set");
+    }
   });
 
   // Open DevTools in development
@@ -70,6 +75,7 @@ function createWindow() {
 }
 
 function createMenu() {
+  /** @type {import('electron').MenuItemConstructorOptions[]} */
   const template = [
     {
       label: 'View',
@@ -77,39 +83,49 @@ function createMenu() {
         {
           label: 'Reload',
           accelerator: 'CmdOrCtrl+R',
-          click: function() {
-            mainWindow.reload();
+          click: function () {
+            if (mainWindow) {
+              mainWindow.reload();
+            }
           }
         },
         {
           label: 'Toggle DevTools',
           accelerator: 'CmdOrCtrl+Alt+I',
-          click: function() {
-            mainWindow.webContents.toggleDevTools();
+          click: function () {
+            if (mainWindow) {
+              mainWindow.webContents.toggleDevTools();
+            }
           }
         },
         { type: 'separator' },
         {
           label: 'Actual Size',
           accelerator: 'CmdOrCtrl+0',
-          click: function() {
-            mainWindow.webContents.setZoomLevel(0);
+          click: function () {
+            if (mainWindow) {
+              mainWindow.webContents.setZoomLevel(0);
+            }
           }
         },
         {
           label: 'Zoom In',
           accelerator: 'CmdOrCtrl+Plus',
-          click: function() {
-            const currentZoom = mainWindow.webContents.getZoomLevel();
-            mainWindow.webContents.setZoomLevel(currentZoom + 1);
+          click: function () {
+            if (mainWindow) {
+              const currentZoom = mainWindow.webContents.getZoomLevel();
+              mainWindow.webContents.setZoomLevel(currentZoom + 1);
+            }
           }
         },
         {
           label: 'Zoom Out',
           accelerator: 'CmdOrCtrl+-',
-          click: function() {
-            const currentZoom = mainWindow.webContents.getZoomLevel();
-            mainWindow.webContents.setZoomLevel(currentZoom - 1);
+          click: function () {
+            if (mainWindow) {
+              const currentZoom = mainWindow.webContents.getZoomLevel();
+              mainWindow.webContents.setZoomLevel(currentZoom - 1);
+            }
           }
         }
       ]
@@ -120,7 +136,7 @@ function createMenu() {
         {
           label: 'New',
           accelerator: 'CmdOrCtrl+N',
-          click: function() {
+          click: function () {
             // Add file operations here
             console.log('New file action');
           }
@@ -128,7 +144,7 @@ function createMenu() {
         {
           label: 'Open',
           accelerator: 'CmdOrCtrl+O',
-          click: function() {
+          click: function () {
             // Add file operations here
             console.log('Open file action');
           }
@@ -137,7 +153,7 @@ function createMenu() {
         {
           label: 'Quit',
           accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
-          click: function() {
+          click: function () {
             app.quit();
           }
         }
@@ -168,8 +184,9 @@ app.on('window-all-closed', function () {
 
 // Security: Prevent new window creation
 app.on('web-contents-created', (event, contents) => {
-  contents.on('new-window', (event, navigationUrl) => {
-    event.preventDefault();
-    console.log('Blocked new window creation to:', navigationUrl);
+  contents.setWindowOpenHandler(({ url }) => {
+    event.preventDefault?.();
+    console.log('Blocked new window creation to:', url);
+    return { action: 'deny' };
   });
 }); 
