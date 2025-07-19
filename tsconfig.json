@@ -18,7 +18,16 @@
       "@supa/core":   ["packages/core/src/*"],
       "@supa/client": ["packages/client/src/lib/index.ts"],
       "@supa/client/*": ["packages/client/src/lib/*"]
-    },
-    
-  }
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "**/node_modules",
+    "**/dist",
+    "**/build", 
+    "**/.svelte-kit",
+    "**/coverage",
+    "packages/client/src-tauri/target",
+    "packages/mobile/ios"
+  ]
 }
