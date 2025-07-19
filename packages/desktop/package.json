@@ -12,6 +12,8 @@
     },
     "files": [
       "main.js",
+      "preload.js",
+      "electronFs.js",
       {
         "from": "build",
         "to": ""
@@ -37,7 +39,8 @@
   "dependencies": {
     "@supa/client": "*",
     "@supa/core": "*",
-    "electron-serve": "^2.1.1"
+    "electron-serve": "^2.1.1",
+    "chokidar": "^4.0.3"
   },
   "devDependencies": {
     "svelte": "^5.0.0",

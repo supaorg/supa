@@ -27,7 +27,8 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: !isDev // Needed for SvelteKit in development
+      webSecurity: !isDev, // Needed for SvelteKit in development
+      preload: path.join(__dirname, 'preload.js')
     },
     show: false // Don't show until ready
   });
