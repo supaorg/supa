@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu } from 'electron';
+import { app, BrowserWindow, Menu, shell } from 'electron';
 import serve from 'electron-serve';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -67,7 +67,7 @@ function createWindow() {
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     // Open external links in the default browser
     if (url.startsWith('http://') || url.startsWith('https://')) {
-      require('electron').shell.openExternal(url);
+      shell.openExternal(url);
       return { action: 'deny' };
     }
     return { action: 'allow' };
@@ -156,7 +156,21 @@ function createMenu() {
           click: function () {
             app.quit();
           }
-        }
+        },
+        
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'delete' },
+        { role: 'selectAll' }
       ]
     }
   ];
