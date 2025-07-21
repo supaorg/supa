@@ -30,6 +30,10 @@ export class IndexedDBPersistenceLayer implements PersistenceLayer {
     this._connected = true;
   }
 
+  isConnected(): boolean {
+    return this._connected;
+  }
+
   async disconnect(): Promise<void> {
     if (!this._connected) return;
 

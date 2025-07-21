@@ -28,6 +28,7 @@ export class SpaceManager {
   /**
    * Create a new space with the given persistence layers
    */
+  /*
   async createSpace(config?: SpaceConfig): Promise<Space> {
     const persistenceLayers = config?.persistenceLayers || [];
     const space = Space.newSpace(uuid());
@@ -52,6 +53,30 @@ export class SpaceManager {
 
     this.spaces.set(spaceId, space);
     return space;
+  }
+  */
+
+  async addSpace(space: Space, persistenceLayers: PersistenceLayer[]): Promise<void> {
+    const spaceId = space.getId();
+
+    if (persistenceLayers.length > 0) {
+      // Connect all layers
+      await Promise.all(persistenceLayers.map(layer => layer.connect()));
+
+      // Save initial operations to all layers
+      const initOps = space.tree.getAllOps();
+      await Promise.all(
+        persistenceLayers.map(layer => layer.saveTreeOps(spaceId, initOps))
+      );
+
+      // Set up operation tracking and sync
+      this.setupOperationTracking(space, persistenceLayers);
+      await this.setupTwoWaySync(space, persistenceLayers);
+
+      this.spaceLayers.set(spaceId, persistenceLayers);
+    }
+
+    this.spaces.set(spaceId, space);
   }
 
   /**
@@ -310,6 +335,10 @@ export class SpaceManager {
    */
   getSpace(spaceId: string): Space | undefined {
     return this.spaces.get(spaceId);
+  }
+
+  getPersistenceLayers(spaceId: string): PersistenceLayer[] | undefined {
+    return this.spaceLayers.get(spaceId);
   }
 
   /**

@@ -31,6 +31,22 @@ export class SpaceState {
     this.pointer = pointer;
     this.spaceManager = spaceManager;
     this.layout.spaceId = pointer.id;
+
+    const space = this.spaceManager.getSpace(pointer.id);
+    if (space) {
+      this.space = space;
+      this.persistenceLayers = this.spaceManager.getPersistenceLayers(pointer.id) || [];
+
+      let allConnected = true;
+      for (const layer of this.persistenceLayers) {
+        if (!layer.isConnected()) {
+          allConnected = false;
+          break;
+        }
+      }
+
+      this.isConnected = allConnected;
+    }
   }
 
   /**
@@ -42,7 +58,7 @@ export class SpaceState {
     try {
       // Load the actual space using SpaceManager
       this.space = await this.loadSpace();
-      
+
       if (this.space) {
         // Set peer ID on file system persistence layers
         setPeerIdOnLayers(this.persistenceLayers, this.space.tree.peerId);

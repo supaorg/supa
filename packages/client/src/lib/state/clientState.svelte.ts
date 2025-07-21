@@ -9,8 +9,9 @@ import { createPersistenceLayersForURI } from "../spaces/persistence/persistence
 import { loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
 import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "@supa/client/localDb";
 import { SpaceManager } from "@supa/core";
-import type { Space } from "@supa/core";
+import { Space } from "@supa/core";
 import { AppFileSystem } from '../appFs';
+import { uuid } from '@supa/core';
 
 interface AuthTokens {
   access_token: string;
@@ -33,20 +34,13 @@ export class ClientState {
   private _initializationError: string | null = $state(null);
   private _spaceManager = new SpaceManager();
   private _defaultTheme: ThemeStore = $state(new ThemeStore());
-  private _fs: AppFileSystem | null = null;
-
-  get fs(): AppFileSystem {
-    if (!this._fs) {
-      throw new Error("fs is not set");
-    }
-
-    return this._fs;
-  }
-
   private _spaceStates: SpaceState[] = $state([]);
+  private _fs: AppFileSystem | null = null;
+  
   currentSpaceState: SpaceState | null = $state(null); // @TODO: consider making it a derived state
   currentSpace: Space | null = $derived(this.currentSpaceState?.space || null);
 
+  // @TODO: can we get rid of them and instead rely on _spaceStates?
   pointers: SpacePointer[] = $state([]);
   currentSpaceId: string | null = $derived(this.currentSpaceState?.pointer.id || null);
   config: Record<string, unknown> = $state({});
@@ -78,6 +72,14 @@ export class ClientState {
       return this._defaultTheme;
     }
   });
+
+  get fs(): AppFileSystem {
+    if (!this._fs) {
+      throw new Error("fs is not set");
+    }
+
+    return this._fs;
+  }
 
   dev = {
     isDevMode,
@@ -155,7 +157,8 @@ export class ClientState {
    * Create a new local space using SpaceManager with URI-based persistence
    */
   async createNewLocalSpace(uri?: string): Promise<string> {
-    const spaceId = crypto.randomUUID();
+    const space = Space.newSpace(uuid()); 
+    const spaceId = space.getId();
 
     // If no URI is provided, use the spaceId as the URI
     if (!uri) {
@@ -165,20 +168,15 @@ export class ClientState {
     const pointer: SpacePointer = {
       id: spaceId,
       uri: uri,
-      name: null,
-      createdAt: new Date(),
+      name: space.name || null,
+      createdAt: space.createdAt,
       userId: this.auth.user?.id || null,
     };
 
     // Create persistence layers based on URI
     const persistenceLayers = createPersistenceLayersForURI(spaceId, pointer.uri);
 
-    // Create space with appropriate persistence layers
-    const space = await this._spaceManager.createSpace({ persistenceLayers });
-
-    // Update pointer with space metadata
-    pointer.name = space.name || null;
-    pointer.createdAt = space.createdAt;
+    await this._spaceManager.addSpace(space, persistenceLayers);
 
     // Add to our collections
     this.pointers = [...this.pointers, pointer];

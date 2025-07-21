@@ -7,6 +7,7 @@ import type { VertexOperation } from "reptree";
 export interface PersistenceLayer {
   // Lifecycle
   connect(): Promise<void>
+  isConnected(): boolean
   disconnect(): Promise<void>
   
   // Multi-tree support - handles both space tree and app trees
