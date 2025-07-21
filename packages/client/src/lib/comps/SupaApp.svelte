@@ -5,6 +5,10 @@
   // build process, so if you don't see this file, make sure
   // you've run "npm run dev" or "npm run build" in the repository's root.
   import "@supa/client/compiled-style.css";
+  import SpaceEntry from "./SpaceEntry.svelte";
+  import { onDestroy } from "svelte";
+  import SwinsContainer from "../swins/SwinsContainer.svelte";
+  import ContextMenuHandler from "./ContextMenuHandler.svelte";
 
   let { config }: { config: ClientStateConfig | null } = $props();
 
@@ -24,13 +28,17 @@
   console.log(
     "Reach out to the author of the project with any questions - Dmitry at d@dkury.com",
   );
-
-  import SpaceEntry from "./SpaceEntry.svelte";
-  import { onDestroy } from "svelte";
 </script>
 
 {#if config}
+  <!-- Where our spaces are rendered -->
   <SpaceEntry />
+
+  <!-- Setup stacking windows (popover windows with navigation) we use for new conversations, settings, etc -->
+  <SwinsContainer swins={clientState.layout.swins} />
+
+  <!-- Handle native and custom context menus -->
+  <ContextMenuHandler />
 {:else}
   Loading...
 {/if}

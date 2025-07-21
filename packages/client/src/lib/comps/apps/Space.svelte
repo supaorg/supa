@@ -3,7 +3,6 @@
   import DevPanel from "../dev/DevPanel.svelte";
   import { isDevMode, spaceInspectorOpen } from "@supa/client/state/devMode";
   import OllamaAutoConfig from "../models/OllamaAutoConfig.svelte";
-  import ContextMenuHandler from "../ContextMenuHandler.svelte";
   import SpaceTTabsLayout from "../SpaceTTabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
   import SpaceSetupWizard from "../wizards/SpaceSetupWizard.svelte";
@@ -65,6 +64,3 @@
     <SpaceInspectorWindow />
   {/if}
 {/if}
-
-<!-- Handle native and custom context menus -->
-<ContextMenuHandler />

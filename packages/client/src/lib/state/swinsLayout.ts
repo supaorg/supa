@@ -10,14 +10,12 @@ import CustomProviderSetup from "@supa/client/comps/models/CustomProviderSetup.s
 import ModelProviders from "@supa/client/comps/models/ModelProviders.svelte";
 import SignInButtons from "@supa/client/comps/auth/SignInButtons.svelte";
 import UserProfile from "@supa/client/comps/auth/UserProfile.svelte";
-import FreshStartWizard from "@supa/client/comps/wizards/FreshStartWizard.svelte";
 import SpaceOpener from "@supa/client/comps/spaces/SpaceOpener.svelte";
 
 // Setup function that can configure any SWins instance
 export function setupSwins(): SWins {
   const swins = new SWins();
 
-  swins.register('fresh-start', FreshStartWizard);
   swins.register('settings', Settings);
   swins.register('spaces', Spaces);
   swins.register('open-space', SpaceOpener);
