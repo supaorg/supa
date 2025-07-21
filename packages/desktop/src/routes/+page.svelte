@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { SupaApp, type ClientStateConfig } from "@supa/client";
   import { electronFsWrapper } from "../electronFsWrapper";
+  import { electronDialogsWrapper } from "../electronDialogsWrapper";
 
   let config: ClientStateConfig | null = $state(null);
 
@@ -19,7 +20,8 @@
     
     // Initialize config with the Electron file system implementation
     config = {
-      fs: electronFsWrapper
+      fs: electronFsWrapper,
+      dialog: electronDialogsWrapper
     };
   });
 </script>

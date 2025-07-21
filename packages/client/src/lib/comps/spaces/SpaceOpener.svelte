@@ -14,32 +14,28 @@
   }: { onSpaceSetup: (spaceId: string) => void | undefined } = $props();
 
   async function createSpaceDialog() {
-    /*
     if (status !== "idle") return;
 
     status = "creating";
     try {
-      const path = await open({
+      const path = await clientState.dialog.open({
         title: $txtStore.spacesPage.opener.dialogCreateTitle,
         directory: true,
       });
 
-      if (!path) {
+      if (!path || Array.isArray(path)) {
         status = "idle";
         return;
       }
 
-      // Create space with file system persistence
       const spaceId = await createFileSystemSpace(path as string);
       onSpaceSetup?.(spaceId);
     } catch (e) {
       console.error(e);
-      const errorMessage = e instanceof Error ? e.message : $txtStore.spacesPage.opener.errorCreate;
-      message(errorMessage, { kind: "error" });
+      // TODO: surface error to user (toast/snackbar) once implemented
     } finally {
       status = "idle";
     }
-    */
   }
 
   async function createFileSystemSpace(path: string): Promise<string> {
@@ -54,12 +50,11 @@
   }
 
   async function openSpaceDialog() {
-    /*
     if (status !== "idle") return;
 
     status = "opening";
     try {
-      const path = await open({
+      const path = await clientState.dialog.open({
         title: $txtStore.spacesPage.opener.dialogOpenTitle,
         directory: true,
       });
@@ -69,18 +64,15 @@
         return;
       }
 
-      // We do this to allow users open spaces from any directory inside the space directory 
       const rootPath = await checkIfPathHasValidStructureAndReturnActualRootPath(path as string);
       const spaceId = await openFileSystemSpace(rootPath);
       onSpaceSetup?.(spaceId);
     } catch (e) {
       console.error(e);
-      const errorMessage = e instanceof Error ? e.message : $txtStore.spacesPage.opener.errorOpen;
-      message(errorMessage, { kind: "error" });
+      // TODO: surface error to user
     } finally {
       status = "idle";
     }
-    */
   }
 
   async function openFileSystemSpace(path: string): Promise<string> {

@@ -11,6 +11,7 @@ import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentS
 import { SpaceManager } from "@supa/core";
 import { Space } from "@supa/core";
 import { AppFileSystem } from '../appFs';
+import type { AppDialogs } from '../appDialogs';
 import { uuid } from '@supa/core';
 
 interface AuthTokens {
@@ -21,6 +22,7 @@ interface AuthTokens {
 
 export type ClientStateConfig = {
   fs?: AppFileSystem;
+  dialog?: AppDialogs;
 }
 
 type SpaceStatus = "disconnected" | "loading" | "ready" | "error";
@@ -36,6 +38,7 @@ export class ClientState {
   private _defaultTheme: ThemeStore = $state(new ThemeStore());
   private _spaceStates: SpaceState[] = $state([]);
   private _fs: AppFileSystem | null = null;
+  private _dialog: AppDialogs | null = null;
   
   currentSpaceState: SpaceState | null = $state(null); // @TODO: consider making it a derived state
   currentSpace: Space | null = $derived(this.currentSpaceState?.space || null);
@@ -81,6 +84,14 @@ export class ClientState {
     return this._fs;
   }
 
+  get dialog(): AppDialogs {
+    if (!this._dialog) {
+      throw new Error("dialog is not set");
+    }
+
+    return this._dialog;
+  }
+
   dev = {
     isDevMode,
     spaceInspectorOpen
@@ -104,6 +115,7 @@ export class ClientState {
     }
 
     this._fs = initState.fs || null;
+    this._dialog = initState.dialog || null;
 
     await this.loadFromLocalDb();
 

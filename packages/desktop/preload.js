@@ -1,5 +1,6 @@
 import { contextBridge } from 'electron';
 import { electronFs } from './electronFs.js';
+import { ipcRenderer } from 'electron';
 
 // Expose the file system API to the renderer process
 contextBridge.exposeInMainWorld('electronFs', {
@@ -52,6 +53,21 @@ contextBridge.exposeInMainWorld('electronFs', {
    * @param {Object} [options]
    */
   watch: (path, callback, options) => electronFs.watch(path, callback, options)
+});
+
+// Expose dialog APIs
+contextBridge.exposeInMainWorld('electronDialog', {
+  /**
+   * Open file/folder picker
+   * @param {import('@supa/client/appDialogs').OpenDialogOptions} options
+   */
+  openDialog: (options) => ipcRenderer.invoke('dialog:open', options),
+
+  /**
+   * Show save dialog
+   * @param {import('@supa/client/appDialogs').SaveDialogOptions} options
+   */
+  saveDialog: (options) => ipcRenderer.invoke('dialog:save', options)
 });
 
 // Also expose environment information
