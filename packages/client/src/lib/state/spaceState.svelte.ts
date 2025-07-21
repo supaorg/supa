@@ -45,6 +45,10 @@ export class SpaceState {
         }
       }
 
+      if (allConnected) {
+        this.initBackend();
+      }
+
       this.isConnected = allConnected;
     }
   }
@@ -67,7 +71,7 @@ export class SpaceState {
         await this.theme.loadSpaceTheme(this.pointer.id);
         await this.layout.loadSpaceLayout();
 
-        this.backend = new Backend(this.space, this.pointer.uri.startsWith("local://"));
+        this.initBackend();
 
         this.isConnected = true;
       } else {
@@ -77,6 +81,14 @@ export class SpaceState {
       console.error(`Failed to connect to space ${this.pointer.id}:`, error);
       throw error;
     }
+  }
+
+  initBackend(): void {
+    if (!this.space) {
+      throw new Error("Space is not loaded");
+    }
+
+    this.backend = new Backend(this.space, this.pointer.uri.startsWith("local://"));
   }
 
   /**
