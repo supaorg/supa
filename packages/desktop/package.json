@@ -22,13 +22,14 @@
   },
   "scripts": {
     "prepare": "svelte-kit sync",
-    "dev": "concurrently \"npm run dev:client\" \"npm run dev:sveltekit\" \"npm run dev:electron\"",
-    "dev:without-starting-electron": "concurrently \"npm run dev:sveltekit\" \"npm run dev:client\"",
+    "prepare-static-files": "cpy '../client/static/**' './static' && cpy './desktop-static/**' './static'",
+    "dev": "npm run prepare-static-files && concurrently \"npm run dev:client\" \"npm run dev:sveltekit\" \"npm run dev:electron\"",
+    "dev:without-starting-electron": "npm run prepare-static-files && concurrently \"npm run dev:sveltekit\" \"npm run dev:client\"",
     "dev:sveltekit": "vite dev --port 6969",
     "dev:client": "npm run dev -w @supa/client",
     "dev:electron": "wait-on http://localhost:6969 && electron . --dev --remote-debugging-port=9222",
     "build:client": "npm run build -w @supa/client",
-    "build": "npm run build:client && npm run build:sveltekit && npm run build:electron",
+    "build": "npm run prepare-static-files && npm run build:client && npm run build:sveltekit && npm run build:electron",
     "build:svetekit": "vite build",
     "build:electron": "electron-builder",
     "preview": "vite preview",
@@ -39,19 +40,20 @@
   "dependencies": {
     "@supa/client": "*",
     "@supa/core": "*",
-    "electron-serve": "^2.1.1",
-    "chokidar": "^4.0.3"
+    "chokidar": "^4.0.3",
+    "electron-serve": "^2.1.1"
   },
   "devDependencies": {
-    "svelte": "^5.0.0",
-    "svelte-check": "^4.0.5",
     "@sveltejs/adapter-static": "^3.0.1",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@types/node": "22.7.3",
     "concurrently": "^8.2.2",
+    "cpy-cli": "^5.0.0",
     "electron": "37.2.3",
     "electron-builder": "26.0.12",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.5",
     "typescript": "^5.0.0",
     "vite": "^5.4.11",
     "wait-on": "^7.2.0"
