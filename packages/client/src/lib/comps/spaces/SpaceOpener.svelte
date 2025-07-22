@@ -1,6 +1,5 @@
 <script lang="ts">
   import { txtStore } from "@supa/client/state/txtStore";
-  //import { message, open } from "@tauri-apps/plugin-dialog";
   import { clientState } from "@supa/client/state/clientState.svelte";
   import { 
     checkIfPathHasValidStructureAndReturnActualRootPath

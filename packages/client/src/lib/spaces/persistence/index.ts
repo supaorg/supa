@@ -4,6 +4,5 @@ export {
   createPersistenceLayersForURI, 
   isFileSystemURI, 
   requiresDualPersistence, 
-  getFileSystemPath,
-  setPeerIdOnLayers
+  getFileSystemPath
 } from './persistenceUtils'; 

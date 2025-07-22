@@ -25,7 +25,6 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    // titleBarStyle: 'default', // Use native title bar with standard controls (this is the default)
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,

@@ -23,38 +23,8 @@ export interface SpaceConfig {
  */
 export class SpaceManager {
   private spaces = new Map<string, Space>();
+  // @TODO: refactor to put layers in 'spaces' map
   private spaceLayers = new Map<string, PersistenceLayer[]>();
-
-  /**
-   * Create a new space with the given persistence layers
-   */
-  /*
-  async createSpace(config?: SpaceConfig): Promise<Space> {
-    const persistenceLayers = config?.persistenceLayers || [];
-    const space = Space.newSpace(uuid());
-    const spaceId = space.getId();
-
-    if (persistenceLayers.length > 0) {
-      // Connect all layers
-      await Promise.all(persistenceLayers.map(layer => layer.connect()));
-
-      // Save initial operations to all layers
-      const initOps = space.tree.getAllOps();
-      await Promise.all(
-        persistenceLayers.map(layer => layer.saveTreeOps(spaceId, initOps))
-      );
-
-      // Set up operation tracking and sync
-      this.setupOperationTracking(space, persistenceLayers);
-      await this.setupTwoWaySync(space, persistenceLayers);
-
-      this.spaceLayers.set(spaceId, persistenceLayers);
-    }
-
-    this.spaces.set(spaceId, space);
-    return space;
-  }
-  */
 
   /**
    * Add a new space to the manager. Saves the space to the persistence layers.
@@ -85,7 +55,9 @@ export class SpaceManager {
   }
 
   /**
-   * Load an existing space from persistence layers
+   * Load an existing space from persistence layers.
+   * Will return space as soon as it loads from the fastest layer
+   * and merge in the ops from the other layers as they load.
    * @param pointer - The pointer to the space
    * @param persistenceLayers - The persistence layers to use for the space
    */
@@ -317,7 +289,7 @@ export class SpaceManager {
       // Stop listening on two-way sync layers
       await Promise.all(
         layers
-          .filter(layer => layer.supportsIncomingSync && layer.stopListening)
+          .filter(layer => layer.stopListening)
           .map(layer => layer.stopListening!())
       );
 
@@ -434,7 +406,7 @@ export class SpaceManager {
     const spaceId = space.getId();
 
     for (const layer of layers) {
-      if (layer.supportsIncomingSync && layer.startListening) {
+      if (layer.startListening) {
         await layer.startListening((treeId, incomingOps) => {
           // Apply incoming operations to the appropriate tree
           if (treeId === spaceId) {

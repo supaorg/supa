@@ -21,9 +21,6 @@ export interface PersistenceLayer {
   loadSecrets(): Promise<Record<string, string> | undefined>
   saveSecrets(secrets: Record<string, string>): Promise<void>
   
-  // Sync capabilities
-  readonly supportsIncomingSync: boolean
-  
   // Optional: for two-way sync layers
   startListening?(onIncomingOps: (treeId: string, ops: VertexOperation[]) => void): Promise<void>
   stopListening?(): Promise<void>

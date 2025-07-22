@@ -12,7 +12,6 @@ import {
  * Uses existing localDb.ts functionality for browser storage.
  */
 export class IndexedDBPersistenceLayer implements PersistenceLayer {
-  readonly supportsIncomingSync = false; // One-way persistence only
   readonly id: string;
   readonly type = 'local' as const;
 

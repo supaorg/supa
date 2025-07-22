@@ -21,7 +21,8 @@ export function createPersistenceLayersForURI(spaceId: string, uri: string): Per
     // layers.push(new ServerPersistenceLayer(spaceId, uri));
   } else {
     // File system path: IndexedDB + FileSystem (dual persistence)
-    layers.push(new IndexedDBPersistenceLayer(spaceId));
+    // @TODO: re-enable it after I make sure FileSystemPersistenceLayer works fine.
+    //layers.push(new IndexedDBPersistenceLayer(spaceId));
     layers.push(new FileSystemPersistenceLayer(uri, spaceId));
   }
 
@@ -53,15 +54,3 @@ export function getFileSystemPath(uri: string): string | null {
   }
   return null;
 }
-
-/**
- * Sets the peer ID on file system persistence layers
- * This is needed so the FileSystemPersistenceLayer knows which operations to save
- */
-export function setPeerIdOnLayers(layers: PersistenceLayer[], peerId: string): void {
-  for (const layer of layers) {
-    if (layer instanceof FileSystemPersistenceLayer) {
-      layer.setPeerId(peerId);
-    }
-  }
-} 

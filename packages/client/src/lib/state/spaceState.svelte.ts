@@ -4,7 +4,7 @@ import type { SpacePointer } from "../spaces/SpacePointer";
 import type { Space } from "@supa/core";
 import type { SpaceManager } from "@supa/core";
 import type { PersistenceLayer } from "@supa/core";
-import { createPersistenceLayersForURI, setPeerIdOnLayers } from "../spaces/persistence/persistenceUtils";
+import { createPersistenceLayersForURI } from "../spaces/persistence/persistenceUtils";
 import {
   getDraft,
   saveDraft,
@@ -64,9 +64,6 @@ export class SpaceState {
       this.space = await this.loadSpace();
 
       if (this.space) {
-        // Set peer ID on file system persistence layers
-        setPeerIdOnLayers(this.persistenceLayers, this.space.tree.peerId);
-
         // Load space-specific theme and layout
         await this.theme.loadSpaceTheme(this.pointer.id);
         await this.layout.loadSpaceLayout();

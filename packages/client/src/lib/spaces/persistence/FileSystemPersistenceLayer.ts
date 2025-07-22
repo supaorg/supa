@@ -29,12 +29,10 @@ This directory contains a Supa space. Please do not rename or modify the 'space-
 
 /**
  * File system persistence layer that saves operations and secrets to local files.
- * Supports two-way sync on Tauri via file watching, one-way on web.
  */
 export class FileSystemPersistenceLayer implements PersistenceLayer {
   readonly id: string;
   readonly type = 'local' as const;
-  readonly supportsIncomingSync: boolean = true; // @TODO: delete this
 
   private _connected = false;
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
@@ -45,11 +43,10 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   private saveSecretsTimer: (() => void) | null = null;
   private saveSecretsIntervalMs = 1000;
   private onIncomingOpsCallback: ((treeId: string, ops: VertexOperation[]) => void) | null = null;
-  private currentPeerId: string | null = null;
+  private savedPeerIds = new Set<string>();
 
   constructor(private spacePath: string, private spaceId: string) {
     this.id = `filesystem-${spaceId}`;
-    this.supportsIncomingSync = true; // @TODO: delete this
   }
 
   async connect(): Promise<void> {
@@ -140,18 +137,17 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   }
 
   async startListening?(onIncomingOps: (treeId: string, ops: VertexOperation[]) => void): Promise<void> {
-    if (!this.supportsIncomingSync) {
-      throw new Error('Two-way sync not supported on this platform');
-    }
-
     this.onIncomingOpsCallback = onIncomingOps;
 
     try {
+      // @TODO: re-enable after I figure out what to do with peers
+      /*
       this.unwatchSpaceFsChanges = await clientState.fs.watch(
         this.spacePath,
         this.handleWatchEvent.bind(this),
         { recursive: true }
       );
+      */
     } catch (error) {
       console.error("Error setting up file watch:", error);
       throw error;
@@ -171,13 +167,6 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
 
     this.onIncomingOpsCallback = null;
   }
-
-  // Set the current peer ID for filtering operations
-  setPeerId(peerId: string): void {
-    this.currentPeerId = peerId;
-  }
-
-  // Private methods extracted from OLD_LocalSpaceSync.ts
 
   private async ensureDirectoryStructure(): Promise<void> {
     // Create space directory if it doesn't exist
@@ -320,7 +309,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   }
 
   private async saveOps() {
-    if (this.savingOpsToFile || !this.currentPeerId) {
+    if (this.savingOpsToFile) {
       return;
     }
 
@@ -351,6 +340,8 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
           await opsFile.write(new TextEncoder().encode(opsJSONLines));
           this.treeOpsToSave.set(treeId, []);
           await opsFile.close();
+          // Track that we've saved ops for this peerId
+          this.savedPeerIds.add(peerId);
         } catch (error) {
           console.error("Error saving ops to file", error);
         }
@@ -524,7 +515,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   }
 
   private async tryReadOpsFromPeer(path: string) {
-    if (!this.onIncomingOpsCallback || !this.currentPeerId) {
+    if (!this.onIncomingOpsCallback) {
       return;
     }
 
@@ -541,8 +532,8 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
         throw new Error("Peer ID not found in the path");
       }
 
-      // Skip if it's our own peer
-      if (peerId === this.currentPeerId) {
+      // Skip if we've saved ops for this peerId
+      if (this.savedPeerIds.has(peerId)) {
         return;
       }
 
