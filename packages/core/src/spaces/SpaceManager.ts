@@ -56,7 +56,12 @@ export class SpaceManager {
   }
   */
 
-  async addSpace(space: Space, persistenceLayers: PersistenceLayer[]): Promise<void> {
+  /**
+   * Add a new space to the manager. Saves the space to the persistence layers.
+   * @param space - The space to add
+   * @param persistenceLayers - The persistence layers to use for the space
+   */
+  async addNewSpace(space: Space, persistenceLayers: PersistenceLayer[]): Promise<void> {
     const spaceId = space.getId();
 
     if (persistenceLayers.length > 0) {
@@ -81,6 +86,8 @@ export class SpaceManager {
 
   /**
    * Load an existing space from persistence layers
+   * @param pointer - The pointer to the space
+   * @param persistenceLayers - The persistence layers to use for the space
    */
   async loadSpace(pointer: SpacePointer, persistenceLayers: PersistenceLayer[]): Promise<Space> {
     const spaceId = pointer.id;

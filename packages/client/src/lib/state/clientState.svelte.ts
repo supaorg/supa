@@ -188,7 +188,7 @@ export class ClientState {
     // Create persistence layers based on URI
     const persistenceLayers = createPersistenceLayersForURI(spaceId, pointer.uri);
 
-    await this._spaceManager.addSpace(space, persistenceLayers);
+    await this._spaceManager.addNewSpace(space, persistenceLayers);
 
     // Add to our collections
     this.pointers = [...this.pointers, pointer];

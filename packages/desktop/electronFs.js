@@ -72,17 +72,13 @@ export class ElectronFileSystem {
 
   /**
    * @param {string} filePath - The file path to read
-   * @returns {Promise<AsyncIterable<string>>}
+   * @returns {Promise<string[]>}
    */
   async readTextFileLines(filePath) {
     const content = await this.readTextFile(filePath);
     const lines = content.split('\n');
     
-    return (async function* () {
-      for (const line of lines) {
-        yield line;
-      }
-    })();
+    return lines;
   }
 
   /**

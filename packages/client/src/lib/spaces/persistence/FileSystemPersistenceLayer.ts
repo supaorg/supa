@@ -297,11 +297,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
     const allOps: VertexOperation[] = [];
     for (const file of jsonlFiles) {
       try {
-        const linesIterator = await clientState.fs.readTextFileLines(file);
-        const lines: string[] = [];
-        for await (const line of linesIterator) {
-          lines.push(line);
-        }
+        const lines = await clientState.fs.readTextFileLines(file);
         const peerId = file.split('/').pop()!.split('.')[0];
         const ops = await this.turnJSONLinesIntoOps(lines, peerId);
         allOps.push(...ops);
