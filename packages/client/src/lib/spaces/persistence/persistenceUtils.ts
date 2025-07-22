@@ -22,35 +22,9 @@ export function createPersistenceLayersForURI(spaceId: string, uri: string): Per
   } else {
     // File system path: IndexedDB + FileSystem (dual persistence)
     // @TODO: re-enable it after I make sure FileSystemPersistenceLayer works fine.
-    //layers.push(new IndexedDBPersistenceLayer(spaceId));
+    layers.push(new IndexedDBPersistenceLayer(spaceId));
     layers.push(new FileSystemPersistenceLayer(uri, spaceId));
   }
 
   return layers;
-}
-
-/**
- * Checks if a URI represents a file system path (not local:// or http(s)://)
- */
-export function isFileSystemURI(uri: string): boolean {
-  return !uri.startsWith("local://") && 
-         !uri.startsWith("http://") && 
-         !uri.startsWith("https://");
-}
-
-/**
- * Checks if a URI requires dual persistence (IndexedDB + something else)
- */
-export function requiresDualPersistence(uri: string): boolean {
-  return isFileSystemURI(uri); // For now, only file system URIs need dual persistence
-}
-
-/**
- * Gets the file system path from a URI, or null if not a file system URI
- */
-export function getFileSystemPath(uri: string): string | null {
-  if (isFileSystemURI(uri)) {
-    return uri;
-  }
-  return null;
 }

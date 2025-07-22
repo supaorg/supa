@@ -272,7 +272,7 @@ export class SpaceManager {
             console.log(`Saving missing ops for tree ${treeId} to layer: ${layer.id}`, missingOps);
           }
 
-          //await layer.saveTreeOps(treeId, missingOps);
+          await layer.saveTreeOps(treeId, missingOps);
         }
       }
     } catch (error) {
