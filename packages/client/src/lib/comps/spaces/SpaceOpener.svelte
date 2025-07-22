@@ -11,7 +11,7 @@
 
   let {
     onSpaceSetup,
-  }: { onSpaceSetup: (spaceId: string) => void | undefined } = $props();
+  }: { onSpaceSetup?: (spaceId: string) => void } = $props();
 
   async function createSpaceDialog() {
     if (status !== "idle") return;
