@@ -80,13 +80,6 @@
   }
 </script>
 
-<div class="flex justify-between items-center pb-4">
-  <h3 class="h3">Create or open a space</h3>
-</div>
-<p class="mb-6">
-  You can create a new space or open an existing one.
-</p>
-
 <div>
   <div class="flex items-center justify-between mt-4">
     <div>

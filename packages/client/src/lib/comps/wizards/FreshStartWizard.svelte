@@ -31,6 +31,7 @@
       </p>
     </div>
 
+    <h3 class="h3">Create or open a space</h3>
     <SpaceOpener />
   </div>
 </CenteredPage>
