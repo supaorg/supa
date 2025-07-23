@@ -1,4 +1,4 @@
-import type { PersistenceLayer } from "@supa/core";
+import { ConnectedPersistenceLayer } from "@supa/core";
 import type { VertexOperation } from "@supa/core";
 import {
   isMoveVertexOp,
@@ -30,11 +30,10 @@ This directory contains a Supa space. Please do not rename or modify the 'space-
 /**
  * File system persistence layer that saves operations and secrets to local files.
  */
-export class FileSystemPersistenceLayer implements PersistenceLayer {
+export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
   readonly id: string;
   readonly type = 'local' as const;
 
-  private _connected = false;
   private unwatchSpaceFsChanges: UnwatchFn | null = null;
   private saveOpsTimer: (() => void) | null = null;
   private savingOpsToFile = false;
@@ -46,25 +45,16 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   private savedPeerIds = new Set<string>();
 
   constructor(private spacePath: string, private spaceId: string) {
+    super();
     this.id = `filesystem-${spaceId}`;
   }
 
-  async connect(): Promise<void> {
-    if (this._connected) return;
-
+  protected async doConnect(): Promise<void> {
     // Ensure space directory structure exists
     await this.ensureDirectoryStructure();
-
-    this._connected = true;
   }
 
-  isConnected(): boolean {
-    return this._connected;
-  }
-
-  async disconnect(): Promise<void> {
-    if (!this._connected) return;
-
+  protected async doDisconnect(): Promise<void> {
     if (this.unwatchSpaceFsChanges) {
       this.unwatchSpaceFsChanges();
       this.unwatchSpaceFsChanges = null;
@@ -79,12 +69,10 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
       this.saveSecretsTimer();
       this.saveSecretsTimer = null;
     }
-
-    this._connected = false;
   }
 
   async loadSpaceTreeOps(): Promise<VertexOperation[]> {
-    if (!this._connected) {
+    if (!this.isConnected()) {
       throw new Error('FileSystemPersistenceLayer not connected');
     }
 
@@ -92,7 +80,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   }
 
   async saveTreeOps(treeId: string, ops: ReadonlyArray<VertexOperation>): Promise<void> {
-    if (!this._connected) {
+    if (!this.isConnected()) {
       throw new Error('FileSystemPersistenceLayer not connected');
     }
 
@@ -111,7 +99,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   }
 
   async loadTreeOps(treeId: string): Promise<VertexOperation[]> {
-    if (!this._connected) {
+    if (!this.isConnected()) {
       throw new Error('FileSystemPersistenceLayer not connected');
     }
 
@@ -119,7 +107,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   }
 
   async loadSecrets(): Promise<Record<string, string> | undefined> {
-    if (!this._connected) {
+    if (!this.isConnected()) {
       throw new Error('FileSystemPersistenceLayer not connected');
     }
 
@@ -127,7 +115,7 @@ export class FileSystemPersistenceLayer implements PersistenceLayer {
   }
 
   async saveSecrets(secrets: Record<string, string>): Promise<void> {
-    if (!this._connected) {
+    if (!this.isConnected()) {
       throw new Error('FileSystemPersistenceLayer not connected');
     }
 
