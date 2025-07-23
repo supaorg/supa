@@ -180,6 +180,7 @@ export class SpaceManager {
 
     // Load secrets using race-based approach
     const secretPromises = persistenceLayers.map(async (layer) => {
+      await layer.connect();
       const secrets = await layer.loadSecrets();
       return { layer, secrets };
     });
@@ -236,6 +237,7 @@ export class SpaceManager {
     try {
       // Load operations from all layers
       const layerOpsPromises = layers.map(async (layer) => {
+        await layer.connect();
         const ops = await layer.loadTreeOps(treeId);
         return { layer, ops };
       });
