@@ -1,21 +1,4 @@
-# Basics for developers
-
-Facts:
-- Supa is a standalone application (MacOS, Windows, Linux; and Android and iOS at some point)
-- Written in TypeScript
-- Frontend is Svelte 5
-- Electron is used for the desktop app
-- Doesn't have a server (yet), everything is local plus using APIs of services, such as OpenAI
-- Tailwind is used for CSS utility classes
-- Skeleton is used as a design system and components
-- AIWrapper is used to interact with AI models
-- RepTree is used for sync
-- TTabs is used for tiling tabs (like in VSCode)
-
-Structure:
-- packages/client/src is the client code with UI components written in Svelte; gets built into /dist
-- packages/core/src is the core functionality shared with client; gets built into /dist
-- packages/desktop/src is the SvelteKit + Electron wrapper that is using the client package
+# Basics for AI agents
 
 ## Updating deps in npm
 Sometimes packages get cached with old versions. In that case remove the cache and `npm run dev` again.
