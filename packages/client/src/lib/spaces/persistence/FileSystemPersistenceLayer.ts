@@ -9,52 +9,7 @@ import {
 import { type WatchEvent, type UnwatchFn, type FileHandle } from "../../appFs";
 import { interval } from "@supa/core";
 import { clientState } from "@supa/client/state/clientState.svelte";
-
-const opsParserWorker = new Worker(new URL('./opsParser.worker.ts', import.meta.url));
-
-// Track pending requests to avoid race conditions
-const pendingRequests = new Map<string, {
-  resolve: (ops: VertexOperation[]) => void;
-  reject: (error: Error) => void;
-}>();
-
-// Set up global message handler for the worker
-opsParserWorker.addEventListener('message', (e: MessageEvent) => {
-  const { requestId, operations, error } = e.data;
-  const pending = pendingRequests.get(requestId);
-  
-  if (!pending) {
-    console.warn('Received response for unknown request:', requestId);
-    return;
-  }
-  
-  pendingRequests.delete(requestId);
-  
-  if (error) {
-    pending.reject(new Error(error));
-  } else {
-    const vertexOps = operations.map((op: ParsedOp) => {
-      if (op.type === 'm') {
-        return newMoveVertexOp(op.counter, op.peerId, op.targetId, op.parentId ?? null);
-      } else {
-        // Convert empty object ({}) to undefined
-        const value = op.value && typeof op.value === 'object' && Object.keys(op.value).length === 0 ? undefined : op.value;
-        return newSetVertexPropertyOp(op.counter, op.peerId, op.targetId, op.key!, value);
-      }
-    });
-    pending.resolve(vertexOps);
-  }
-});
-
-type ParsedOp = {
-  type: 'm' | 'p';
-  counter: number;
-  peerId: string;
-  targetId: string;
-  parentId?: string;
-  key?: string;
-  value?: any;
-};
+import { OpsParser } from "./OpsParser";
 
 export const LOCAL_SPACE_MD_FILE = 'supa.md';
 export const TEXT_INSIDE_LOCAL_SPACE_MD_FILE = `# Supa Space
@@ -77,10 +32,12 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
   private saveSecretsIntervalMs = 1000;
   private onIncomingOpsCallback: ((treeId: string, ops: VertexOperation[]) => void) | null = null;
   private savedPeerIds = new Set<string>();
+  private opsParser: OpsParser;
 
   constructor(private spacePath: string, private spaceId: string) {
     super();
     this.id = `filesystem-${spaceId}`;
+    this.opsParser = new OpsParser();
   }
 
   protected async doConnect(): Promise<void> {
@@ -103,6 +60,9 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
       this.saveSecretsTimer();
       this.saveSecretsTimer = null;
     }
+
+    // Clean up the ops parser
+    this.opsParser.destroy();
   }
 
   async loadSpaceTreeOps(): Promise<VertexOperation[]> {
@@ -391,27 +351,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
   }
 
   private async turnJSONLinesIntoOps(lines: string[], peerId: string): Promise<VertexOperation[]> {
-    const requestId = crypto.randomUUID();
-    
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        pendingRequests.delete(requestId);
-        reject(new Error('Operation parsing timed out'));
-      }, 5000); // 5 second timeout
-
-      pendingRequests.set(requestId, {
-        resolve: (ops: VertexOperation[]) => {
-          clearTimeout(timeout);
-          resolve(ops);
-        },
-        reject: (error: Error) => {
-          clearTimeout(timeout);
-          reject(error);
-        }
-      });
-
-      opsParserWorker.postMessage({ lines, peerId, requestId });
-    });
+    return await this.opsParser.parseLines(lines, peerId);
   }
 
   // Secrets encryption/decryption (preserved from OLD_LocalSpaceSync.ts)

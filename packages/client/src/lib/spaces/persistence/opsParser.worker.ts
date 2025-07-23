@@ -1,12 +1,4 @@
-type ParsedOp = {
-  type: 'm' | 'p';
-  counter: number;
-  peerId: string;
-  targetId: string;
-  parentId?: string;
-  key?: string;
-  value?: any;
-};
+import { type ParsedOp } from './OpsParser';
 
 self.onmessage = (e: MessageEvent) => {
   const { lines, peerId, requestId } = e.data;
