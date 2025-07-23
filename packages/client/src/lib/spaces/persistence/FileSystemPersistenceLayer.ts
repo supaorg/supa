@@ -287,7 +287,11 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
       opsToSave = [];
       this.treeOpsToSave.set(treeId, opsToSave);
     }
-    opsToSave.push(...ops);
+
+    // Exclude ops that are already in the opsToSave
+    const newOps = ops.filter(op => !opsToSave.some(o => o.id.counter === op.id.counter && o.id.peerId === op.id.peerId));
+
+    opsToSave.push(...newOps);
   }
 
   private async saveOps() {
