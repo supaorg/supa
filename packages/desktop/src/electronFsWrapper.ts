@@ -1,23 +1,9 @@
 import type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from '@supa/client/appFs';
 
-// Extend the Window interface to include our exposed APIs
+// Extend the Window interface to include the electronFs API
 declare global {
   interface Window {
-    electronFs: {
-      readDir: (path: string) => Promise<FileEntry[]>;
-      exists: (path: string) => Promise<boolean>;
-      readTextFile: (path: string) => Promise<string>;
-      readTextFileLines: (path: string) => Promise<string[]>;
-      writeTextFile: (path: string, content: string) => Promise<void>;
-      create: (path: string) => Promise<FileHandle>;
-      open: (path: string, options?: { append?: boolean }) => Promise<FileHandle>;
-      mkdir: (path: string, options?: { recursive?: boolean }) => Promise<void>;
-      watch: (path: string, callback: (event: WatchEvent) => void, options?: { recursive?: boolean }) => Promise<UnwatchFn>;
-    };
-    electronAPI: {
-      platform: string;
-      versions: Record<string, string>;
-    };
+    electronFs: AppFileSystem;
   }
 }
 

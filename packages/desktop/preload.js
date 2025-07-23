@@ -69,9 +69,3 @@ contextBridge.exposeInMainWorld('electronDialog', {
    */
   saveDialog: (options) => ipcRenderer.invoke('dialog:save', options)
 });
-
-// Also expose environment information
-contextBridge.exposeInMainWorld('electronAPI', {
-  platform: process.platform,
-  versions: process.versions
-});

@@ -10,7 +10,41 @@ import { type WatchEvent, type UnwatchFn, type FileHandle } from "../../appFs";
 import { interval } from "@supa/core";
 import { clientState } from "@supa/client/state/clientState.svelte";
 
-const opsParserWorker = new Worker(new URL('../opsParser.worker.ts', import.meta.url));
+const opsParserWorker = new Worker(new URL('./opsParser.worker.ts', import.meta.url));
+
+// Track pending requests to avoid race conditions
+const pendingRequests = new Map<string, {
+  resolve: (ops: VertexOperation[]) => void;
+  reject: (error: Error) => void;
+}>();
+
+// Set up global message handler for the worker
+opsParserWorker.addEventListener('message', (e: MessageEvent) => {
+  const { requestId, operations, error } = e.data;
+  const pending = pendingRequests.get(requestId);
+  
+  if (!pending) {
+    console.warn('Received response for unknown request:', requestId);
+    return;
+  }
+  
+  pendingRequests.delete(requestId);
+  
+  if (error) {
+    pending.reject(new Error(error));
+  } else {
+    const vertexOps = operations.map((op: ParsedOp) => {
+      if (op.type === 'm') {
+        return newMoveVertexOp(op.counter, op.peerId, op.targetId, op.parentId ?? null);
+      } else {
+        // Convert empty object ({}) to undefined
+        const value = op.value && typeof op.value === 'object' && Object.keys(op.value).length === 0 ? undefined : op.value;
+        return newSetVertexPropertyOp(op.counter, op.peerId, op.targetId, op.key!, value);
+      }
+    });
+    pending.resolve(vertexOps);
+  }
+});
 
 type ParsedOp = {
   type: 'm' | 'p';
@@ -186,7 +220,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     }
   }
 
-  private makePathForTree(treeId: string): string {
+  private getPathForTree(treeId: string): string {
     // Split the treeId into two parts to avoid having too many files in a single directory
     const prefix = treeId.substring(0, 2);
     const suffix = treeId.substring(2);
@@ -198,7 +232,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     const year = date.getUTCFullYear().toString();
     const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
     const day = date.getUTCDate().toString().padStart(2, '0');
-    return `${this.makePathForTree(treeId)}/${year}/${month}/${day}`;
+    return `${this.getPathForTree(treeId)}/${year}/${month}/${day}`;
   }
 
   private makePathForCurrentDayOps(treeId: string): string {
@@ -226,7 +260,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
    * @throws An error if the file is not a valid JSONL file.
    */
   private async loadAllTreeOps(treeId: string): Promise<VertexOperation[]> {
-    const treeOpsPath = this.makePathForTree(treeId);
+    const treeOpsPath = this.getPathForTree(treeId);
 
     // Check if directory exists
     if (!await clientState.fs.exists(treeOpsPath)) {
@@ -357,24 +391,26 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
   }
 
   private async turnJSONLinesIntoOps(lines: string[], peerId: string): Promise<VertexOperation[]> {
+    const requestId = crypto.randomUUID();
+    
     return new Promise((resolve, reject) => {
-      const handleMessage = (e: MessageEvent) => {
-        const { operations } = e.data as { operations: ParsedOp[] };
-        const vertexOps = operations.map((op: ParsedOp) => {
-          if (op.type === 'm') {
-            return newMoveVertexOp(op.counter, op.peerId, op.targetId, op.parentId ?? null);
-          } else {
-            // Convert empty object ({}) to undefined
-            const value = op.value && typeof op.value === 'object' && Object.keys(op.value).length === 0 ? undefined : op.value;
-            return newSetVertexPropertyOp(op.counter, op.peerId, op.targetId, op.key!, value);
-          }
-        });
-        opsParserWorker.removeEventListener('message', handleMessage);
-        resolve(vertexOps);
-      };
+      const timeout = setTimeout(() => {
+        pendingRequests.delete(requestId);
+        reject(new Error('Operation parsing timed out'));
+      }, 5000); // 5 second timeout
 
-      opsParserWorker.addEventListener('message', handleMessage);
-      opsParserWorker.postMessage({ lines, peerId });
+      pendingRequests.set(requestId, {
+        resolve: (ops: VertexOperation[]) => {
+          clearTimeout(timeout);
+          resolve(ops);
+        },
+        reject: (error: Error) => {
+          clearTimeout(timeout);
+          reject(error);
+        }
+      });
+
+      opsParserWorker.postMessage({ lines, peerId, requestId });
     });
   }
 
@@ -559,11 +595,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
       return;
     }
 
-    const linesIterator = await clientState.fs.readTextFileLines(path);
-    const lines: string[] = [];
-    for await (const line of linesIterator) {
-      lines.push(line);
-    }
+    const lines = await clientState.fs.readTextFileLines(path);
     const ops = await this.turnJSONLinesIntoOps(lines, peerId);
 
     if (ops.length === 0) {
