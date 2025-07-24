@@ -122,14 +122,11 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     this.onIncomingOpsCallback = onIncomingOps;
 
     try {
-      // @TODO: re-enable after I figure out what to do with peers
-      /*
       this.unwatchSpaceFsChanges = await clientState.fs.watch(
         this.spacePath,
         this.handleWatchEvent.bind(this),
         { recursive: true }
       );
-      */
     } catch (error) {
       console.error("Error setting up file watch:", error);
       throw error;
@@ -457,28 +454,25 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
 
   // File watching event handler
   private handleWatchEvent(event: WatchEvent) {
-    if (typeof event.type === 'object' && 'create' in event.type) {
-      const createEvent = event.type.create;
-      if (createEvent.kind === 'file') {
-        const path = event.paths[0];
-
-        if (path.endsWith('.jsonl')) {
-          this.tryReadOpsFromPeer(path);
-        } else if (path.endsWith('secrets')) {
-          this.tryReadSecretsFromPeer(path);
+    switch (event.event) {
+      case 'add':
+        if (event.path.endsWith('.jsonl')) {
+          this.tryReadOpsFromPeer(event.path);
+        } else if (event.path.endsWith('secrets')) {
+          this.tryReadSecretsFromPeer(event.path);
         }
-      }
-    } else if (typeof event.type === 'object' && 'modify' in event.type) {
-      const modifyEvent = event.type.modify;
-      if (modifyEvent.kind === 'data' && (modifyEvent.mode === 'any' || modifyEvent.mode === 'content')) {
-        const path = event.paths[0];
-
-        if (path.endsWith('.jsonl')) {
-          this.tryReadOpsFromPeer(path);
-        } else if (path.endsWith('secrets')) {
-          this.tryReadSecretsFromPeer(path);
+        break;
+        
+      case 'change':
+        if (event.path.endsWith('.jsonl')) {
+          this.tryReadOpsFromPeer(event.path);
+        } else if (event.path.endsWith('secrets')) {
+          this.tryReadSecretsFromPeer(event.path);
         }
-      }
+        break;
+        
+      // We don't need to handle 'addDir', 'unlink', or 'unlinkDir' for our use case
+      // but they're available if needed in the future
     }
   }
 

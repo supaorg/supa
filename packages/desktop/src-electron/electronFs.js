@@ -250,36 +250,36 @@ export class ElectronFileSystem {
 
       watcher.on('add', (filePath) => {
         callback({
-          type: { create: { kind: 'file' } },
-          paths: [filePath]
+          event: 'add',
+          path: filePath
         });
       });
 
       watcher.on('addDir', (dirPath) => {
         callback({
-          type: { create: { kind: 'folder' } },
-          paths: [dirPath]
+          event: 'addDir',
+          path: dirPath
         });
       });
 
       watcher.on('change', (filePath) => {
         callback({
-          type: { modify: { kind: 'data' } },
-          paths: [filePath]
+          event: 'change',
+          path: filePath
         });
       });
 
       watcher.on('unlink', (filePath) => {
         callback({
-          type: { remove: { kind: 'file' } },
-          paths: [filePath]
+          event: 'unlink',
+          path: filePath
         });
       });
 
       watcher.on('unlinkDir', (dirPath) => {
         callback({
-          type: { remove: { kind: 'folder' } },
-          paths: [dirPath]
+          event: 'unlinkDir',
+          path: dirPath
         });
       });
 

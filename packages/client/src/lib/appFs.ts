@@ -11,11 +11,8 @@ export interface FileHandle {
 }
 
 export interface WatchEvent {
-  type: 
-    | { create: { kind: 'file' | 'folder' } }
-    | { modify: { kind: 'data' | 'metadata' | 'rename', mode?: 'any' | 'content' } }
-    | { remove: { kind: 'file' | 'folder' } };
-  paths: string[];
+  event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir';
+  path: string;
 }
 
 export type UnwatchFn = () => void;
