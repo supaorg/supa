@@ -12,6 +12,6 @@ export interface SaveDialogOptions {
 }
 
 export interface AppDialogs {
-  open(opts: OpenDialogOptions): Promise<string | string[] | null>;
-  save(opts: SaveDialogOptions): Promise<string | null>;
+  openDialog(opts: OpenDialogOptions): Promise<string | string[] | null>;
+  saveDialog(opts: SaveDialogOptions): Promise<string | null>;
 } 

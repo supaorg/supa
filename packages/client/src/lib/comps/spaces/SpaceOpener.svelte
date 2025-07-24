@@ -14,7 +14,7 @@
 
     status = "creating";
     try {
-      const path = await clientState.dialog.open({
+      const path = await clientState.dialog.openDialog({
         title: $txtStore.spacesPage.opener.dialogCreateTitle,
         directory: true,
       });
@@ -39,7 +39,7 @@
 
     status = "opening";
     try {
-      const path = await clientState.dialog.open({
+      const path = await clientState.dialog.openDialog({
         title: $txtStore.spacesPage.opener.dialogOpenTitle,
         directory: true,
       });
