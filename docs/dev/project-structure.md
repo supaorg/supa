@@ -2,7 +2,7 @@
 
 We have a package.json in the root of our repository that unites our packages in the npm workspace. We run `npm install`, `npm run dev` and `npm build` from the root.
 
-This should be enough to start with the project from scratch:
+This should be enough to get started after cloning the repository:
 `npm install && npm run dev`
 
 ## Packages
@@ -17,13 +17,15 @@ Neither the core nor client gets their own dist/build. Rather than building - we
 
 ## Quick facts about our tech stack
 
-- Supa is a standalone application (MacOS, Windows, Linux; and Android and iOS at some point)
-- Written in TypeScript
-- Frontend is Svelte 5
-- Electron is used for the desktop app
-- Doesn't have a server (yet), everything is local plus using APIs of services, such as OpenAI
-- Tailwind is used for CSS utility classes
-- Skeleton is used as a design system and components
-- AIWrapper is used to interact with AI models
-- RepTree is used for sync
-- TTabs is used for tiling tabs (like in VSCode)
+- Standalone application (desktop + mobile)
+- Desktop app runs on Electron  
+- Mobile app runs on Capacitor
+- Built with TypeScript
+- Frontend uses Svelte 5 + SvelteKit
+- Everything runs locally (no server yet) plus external APIs
+- Styling via Tailwind CSS
+- Components from Skeleton design system
+- Inference with AI is done through AIWrapper
+- Sync handled by RepTree
+- Tiling tabs like in VSCode are built with TTabs
+- Context for AI agent generated with Airul
