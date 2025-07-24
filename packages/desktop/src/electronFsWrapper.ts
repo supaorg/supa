@@ -12,7 +12,7 @@ declare global {
  * by delegating to the exposed electronFs API from the preload script
  */
 export class ElectronFsWrapper implements AppFileSystem {
-  private get electronFs() {
+  private get api() {
     if (!window.electronFs) {
       throw new Error('electronFs not available. Make sure the preload script is loaded.');
     }
@@ -20,35 +20,35 @@ export class ElectronFsWrapper implements AppFileSystem {
   }
 
   async readDir(path: string): Promise<FileEntry[]> {
-    return this.electronFs.readDir(path);
+    return this.api.readDir(path);
   }
 
   async exists(path: string): Promise<boolean> {
-    return this.electronFs.exists(path);
+    return this.api.exists(path);
   }
 
   async readTextFile(path: string): Promise<string> {
-    return this.electronFs.readTextFile(path);
+    return this.api.readTextFile(path);
   }
 
   async readTextFileLines(path: string): Promise<string[]> {
-    return this.electronFs.readTextFileLines(path);
+    return this.api.readTextFileLines(path);
   }
 
   async writeTextFile(path: string, content: string): Promise<void> {
-    return this.electronFs.writeTextFile(path, content);
+    return this.api.writeTextFile(path, content);
   }
 
   async create(path: string): Promise<FileHandle> {
-    return this.electronFs.create(path);
+    return this.api.create(path);
   }
 
   async open(path: string, options?: { append?: boolean }): Promise<FileHandle> {
-    return this.electronFs.open(path, options);
+    return this.api.open(path, options);
   }
 
   async mkdir(path: string, options?: { recursive?: boolean }): Promise<void> {
-    return this.electronFs.mkdir(path, options);
+    return this.api.mkdir(path, options);
   }
 
   async watch(
@@ -56,7 +56,7 @@ export class ElectronFsWrapper implements AppFileSystem {
     callback: (event: WatchEvent) => void,
     options?: { recursive?: boolean }
   ): Promise<UnwatchFn> {
-    return this.electronFs.watch(path, callback, options);
+    return this.api.watch(path, callback, options);
   }
 }
 
