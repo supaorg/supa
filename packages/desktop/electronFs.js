@@ -1,6 +1,62 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { watch } from 'chokidar';
+import { contextBridge } from 'electron';
+
+export function initElectronFs() {
+  // Expose the file system API to the renderer process
+  contextBridge.exposeInMainWorld('electronFs', {
+    /**
+     * @param {string} path
+     */
+    readDir: (path) => electronFs.readDir(path),
+
+    /**
+     * @param {string} path
+     */
+    exists: (path) => electronFs.exists(path),
+
+    /**
+     * @param {string} path
+     */
+    readTextFile: (path) => electronFs.readTextFile(path),
+
+    /**
+     * @param {string} path
+     */
+    readTextFileLines: (path) => electronFs.readTextFileLines(path),
+
+    /**
+     * @param {string} path
+     * @param {string} content
+     */
+    writeTextFile: (path, content) => electronFs.writeTextFile(path, content),
+
+    /**
+     * @param {string} path
+     */
+    create: (path) => electronFs.create(path),
+
+    /**
+     * @param {string} path
+     * @param {Object} [options]
+     */
+    open: (path, options) => electronFs.open(path, options),
+
+    /**
+     * @param {string} path
+     * @param {Object} [options]
+     */
+    mkdir: (path, options) => electronFs.mkdir(path, options),
+
+    /**
+     * @param {string} path
+     * @param {function(Object): void} callback
+     * @param {Object} [options]
+     */
+    watch: (path, callback, options) => electronFs.watch(path, callback, options)
+  });
+}
 
 /**
  * @typedef {Object} FileEntry
@@ -77,7 +133,7 @@ export class ElectronFileSystem {
   async readTextFileLines(filePath) {
     const content = await this.readTextFile(filePath);
     const lines = content.split('\n');
-    
+
     return lines;
   }
 
@@ -91,7 +147,7 @@ export class ElectronFileSystem {
       // Ensure directory exists
       const dir = path.dirname(filePath);
       await fs.mkdir(dir, { recursive: true });
-      
+
       await fs.writeFile(filePath, content, 'utf-8');
     } catch (error) {
       console.error('Failed to write file:', filePath, error);
@@ -108,10 +164,10 @@ export class ElectronFileSystem {
       // Ensure directory exists
       const dir = path.dirname(filePath);
       await fs.mkdir(dir, { recursive: true });
-      
+
       // Create the file if it doesn't exist
       const fileHandle = await fs.open(filePath, 'w');
-      
+
       return {
         /**
          * @param {Uint8Array} data - The data to write
@@ -143,7 +199,7 @@ export class ElectronFileSystem {
     try {
       const flag = options?.append ? 'a' : 'w';
       const fileHandle = await fs.open(filePath, flag);
-      
+
       return {
         /**
          * @param {Uint8Array} data - The data to write
