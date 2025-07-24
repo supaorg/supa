@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Supa Desktop App - SvelteKit + Electron",
   "type": "module",
-  "main": "main.js",
+  "main": "src-electron/main.js",
   "build": {
     "appId": "com.supa.desktop",
     "productName": "Supa",
@@ -11,9 +11,7 @@
       "output": "dist"
     },
     "files": [
-      "main.js",
-      "preload.js",
-      "electronFs.js",
+      "src-electron/**",
       {
         "from": "build",
         "to": ""
@@ -30,7 +28,7 @@
     "dev:electron": "wait-on http://localhost:6969 && electron . --dev --remote-debugging-port=9222",
     "build:client": "npm run build -w @supa/client",
     "build": "npm run prepare-static-files && npm run build:client && npm run build:sveltekit && npm run build:electron",
-    "build:svetekit": "vite build",
+    "build:sveltekit": "vite build",
     "build:electron": "electron-builder",
     "preview": "vite preview",
     "start": "electron .",

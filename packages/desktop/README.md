@@ -24,8 +24,8 @@ npm start
 
 The development setup runs two processes concurrently:
 
-1. **SvelteKit Dev Server** (`npm run sveltekit:dev`) - Runs on http://localhost:6969
-2. **Electron App** (`npm run electron:dev`) - Loads the dev server URL
+1. **SvelteKit Dev Server** (`npm run dev:sveltekit`) - Runs on http://localhost:6969
+2. **Electron App** (`npm run dev:electron`) - Loads the dev server URL
 
 This provides:
 - Hot Module Replacement (HMR) from SvelteKit

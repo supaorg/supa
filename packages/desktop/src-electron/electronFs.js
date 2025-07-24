@@ -3,7 +3,7 @@ import * as path from 'path';
 import { watch } from 'chokidar';
 import { contextBridge } from 'electron';
 
-export function initElectronFs() {
+export function setupFSInPreloader() {
   // Expose the file system API to the renderer process
   contextBridge.exposeInMainWorld('electronFs', {
     /**
