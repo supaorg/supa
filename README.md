@@ -10,6 +10,14 @@ Supa is like ChatGPT but open source. It allows to use the best AI models from d
 
 > 🚧 Work in progress towards v1.
 
+## Getting Started
+
+**Download Supa:**
+- [Download for macOS](#) 
+- [Download for Windows](#)
+
+**For developers:** Want to build from source? Check out our [quick start guide](docs/dev/quick-start.md).
+
 ## Features
 
 **Workspaces**
