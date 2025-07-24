@@ -3,6 +3,7 @@ import serve from 'electron-serve';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { setupDialogsInMain } from './dialogs/electronDialogsMain.js';
+import { createElectronMenu } from './electronMenu.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,115 +74,13 @@ function createWindow() {
   });
 }
 
-function createMenu() {
-  /** @type {import('electron').MenuItemConstructorOptions[]} */
-  const template = [
-    {
-      label: 'View',
-      submenu: [
-        {
-          label: 'Reload',
-          accelerator: 'CmdOrCtrl+R',
-          click: function () {
-            if (mainWindow) {
-              mainWindow.reload();
-            }
-          }
-        },
-        {
-          label: 'Toggle DevTools',
-          accelerator: 'CmdOrCtrl+Alt+I',
-          click: function () {
-            if (mainWindow) {
-              mainWindow.webContents.toggleDevTools();
-            }
-          }
-        },
-        { type: 'separator' },
-        {
-          label: 'Actual Size',
-          accelerator: 'CmdOrCtrl+0',
-          click: function () {
-            if (mainWindow) {
-              mainWindow.webContents.setZoomLevel(0);
-            }
-          }
-        },
-        {
-          label: 'Zoom In',
-          accelerator: 'CmdOrCtrl+Plus',
-          click: function () {
-            if (mainWindow) {
-              const currentZoom = mainWindow.webContents.getZoomLevel();
-              mainWindow.webContents.setZoomLevel(currentZoom + 1);
-            }
-          }
-        },
-        {
-          label: 'Zoom Out',
-          accelerator: 'CmdOrCtrl+-',
-          click: function () {
-            if (mainWindow) {
-              const currentZoom = mainWindow.webContents.getZoomLevel();
-              mainWindow.webContents.setZoomLevel(currentZoom - 1);
-            }
-          }
-        }
-      ]
-    },
-    {
-      label: 'File',
-      submenu: [
-        {
-          label: 'New',
-          accelerator: 'CmdOrCtrl+N',
-          click: function () {
-            // Add file operations here
-            console.log('New file action');
-          }
-        },
-        {
-          label: 'Open',
-          accelerator: 'CmdOrCtrl+O',
-          click: function () {
-            // Add file operations here
-            console.log('Open file action');
-          }
-        },
-        { type: 'separator' },
-        {
-          label: 'Quit',
-          accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
-          click: function () {
-            app.quit();
-          }
-        },
-
-      ]
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
-        { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        { role: 'delete' },
-        { role: 'selectAll' }
-      ]
-    }
-  ];
-
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
-}
-
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
+  // Set the app name for menus (uses productName from package.json)
+  app.setName('Supa');
+  
   createWindow();
-  createMenu();
+  createElectronMenu();
 
   setupDialogsInMain();
 
