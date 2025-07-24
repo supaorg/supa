@@ -1,9 +1,6 @@
 <script lang="ts">
   import { txtStore } from "@supa/client/state/txtStore";
   import { clientState } from "@supa/client/state/clientState.svelte";
-  import { 
-    checkIfPathHasValidStructureAndReturnActualRootPath
-  } from "@supa/client/spaces/fileSystemSpaceUtils";
 
   type Status = "idle" | "creating" | "opening";
   let status: Status = $state("idle");
@@ -27,7 +24,7 @@
         return;
       }
 
-      const spaceId = await createFileSystemSpace(path as string);
+      const spaceId = await clientState.createSpace(path);
       onSpaceSetup?.(spaceId);
     } catch (e) {
       console.error(e);
@@ -35,17 +32,6 @@
     } finally {
       status = "idle";
     }
-  }
-
-  async function createFileSystemSpace(path: string): Promise<string> {
-    // For now, create a local space and we'll add file system support later
-    // TODO: Implement file system space creation in clientState
-    const spaceId = await clientState.createNewLocalSpace(path);
-    
-    // TODO: Update the space pointer to use the file system path instead of local://
-    // This will require extending clientState to support file system spaces
-    
-    return spaceId;
   }
 
   async function openSpaceDialog() {
@@ -63,8 +49,9 @@
         return;
       }
 
-      const rootPath = await checkIfPathHasValidStructureAndReturnActualRootPath(path as string);
-      const spaceId = await openFileSystemSpace(rootPath);
+      // @TODO: should I handle path as array or string?
+
+      const spaceId = await clientState.loadSpace(path as string);
       onSpaceSetup?.(spaceId);
     } catch (e) {
       console.error(e);
@@ -72,11 +59,6 @@
     } finally {
       status = "idle";
     }
-  }
-
-  async function openFileSystemSpace(path: string): Promise<string> {
-    // Use clientState to load the file system space
-    return await clientState.loadFileSystemSpace(path);
   }
 </script>
 

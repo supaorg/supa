@@ -6,7 +6,7 @@ import { txtStore } from './txtStore';
 import { setupSwins } from './swinsLayout';
 import type { SpacePointer } from "../spaces/SpacePointer";
 import { createPersistenceLayersForURI } from "../spaces/persistence/persistenceUtils";
-import { loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
+import { checkIfCanCreateSpaceAndReturnPath, checkIfPathHasValidStructureAndReturnActualRootPath, loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
 import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "@supa/client/localDb";
 import { SpaceManager } from "@supa/core";
 import { Space } from "@supa/core";
@@ -168,13 +168,15 @@ export class ClientState {
   /**
    * Create a new local space using SpaceManager with URI-based persistence
    */
-  async createNewLocalSpace(uri?: string): Promise<string> {
+  async createSpace(uri?: string): Promise<string> {
     const space = Space.newSpace(uuid()); 
     const spaceId = space.getId();
 
     // If no URI is provided, use the spaceId as the URI
     if (!uri) {
       uri = "local://" + spaceId;
+    } else {
+      uri = await checkIfCanCreateSpaceAndReturnPath(uri);
     }
 
     const pointer: SpacePointer = {
@@ -368,19 +370,14 @@ export class ClientState {
   }
 
   /**
-   * Create a new synced space (TODO: implement server sync)
+   * Load an existing space from a given URI
    */
-  async createNewSyncedSpace(): Promise<string> {
-    // TODO: Implement server-synced space creation
-    throw new Error("Synced spaces not yet implemented");
-  }
+  async loadSpace(uri: string): Promise<string> {
+    // We do this because a user might have selected a folder inside the space directory
+    const spaceRootPath = await checkIfPathHasValidStructureAndReturnActualRootPath(uri);
 
-  /**
-   * Load an existing file system space
-   */
-  async loadFileSystemSpace(path: string): Promise<string> {
     // Load space metadata from the file system
-    const { spaceId } = await loadSpaceMetadataFromPath(path);
+    const { spaceId } = await loadSpaceMetadataFromPath(spaceRootPath);
 
     // Check if space is already loaded
     const existingPointer = this.pointers.find(p => p.id === spaceId);
@@ -393,14 +390,14 @@ export class ClientState {
     // Create pointer for the file system space
     const pointer: SpacePointer = {
       id: spaceId,
-      uri: path, // File system path as URI triggers dual persistence
+      uri: spaceRootPath, // File system path as URI triggers dual persistence
       name: null, // Will be loaded from space data
       createdAt: new Date(), // Will be updated from space data
       userId: this.auth.user?.id || null,
     };
 
     // Create persistence layers based on URI (will be IndexedDB + FileSystem)
-    const persistenceLayers = createPersistenceLayersForURI(spaceId, path);
+    const persistenceLayers = createPersistenceLayersForURI(spaceId, spaceRootPath);
 
     // Load the space using SpaceManager
     const space = await this._spaceManager.loadSpace(pointer, persistenceLayers);
