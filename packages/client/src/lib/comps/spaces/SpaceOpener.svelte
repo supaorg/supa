@@ -28,7 +28,14 @@
       onSpaceSetup?.(spaceId);
     } catch (e) {
       console.error(e);
-      // TODO: surface error to user (toast/snackbar) once implemented
+      
+      // Show native error dialog to user
+      await clientState.dialog.showError({
+        title: "Failed to Create Space",
+        message: $txtStore.spacesPage.opener.errorCreate,
+        detail: e instanceof Error ? e.message : "An unknown error occurred while creating the space.",
+        buttons: ["OK"]
+      });
     } finally {
       status = "idle";
     }
@@ -55,7 +62,14 @@
       onSpaceSetup?.(spaceId);
     } catch (e) {
       console.error(e);
-      // TODO: surface error to user
+      
+      // Show native error dialog to user
+      await clientState.dialog.showError({
+        title: "Failed to Open Space",
+        message: $txtStore.spacesPage.opener.errorOpen,
+        detail: e instanceof Error ? e.message : "An unknown error occurred while opening the space.",
+        buttons: ["OK"]
+      });
     } finally {
       status = "idle";
     }

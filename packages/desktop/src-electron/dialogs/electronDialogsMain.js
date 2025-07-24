@@ -1,5 +1,5 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron';
-import { ipcOpen, ipcSave } from './electronDialogIpc.js';
+import { ipcOpen, ipcSave, ipcShowInfo, ipcShowWarning, ipcShowError, ipcShowQuestion, ipcShowErrorBox } from './electronDialogIpc.js';
 
 /**
  * Setup dialogs in the main process where we handle the dialogs
@@ -45,4 +45,57 @@ export function setupDialogsInMain() {
     if (result.canceled) return null;
     return result.filePath;
   });
+
+  // Message dialog handlers
+  ipcMain.handle(ipcShowInfo, async (event, options) => {
+    return showMessageDialog(event, options, 'info');
+  });
+
+  ipcMain.handle(ipcShowWarning, async (event, options) => {
+    return showMessageDialog(event, options, 'warning');
+  });
+
+  ipcMain.handle(ipcShowError, async (event, options) => {
+    return showMessageDialog(event, options, 'error');
+  });
+
+  ipcMain.handle(ipcShowQuestion, async (event, options) => {
+    return showMessageDialog(event, options, 'question');
+  });
+
+  ipcMain.handle(ipcShowErrorBox, async (event, title, content) => {
+    dialog.showErrorBox(title, content);
+  });
+}
+
+/**
+ * Helper function to show message dialogs
+ * @param {Electron.IpcMainInvokeEvent} event
+ * @param {import('@supa/client/appDialogs').MessageDialogOptions} options
+ * @param {'info' | 'warning' | 'error' | 'question'} type
+ */
+async function showMessageDialog(event, options, type) {
+  const browserWin = BrowserWindow.fromWebContents(event.sender);
+  
+  /** @type {import('electron').MessageBoxOptions} */
+  const params = {
+    type,
+    title: options?.title,
+    message: options.message,
+    detail: options?.detail,
+    buttons: options?.buttons || ['OK'],
+    defaultId: options?.defaultId || 0,
+    cancelId: options?.cancelId,
+    checkboxLabel: options?.checkboxLabel,
+    checkboxChecked: options?.checkboxChecked || false
+  };
+
+  const result = browserWin
+    ? await dialog.showMessageBox(browserWin, params)
+    : await dialog.showMessageBox(params);
+  
+  return {
+    response: result.response,
+    checkboxChecked: result.checkboxChecked
+  };
 }

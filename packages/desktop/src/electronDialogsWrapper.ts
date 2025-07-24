@@ -1,4 +1,4 @@
-import type { AppDialogs, OpenDialogOptions, SaveDialogOptions } from '@supa/client/appDialogs';
+import type { AppDialogs, OpenDialogOptions, SaveDialogOptions, MessageDialogOptions, MessageDialogResult } from '@supa/client/appDialogs';
 
 // Extend the Window interface to include our exposed dialog APIs
 declare global {
@@ -21,6 +21,26 @@ export class ElectronDialogsWrapper implements AppDialogs {
 
   async saveDialog(opts: SaveDialogOptions): Promise<string | null> {
     return this.api.saveDialog(opts);
+  }
+
+  async showInfo(opts: MessageDialogOptions): Promise<MessageDialogResult> {
+    return this.api.showInfo(opts);
+  }
+
+  async showWarning(opts: MessageDialogOptions): Promise<MessageDialogResult> {
+    return this.api.showWarning(opts);
+  }
+
+  async showError(opts: MessageDialogOptions): Promise<MessageDialogResult> {
+    return this.api.showError(opts);
+  }
+
+  async showQuestion(opts: MessageDialogOptions): Promise<MessageDialogResult> {
+    return this.api.showQuestion(opts);
+  }
+
+  showErrorBox(title: string, content: string): void {
+    this.api.showErrorBox(title, content);
   }
 }
 
