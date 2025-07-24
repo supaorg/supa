@@ -21,6 +21,20 @@
           "endsPattern": "^.*ready in.*$"
         }
       }
+    },
+    {
+      "type": "npm",
+      "script": "stop-dev",
+      "label": "stop-dev-client",
+      "detail": "Stop the SvelteKit dev server",
+      "group": "build",
+      "presentation": {
+        "echo": false,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
     }
   ]
 }
