@@ -1,6 +1,6 @@
 import { Menu } from 'electron';
 
-export function createElectronMenu() {
+export function setupElectronMenu() {
   /** @type {import('electron').MenuItemConstructorOptions[]} */
   const template = [
     // On macOS, the first menu is automatically the app menu (shows as "Supa")

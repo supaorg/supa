@@ -1,92 +1,29 @@
-import { app, BrowserWindow, Menu, shell } from 'electron';
-import serve from 'electron-serve';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { app, BrowserWindow } from 'electron';
 import { setupDialogsInMain } from './dialogs/electronDialogsMain.js';
-import { createElectronMenu } from './electronMenu.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { setupElectronMenu } from './electronMenu.js';
+import { createWindow } from './electronWindow.js';
 
 // Development mode check
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
-
-const serveURL = serve({ directory: '.' });
-
-// Note: SvelteKit provides HMR for renderer process changes
-// Main process changes (this file) require manual restart
 
 // Keep a global reference of the window object
 /** @type {BrowserWindow | null} */
 let mainWindow;
 
-function createWindow() {
-  // Create the browser window
-  mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: true,
-      webSecurity: !isDev, // Needed for SvelteKit in development
-      preload: path.join(__dirname, 'preload.js')
-    },
-    show: false // Don't show until ready
-  });
-
-  // Load the appropriate URL/file based on environment
-  if (isDev) {
-    // Development: load from SvelteKit dev server
-    mainWindow.loadURL('http://localhost:6969');
-  } else {
-    // Production: load built SvelteKit files
-    serveURL(mainWindow);
-  }
-
-  // Show window when ready to prevent visual flash
-  mainWindow.once('ready-to-show', () => {
-    if (mainWindow) {
-      mainWindow.show();
-      mainWindow.focus();
-    } else {
-      console.error("mainWindow is not set");
-    }
-  });
-
-  // Open DevTools in development
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-  }
-
-  // Handle window closed
-  mainWindow.on('closed', function () {
-    mainWindow = null;
-  });
-
-  // Handle external links
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // Open external links in the default browser
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      shell.openExternal(url);
-      return { action: 'deny' };
-    }
-    return { action: 'allow' };
-  });
-}
-
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
-  // Set the app name for menus (uses productName from package.json)
-  app.setName('Supa');
-  
-  createWindow();
-  createElectronMenu();
 
+  // Set the app name for menus
+  app.setName('Supa');
+  mainWindow = createWindow(isDev);
+  setupElectronMenu();
   setupDialogsInMain();
 
   app.on('activate', function () {
     // On macOS, re-create window when dock icon is clicked
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      mainWindow = createWindow(isDev);
+    }
   });
 });
 
