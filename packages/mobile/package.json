@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "prepare": "svelte-kit sync",
-    "build": "npm run build:client && npm run build:sveltekit && npx cap sync",
-    "build:sveltekit": "vite build",
+    "build": "npm run build:client && npm run build:vite && npx cap sync",
+    "build:vite": "vite build",
     "build:client": "npm run build -w @supa/client"
   },
   "dependencies": {

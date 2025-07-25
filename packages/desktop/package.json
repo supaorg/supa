@@ -1,7 +1,7 @@
 {
   "name": "@supa/desktop",
   "version": "1.0.0",
-  "description": "Supa Desktop App - SvelteKit + Electron",
+  "description": "Supa Desktop App - Svelte + Vite + Electron",
   "type": "module",
   "main": "src-electron/main.js",
   "build": {
@@ -19,15 +19,14 @@
     ]
   },
   "scripts": {
-    "prepare-static-files": "cpy '../client/static/**' './static' && cpy './desktop-static/**' './static'",
+    "prepare-static-files": "cpy '../client/static/**' './static-compiled' && cpy './static-desktop/**' './static-compiled'",
     "dev": "npm run prepare-static-files && concurrently \"npm run dev:client\" \"npm run dev:sveltekit\" \"npm run dev:electron\"",
     "dev:without-starting-electron": "npm run prepare-static-files && concurrently \"npm run dev:sveltekit\" \"npm run dev:client\"",
     "dev:sveltekit": "vite dev --port 6969",
     "dev:client": "npm run dev -w @supa/client",
     "dev:electron": "wait-on http://localhost:6969 && electron . --dev --remote-debugging-port=9222",
-    "build:client": "npm run build -w @supa/client",
-    "build": "npm run prepare-static-files && npm run build:client && npm run build:sveltekit && npm run build:electron",
-    "build:sveltekit": "vite build",
+    "build": "npm run prepare-static-files && npm run build -w @supa/client && npm run build:vite && npm run build:electron",
+    "build:vite": "vite build",
     "build:electron": "electron-builder",
     "preview": "vite preview",
     "start": "electron .",

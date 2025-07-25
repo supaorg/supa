@@ -7,6 +7,9 @@ export default defineConfig({
 	// Ensure proper base path for electron
 	base: './',
 	
+	// Public directory for static assets
+	publicDir: 'static-compiled',
+	
 	// Build configuration
 	build: {
 		outDir: 'build',
@@ -14,7 +17,9 @@ export default defineConfig({
 		// Ensure compatibility with Electron
 		target: 'chrome120',
 		sourcemap: true,
-    cssMinify: false
+		cssMinify: false,
+		// Copy static assets to build output
+		assetsDir: 'assets'
 	},
 	
 	// Define globals for Electron context
