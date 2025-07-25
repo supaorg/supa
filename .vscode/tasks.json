@@ -6,7 +6,7 @@
       "script": "dev:without-starting-electron",
       "path": "packages/desktop/",
       "label": "dev-client",
-      "detail": "Start SvelteKit dev server for desktop",
+      "detail": "Start Vite dev server for desktop",
       "group": "build",
       "isBackground": true,
       "problemMatcher": {
@@ -26,7 +26,7 @@
       "type": "npm",
       "script": "stop-dev",
       "label": "stop-dev-client",
-      "detail": "Stop the SvelteKit dev server",
+      "detail": "Stop the Vite dev server",
       "group": "build",
       "presentation": {
         "echo": false,

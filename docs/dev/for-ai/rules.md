@@ -1,11 +1,5 @@
 # Basics for AI agents
 
-## Updating deps in npm
-Sometimes packages get cached with old versions. In that case remove the cache and `npm run dev` again.
-`rm -rf packages/client/.svelte-kit packages/client/build packages/client/node_modules packages/core/node_modules packages/client/.vite packages/client/dist`
-
-If you clear cache like that, then `npm install` from the root dor.
-
 ## Icons
 Use lucide-svelte icons, like this: 
 import { Check } from "lucide-svelte";
