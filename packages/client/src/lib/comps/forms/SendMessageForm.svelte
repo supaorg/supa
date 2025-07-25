@@ -77,8 +77,8 @@
     };
   });
 
-  onMount(async () => { 
-   await loadDraft();
+  onMount(async () => {
+    await loadDraft();
 
     if (isFocused) {
       textareaElement?.focus();
@@ -133,8 +133,9 @@
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
+      event.stopPropagation();
       sendMsg();
-      
+
       return;
     }
     adjustTextareaHeight();
@@ -165,10 +166,12 @@
       return;
     }
 
-    isSending = true;
-
     onSend(query);
+    isSending = true;
     query = "";
+    if (textareaElement) {
+      textareaElement.value = "";
+    }
 
     // Clear draft when message is sent
     if (draftId) {
