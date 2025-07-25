@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { SupaApp, type ClientStateConfig } from "@supa/client";
-  import { electronFsWrapper } from "../electronFsWrapper";
-  import { electronDialogsWrapper } from "../electronDialogsWrapper";
+  import { electronFsWrapper } from "./electronFsWrapper";
+  import { electronDialogsWrapper } from "./electronDialogsWrapper";
 
   let config: ClientStateConfig | null = $state(null);
 
