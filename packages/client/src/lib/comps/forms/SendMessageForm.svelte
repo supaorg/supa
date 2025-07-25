@@ -21,7 +21,7 @@
     draftId?: string;
     maxLines?: number;
     attachEnabled?: boolean;
-    data?: ChatAppData; // Optional chat data for active chats
+    data?: ChatAppData;
     showConfigSelector?: boolean;
   }
 
@@ -45,7 +45,7 @@
 
   let query = $state("");
   let isTextareaFocused = $state(false);
-  let textareaElement: HTMLTextAreaElement;
+  let textareaElement: HTMLTextAreaElement | null = $state(null);
   let isSending = $state(false);
 
   let canSendMessage = $derived(
@@ -65,12 +65,6 @@
       configId = data.configId;
     }
 
-    loadDraft();
-
-    if (isFocused) {
-      textareaElement?.focus();
-    }
-
     const observeData = data?.observe((d) => {
       const configIdFromData = d.configId;
       if (configIdFromData !== configId) {
@@ -81,6 +75,14 @@
     return () => {
       observeData?.();
     };
+  });
+
+  onMount(async () => { 
+   await loadDraft();
+
+    if (isFocused) {
+      textareaElement?.focus();
+    }
   });
 
   async function loadDraft() {
@@ -128,16 +130,17 @@
     }
   }
 
-  async function handleKeydown(event: KeyboardEvent) {
+  function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Enter" && !event.shiftKey) {
-      await sendMsg();
       event.preventDefault();
+      sendMsg();
+      
       return;
     }
     adjustTextareaHeight();
   }
 
-  async function handleInput() {
+  function handleInput() {
     // Skip if we're in the process of sending a message
     if (isSending) {
       return;
@@ -150,9 +153,9 @@
       const trimmedQuery = query.trim();
 
       if (trimmedQuery.length > 0) {
-        await clientState.currentSpaceState?.saveDraft(draftId, trimmedQuery);
+        clientState.currentSpaceState?.saveDraft(draftId, trimmedQuery);
       } else {
-        await clientState.currentSpaceState?.deleteDraft(draftId);
+        clientState.currentSpaceState?.deleteDraft(draftId);
       }
     }
   }
@@ -162,16 +165,16 @@
       return;
     }
 
-    isSending = true; // Set flag before sending
+    isSending = true;
+
+    onSend(query);
+    query = "";
 
     // Clear draft when message is sent
     if (draftId) {
       await clientState.currentSpaceState?.deleteDraft(draftId);
     }
 
-    onSend(query);
-
-    query = "";
     // Force reset to base height after clearing content
     if (textareaElement) {
       textareaElement.style.height = `${TEXTAREA_BASE_HEIGHT}px`;
