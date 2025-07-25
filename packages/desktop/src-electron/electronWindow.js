@@ -47,20 +47,28 @@ export function createWindow(isDev) {
       if (state.isMaximized) {
         mainWindow.maximize();
       }
+      
+      // Restore DevTools state if it was saved
+      if (state.isDevToolsOpen && isDev) {
+        mainWindow.webContents.openDevTools();
+      }
     } else {
       console.error("mainWindow is not set");
     }
   });
 
-  // Open DevTools in development
+  // DevTools auto-opens only if user didn't previously close it
   if (isDev) {
-    mainWindow.webContents.openDevTools();
+    const state = loadWindowState();
+    if (!state.isDevToolsOpen) {
+      // Only auto-open DevTools if it wasn't previously closed by user
+      // mainWindow.webContents.openDevTools();
+    }
   }
 
-  // Save window state when window is closed
+  // Note: Can't save state on 'closed' event - window is already destroyed
   mainWindow.on('closed', function () {
-    // Window is already destroyed, so we can't save state here
-    // We'll save state on other events instead
+    // State is saved on other events instead
   });
   
   // Save window state when window is resized or moved
@@ -78,6 +86,15 @@ export function createWindow(isDev) {
   });
   
   mainWindow.on('unmaximize', () => {
+    saveWindowState(mainWindow);
+  });
+  
+  // Save state when DevTools is opened or closed
+  mainWindow.webContents.on('devtools-opened', () => {
+    saveWindowState(mainWindow);
+  });
+  
+  mainWindow.webContents.on('devtools-closed', () => {
     saveWindowState(mainWindow);
   });
   

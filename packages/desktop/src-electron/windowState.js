@@ -2,6 +2,10 @@ import { app, screen, BrowserWindow } from 'electron';
 import fs from 'fs';
 import path from 'path';
 
+// Window state is saved to user data directory:
+// macOS: ~/Library/Application Support/Supa/window-state.json
+// Windows: %APPDATA%\Supa\window-state.json  
+// Linux: ~/.config/Supa/window-state.json
 const WINDOW_STATE_FILE = 'window-state.json';
 
 /**
@@ -38,7 +42,8 @@ export function loadWindowState() {
     x: undefined,
     y: undefined,
     isMaximized: false,
-    isFullScreen: false
+    isFullScreen: false,
+    isDevToolsOpen: false
   };
 }
 
@@ -51,6 +56,7 @@ export function saveWindowState(window) {
     const bounds = window.getBounds();
     const isMaximized = window.isMaximized();
     const isFullScreen = window.isFullScreen();
+    const isDevToolsOpen = window.webContents.isDevToolsOpened();
     
     const state = {
       width: bounds.width,
@@ -58,7 +64,8 @@ export function saveWindowState(window) {
       x: bounds.x,
       y: bounds.y,
       isMaximized,
-      isFullScreen
+      isFullScreen,
+      isDevToolsOpen
     };
     
     const statePath = getWindowStatePath();
@@ -75,7 +82,7 @@ export function getWindowOptionsWithState(defaultOptions = {}) {
   const state = loadWindowState();
   const displays = screen.getAllDisplays();
   
-  // Check if the saved position is still valid (window would be visible)
+  // Validate saved position is still on a connected display
   let isValidPosition = false;
   if (state.x !== undefined && state.y !== undefined) {
     for (const display of displays) {
