@@ -2,6 +2,7 @@ import { app, BrowserWindow, Menu, shell } from 'electron';
 import serve from 'electron-serve';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getWindowOptionsWithState, saveWindowState, loadWindowState } from './windowState.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,18 +15,17 @@ const serveURL = serve({ directory: '.' });
  * @returns {BrowserWindow}
  */
 export function createWindow(isDev) {
-  // Create the browser window
-  const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+  // Create the browser window with saved state
+  const windowOptions = getWindowOptionsWithState({
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,
       webSecurity: !isDev, // Needed for SvelteKit in development
       preload: path.join(__dirname, 'preload.js')
-    },
-    show: false // Don't show until ready
+    }
   });
+  
+  const mainWindow = new BrowserWindow(windowOptions);
 
   // Load the appropriate URL/file based on environment
   if (isDev) {
@@ -41,6 +41,12 @@ export function createWindow(isDev) {
     if (mainWindow) {
       mainWindow.show();
       mainWindow.focus();
+      
+      // Restore maximized state if it was saved
+      const state = loadWindowState();
+      if (state.isMaximized) {
+        mainWindow.maximize();
+      }
     } else {
       console.error("mainWindow is not set");
     }
@@ -51,9 +57,33 @@ export function createWindow(isDev) {
     mainWindow.webContents.openDevTools();
   }
 
-  // Handle window closed
+  // Save window state when window is closed
   mainWindow.on('closed', function () {
-    
+    // Window is already destroyed, so we can't save state here
+    // We'll save state on other events instead
+  });
+  
+  // Save window state when window is resized or moved
+  mainWindow.on('resize', () => {
+    saveWindowState(mainWindow);
+  });
+  
+  mainWindow.on('move', () => {
+    saveWindowState(mainWindow);
+  });
+  
+  // Save state when window is maximized/unmaximized
+  mainWindow.on('maximize', () => {
+    saveWindowState(mainWindow);
+  });
+  
+  mainWindow.on('unmaximize', () => {
+    saveWindowState(mainWindow);
+  });
+  
+  // Save state when app is about to quit
+  app.on('before-quit', () => {
+    saveWindowState(mainWindow);
   });
 
   // Handle external links
