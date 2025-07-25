@@ -43,9 +43,24 @@ export function setupElectronMenu() {
     /** @type {import('electron').MenuItemConstructorOptions} */ ({
       role: 'windowMenu'  // Standard Window menu
     }),
-    /** @type {import('electron').MenuItemConstructorOptions} */ ({
-      role: 'help'  // Standard Help menu with about, etc.
-    })
+    {
+      label: 'Help',
+      submenu: [
+        {
+          label: 'Check for Updates',
+          click: function () {
+            console.log('Manual update check requested');
+            /** @type {any} */
+            const globalAny = global;
+            if (globalAny.checkForUpdates) {
+              globalAny.checkForUpdates();
+            }
+          }
+        },
+        /** @type {import('electron').MenuItemConstructorOptions} */ ({ type: 'separator' }),
+        /** @type {import('electron').MenuItemConstructorOptions} */ ({ role: 'about' })
+      ]
+    }
   ];
 
   const menu = Menu.buildFromTemplate(template);

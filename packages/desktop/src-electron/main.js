@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import { setupDialogsInMain } from './dialogs/electronDialogsMain.js';
 import { setupElectronMenu } from './electronMenu.js';
 import { createWindow } from './electronWindow.js';
+import { setupAutoUpdater, checkForUpdates } from './autoUpdater.js';
 
 // Development mode check
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
@@ -9,6 +10,10 @@ const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'develo
 // Keep a global reference of the window object
 /** @type {BrowserWindow | null} */
 let mainWindow;
+
+// Type declaration for global
+/** @type {any} */
+const globalAny = global;
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
@@ -18,6 +23,14 @@ app.whenReady().then(async () => {
   mainWindow = createWindow(isDev);
   setupElectronMenu();
   setupDialogsInMain();
+
+  if (!isDev) {
+    // Setup auto updater (standard approach)
+    setupAutoUpdater();
+  }
+  
+  // Expose manual update check for menu
+  globalAny.checkForUpdates = checkForUpdates;
 
   app.on('activate', function () {
     // On macOS, re-create window when dock icon is clicked

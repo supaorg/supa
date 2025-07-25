@@ -16,7 +16,37 @@
         "from": "build",
         "to": ""
       }
-    ]
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "supaorg",
+      "repo": "supa"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ]
+    }
   },
   "scripts": {
     "prepare-static-files": "cpy '../client/static/**' './static-compiled' && cpy './static-desktop/**' './static-compiled'",
@@ -28,6 +58,8 @@
     "build": "npm run prepare-static-files && npm run build -w @supa/client && npm run build:vite && npm run build:electron",
     "build:vite": "vite build",
     "build:electron": "electron-builder",
+    "build:publish": "npm run build && electron-builder --publish=always",
+    "build:publish-draft": "npm run build && electron-builder --publish=draft",
     "preview": "vite preview",
     "start": "electron .",
     "check": "svelte-check --tsconfig ./tsconfig.json",
@@ -37,7 +69,8 @@
     "@supa/client": "*",
     "@supa/core": "*",
     "chokidar": "^4.0.3",
-    "electron-serve": "^2.1.1"
+    "electron-serve": "^2.1.1",
+    "electron-updater": "^6.1.7"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.0.0",
