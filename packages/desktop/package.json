@@ -24,6 +24,14 @@
     },
     "mac": {
       "category": "public.app-category.productivity",
+      "identity": "Dmitrii Kurilchenko (UY76UFAS3C)",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "notarize": {
+        "teamId": "UY76UFAS3C"
+      },
       "target": [
         {
           "target": "dmg",
@@ -58,6 +66,8 @@
     "build": "npm run prepare-static-files && npm run build -w @supa/client && npm run build:vite && npm run build:electron",
     "build:vite": "vite build",
     "build:electron": "electron-builder",
+    "build:electron:mac": "electron-builder --mac",
+    "build:electron:mac-signed": "CSC_IDENTITY_AUTO_DISCOVERY=true electron-builder --mac",
     "build:publish": "npm run build && electron-builder --publish=always",
     "build:publish-draft": "npm run build && electron-builder --publish=draft",
     "preview": "vite preview",
