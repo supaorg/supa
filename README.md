@@ -4,7 +4,7 @@
   <img src="packages/client/src-tauri/icons/Square310x310Logo.png" style="width: 25%; height: auto;">
 </p>
 
-Supa is like ChatGPT but open source. It allows to use the best AI models from different providers, keeps data private, and doesn't require a subscription.
+Supa is an open alternative to ChatGPT. It allows you to use the best AI models from different providers, keeps data private, and doesn't require a subscription.
 
 ![Supa screenshot](docs/assets/screenshot.png)
 
@@ -20,31 +20,32 @@ Supa is like ChatGPT but open source. It allows to use the best AI models from d
 
 ## Features
 
-**Workspaces**
+### Workspaces
 
 Organize your conversations and assistants into separate workspaces
 
-**Local first**
+### Local first
 
 You can use Supa without relying on Supa servers
 
-**Tabs like in VSCode**
+### Tabs like in VSCode
 
 Create and switch between tabs, and split windows
 
-**Any AI**
+### Any AI
 
 From OpenAI and Anthropic to Ollama and any OpenAI-compatible API; bring your own keys
 
-**Many themes**
+### Many themes
 
-use different themes for your workspaces; from colorful to boring
+Use different themes for your workspaces; from colorful to boring
 
-**Assistants**
+### Assistants
 
-Create your own assistants with their own prompts, prompts, and models
+Create your own assistants with their own prompts and models
 
-**No subscriptions**
+### No subscriptions
+
 Pay as you go, either for API costs from AI providers or the actual compute if you run models yourself.
 
 ## Related projects
