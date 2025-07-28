@@ -144,5 +144,3 @@ This setup provides:
 4. **Customize UI** - Modify Skeleton themes and Tailwind configuration
 5. **Add IPC** - Implement Electron main/renderer communication
 6. **Package** - Use electron-builder for distribution
-
-This is the foundation for the Tauri → Electron migration as outlined in the [electron-proposal.md](../../docs/dev/proposals/electron-proposal.md). 

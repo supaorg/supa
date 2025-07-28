@@ -27,7 +27,6 @@
     "**/build", 
     "**/.svelte-kit",
     "**/coverage",
-    "packages/client/src-tauri/target",
     "packages/mobile/ios"
   ]
 }
