@@ -81,7 +81,7 @@ jobs:
           APPLE_ID_PASS: ${{ secrets.APPLE_ID_PASSWORD }}  # For notarization
         run: |
           cd packages/desktop
-          npm run build:publish  # Builds and publishes to GitHub releases
+          npm run build:publish
           
       # Step 6: Upload build artifacts for manual download
       - name: Upload artifacts
