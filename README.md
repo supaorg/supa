@@ -1,7 +1,7 @@
 # Open Alternative to ChatGPT
 
 <p align="center">
-  <img src="packages/client/src-tauri/icons/Square310x310Logo.png" style="width: 25%; height: auto;">
+  <img src="docs/assets/icons/Square310x310Logo.png" style="width: 25%; height: auto;">
 </p>
 
 Supa is an open alternative to ChatGPT. It allows you to use the best AI models from different providers, keeps data private, and doesn't require a subscription.
