@@ -177,12 +177,145 @@ const argv = yargs
 // Use argv.platform and argv.publish in build logic
 ```
 
+## Alternative: Vite-Based Build Pipeline
+
+Since we're already using Vite, we can leverage its plugin system for build orchestration. This approach integrates better with the existing Vite workflow.
+
+### Vite Plugin Approach
+
+Create a custom Vite plugin that handles build orchestration:
+
+```javascript
+// packages/desktop/vite.config.js
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { buildOrchestrator } from './build-orchestrator.js';
+
+export default defineConfig({
+  plugins: [
+    svelte(),
+    buildOrchestrator()
+  ],
+  
+  // ... existing config
+});
+```
+
+Create the orchestrator plugin:
+
+```javascript
+// packages/desktop/build-orchestrator.js
+import { execSync } from 'child_process';
+import fs from 'fs-extra';
+import path from 'path';
+
+export function buildOrchestrator() {
+  const root = path.resolve(__dirname, '../..');
+  const clientDir = path.join(root, 'packages/client');
+  const staticCompiled = path.join(__dirname, 'static-compiled');
+  const staticDesktop = path.join(__dirname, 'static-desktop');
+
+  function run(cmd, cwd = __dirname) {
+    console.log(`\n> ${cmd}`);
+    execSync(cmd, { stdio: 'inherit', cwd });
+  }
+
+  return {
+    name: 'build-orchestrator',
+    
+    async buildStart() {
+      // Prepare static files
+      console.log('Preparing static files...');
+      await fs.remove(staticCompiled);
+      await fs.copy(path.join(clientDir, 'static'), staticCompiled);
+      await fs.copy(staticDesktop, staticCompiled);
+      console.log('✓ Static files prepared');
+      
+      // Build client
+      console.log('Building client...');
+      run('npm run build -w @supa/client', root);
+      console.log('✓ Client built');
+    },
+    
+    async closeBundle() {
+      // Build Electron after Vite build completes
+      console.log('Building Electron...');
+      run('electron-builder');
+      console.log('✓ Electron built');
+      console.log('\n🎉 Build complete!');
+    }
+  };
+}
+```
+
+### Benefits of Vite Plugin Approach
+
+- **Integration**: Seamlessly integrates with existing Vite workflow
+- **Hooks**: Can hook into Vite's build lifecycle (`buildStart`, `closeBundle`, etc.)
+- **Parallelization**: Can run tasks in parallel with Vite's build process
+- **Caching**: Benefits from Vite's caching mechanisms
+- **Development**: Can also run during development mode if needed
+
+### Vite Plugin with CLI Options
+
+```javascript
+// packages/desktop/build-orchestrator.js
+export function buildOrchestrator(options = {}) {
+  const { platform = 'all', publish = 'never' } = options;
+  
+  return {
+    name: 'build-orchestrator',
+    
+    configResolved(config) {
+      // Access resolved config if needed
+      console.log(`Building for platform: ${platform}, publish: ${publish}`);
+    },
+    
+    async buildStart() {
+      // Build orchestration logic
+    },
+    
+    async closeBundle() {
+      // Post-build orchestration
+      if (platform === 'mac') {
+        run('electron-builder --mac');
+      } else if (platform === 'win') {
+        run('electron-builder --win');
+      } else {
+        run('electron-builder');
+      }
+    }
+  };
+}
+```
+
+Update the Vite config to pass options:
+
+```javascript
+// packages/desktop/vite.config.js
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { buildOrchestrator } from './build-orchestrator.js';
+
+export default defineConfig(({ command, mode }) => {
+  const isBuild = command === 'build';
+  
+  return {
+    plugins: [
+      svelte(),
+      ...(isBuild ? [buildOrchestrator({ platform: 'all' })] : [])
+    ],
+    // ... rest of config
+  };
+});
+```
+
 ### Migration Strategy
 
-1. **Phase 1**: Create the build script alongside existing scripts
-2. **Phase 2**: Update CI/CD to use the new build script
-3. **Phase 3**: Remove old complex scripts from package.json
-4. **Phase 4**: Apply the same pattern to other packages if needed
+1. **Phase 1**: Create the Vite plugin alongside existing scripts
+2. **Phase 2**: Test the plugin approach with a subset of build steps
+3. **Phase 3**: Gradually migrate all build orchestration to the plugin
+4. **Phase 4**: Remove standalone build scripts once migration is complete
 
 ### Future Considerations
 
@@ -194,4 +327,6 @@ const argv = yargs
 
 ## Conclusion
 
-Moving to dedicated build scripts will significantly improve maintainability and readability of our build process. The initial investment in creating the build script will pay off as our build logic continues to grow in complexity. 
+Moving to dedicated build scripts will significantly improve maintainability and readability of our build process. The initial investment in creating the build script will pay off as our build logic continues to grow in complexity.
+
+The Vite plugin approach offers better integration with our existing toolchain, while standalone scripts provide more flexibility. Choose based on your preference for integration vs. independence. 
