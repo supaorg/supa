@@ -11,14 +11,15 @@ Proposal to merge the `feat/electron-and-capacitor` branch into `main` while pre
 
 ## Proposed Approach: Rebase and Merge
 
-### Step 1: Backup
+### Step 1: Rebase onto main
 ```bash
-git branch feat/electron-and-capacitor-backup
+git checkout feat/electron-and-capacitor
+git rebase main
 ```
 
-### Step 2: Rebase onto main
+### Step 2: Force push the rebased branch
 ```bash
-git rebase main
+git push origin feat/electron-and-capacitor --force-with-lease
 ```
 
 ### Step 3: Merge into main
@@ -27,10 +28,11 @@ git checkout main
 git merge feat/electron-and-capacitor
 ```
 
-### Step 4: Cleanup
+### Step 4: Push main and cleanup
 ```bash
-git branch -d feat/electron-and-capacitor-backup
 git push origin main
+git branch -d feat/electron-and-capacitor
+git push origin --delete feat/electron-and-capacitor
 ```
 
 ## Benefits
@@ -43,7 +45,8 @@ git push origin main
 ## Risks
 - Rebase may require conflict resolution
 - Need to ensure no uncommitted changes before starting
-- May need to force push if main has been updated since branch creation
+- Force push required for the rebased feature branch
+- May need to coordinate with other developers if they have local copies of the feature branch
 
 ## Alternative Approaches Considered
 1. **Merge with --no-ff**: Creates merge commit but preserves branch history
@@ -52,10 +55,10 @@ git push origin main
 
 ## Pre-merge Checklist
 - [ ] No uncommitted changes in working directory
-- [ ] Create backup branch
 - [ ] Test rebase on a copy first
 - [ ] Ensure all tests pass
 - [ ] Review conflicts if any arise during rebase
+- [ ] Coordinate with team members who might have the feature branch checked out
 
 ## Post-merge Actions
 - [ ] Update documentation if needed
