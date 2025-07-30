@@ -33,7 +33,7 @@
             clientState.currentSpaceId}
           onclick={() => (clientState.switchToSpace(pointer.id))}
         >
-          <span><strong>{pointer.name || "Space"}</strong></span>
+          <span><strong>{pointer.name || "Workspace"}</strong></span>
         </button>
       {/each}
     </div>
@@ -45,7 +45,7 @@
           openState = false;
         }}
       >
-        Manage spaces
+        Manage workspaces
       </button>
     </div>
   {/snippet}

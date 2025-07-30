@@ -57,7 +57,7 @@
       // Moving from step 0 (Name) to step 1 (Provider)
       // Allow empty space name (skip naming)
       if (!spaceName.trim()) {
-        spaceName = "My Space"; // Default name if skipped
+        spaceName = "My Workspace"; // Default name if skipped
       }
 
       // Save space name using the new method
@@ -101,20 +101,20 @@
   {#snippet children({ currentStep }: { currentStep: number })}
     {#if currentStep === 0}
       <!-- Step 1: Space Name -->
-      <h2 class="h3 mb-4">Name your space</h2>
+      <h2 class="h3 mb-4">Name your workspace</h2>
       <p class="mb-4">
-        Give your space a name to help you identify it, or skip to continue with
+        Give your workspace a name to help you identify it, or skip to continue with
         a default name. You can always change it later.
       </p>
 
       <div class="form-control w-full mb-4">
         <label class="label" for="spaceName">
-          <span class="label-text">Space name</span>
+          <span class="label-text">Workspace name</span>
         </label>
         <input
           id="spaceName"
           type="text"
-          placeholder="My Space"
+          placeholder="My Workspace"
           class="input {spaceNameError ? 'input-error' : ''}"
           bind:value={spaceName}
         />
@@ -125,7 +125,7 @@
 
       <div class="mb-6">
         <p class="text-sm mb-2">
-          You can give a simple name that describes the purpose of the space:
+          You can give a simple name that describes the purpose of the workspace:
         </p>
         <div class="flex flex-wrap gap-2">
           {#each presetNames as name}
@@ -142,7 +142,7 @@
       </div>
     {:else if currentStep === 1}
       <!-- Step 2: Model Provider -->
-      <h2 class="h3 mb-4">Setup brains for your space</h2>
+      <h2 class="h3 mb-4">Setup brains for your workspace</h2>
       <p class="mb-4">
         Connect at least one AI model provider to start using Supa. We recommend
         setting up OpenAI, Anthropic or DeepSeek first.
@@ -153,7 +153,7 @@
       </div>
     {:else if currentStep === 2}
       <!-- Step 3: Theme -->
-      <h2 class="h3 mb-4">Choose the look of your space</h2>
+      <h2 class="h3 mb-4">Choose the look of your workspace</h2>
       <div class="mb-4 space-y-4">
         <label class="label">
           <span>Color scheme</span>

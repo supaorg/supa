@@ -14,7 +14,7 @@
       </p>
     </div>
 
-    <h3 class="h3">Create or open a space</h3>
+    <h3 class="h3">Create or open a workspace</h3>
     <SpaceOpener />
   </div>
 </CenteredPage>

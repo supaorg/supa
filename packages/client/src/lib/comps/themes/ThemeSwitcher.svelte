@@ -33,7 +33,7 @@
 
 <div class="mb-4">
   <div class="text-sm text-surface-600-300 mb-4">
-    Select a color theme for your space.
+    Select a color theme for your workspace.
   </div>
 </div>
 

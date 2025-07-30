@@ -18,10 +18,10 @@
   <SwinsNavButton
     className="btn preset-filled-primary-500"
     component="open-space"
-    title="Add a space"
+    title="Add a workspace"
   >
     <Plus size={16} />
-    Add a Space
+    Add a workspace
   </SwinsNavButton>
 </div>
 <p class="mb-6">

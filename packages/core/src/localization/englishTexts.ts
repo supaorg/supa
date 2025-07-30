@@ -73,8 +73,8 @@ export const englishTexts: Texts = {
       title: "Model Providers"
     },
     spaces: {
-      title: "Spaces",
-      spaceCount: (count: number) => `You have ${count === 1 ? '1 space' : `${count} spaces`}`,
+      title: "Workspaces",
+      spaceCount: (count: number) => `You have ${count === 1 ? '1 workspace' : `${count} workspaces`}`,
       manageButton: "Manage"
     },
     developers: {
@@ -84,19 +84,19 @@ export const englishTexts: Texts = {
   },
 
   spacesPage: {
-    title: "Your Spaces",
-    description: "A space is where your AI apps and other data is stored. You can have multiple spaces and switch between them. For example, one can be for work and another personal.",
+    title: "Your Workspaces",
+    description: "A workspace is where your AI apps and other data is stored. You can have multiple workspaces and switch between them. For example, one can be for work and another personal.",
     opener: {
-      createTitle: "Create a new space",
-      createDescription: "Choose a folder for your new space. It could be local folder or a folder synced with iCloud, Dropbox, Google Drive, etc. Make sure the folder is empty.",
+      createTitle: "Create a new workspace",
+      createDescription: "Choose a folder for your new workspace. It could be local folder or a folder synced with iCloud, Dropbox, Google Drive, etc. Make sure the folder is empty.",
       createButton: "Create",
-      openTitle: "Open a space",
-      openDescription: "Open a folder that contains your space.",
+      openTitle: "Open a workspace",
+      openDescription: "Open a folder that contains your workspace.",
       openButton: "Open",
-      errorCreate: "Failed to create space",
-      errorOpen: "Failed to open space",
-      dialogCreateTitle: "Select a folder for a new space",
-      dialogOpenTitle: "Select a folder with a space"
+      errorCreate: "Failed to create a workspace",
+      errorOpen: "Failed to open a workspace",
+      dialogCreateTitle: "Select a folder for a new workspace",
+      dialogOpenTitle: "Select a folder with a workspace"
     }
   }
 };
