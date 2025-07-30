@@ -43,7 +43,17 @@
   onMount(() => {
     const space = clientState.currentSpace;
     if (space) {
-      spaceName = space.name || presetNames[0];
+      let name = space.name;
+      // If the space has no name, use the last part of the URI as the name
+      if (!name && clientState.currentSpaceState?.pointer.uri) {
+        const uri = clientState.currentSpaceState.pointer.uri;
+        const parts = uri.split("/");
+        if (parts.length > 0) {
+          name = parts[parts.length - 1];
+        }
+      }
+
+      spaceName = name || presetNames[0];
     }
   });
 
@@ -72,11 +82,7 @@
     const space = clientState.currentSpace;
     if (space) {
       const rootVertex = space.tree.root!;
-      space.tree.setVertexProperty(
-        rootVertex.id,
-        "onboarding",
-        false,
-      );
+      space.tree.setVertexProperty(rootVertex.id, "onboarding", false);
       // Potentially navigate away or show a success message
     }
   }
@@ -103,8 +109,8 @@
       <!-- Step 1: Space Name -->
       <h2 class="h3 mb-4">Name your workspace</h2>
       <p class="mb-4">
-        Give your workspace a name to help you identify it, or skip to continue with
-        a default name. You can always change it later.
+        Give your workspace a name to help you identify it, or skip to continue
+        with a default name. You can always change it later.
       </p>
 
       <div class="form-control w-full mb-4">
@@ -125,7 +131,8 @@
 
       <div class="mb-6">
         <p class="text-sm mb-2">
-          You can give a simple name that describes the purpose of the workspace:
+          You can give a simple name that describes the purpose of the
+          workspace:
         </p>
         <div class="flex flex-wrap gap-2">
           {#each presetNames as name}
