@@ -257,40 +257,38 @@
 
 <style>
   :global {
-    /* Style for headings inside chat messages */
-
     .chat-message h1 {
-      font-size: 1.5rem;
+      font-size: 1.5rem !important;
       font-weight: bold;
       margin: 0.75rem 0;
     }
 
     .chat-message h2 {
-      font-size: 1.25rem;
+      font-size: 1.25rem !important;
       font-weight: bold;
       margin: 0.75rem 0;
     }
 
     .chat-message h3 {
-      font-size: 1.125rem;
+      font-size: 1.125rem !important;
       font-weight: 600;
       margin: 0.5rem 0;
     }
 
     .chat-message h4 {
-      font-size: 1rem;
+      font-size: 1rem !important;
       font-weight: 600;
       margin: 0.5rem 0;
     }
 
     .chat-message h5 {
-      font-size: 0.875rem;
+      font-size: 0.875rem !important;
       font-weight: 500;
       margin: 0.5rem 0;
     }
 
     .chat-message h6 {
-      font-size: 0.875rem;
+      font-size: 0.875rem !important;
       font-weight: 500;
       margin: 0.5rem 0;
     }
