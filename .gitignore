@@ -5,6 +5,7 @@
 
 .cursorrules
 CLAUDE.md
+AGENTS.md
 
 .env*
 .DS_Store
