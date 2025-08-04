@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "build-demo-space": "npx tsx src/cli.js"
+    "build-demo-space": "npx tsx src/cli.ts"
   },
   "dependencies": {
     "@supa/core": "workspace:*",

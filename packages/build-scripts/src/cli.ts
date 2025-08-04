@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFileSync } from 'fs';
-import { SimpleDemoBuilder } from './simple-builder.js';
+import { SimpleDemoBuilder } from './simple-builder';
 
 async function main() {
   const args = process.argv.slice(2);
