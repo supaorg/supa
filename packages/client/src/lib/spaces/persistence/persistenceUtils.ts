@@ -1,6 +1,7 @@
 import type { PersistenceLayer } from "@supa/core";
 import { IndexedDBPersistenceLayer } from "./IndexedDBPersistenceLayer";
-import { FileSystemPersistenceLayer } from "./FileSystemPersistenceLayer";
+import { FileSystemPersistenceLayer } from "@supa/core";
+import { clientState } from "@supa/client/state/clientState.svelte";
 
 /**
  * Determines which persistence layers are needed based on the space URI
@@ -21,9 +22,8 @@ export function createPersistenceLayersForURI(spaceId: string, uri: string): Per
     // layers.push(new ServerPersistenceLayer(spaceId, uri));
   } else {
     // File system path: IndexedDB + FileSystem (dual persistence)
-    // @TODO: re-enable it after I make sure FileSystemPersistenceLayer works fine.
     layers.push(new IndexedDBPersistenceLayer(spaceId));
-    layers.push(new FileSystemPersistenceLayer(uri, spaceId));
+    layers.push(new FileSystemPersistenceLayer(uri, spaceId, clientState.fs));
   }
 
   return layers;

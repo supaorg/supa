@@ -24,17 +24,23 @@ type PendingRequest = {
  * Manages request-response correlation to avoid race conditions.
  */
 export class OpsParser {
-  private worker: Worker;
+  private worker: Worker | null = null;
   private pendingRequests = new Map<string, PendingRequest>();
   private readonly timeoutMs: number;
 
   constructor(timeoutMs: number = 10000) {
     this.timeoutMs = timeoutMs;
-    this.worker = new Worker(new URL('./opsParser.worker.ts', import.meta.url));
-    this.setupWorkerMessageHandler();
+    
+    // Only create worker if Worker is available (browser environment)
+    if (typeof Worker !== 'undefined') {
+      this.worker = new Worker(new URL('./opsParser.worker.ts', import.meta.url));
+      this.setupWorkerMessageHandler();
+    }
   }
 
   private setupWorkerMessageHandler(): void {
+    if (!this.worker) return;
+    
     this.worker.addEventListener('message', (e: MessageEvent) => {
       const { requestId, operations, error } = e.data;
       const pending = this.pendingRequests.get(requestId);
@@ -70,6 +76,11 @@ export class OpsParser {
    * @returns Promise that resolves to an array of VertexOperation objects
    */
   async parseLines(lines: string[], peerId: string): Promise<VertexOperation[]> {
+    // If no worker (Node.js environment), parse synchronously
+    if (!this.worker) {
+      return this.parseLinesSync(lines, peerId);
+    }
+
     const requestId = crypto.randomUUID();
     
     return new Promise((resolve, reject) => {
@@ -89,15 +100,42 @@ export class OpsParser {
         }
       });
 
-      this.worker.postMessage({ lines, peerId, requestId });
+      this.worker!.postMessage({ lines, peerId, requestId });
     });
+  }
+
+  private parseLinesSync(lines: string[], peerId: string): VertexOperation[] {
+    const operations: VertexOperation[] = [];
+    
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      
+      try {
+        const parsed = JSON.parse(line) as [string, number, string, any, any?];
+        const [type, counter, targetId, value1, value2] = parsed;
+        
+        if (type === 'm') {
+          operations.push(newMoveVertexOp(counter, peerId, targetId, value1));
+        } else if (type === 'p') {
+          // Convert empty object ({}) to undefined
+          const propValue = value1 && typeof value1 === 'object' && Object.keys(value1).length === 0 ? undefined : value1;
+          operations.push(newSetVertexPropertyOp(counter, peerId, targetId, value1, propValue));
+        }
+      } catch (error) {
+        console.warn('Failed to parse operation line:', line, error);
+      }
+    }
+    
+    return operations;
   }
 
   /**
    * Terminate the worker and clean up resources.
    */
   destroy(): void {
-    this.worker.terminate();
+    if (this.worker) {
+      this.worker.terminate();
+    }
     
     // Reject all pending requests
     for (const [requestId, pending] of this.pendingRequests.entries()) {

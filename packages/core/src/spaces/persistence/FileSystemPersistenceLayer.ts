@@ -6,9 +6,8 @@ import {
   newMoveVertexOp,
   newSetVertexPropertyOp
 } from "@supa/core";
-import { type WatchEvent, type UnwatchFn, type FileHandle } from "../../appFs";
+import { type WatchEvent, type UnwatchFn, type FileHandle, type AppFileSystem } from "@supa/core";
 import { interval } from "@supa/core";
-import { clientState } from "@supa/client/state/clientState.svelte";
 import { OpsParser } from "./OpsParser";
 
 export const LOCAL_SPACE_MD_FILE = 'supa.md';
@@ -34,7 +33,11 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
   private savedPeerIds = new Set<string>();
   private opsParser: OpsParser;
 
-  constructor(private spacePath: string, private spaceId: string) {
+  constructor(
+    private spacePath: string, 
+    private spaceId: string,
+    private fs: AppFileSystem
+  ) {
     super();
     this.id = `filesystem-${spaceId}`;
     this.opsParser = new OpsParser();
@@ -122,7 +125,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     this.onIncomingOpsCallback = onIncomingOps;
 
     try {
-      this.unwatchSpaceFsChanges = await clientState.fs.watch(
+      this.unwatchSpaceFsChanges = await this.fs.watch(
         this.spacePath,
         this.handleWatchEvent.bind(this),
         { recursive: true }
@@ -149,27 +152,27 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
 
   private async ensureDirectoryStructure(): Promise<void> {
     // Create space directory if it doesn't exist
-    await clientState.fs.mkdir(this.spacePath, { recursive: true });
+    await this.fs.mkdir(this.spacePath, { recursive: true });
 
     // Create versioned space directory
     const versionedPath = this.spacePath + '/space-v1';
-    await clientState.fs.mkdir(versionedPath, { recursive: true });
+    await this.fs.mkdir(versionedPath, { recursive: true });
 
     // Create ops directory
-    await clientState.fs.mkdir(versionedPath + '/ops', { recursive: true });
+    await this.fs.mkdir(versionedPath + '/ops', { recursive: true });
 
     // Create supa.md file if it doesn't exist
     const readmeFile = this.spacePath + '/' + LOCAL_SPACE_MD_FILE;
-    if (!await clientState.fs.exists(readmeFile)) {
-      const file = await clientState.fs.create(readmeFile);
+    if (!await this.fs.exists(readmeFile)) {
+      const file = await this.fs.create(readmeFile);
       await file.write(new TextEncoder().encode(TEXT_INSIDE_LOCAL_SPACE_MD_FILE));
       await file.close();
     }
 
     // Create space.json with the space ID if it doesn't exist
     const spaceJsonFile = versionedPath + '/space.json';
-    if (!await clientState.fs.exists(spaceJsonFile)) {
-      const file = await clientState.fs.create(spaceJsonFile);
+    if (!await this.fs.exists(spaceJsonFile)) {
+      const file = await this.fs.create(spaceJsonFile);
       await file.write(new TextEncoder().encode(JSON.stringify({
         id: this.spaceId,
       })));
@@ -199,15 +202,15 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
 
   private async openFileToCurrentTreeOpsJSONLFile(treeId: string, peerId: string): Promise<FileHandle> {
     const dirPath = this.makePathForCurrentDayOps(treeId);
-    await clientState.fs.mkdir(dirPath, { recursive: true });
+    await this.fs.mkdir(dirPath, { recursive: true });
 
     const filePath = `${dirPath}/${peerId}.jsonl`;
 
-    if (await clientState.fs.exists(filePath)) {
-      return await clientState.fs.open(filePath, { append: true });
+    if (await this.fs.exists(filePath)) {
+      return await this.fs.open(filePath, { append: true });
     }
 
-    return await clientState.fs.create(filePath);
+    return await this.fs.create(filePath);
   }
 
   /**
@@ -220,12 +223,12 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     const treeOpsPath = this.getPathForTree(treeId);
 
     // Check if directory exists
-    if (!await clientState.fs.exists(treeOpsPath)) {
+    if (!await this.fs.exists(treeOpsPath)) {
       return [];
     }
 
     // Read all directories and get .jsonl files
-    const dirEntries = await clientState.fs.readDir(treeOpsPath);
+    const dirEntries = await this.fs.readDir(treeOpsPath);
     const datePaths: string[] = [];
     const jsonlFiles: string[] = [];
 
@@ -233,12 +236,12 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
       // Check for year directories
       if (entry.isDirectory && entry.name.match(/^\d{4}$/)) {
         const yearPath = treeOpsPath + '/' + entry.name;
-        const monthEntries = await clientState.fs.readDir(yearPath);
+        const monthEntries = await this.fs.readDir(yearPath);
 
         for (const monthEntry of monthEntries) {
           if (monthEntry.isDirectory && monthEntry.name.match(/^\d{2}$/)) {
             const monthPath = yearPath + '/' + monthEntry.name;
-            const dayEntries = await clientState.fs.readDir(monthPath);
+            const dayEntries = await this.fs.readDir(monthPath);
 
             for (const dayEntry of dayEntries) {
               if (dayEntry.isDirectory && dayEntry.name.match(/^\d{2}$/)) {
@@ -254,7 +257,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     datePaths.sort();
 
     for (const datePath of datePaths) {
-      const jsonlFilesInDir = await clientState.fs.readDir(datePath);
+      const jsonlFilesInDir = await this.fs.readDir(datePath);
       for (const file of jsonlFilesInDir) {
         if (file.isFile && file.name.endsWith('.jsonl')) {
           jsonlFiles.push(datePath + '/' + file.name);
@@ -265,7 +268,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     const allOps: VertexOperation[] = [];
     for (const file of jsonlFiles) {
       try {
-        const lines = await clientState.fs.readTextFileLines(file);
+        const lines = await this.fs.readTextFileLines(file);
         const peerId = file.split('/').pop()!.split('.')[0];
         const ops = await this.turnJSONLinesIntoOps(lines, peerId);
         allOps.push(...ops);
@@ -427,11 +430,11 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
   private async readSecretsFromFile(): Promise<Record<string, string> | undefined> {
     const secretsPath = this.spacePath + '/space-v1/secrets';
 
-    if (!await clientState.fs.exists(secretsPath)) {
+    if (!await this.fs.exists(secretsPath)) {
       return undefined;
     }
 
-    const encryptedData = await clientState.fs.readTextFile(secretsPath);
+    const encryptedData = await this.fs.readTextFile(secretsPath);
     if (!encryptedData) {
       return undefined;
     }
@@ -442,7 +445,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
   private async writeSecretsToFile(secrets: Record<string, string>) {
     const encryptedData = await this.encryptSecrets(secrets, this.spaceId);
     const secretsPath = this.spacePath + '/space-v1/secrets';
-    await clientState.fs.writeTextFile(secretsPath, encryptedData);
+    await this.fs.writeTextFile(secretsPath, encryptedData);
   }
 
   private async checkIfSecretsNeedToBeSaved() {
@@ -533,7 +536,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
       return;
     }
 
-    const lines = await clientState.fs.readTextFileLines(path);
+    const lines = await this.fs.readTextFileLines(path);
     const ops = await this.turnJSONLinesIntoOps(lines, peerId);
 
     if (ops.length === 0) {
