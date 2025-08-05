@@ -12,7 +12,7 @@ async function main() {
   }
 
   const jsonFile = args[0];
-  let outputPath = './demo-space';
+  let outputPath = './demos/demo-space';
 
   // Parse --output argument
   const outputIndex = args.indexOf('--output');
