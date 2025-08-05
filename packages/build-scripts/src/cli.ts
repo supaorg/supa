@@ -6,6 +6,40 @@ import { SimpleDemoBuilder } from './simple-builder';
 async function main() {
   const args = process.argv.slice(2);
 
+  // Show help if requested
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(`
+📦 Supa Demo Space Builder
+
+Usage:
+  npx tsx packages/build-scripts/src/cli.ts [json-file] [options]
+
+Arguments:
+  json-file    Path to JSON configuration file (optional, defaults to getting-started.json)
+
+Options:
+  --output <path>    Output directory for the demo space (default: ./demos/demo-space)
+  --help, -h         Show this help message
+
+Examples:
+  # Use default configuration
+  npx tsx packages/build-scripts/src/cli.ts
+
+  # Use custom JSON file
+  npx tsx packages/build-scripts/src/cli.ts my-demo.json
+
+  # Use custom output directory
+  npx tsx packages/build-scripts/src/cli.ts --output ./my-demo
+
+  # Use custom JSON and output
+  npx tsx packages/build-scripts/src/cli.ts my-demo.json --output ./my-demo
+
+  # Via npm script
+  npm run build-demo-space my-demo.json --output ./my-demo
+`);
+    process.exit(0);
+  }
+
   // Default values
   let jsonFile = 'packages/build-scripts/examples/getting-started.json';
   let outputPath = './demos/demo-space';
