@@ -2,7 +2,7 @@ import { mkdir, writeFile, readFile, readdir, access } from 'fs/promises';
 import { join } from 'path';
 
 export class NodeFileSystem {
-  async readDir(path) {
+  async readDir(path: string) {
     const entries = await readdir(path, { withFileTypes: true });
     return entries.map(entry => ({
       name: entry.name,
@@ -11,7 +11,7 @@ export class NodeFileSystem {
     }));
   }
 
-  async exists(path) {
+  async exists(path: string) {
     try {
       await access(path);
       return true;
@@ -20,20 +20,20 @@ export class NodeFileSystem {
     }
   }
 
-  async readTextFile(path) {
+  async readTextFile(path: string) {
     return await readFile(path, 'utf-8');
   }
 
-  async readTextFileLines(path) {
+  async readTextFileLines(path: string) {
     const content = await this.readTextFile(path);
     return content.split('\n').filter(line => line.trim());
   }
 
-  async writeTextFile(path, content) {
+  async writeTextFile(path: string, content: string) {
     await writeFile(path, content, 'utf-8');
   }
 
-  async create(path) {
+  async create(path: string) {
     // Create directory if needed
     const dir = path.substring(0, path.lastIndexOf('/'));
     await mkdir(dir, { recursive: true });

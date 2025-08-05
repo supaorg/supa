@@ -1,8 +1,7 @@
-import { mkdir, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { randomUUID } from 'crypto';
 import { NodeFileSystem } from './NodeFileSystem';
-import { Space, SpaceManager, uuid, FileSystemPersistenceLayer } from "@supa/core";
+import { Space, SpaceManager, uuid, FileSystemPersistenceLayer, AppTree, ChatAppData } from "@supa/core";
+import { rm } from 'fs/promises';
+import { existsSync } from 'fs';
 
 interface DemoSpaceConfig {
   type: "supa-space";
@@ -50,6 +49,12 @@ export class SimpleDemoBuilder {
     console.log(`Output path: ${outputPath}`);
     
     try {
+      // Clean up existing demo-space directory if it exists
+      if (existsSync(outputPath)) {
+        console.log(`🧹 Cleaning up existing directory: ${outputPath}`);
+        await rm(outputPath, { recursive: true, force: true });
+      }
+      
       // Create new space using the real Space API
       const space = Space.newSpace(uuid());
       const spaceId = space.getId();
@@ -91,13 +96,19 @@ export class SimpleDemoBuilder {
         }
       }
 
-      // Add conversations using the real Space API
+      // Add conversations using ChatAppData
       for (const conversation of config.conversations) {
-        const appTree = space.newAppTree(conversation.assistant);
+        // Create chat tree using ChatAppData's static method
+        const appTree = ChatAppData.createNewChatTree(space, conversation.assistant);
+        
+        // Set the title
         space.setAppTreeName(appTree.getId(), conversation.title);
         
-        // Add messages to the conversation
-        this.addMessagesToConversation(appTree, conversation.messages);
+        // Create ChatAppData instance to add messages
+        const chatData = new ChatAppData(space, appTree);
+        
+        // Add messages to the conversation using proper tree structure
+        this.addMessagesToChatData(chatData, conversation.messages);
       }
 
       console.log(`✅ Demo space created successfully!`);
@@ -129,23 +140,20 @@ export class SimpleDemoBuilder {
     }
   }
 
-  addMessagesToConversation(appTree: any, messageNode: MessageNode): void {
-    // Convert ISO date string to milliseconds
-    const createdAt = new Date(messageNode.createdAt).getTime();
+  addMessagesToChatData(chatData: ChatAppData, messageNode: MessageNode): void {
+    // Add messages recursively, building the tree structure
+    this.addMessageToChatData(chatData, messageNode);
+  }
 
-    // Create message vertex using the real AppTree API
-    const messageVertex = appTree.tree.newVertex(appTree.tree.root.id, {
-      _n: "message",
-      role: messageNode.role,
-      text: messageNode.text,
-      createdAt: createdAt,
-      main: messageNode.main ?? true
-    });
-
-    // Add children recursively
-    if (messageNode.children) {
+  private addMessageToChatData(chatData: ChatAppData, messageNode: MessageNode): void {
+    // Use ChatAppData's newMessage method to add the message
+    const message = chatData.newMessage(messageNode.role, messageNode.text);
+    
+    // If this message has children, add them as the next messages in the conversation
+    if (messageNode.children && messageNode.children.length > 0) {
+      // Add all children as subsequent messages
       for (const child of messageNode.children) {
-        this.addMessagesToConversation(appTree, child);
+        this.addMessageToChatData(chatData, child);
       }
     }
   }
