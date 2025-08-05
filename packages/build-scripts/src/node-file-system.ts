@@ -1,8 +1,9 @@
 import { mkdir, writeFile, readFile, readdir, access } from 'fs/promises';
 import { join } from 'path';
+import type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from "@supa/core";
 
-export class NodeFileSystem {
-  async readDir(path: string) {
+export class NodeFileSystem implements AppFileSystem {
+  async readDir(path: string): Promise<FileEntry[]> {
     const entries = await readdir(path, { withFileTypes: true });
     return entries.map(entry => ({
       name: entry.name,
@@ -11,7 +12,7 @@ export class NodeFileSystem {
     }));
   }
 
-  async exists(path: string) {
+  async exists(path: string): Promise<boolean> {
     try {
       await access(path);
       return true;
@@ -20,26 +21,26 @@ export class NodeFileSystem {
     }
   }
 
-  async readTextFile(path: string) {
+  async readTextFile(path: string): Promise<string> {
     return await readFile(path, 'utf-8');
   }
 
-  async readTextFileLines(path: string) {
+  async readTextFileLines(path: string): Promise<string[]> {
     const content = await this.readTextFile(path);
     return content.split('\n').filter(line => line.trim());
   }
 
-  async writeTextFile(path: string, content: string) {
+  async writeTextFile(path: string, content: string): Promise<void> {
     await writeFile(path, content, 'utf-8');
   }
 
-  async create(path: string) {
+  async create(path: string): Promise<FileHandle> {
     // Create directory if needed
     const dir = path.substring(0, path.lastIndexOf('/'));
     await mkdir(dir, { recursive: true });
     
     return {
-      write: async (data) => {
+      write: async (data: Uint8Array) => {
         await writeFile(path, data);
       },
       close: async () => {
@@ -48,11 +49,11 @@ export class NodeFileSystem {
     };
   }
 
-  async open(path, options = {}) {
+  async open(path: string, options?: { append?: boolean }): Promise<FileHandle> {
     return {
-      write: async (data) => {
+      write: async (data: Uint8Array) => {
         const content = new TextDecoder().decode(data);
-        if (options.append) {
+        if (options?.append) {
           await writeFile(path, content, { flag: 'a' });
         } else {
           await writeFile(path, content);
@@ -64,11 +65,11 @@ export class NodeFileSystem {
     };
   }
 
-  async mkdir(path, options = {}) {
-    await mkdir(path, { recursive: options.recursive });
+  async mkdir(path: string, options?: { recursive?: boolean }): Promise<void> {
+    await mkdir(path, { recursive: options?.recursive });
   }
 
-  async watch(path, callback, options = {}) {
+  async watch(path: string, callback: (event: WatchEvent) => void, options?: { recursive?: boolean }): Promise<UnwatchFn> {
     // For build scripts, we don't need file watching
     return () => {};
   }

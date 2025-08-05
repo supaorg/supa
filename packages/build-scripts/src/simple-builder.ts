@@ -1,4 +1,4 @@
-import { NodeFileSystem } from './NodeFileSystem';
+import { NodeFileSystem } from './node-file-system';
 import { Space, SpaceManager, uuid, FileSystemPersistenceLayer, AppTree, ChatAppData } from "@supa/core";
 import { rm } from 'fs/promises';
 import { existsSync } from 'fs';
