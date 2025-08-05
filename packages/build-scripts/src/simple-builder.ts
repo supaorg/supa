@@ -49,10 +49,36 @@ export class SimpleDemoBuilder {
     console.log(`Output path: ${outputPath}`);
     
     try {
-      // Clean up existing demo-space directory if it exists
-      if (existsSync(outputPath)) {
-        console.log(`🧹 Cleaning up existing directory: ${outputPath}`);
-        await rm(outputPath, { recursive: true, force: true });
+      // Create Node.js file system and persistence layer
+      const fs = new NodeFileSystem();
+      
+      // Check if output directory exists and what it contains
+      if (await fs.exists(outputPath)) {
+        const entries = await fs.readDir(outputPath);
+        
+        // Check if directory contains space-related content
+        const hasSpaceContent = entries.some(entry => 
+          entry.name === 'space-v1' || 
+          entry.name === 'supa.md' ||
+          entry.name.startsWith('space-')
+        );
+        
+        // Check if directory has other non-space content
+        const hasOtherContent = entries.some(entry => 
+          !entry.name.startsWith('.') && // Ignore hidden files
+          entry.name !== 'space-v1' && 
+          entry.name !== 'supa.md' &&
+          !entry.name.startsWith('space-')
+        );
+        
+        if (hasOtherContent) {
+          throw new Error(`Output directory '${outputPath}' contains files that are not space-related. Please use an empty directory or one that only contains previous space builds.`);
+        }
+        
+        if (hasSpaceContent) {
+          console.log(`🧹 Cleaning up existing space directory: ${outputPath}`);
+          await rm(outputPath, { recursive: true, force: true });
+        }
       }
       
       // Create new space using the real Space API
@@ -62,8 +88,7 @@ export class SimpleDemoBuilder {
       // Set space name
       space.name = config.name;
 
-      // Create Node.js file system and persistence layer
-      const fs = new NodeFileSystem();
+      // Create persistence layer
       const persistenceLayer = new FileSystemPersistenceLayer(outputPath, spaceId, fs);
       
       // Create space manager and add the space
