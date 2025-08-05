@@ -5,7 +5,7 @@ import { SimpleDemoBuilder } from './simple-builder';
 
 async function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0) {
     console.error('Usage: build-demo-space <json-file> [--output <path>]');
     process.exit(1);
@@ -39,10 +39,16 @@ async function main() {
     console.log(`🆔 Space ID: ${spaceId}`);
     console.log(`\n💡 You can now open this space in Supa!`);
 
+    // Exit cleanly
+    process.exit(0);
+
   } catch (error) {
     console.error('❌ Error building demo space:', error);
     process.exit(1);
   }
 }
 
-main().catch(console.error); 
+main().catch((error) => {
+  console.error('❌ Unhandled error:', error);
+  process.exit(1);
+}); 

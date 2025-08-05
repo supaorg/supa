@@ -111,6 +111,9 @@ export class SimpleDemoBuilder {
         this.addMessagesToChatData(chatData, conversation.messages);
       }
 
+      // Close the space manager to clean up resources
+      await spaceManager.closeSpace(spaceId);
+
       console.log(`✅ Demo space created successfully!`);
       console.log(`📁 Output: ${outputPath}`);
       console.log(`🆔 Space ID: ${spaceId}`);
