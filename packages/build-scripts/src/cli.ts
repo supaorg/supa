@@ -6,19 +6,32 @@ import { SimpleDemoBuilder } from './simple-builder';
 async function main() {
   const args = process.argv.slice(2);
 
-  if (args.length === 0) {
-    console.error('Usage: build-demo-space <json-file> [--output <path>]');
-    process.exit(1);
-  }
-
-  const jsonFile = args[0];
+  // Default values
+  let jsonFile = 'packages/build-scripts/examples/getting-started.json';
   let outputPath = './demos/demo-space';
 
-  // Parse --output argument
-  const outputIndex = args.indexOf('--output');
-  if (outputIndex !== -1 && outputIndex + 1 < args.length) {
-    outputPath = args[outputIndex + 1];
+  // Parse arguments
+  let i = 0;
+  while (i < args.length) {
+    const arg = args[i];
+    
+    if (arg === '--output' && i + 1 < args.length) {
+      outputPath = args[i + 1];
+      i += 2; // Skip both --output and its value
+    } else if (arg.startsWith('--output=')) {
+      outputPath = arg.substring(9); // Remove '--output='
+      i += 1;
+    } else if (!arg.startsWith('--')) {
+      // First non-flag argument is the JSON file
+      jsonFile = arg;
+      i += 1;
+    } else {
+      i += 1;
+    }
   }
+
+  console.log(`📄 Using config file: ${jsonFile}`);
+  console.log(`📁 Output directory: ${outputPath}`);
 
   try {
     // Read and parse JSON file

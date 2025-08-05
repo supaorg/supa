@@ -111,8 +111,8 @@ export class SimpleDemoBuilder {
         this.addMessagesToChatData(chatData, conversation.messages);
       }
 
-      // Close the space manager to clean up resources
-      await spaceManager.closeSpace(spaceId);
+      // Give operations time to flush to disk
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       console.log(`✅ Demo space created successfully!`);
       console.log(`📁 Output: ${outputPath}`);
