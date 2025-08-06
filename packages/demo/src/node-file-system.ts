@@ -1,5 +1,4 @@
 import { mkdir, writeFile, readFile, readdir, access } from 'fs/promises';
-import { join } from 'path';
 import type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from "@supa/core";
 
 export class NodeFileSystem implements AppFileSystem {

@@ -38,7 +38,7 @@ Inject the file system implementation into `FileSystemPersistenceLayer` to make 
 ### Step 1: Create Node.js File System Implementation
 
 ```typescript
-// packages/build-scripts/src/NodeFileSystem.ts
+// packages/demo/src/NodeFileSystem.ts
 import { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from "@supa/client/appFs";
 import { mkdir, writeFile, readFile, readdir, access } from 'fs/promises';
 
@@ -162,7 +162,7 @@ export function createPersistenceLayersForURI(spaceId: string, uri: string): Per
 ### Step 4: Update Build Script
 
 ```typescript
-// packages/build-scripts/src/simple-builder.js
+// packages/demo/src/simple-builder.js
 import { FileSystemPersistenceLayer } from "@supa/client/spaces/persistence";
 import { NodeFileSystem } from "./NodeFileSystem";
 import { Space, SpaceManager } from "@supa/core";

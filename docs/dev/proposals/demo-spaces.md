@@ -88,14 +88,14 @@ This proposal outlines a workflow for creating demo spaces from JSON files. This
 
 ### 1. Create Build Scripts Package
 
-Create a new package `packages/build-scripts` that contains:
+Create a new package `packages/demo` that contains:
 - Demo space builder utilities
 - JSON schema validation
 - CLI tools for space generation
 
 Package structure:
 ```
-packages/build-scripts/
+packages/demo/
 ├── package.json
 ├── src/
 │   ├── index.ts
@@ -161,7 +161,7 @@ output-path/
 
 ### 4. Example Demo Spaces
 
-Create example JSON files in `packages/build-scripts/examples/`:
+Create example JSON files in `packages/demo/examples/`:
 - `getting-started.json` - Basic onboarding space
 - `coding-assistant.json` - Programming-focused space
 - `writing-helper.json` - Writing and editing space
@@ -170,10 +170,10 @@ Create example JSON files in `packages/build-scripts/examples/`:
 
 ```bash
 # Build a demo space from JSON
-npm run build-demo-space packages/build-scripts/examples/getting-started.json
+npm run build-demo-space packages/demo/examples/getting-started.json
 
 # Build and specify output directory
-npm run build-demo-space packages/build-scripts/examples/coding-assistant.json --output ~/Desktop/demo-space
+npm run build-demo-space packages/demo/examples/coding-assistant.json --output ~/Desktop/demo-space
 ```
 
 ## Integration with Supa

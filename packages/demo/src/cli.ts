@@ -12,7 +12,7 @@ async function main() {
 📦 Supa Demo Space Builder
 
 Usage:
-  npx tsx packages/build-scripts/src/cli.ts [json-file] [options]
+  npx tsx packages/demo/src/cli.ts [json-file] [options]
 
 Arguments:
   json-file    Path to JSON configuration file (optional, defaults to getting-started.json)
@@ -23,16 +23,16 @@ Options:
 
 Examples:
   # Use default configuration
-  npx tsx packages/build-scripts/src/cli.ts
+  npx tsx packages/demo/src/cli.ts
 
   # Use custom JSON file
-  npx tsx packages/build-scripts/src/cli.ts my-demo.json
+  npx tsx packages/demo/src/cli.ts my-demo.json
 
   # Use custom output directory
-  npx tsx packages/build-scripts/src/cli.ts --output ./my-demo
+  npx tsx packages/demo/src/cli.ts --output ./my-demo
 
   # Use custom JSON and output
-  npx tsx packages/build-scripts/src/cli.ts my-demo.json --output ./my-demo
+  npx tsx packages/demo/src/cli.ts my-demo.json --output ./my-demo
 
   # Via npm script
   npm run build-demo-space my-demo.json --output ./my-demo
@@ -41,8 +41,8 @@ Examples:
   }
 
   // Default values
-  let jsonFile = 'packages/build-scripts/examples/getting-started.json';
-  let outputPath = './demos/demo-space';
+  let jsonFile = 'packages/demo/examples/getting-started.json';
+  let outputPath = 'packages/demo/dist/demo-space';
 
   // Parse arguments
   let i = 0;

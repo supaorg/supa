@@ -1,5 +1,5 @@
 {
-  "name": "@supa/build-scripts",
+  "name": "@supa/demo",
   "version": "1.0.0",
   "description": "Build scripts for creating demo spaces from JSON",
   "main": "dist/index.js",
