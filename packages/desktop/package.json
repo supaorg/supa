@@ -63,7 +63,7 @@
     "dev:electron": "wait-on http://localhost:6969 && electron . --dev --remote-debugging-port=9222",
     "build": "npm run prepare-static-files && npm run build -w @sila/client && npm run build:vite && npm run build:electron",
     "build:vite": "vite build",
-    "build:electron": "electron-builder",
+    "build:electron": "source .env 2>/dev/null || true && electron-builder",
     "build:electron:mac": "electron-builder --mac",
     "build:electron:mac-signed": "CSC_IDENTITY_AUTO_DISCOVERY=true electron-builder --mac",
     "build:publish": "npm run build && electron-builder --publish=always",
