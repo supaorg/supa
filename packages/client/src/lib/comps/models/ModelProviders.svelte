@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { ModelProvider } from "@supa/core";
+  import type { ModelProvider } from "@sila/core";
   import ModelProviderCard from "./ModelProviderCard.svelte";
   import CustomProviderCard from "./CustomProviderCard.svelte";
   import AddCustomProviderCard from "./AddCustomProviderCard.svelte";
-  import { providers } from "@supa/core";
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import { getActiveProviders } from "@supa/core";
+  import { providers } from "@sila/core";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import { getActiveProviders } from "@sila/core";
 
   let customProviders = $state<ModelProvider[]>([]);
 

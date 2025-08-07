@@ -2,8 +2,8 @@
   import { XCircle } from "lucide-svelte";
   import Link from "../basic/Link.svelte";
   import ModelProviderApiKeyForm from "./ModelProviderApiKeyForm.svelte";
-  import type { ModelProvider } from "@supa/core";
-  import { clientState } from "@supa/client/state/clientState.svelte";
+  import type { ModelProvider } from "@sila/core";
+  import { clientState } from "@sila/client/state/clientState.svelte";
 
   let { provider }: { provider: ModelProvider } = $props();
 
@@ -252,7 +252,7 @@
   {:else if provider.id === "ollama"}
     <p>
       You will need to install and run Ollama to use its models. You can run it
-      locally and Supa will connect to it.
+      locally and Sila will connect to it.
     </p>
     <ol class="list">
       <li>

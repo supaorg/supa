@@ -1,9 +1,9 @@
 import { ThemeStore } from "./theme.svelte";
 import { LayoutStore } from "./layout.svelte";
 import type { SpacePointer } from "../spaces/SpacePointer";
-import type { Space } from "@supa/core";
-import type { SpaceManager } from "@supa/core";
-import type { PersistenceLayer } from "@supa/core";
+import type { Space } from "@sila/core";
+import type { SpaceManager } from "@sila/core";
+import type { PersistenceLayer } from "@sila/core";
 import { createPersistenceLayersForURI } from "../spaces/persistence/persistenceUtils";
 import {
   getDraft,
@@ -13,8 +13,8 @@ import {
   saveAllSecrets,
   getSecret,
   setSecret
-} from "@supa/client/localDb";
-import { Backend } from "@supa/core";
+} from "@sila/client/localDb";
+import { Backend } from "@sila/core";
 
 export class SpaceState {
   pointer: SpacePointer;

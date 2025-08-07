@@ -1,4 +1,4 @@
-import type { ModelProviderLocalConfig } from "@supa/core";
+import type { ModelProviderLocalConfig } from "@sila/core";
 
 export async function checkOllamaStatus(config?: ModelProviderLocalConfig): Promise<boolean> {
   try {

@@ -3,9 +3,9 @@ import fs from 'fs';
 import path from 'path';
 
 // Window state is saved to user data directory:
-// macOS: ~/Library/Application Support/Supa/window-state.json
-// Windows: %APPDATA%\Supa\window-state.json  
-// Linux: ~/.config/Supa/window-state.json
+// macOS: ~/Library/Application Support/Sila/window-state.json
+// Windows: %APPDATA%\Sila\window-state.json  
+// Linux: ~/.config/Sila/window-state.json
 const WINDOW_STATE_FILE = 'window-state.json';
 
 /**

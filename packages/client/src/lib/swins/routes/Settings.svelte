@@ -1,15 +1,15 @@
 <script lang="ts">
-  import Lightswitch from "@supa/client/comps/basic/Lightswitch.svelte";
-  import ModelProviders from "@supa/client/comps/models/ModelProviders.svelte";
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import { isDevMode } from "@supa/client/state/devMode";
-  import { currentLanguage } from "@supa/client/state/txtStore";
+  import Lightswitch from "@sila/client/comps/basic/Lightswitch.svelte";
+  import ModelProviders from "@sila/client/comps/models/ModelProviders.svelte";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import { isDevMode } from "@sila/client/state/devMode";
+  import { currentLanguage } from "@sila/client/state/txtStore";
   import {
     SUPPORTED_LANGUAGES,
     LANGUAGE_NAMES,
-  } from "@supa/core";
-  import { txtStore } from "@supa/client/state/txtStore";
-  import ThemeSwitcher from "@supa/client/comps/themes/ThemeSwitcher.svelte";
+  } from "@sila/core";
+  import { txtStore } from "@sila/client/state/txtStore";
+  import ThemeSwitcher from "@sila/client/comps/themes/ThemeSwitcher.svelte";
 </script>
 
 <div>

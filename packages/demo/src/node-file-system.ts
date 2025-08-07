@@ -1,5 +1,5 @@
 import { mkdir, writeFile, readFile, readdir, access } from 'fs/promises';
-import type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from "@supa/core";
+import type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from "@sila/core";
 
 export class NodeFileSystem implements AppFileSystem {
   async readDir(path: string): Promise<FileEntry[]> {

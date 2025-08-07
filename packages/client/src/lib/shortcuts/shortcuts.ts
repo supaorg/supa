@@ -1,4 +1,4 @@
-import { clientState } from "@supa/client/state/clientState.svelte";
+import { clientState } from "@sila/client/state/clientState.svelte";
 
 // Platform detection (using userAgent instead of deprecated platform)
 const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);

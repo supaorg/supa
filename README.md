@@ -4,15 +4,15 @@
   <img src="docs/assets/icons/Square310x310Logo.png" style="width: 25%; height: auto;">
 </p>
 
-Supa is an open alternative to ChatGPT. It allows you to use the best AI models from different providers, keeps data private, and doesn't require a subscription.
+Sila is an open alternative to ChatGPT. It allows you to use the best AI models from different providers, keeps data private, and doesn't require a subscription.
 
-![Supa screenshot](docs/assets/screenshot.png)
+![Sila screenshot](docs/assets/screenshot.png)
 
 > 🚧 Work in progress towards v1.
 
 ## Getting Started
 
-**Download Supa:**
+**Download Sila:**
 - [Download for macOS](#) 
 - [Download for Windows](#)
 
@@ -26,7 +26,7 @@ Organize your conversations and assistants into separate workspaces
 
 ### Local first
 
-You can use Supa without relying on Supa servers
+You can use Sila without relying on Sila servers
 
 ### Tabs like in VSCode
 
@@ -49,7 +49,7 @@ Create your own assistants with their own prompts and models
 Pay as you go, either for API costs from AI providers or the actual compute if you run models yourself.
 
 ## Related projects
-Supa is built alongside several companion projects that enable its features:
+Sila is built alongside several companion projects that enable its features:
 
 - **AI inference** - [aiwrapper](https://github.com/mitkury/aiwrapper)
 - **Info about AI models** - [aimodels](https://github.com/mitkury/aimodels)
@@ -57,4 +57,4 @@ Supa is built alongside several companion projects that enable its features:
 - **Sync** - [reptree](https://github.com/mitkury/reptree)
 - **AI context** - [airul](https://github.com/mitkury/airul)
 
-All projects are maintained by Supa's author.
+All projects are maintained by Sila's author.

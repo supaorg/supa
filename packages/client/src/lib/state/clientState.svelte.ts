@@ -7,12 +7,12 @@ import { setupSwins } from './swinsLayout';
 import type { SpacePointer } from "../spaces/SpacePointer";
 import { createPersistenceLayersForURI } from "../spaces/persistence/persistenceUtils";
 import { checkIfCanCreateSpaceAndReturnPath, checkIfPathHasValidStructureAndReturnActualRootPath, loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
-import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "@supa/client/localDb";
-import { SpaceManager } from "@supa/core";
-import { Space } from "@supa/core";
+import { initializeDatabase, savePointers, saveConfig, deleteSpace, saveCurrentSpaceId } from "@sila/client/localDb";
+import { SpaceManager } from "@sila/core";
+import { Space } from "@sila/core";
 import { AppFileSystem } from '../appFs';
 import type { AppDialogs } from '../appDialogs';
-import { uuid } from '@supa/core';
+import { uuid } from '@sila/core';
 
 interface AuthTokens {
   access_token: string;

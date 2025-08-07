@@ -2,14 +2,14 @@ import { SWins } from "../swins/Swins.svelte";
 import Settings from "../swins/routes/Settings.svelte";
 import Spaces from "../swins/routes/Spaces.svelte";
 import Apps from "../swins/routes/Apps.svelte";
-import AppConfigEditing from "@supa/client/comps/app-configs/AppConfigEditing.svelte";
+import AppConfigEditing from "@sila/client/comps/app-configs/AppConfigEditing.svelte";
 import NewThreadSwins from "../swins/routes/NewThreadSwins.svelte";
-import HowToSetupModelProider from "@supa/client/comps/models/HowToSetupModelProider.svelte";
-import SelectModelPopup from "@supa/client/comps/popups/SelectModelPopup.svelte";
-import CustomProviderSetup from "@supa/client/comps/models/CustomProviderSetup.svelte";
-import ModelProviders from "@supa/client/comps/models/ModelProviders.svelte";
-import SignInButtons from "@supa/client/comps/auth/SignInButtons.svelte";
-import UserProfile from "@supa/client/comps/auth/UserProfile.svelte";
+import HowToSetupModelProider from "@sila/client/comps/models/HowToSetupModelProider.svelte";
+import SelectModelPopup from "@sila/client/comps/popups/SelectModelPopup.svelte";
+import CustomProviderSetup from "@sila/client/comps/models/CustomProviderSetup.svelte";
+import ModelProviders from "@sila/client/comps/models/ModelProviders.svelte";
+import SignInButtons from "@sila/client/comps/auth/SignInButtons.svelte";
+import UserProfile from "@sila/client/comps/auth/UserProfile.svelte";
 import SpaceOpenerPage from "../comps/spaces/SpaceOpenerPage.svelte";
 
 // Setup function that can configure any SWins instance

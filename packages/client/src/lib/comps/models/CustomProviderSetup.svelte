@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import type { CustomProviderConfig } from "@supa/core";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import type { CustomProviderConfig } from "@sila/core";
   import { XCircle } from "lucide-svelte";
 
   let name = $state("");

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import Wizard from "@supa/client/comps/wizards/Wizard.svelte";
-  import { clientState } from "@supa/client/state/clientState.svelte";
+  import Wizard from "@sila/client/comps/wizards/Wizard.svelte";
+  import { clientState } from "@sila/client/state/clientState.svelte";
 
-  import ModelProviders from "@supa/client/comps/models/ModelProviders.svelte";
-  import Lightswitch from "@supa/client/comps/basic/Lightswitch.svelte";
+  import ModelProviders from "@sila/client/comps/models/ModelProviders.svelte";
+  import Lightswitch from "@sila/client/comps/basic/Lightswitch.svelte";
   import { onMount } from "svelte";
   import ThemeSwitcher from "../themes/ThemeSwitcher.svelte";
 
@@ -151,7 +151,7 @@
       <!-- Step 2: Model Provider -->
       <h2 class="h3 mb-4">Setup brains for your workspace</h2>
       <p class="mb-4">
-        Connect at least one AI model provider to start using Supa. We recommend
+        Connect at least one AI model provider to start using Sila. We recommend
         setting up OpenAI, Anthropic or DeepSeek first.
       </p>
 

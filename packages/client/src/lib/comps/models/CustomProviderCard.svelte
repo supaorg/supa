@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { ModelProvider } from "@supa/core";
+  import type { ModelProvider } from "@sila/core";
   import { Pencil, Trash2, CircleAlert } from "lucide-svelte";
   import { Tooltip } from "@skeletonlabs/skeleton-svelte";
   import CustomProviderForm from "./CustomProviderForm.svelte";
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import { getActiveProviders } from "@supa/core";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import { getActiveProviders } from "@sila/core";
 
   let {
     provider,

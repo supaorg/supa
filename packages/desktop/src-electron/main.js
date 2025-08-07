@@ -19,7 +19,7 @@ const globalAny = global;
 app.whenReady().then(async () => {
 
   // Set the app name for menus
-  app.setName('Supa');
+  app.setName('Sila');
   mainWindow = createWindow(isDev);
   setupElectronMenu();
   setupDialogsInMain();

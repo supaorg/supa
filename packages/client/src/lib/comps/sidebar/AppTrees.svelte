@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clientState } from "@supa/client/state/clientState.svelte";
+  import { clientState } from "@sila/client/state/clientState.svelte";
   import VertexItem from "./VertexItem.svelte";
   import type { VertexChangeEvent } from "reptree";
 

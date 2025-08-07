@@ -1,9 +1,9 @@
 import { NodeFileSystem } from './node-file-system';
-import { Space, SpaceManager, uuid, FileSystemPersistenceLayer, ChatAppData } from "@supa/core";
+import { Space, SpaceManager, uuid, FileSystemPersistenceLayer, ChatAppData } from "@sila/core";
 import { rm } from 'fs/promises';
 
 interface DemoSpaceConfig {
-  type: "supa-space";
+  type: "sila-space";
   version: "1";
   name: string;
   createdAt: string;
@@ -58,7 +58,7 @@ export class SimpleDemoBuilder {
         // Check if directory contains space-related content
         const hasSpaceContent = entries.some(entry => 
           entry.name === 'space-v1' || 
-          entry.name === 'supa.md' ||
+          entry.name === 'sila.md' ||
           entry.name.startsWith('space-')
         );
         
@@ -66,7 +66,7 @@ export class SimpleDemoBuilder {
         const hasOtherContent = entries.some(entry => 
           !entry.name.startsWith('.') && // Ignore hidden files
           entry.name !== 'space-v1' && 
-          entry.name !== 'supa.md' &&
+          entry.name !== 'sila.md' &&
           !entry.name.startsWith('space-')
         );
         
@@ -141,7 +141,7 @@ export class SimpleDemoBuilder {
       console.log(`✅ Demo space created successfully!`);
       console.log(`📁 Output: ${outputPath}`);
       console.log(`🆔 Space ID: ${spaceId}`);
-      console.log(`\n💡 You can now open this space in Supa!`);
+      console.log(`\n💡 You can now open this space in Sila!`);
       
       // Log what was created
       console.log(`\n📋 Space contents:`);

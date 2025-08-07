@@ -1,4 +1,4 @@
 // Component exports
-export { default as SupaApp } from './comps/SupaApp.svelte';
+export { default as SilaApp } from './comps/SilaApp.svelte';
 export type { ClientStateConfig } from './state/clientState.svelte';
 export type { AppDialogs, OpenDialogOptions, SaveDialogOptions } from './appDialogs';

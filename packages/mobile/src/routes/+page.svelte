@@ -1,9 +1,9 @@
 <script lang="ts">
-  import SupaApp from "@supa/client/comps/SupaApp.svelte";
+  import { SilaApp } from "@sila/client";
 </script>
 
 <svelte:head>
-  <title>Supa</title>
+  <title>Sila</title>
 </svelte:head>
 
-<SupaApp />
+<SilaApp config={null} />

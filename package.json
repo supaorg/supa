@@ -1,6 +1,6 @@
 {
-  "name": "supa",
-  "description": "Root package for Supa monorepo - coordinates development workflow across client, core, and server packages",
+  "name": "sila",
+  "description": "Root package for Sila monorepo - coordinates development workflow across client, core, and server packages",
   "private": true,
   "workspaces": [
     "packages/*"

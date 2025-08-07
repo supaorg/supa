@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import type { CustomProviderConfig } from "@supa/core";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import type { CustomProviderConfig } from "@sila/core";
 
   let name = $state("");
   let baseApiUrl = $state("");

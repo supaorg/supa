@@ -14,7 +14,7 @@ This proposal outlines a workflow for creating demo spaces from JSON files. This
 
 ```json
 {
-  "type": "supa-space",
+  "type": "sila-space",
   "version": "1",
   "name": "Demo Workspace",
   "createdAt": "2024-01-15T10:30:00Z",
@@ -27,7 +27,7 @@ This proposal outlines a workflow for creating demo spaces from JSON files. This
       "button": "New query",
       "visible": true,
       "description": "A basic chat assistant",
-      "instructions": "You are Supa, an AI assistant. Be direct in all responses.",
+      "instructions": "You are Sila, an AI assistant. Be direct in all responses.",
       "targetLLM": "openai/gpt-4"
     }
   ],
@@ -136,7 +136,7 @@ Create a utility class that handles:
 5. **App Trees**: Use `space.newAppTree()` to create conversation trees and populate with messages using `ChatAppData.newMessage()` for proper message structure
 
 **Conversation Structure:**
-Messages in Supa use a tree structure for branching support:
+Messages in Sila use a tree structure for branching support:
 - Each message is a vertex with properties: `_n: "message"`, `role`, `text`, `createdAt`, `main`
 - Messages are linked in a tree where children represent different conversation branches
 - The `main` property indicates which branch is currently active (first child is main by default)
@@ -146,7 +146,7 @@ Messages in Supa use a tree structure for branching support:
 The demo space will be saved to a directory structure like:
 ```
 output-path/
-├── supa.md
+├── sila.md
 └── space-v1/
     ├── space.json
     ├── secrets (encrypted)
@@ -176,13 +176,13 @@ npm run build-demo-space packages/demo/examples/getting-started.json
 npm run build-demo-space packages/demo/examples/coding-assistant.json --output ~/Desktop/demo-space
 ```
 
-## Integration with Supa
+## Integration with Sila
 
-The generated demo spaces will be compatible with Supa's existing space loading mechanism:
+The generated demo spaces will be compatible with Sila's existing space loading mechanism:
 
-1. **File System Structure**: Demo spaces follow the same structure as spaces created through Supa
+1. **File System Structure**: Demo spaces follow the same structure as spaces created through Sila
 2. **Persistence Layers**: Uses the same dual persistence (IndexedDB + FileSystem) as regular spaces
-3. **Space Loading**: Can be opened in Supa using `clientState.loadSpace(path)` 
+3. **Space Loading**: Can be opened in Sila using `clientState.loadSpace(path)` 
 4. **Provider Integration**: API keys are properly stored in secrets and providers are configured
 5. **Conversation Trees**: App trees are created with proper branching support
 

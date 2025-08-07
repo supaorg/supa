@@ -1,8 +1,8 @@
-import type { VertexOperation } from "@supa/core";
+import type { VertexOperation } from "@sila/core";
 import {
   newMoveVertexOp,
   newSetVertexPropertyOp
-} from "@supa/core";
+} from "@sila/core";
 
 export type ParsedOp = {
   type: 'm' | 'p';

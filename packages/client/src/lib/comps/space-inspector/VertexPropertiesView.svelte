@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Vertex } from "@supa/core";
-  import type { VertexPropertyType } from "@supa/core";
+  import type { Vertex } from "@sila/core";
+  import type { VertexPropertyType } from "@sila/core";
   import { TrashIcon, Plus } from "lucide-svelte";
   import NewPropertyForm from "./NewPropertyForm.svelte";
   

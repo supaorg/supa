@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MoreVertical } from "lucide-svelte";
-  import ContextMenu from "@supa/client/comps/ui/ContextMenu.svelte";
+  import ContextMenu from "@sila/client/comps/ui/ContextMenu.svelte";
 
   let { 
     onRename = () => {},

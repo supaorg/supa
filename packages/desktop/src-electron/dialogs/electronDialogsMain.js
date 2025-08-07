@@ -71,7 +71,7 @@ export function setupDialogsInMain() {
 /**
  * Helper function to show message dialogs
  * @param {Electron.IpcMainInvokeEvent} event
- * @param {import('@supa/client/appDialogs').MessageDialogOptions} options
+ * @param {import('@sila/client/appDialogs').MessageDialogOptions} options
  * @param {'info' | 'warning' | 'error' | 'question'} type
  */
 async function showMessageDialog(event, options, type) {

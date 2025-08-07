@@ -280,7 +280,7 @@ export class Space {
       visible: true,
       description: "A basic chat assistant",
       instructions:
-        "you are Supa, an ai assistant. be direct in all responses. use simple language. avoid niceties, filler words, and formality. keep your messages in lowercase.",
+        "you are Sila, an ai assistant. be direct in all responses. use simple language. avoid niceties, filler words, and formality. keep your messages in lowercase.",
     } as AppConfig;
   }
 

@@ -1,12 +1,12 @@
 <script lang="ts">
   import { Send, StopCircle, Paperclip } from "lucide-svelte";
-  import AppConfigDropdown from "@supa/client/comps/apps/AppConfigDropdown.svelte";
+  import AppConfigDropdown from "@sila/client/comps/apps/AppConfigDropdown.svelte";
   import { onMount, tick } from "svelte";
-  import { focusTrap } from "@supa/client/utils/focusTrap";
+  import { focusTrap } from "@sila/client/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
-  import { txtStore } from "@supa/client/state/txtStore";
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import type { ChatAppData } from "@supa/core";
+  import { txtStore } from "@sila/client/state/txtStore";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import type { ChatAppData } from "@sila/core";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height

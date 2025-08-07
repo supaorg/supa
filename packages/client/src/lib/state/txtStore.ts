@@ -1,4 +1,4 @@
-import { createTexts, type SupportedLanguage } from "@supa/core";
+import { createTexts, type SupportedLanguage } from "@sila/core";
 import { persisted } from "svelte-persisted-store";
 import { derived } from "svelte/store";
 

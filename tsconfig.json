@@ -15,9 +15,9 @@
     "baseUrl": ".",
     "moduleResolution": "bundler",
     "paths": {
-      "@supa/core":   ["packages/core/src/*"],
-      "@supa/client": ["packages/client/src/lib/index.ts"],
-      "@supa/client/*": ["packages/client/src/lib/*"]
+      "@sila/core":   ["packages/core/src/*"],
+      "@sila/client": ["packages/client/src/lib/index.ts"],
+      "@sila/client/*": ["packages/client/src/lib/*"]
     }
   },
   "exclude": [

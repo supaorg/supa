@@ -1,15 +1,15 @@
 <script lang="ts">
-  import type { AppConfig } from "@supa/core";
+  import type { AppConfig } from "@sila/core";
   import { Switch, Tooltip } from "@skeletonlabs/skeleton-svelte";
   import {
     TrashIcon,
     Pencil,
     MessageCircle,
   } from "lucide-svelte";
-  import ContextMenu from "@supa/client/comps/ui/ContextMenu.svelte";
-  import { txtStore } from "@supa/client/state/txtStore";
-  import SwinsNavButton from "@supa/client/swins/SwinsNavButton.svelte";
-  import { clientState } from "@supa/client/state/clientState.svelte";
+  import ContextMenu from "@sila/client/comps/ui/ContextMenu.svelte";
+  import { txtStore } from "@sila/client/state/txtStore";
+  import SwinsNavButton from "@sila/client/swins/SwinsNavButton.svelte";
+  import { clientState } from "@sila/client/state/clientState.svelte";
 
   let { config }: { config: AppConfig } = $props();
 

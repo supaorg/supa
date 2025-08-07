@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-Our Supa app needs a unified shortcut system where:
+Our Sila app needs a unified shortcut system where:
 - Users can customize shortcuts in the UI (renderer process)
 - Menu accelerators reflect current shortcuts (main process) 
 - Web-based shortcuts work throughout the app (renderer process)

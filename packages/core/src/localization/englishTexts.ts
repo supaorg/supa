@@ -49,7 +49,7 @@ export const englishTexts: Texts = {
     },
     defaultConfigMessage: "This is the configuration of the default chat assistant. You can change which AI model this assistant uses or create a new assistant.",
     defaultConfigGotoNew: "New assistant",
-    description: "You can create your own system prompts (instructions) based on the default chat app. It will be possible to create other type of apps with tools and external APIs in future versions of Supa."
+    description: "You can create your own system prompts (instructions) based on the default chat app. It will be possible to create other types of apps with tools and external APIs in future versions of Sila.",
   },
 
   appConfigDropdown: {

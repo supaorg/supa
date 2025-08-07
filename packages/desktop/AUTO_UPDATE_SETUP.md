@@ -1,4 +1,4 @@
-# Auto-Update Setup for Supa Desktop
+# Auto-Update Setup for Sila Desktop
 
 This document explains how the auto-update system works and how to use it.
 
@@ -21,7 +21,7 @@ The auto-update is configured in `package.json`:
     "publish": {
       "provider": "github",
       "owner": "mitkury",
-      "repo": "supa"
+      "repo": "sila"
     }
   }
 }

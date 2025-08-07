@@ -48,7 +48,7 @@ export const turkishTexts: Partial<Texts> = {
     },
     defaultConfigMessage: "Bu varsayılan sohbet uygulamasının yapılandırmasıdır. Sadece kullandığı modeli değiştirebilirsiniz.<br /><a href=\"/apps/new-config\" class=\"anchor\">{defaultConfigGotoNew}</a> yeni bir sohbet yapılandırması oluşturmak istiyorsanız.",
     defaultConfigGotoNew: "Buraya gidin",
-    description: "Varsayılan sohbet uygulamasına dayalı kendi sistem komutlarınızı (talimatlar) oluşturabilirsiniz. Supa'ın gelecek sürümlerinde araçlar ve harici API'lerle başka tür uygulamalar oluşturmak mümkün olacak."
+    description: "Varsayılan sohbet uygulamasına dayalı kendi sistem komutlarınızı (talimatlar) oluşturabilirsiniz. Sila'ın gelecek sürümlerinde araçlar ve harici API'lerle başka tür uygulamalar oluşturmak mümkün olacak."
   },
 
   appConfigDropdown: {

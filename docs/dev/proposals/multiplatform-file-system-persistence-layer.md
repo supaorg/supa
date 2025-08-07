@@ -8,7 +8,7 @@ The current `FileSystemPersistenceLayer` is tightly coupled to `clientState.fs`,
 
 ```typescript
 // packages/client/src/lib/spaces/persistence/FileSystemPersistenceLayer.ts
-import { clientState } from "@supa/client/state/clientState.svelte";
+import { clientState } from "@sila/client/state/clientState.svelte";
 
 export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
   constructor(private spacePath: string, private spaceId: string) {
@@ -39,7 +39,7 @@ Inject the file system implementation into `FileSystemPersistenceLayer` to make 
 
 ```typescript
 // packages/demo/src/NodeFileSystem.ts
-import { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from "@supa/client/appFs";
+import { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from "@sila/client/appFs";
 import { mkdir, writeFile, readFile, readdir, access } from 'fs/promises';
 
 export class NodeFileSystem implements AppFileSystem {
@@ -163,9 +163,9 @@ export function createPersistenceLayersForURI(spaceId: string, uri: string): Per
 
 ```typescript
 // packages/demo/src/simple-builder.js
-import { FileSystemPersistenceLayer } from "@supa/client/spaces/persistence";
+import { FileSystemPersistenceLayer } from "@sila/client/spaces/persistence";
 import { NodeFileSystem } from "./NodeFileSystem";
-import { Space, SpaceManager } from "@supa/core";
+import { Space, SpaceManager } from "@sila/core";
 
 export class SimpleDemoBuilder {
   async buildFromConfig(config, outputPath) {

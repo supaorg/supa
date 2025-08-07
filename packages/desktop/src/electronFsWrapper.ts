@@ -1,4 +1,4 @@
-import type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from '@supa/client/appFs';
+import type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from '@sila/client/appFs';
 
 // Extend the Window interface to include the electronFs API
 declare global {

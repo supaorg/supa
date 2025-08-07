@@ -9,7 +9,7 @@ async function main() {
   // Show help if requested
   if (args.includes('--help') || args.includes('-h')) {
     console.log(`
-📦 Supa Demo Space Builder
+📦 Sila Demo Space Builder
 
 Usage:
   npx tsx packages/demo/src/cli.ts [json-file] [options]
@@ -73,8 +73,8 @@ Examples:
     const config = JSON.parse(jsonContent);
 
     // Validate basic structure
-    if (config.type !== 'supa-space' || config.version !== '1') {
-      throw new Error('Invalid demo space configuration: type must be "supa-space" and version must be "1"');
+    if (config.type !== 'sila-space' || config.version !== '1') {
+      throw new Error('Invalid demo space configuration: type must be "sila-space" and version must be "1"');
     }
 
     // Build the demo space
@@ -84,7 +84,7 @@ Examples:
     console.log(`✅ Demo space created successfully!`);
     console.log(`📁 Output: ${outputPath}`);
     console.log(`🆔 Space ID: ${spaceId}`);
-    console.log(`\n💡 You can now open this space in Supa!`);
+    console.log(`\n💡 You can now open this space in Sila!`);
 
     // Exit cleanly
     process.exit(0);
