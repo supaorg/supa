@@ -6,6 +6,8 @@ import { splitModelString } from '../utils/modelUtils';
 
 export class AgentServices {
   readonly space: Space;
+  private lastResolvedProvider: string | null = null;
+  private lastResolvedModel: string | null = null;
 
   constructor(space: Space) {
     this.space = space;
@@ -36,6 +38,8 @@ export class AgentServices {
             // Use the first available model
             modelName = models[0].id;
             // Skip the fallback
+            this.lastResolvedProvider = modelProvider;
+            this.lastResolvedModel = modelName;
             return this.createLanguageProvider(modelProvider, modelName);
           }
         }
@@ -60,6 +64,8 @@ export class AgentServices {
       modelName = mostCapableModel.model;
     }
 
+    this.lastResolvedProvider = modelProvider;
+    this.lastResolvedModel = modelName;
     return this.createLanguageProvider(modelProvider, modelName);
   }
 
@@ -95,6 +101,13 @@ export class AgentServices {
     }
 
     throw new Error(`Invalid model provider: ${provider}`);
+  }
+
+  getLastResolvedModel(): { provider: string; model: string } | null {
+    if (this.lastResolvedProvider && this.lastResolvedModel) {
+      return { provider: this.lastResolvedProvider, model: this.lastResolvedModel };
+    }
+    return null;
   }
 
   async getKey(provider: string): Promise<string> {

@@ -6,10 +6,20 @@
     Copy,
     Check,
   } from "lucide-svelte";
+  import { RefreshCw } from "lucide-svelte";
 
   import { timeout } from "@sila/core";
 
-  let { showEditAndCopyControls, onCopyMessage, onEditMessage, prevBranch, nextBranch, branchIndex, branchesNumber } = $props();
+  let { showEditAndCopyControls, onCopyMessage, onEditMessage, prevBranch, nextBranch, branchIndex, branchesNumber, onRerun }: {
+    showEditAndCopyControls: boolean;
+    onCopyMessage: () => void;
+    onEditMessage: (val?: boolean) => void;
+    prevBranch: () => void;
+    nextBranch: () => void;
+    branchIndex: number;
+    branchesNumber: number;
+    onRerun?: () => void;
+  } = $props();
 
   let isCopied = $state(false);
 
@@ -45,6 +55,15 @@
   >
     <Edit size={14} />
   </button>
+  {#if onRerun}
+  <button
+    class="p-1 transition"
+    title="Re-run in new branch"
+    onclick={() => onRerun()}
+  >
+    <RefreshCw size={14} />
+  </button>
+  {/if}
   {/if}
   {#if branchesNumber > 1}
     <div

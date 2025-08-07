@@ -35,6 +35,19 @@ export default class ChatAppBackend {
       this.replyToMessage(messages);
     });
 
+    // Re-run any assistant message in a new branch
+    this.appTree.onEvent('rerun-message', (event) => {
+      const messageId = event.messageId as string | undefined;
+      if (!messageId) return;
+      try {
+        this.rerunAssistantMessage(messageId).catch((e) => {
+          console.error('Failed to rerun message', e);
+        });
+      } catch (e) {
+        console.error('Failed to start rerun', e);
+      }
+    });
+
     this.appTree.onEvent("stop-message", (event) => {
       if (this.activeAgent) {
         this.activeAgent.stop();
@@ -124,6 +137,12 @@ export default class ChatAppBackend {
       if (initialResponse.thinking && initialResponse.thinking.trim().length > 0) {
         this.appTree.tree.setVertexProperty(messageToUse.id, "thinking", initialResponse.thinking);
       }
+      // Save model info used for this response
+      const modelInfo = agentServices.getLastResolvedModel();
+      if (modelInfo) {
+        this.appTree.tree.setVertexProperty(messageToUse.id, "modelProvider", modelInfo.provider);
+        this.appTree.tree.setVertexProperty(messageToUse.id, "modelId", modelInfo.model);
+      }
       this.activeAgent = null;
 
       // Only add to messages array if it's a new message
@@ -151,6 +170,78 @@ export default class ChatAppBackend {
     }
     catch (error) {
       console.error("Error while updating title", error);
+    }
+  }
+
+  // Generate a new assistant reply as a sibling branch for the specified assistant message
+  private async rerunAssistantMessage(targetAssistantMessageId: string) {
+    const data = this.data;
+    const { vertices, messages } = data.getMessagePath(targetAssistantMessageId);
+    if (vertices.length === 0) return;
+
+    // Expect the path to end with [ ... , userMsg, assistantMsg(target) ]
+    if (messages.length < 2) return;
+    const targetIdx = messages.length - 1;
+    const target = messages[targetIdx];
+    const parentUser = messages[targetIdx - 1];
+    if (target.role !== 'assistant' || parentUser.role !== 'user') {
+      // Only support rerunning assistant directly following a user message
+      return;
+    }
+
+    // Prepare input up to and including the user message
+    const inputMessages = messages.slice(0, targetIdx); // excludes the assistant
+
+    // Resolve config
+    let config: AppConfig | undefined = this.data.configId ? this.space.getAppConfig(this.data.configId) : undefined;
+    if (!config) {
+      config = this.space.getAppConfig('default');
+      if (config) this.data.configId = 'default';
+    }
+    if (!config) throw new Error('No config found');
+
+    const agentServices = new AgentServices(this.space);
+    const simpleChatAgent = new SimpleChatAgent(agentServices, config);
+    this.activeAgent = simpleChatAgent;
+
+    // Create a new assistant message under the parent user as a sibling branch
+    const parentVertexId = vertices[targetIdx - 1].id; // user vertex id
+    const newAssistant = data.newMessageUnder(parentVertexId, 'assistant', 'thinking...');
+
+    // Set initial state and config info
+    this.appTree.tree.setVertexProperty(newAssistant.id, 'inProgress', true);
+    this.appTree.tree.setVertexProperty(newAssistant.id, 'configId', config.id);
+    this.appTree.tree.setVertexProperty(newAssistant.id, 'configName', config.name);
+
+    const messagesForLang = [
+      { role: 'system', text: config.instructions },
+      ...inputMessages.map((m) => ({ role: m.role, text: m.text }))
+    ];
+
+    try {
+      const initialResponse = await simpleChatAgent.input(messagesForLang, (resp) => {
+        this.appTree.tree.setTransientVertexProperty(newAssistant.id, 'text', resp.text);
+        if (resp.thinking && resp.thinking.trim().length > 0) {
+          this.appTree.tree.setTransientVertexProperty(newAssistant.id, 'thinking', resp.thinking);
+        }
+      });
+
+      this.appTree.tree.setVertexProperty(newAssistant.id, 'text', initialResponse.text);
+      this.appTree.tree.setVertexProperty(newAssistant.id, 'inProgress', false);
+      if (initialResponse.thinking && initialResponse.thinking.trim().length > 0) {
+        this.appTree.tree.setVertexProperty(newAssistant.id, 'thinking', initialResponse.thinking);
+      }
+      const modelInfo = agentServices.getLastResolvedModel();
+      if (modelInfo) {
+        this.appTree.tree.setVertexProperty(newAssistant.id, 'modelProvider', modelInfo.provider);
+        this.appTree.tree.setVertexProperty(newAssistant.id, 'modelId', modelInfo.model);
+      }
+      this.activeAgent = null;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      this.appTree.tree.setVertexProperty(newAssistant.id, 'role', 'error');
+      this.appTree.tree.setVertexProperty(newAssistant.id, 'text', errorMessage);
+      this.appTree.tree.setVertexProperty(newAssistant.id, 'inProgress', false);
     }
   }
 }

@@ -12,6 +12,8 @@
   import { timeout } from "@sila/core";
   import Markdown from "../markdown/Markdown.svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
+  import PopupWindow from "@sila/client/comps/popups/PopupWindow.svelte";
+  import { Info } from "lucide-svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
 
@@ -35,6 +37,8 @@
 
   let isHoveringOverMessage = $state(false);
   let showEditAndCopyControls = $state(false);
+  let showInfo = $state(false);
+  let assistantInfoEl: HTMLDivElement | undefined = $state();
 
   async function copyMessage() {
     await navigator.clipboard.writeText(message?.text || "");
@@ -116,6 +120,10 @@
     });
   }
 
+  function rerunInNewBranch() {
+    data.triggerEvent("rerun-message", { messageId: vertex.id });
+  }
+
   // Branch switching: use vertex.children and data.switchMain
   function prevBranch() {
     const parent = vertex.parent;
@@ -151,6 +159,13 @@
         <div class="flex items-center gap-2">
           {#if message.role === "assistant"}
             <p class="font-bold">{configName || "AI"}</p>
+            <button
+              class="opacity-70 hover:opacity-100"
+              title="Show message info"
+              onclick={() => (showInfo = true)}
+            >
+              <Info size={14} />
+            </button>
           {:else}
             <p class="font-bold">Error</p>
           {/if}
@@ -171,6 +186,7 @@
         {:else}
           <div
             class="relative p-3 rounded-lg preset-tonal group"
+            role="region"
             onmouseenter={showControlsBar}
             onmouseleave={hideControlsBar}
           >
@@ -180,6 +196,7 @@
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
                 onEditMessage={() => (isEditing = true)}
+                onRerun={rerunInNewBranch}
                 {prevBranch}
                 {nextBranch}
                 {branchIndex}
@@ -201,6 +218,7 @@
         {:else}
           <div
             class="relative rounded-lg chat-message group"
+            role="region"
             onmouseenter={showControlsBar}
             onmouseleave={hideControlsBar}
           >
@@ -247,13 +265,28 @@
       {/if}
 
       {#if canRetry}
-        <button class="btn preset-filled-surface-500" onclick={retry}
-          >Retry</button
-        >
+        <div class="flex gap-2">
+          <button class="btn preset-filled-surface-500" onclick={retry}>Retry</button>
+          <button class="btn preset-outline" onclick={rerunInNewBranch}>Re-run (new branch)</button>
+        </div>
       {/if}
     </div>
   </div>
 </div>
+
+{#if showInfo}
+  <PopupWindow title="Message Info" onClose={() => (showInfo = false)}>
+    <div class="p-2 text-sm">
+      <div class="mb-1"><span class="opacity-70">Assistant:</span> {configName || data.getMessageProperty(message.id, "configName") || "AI"}</div>
+      <div class="mb-1"><span class="opacity-70">Model:</span> {data.getMessageProperty(message.id, "modelProvider") || "?"}/{data.getMessageProperty(message.id, "modelId") || "?"}</div>
+      <div class="mb-1"><span class="opacity-70">Created:</span> {new Date(message.createdAt).toLocaleString()}</div>
+      {#if message.updatedAt}
+        <div class="mb-1"><span class="opacity-70">Updated:</span> {new Date(message.updatedAt).toLocaleString()}</div>
+      {/if}
+      <div class="mt-2 opacity-60">ID: {message.id}</div>
+    </div>
+  </PopupWindow>
+{/if}
 
 <style>
   :global {

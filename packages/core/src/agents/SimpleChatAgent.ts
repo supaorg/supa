@@ -17,6 +17,7 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
     const messages = payload as ThreadMessage[];
 
     const lang = await this.services.lang(this.config.targetLLM);
+    const resolvedModel = this.services.getLastResolvedModel();
 
     // @TODO: move this to localized texts file
     let systemPrompt = this.config.instructions + "\n\n" +
@@ -25,6 +26,14 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
       "For math, use TeX with inline $ ... $ and block $$ ... $$ delimiters. If you want to show the source of TeX - wrap it in a code block" +
       "\n\n" +
       "Current date and time " + new Date().toLocaleString();
+
+    // Add meta info to the system prompt to give the assistant context
+    if (resolvedModel) {
+      systemPrompt += `\n\n[Meta] Model: ${resolvedModel.provider}/${resolvedModel.model}`;
+    }
+    if (this.config.name) {
+      systemPrompt += `\n[Meta] Assistant Config: ${this.config.name}`;
+    }
 
     /*
     const profile = await this.services.db.getProfile();
