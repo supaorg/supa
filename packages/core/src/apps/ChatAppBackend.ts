@@ -5,6 +5,7 @@ import { SimpleChatAgent } from "../agents/SimpleChatAgent";
 import { ThreadTitleAgent } from "../agents/ThreadTitleAgent";
 import { ChatAppData } from "../spaces/ChatAppData";
 import { AppTree } from "../spaces/AppTree";
+import { splitModelString } from "../utils/modelUtils";
 
 export default class ChatAppBackend {
   private data: ChatAppData;
@@ -110,6 +111,14 @@ export default class ChatAppBackend {
     this.appTree.tree.setVertexProperty(messageToUse.id, "inProgress", true);
     this.appTree.tree.setVertexProperty(messageToUse.id, "configId", config.id);
     this.appTree.tree.setVertexProperty(messageToUse.id, "configName", config.name);
+    // If targetLLM is explicitly set and not 'auto', pre-populate model info
+    if (config.targetLLM && !config.targetLLM.endsWith("auto")) {
+      const parts = splitModelString(config.targetLLM);
+      if (parts) {
+        this.appTree.tree.setVertexProperty(messageToUse.id, "modelProvider", parts.providerId);
+        this.appTree.tree.setVertexProperty(messageToUse.id, "modelId", parts.modelId);
+      }
+    }
 
     try {
       // If we're retrying an error message, exclude it from the input
@@ -222,6 +231,13 @@ export default class ChatAppBackend {
     this.appTree.tree.setVertexProperty(newAssistant.id, 'inProgress', true);
     this.appTree.tree.setVertexProperty(newAssistant.id, 'configId', config.id);
     this.appTree.tree.setVertexProperty(newAssistant.id, 'configName', config.name);
+    if (config.targetLLM && !config.targetLLM.endsWith('auto')) {
+      const parts = splitModelString(config.targetLLM);
+      if (parts) {
+        this.appTree.tree.setVertexProperty(newAssistant.id, 'modelProvider', parts.providerId);
+        this.appTree.tree.setVertexProperty(newAssistant.id, 'modelId', parts.modelId);
+      }
+    }
 
     const messagesForLang = [
       { role: 'system', text: config.instructions },
