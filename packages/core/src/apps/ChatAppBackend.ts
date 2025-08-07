@@ -124,10 +124,20 @@ export default class ChatAppBackend {
           text: m.text,
         }))];
 
+      let modelSaved = false;
       const initialResponse = await simpleChatAgent.input(messagesForLang, (resp) => {
         this.appTree.tree.setTransientVertexProperty(messageToUse.id, "text", resp.text);
         if (resp.thinking && resp.thinking.trim().length > 0) {
           this.appTree.tree.setTransientVertexProperty(messageToUse.id, "thinking", resp.thinking);
+        }
+        // Save model info as soon as it is resolved on first stream callback
+        if (!modelSaved) {
+          const info = agentServices.getLastResolvedModel();
+          if (info) {
+            this.appTree.tree.setVertexProperty(messageToUse.id, "modelProvider", info.provider);
+            this.appTree.tree.setVertexProperty(messageToUse.id, "modelId", info.model);
+            modelSaved = true;
+          }
         }
       });
 
@@ -219,10 +229,19 @@ export default class ChatAppBackend {
     ];
 
     try {
+      let modelSaved = false;
       const initialResponse = await simpleChatAgent.input(messagesForLang, (resp) => {
         this.appTree.tree.setTransientVertexProperty(newAssistant.id, 'text', resp.text);
         if (resp.thinking && resp.thinking.trim().length > 0) {
           this.appTree.tree.setTransientVertexProperty(newAssistant.id, 'thinking', resp.thinking);
+        }
+        if (!modelSaved) {
+          const info = agentServices.getLastResolvedModel();
+          if (info) {
+            this.appTree.tree.setVertexProperty(newAssistant.id, 'modelProvider', info.provider);
+            this.appTree.tree.setVertexProperty(newAssistant.id, 'modelId', info.model);
+            modelSaved = true;
+          }
         }
       });
 
