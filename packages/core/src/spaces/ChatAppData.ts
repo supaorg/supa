@@ -140,6 +140,18 @@ export class ChatAppData {
       role,
     };
 
+    // If this is an assistant message, attach the assistant config information so the UI can display
+    // the proper assistant name instead of a generic label. This is especially important for demo
+    // spaces that are created programmatically and therefore never go through ChatAppBackend where
+    // these fields are normally populated.
+    if (role === "assistant" && this.configId) {
+      properties.configId = this.configId;
+      const cfg = this.space.getAppConfig(this.configId);
+      if (cfg) {
+        properties.configName = cfg.name;
+      }
+    }
+
     if (thinking) {
       properties.thinking = thinking;
     }
