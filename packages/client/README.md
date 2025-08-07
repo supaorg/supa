@@ -1,6 +1,6 @@
 # @supa/client
 
-The client library for Supa - provides UI components and functionality for building Supa-based applications.
+The client library for Sila - provides UI components and functionality for building Sila-based applications.
 
 ## Installation
 

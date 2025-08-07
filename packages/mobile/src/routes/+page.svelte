@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-  <title>Supa</title>
+  <title>Sila</title>
 </svelte:head>
 
-<SupaApp />
+<SupaApp config={null} />

@@ -1,6 +1,6 @@
-# Supa Demo Space Builder
+# Sila Demo Space Builder
 
-A tool for building demo spaces from JSON configuration files. Creates complete Supa spaces with assistants, providers, and conversations that can be opened directly in Supa.
+A tool for building demo spaces from JSON configuration files. Creates complete Sila spaces with assistants, providers, and conversations that can be opened directly in Sila.
 
 ## Usage
 
@@ -22,7 +22,7 @@ npm run build-demo-space my-demo.json --output ./my-demo
 
 ```json
 {
-  "type": "supa-space",
+      "type": "sila-space",
   "version": "1",
   "name": "Demo Space Name",
   "createdAt": "2025-08-05T07:00:00.000Z",
@@ -34,7 +34,7 @@ npm run build-demo-space my-demo.json --output ./my-demo
       "button": "New query",
       "visible": true,
       "description": "A basic chat assistant",
-      "instructions": "You are Supa, an AI assistant. Be direct in all responses.",
+      "instructions": "You are Sila, an AI assistant. Be direct in all responses.",
       "targetLLM": "openai/gpt-4"
     }
   ],
@@ -46,17 +46,17 @@ npm run build-demo-space my-demo.json --output ./my-demo
   ],
   "conversations": [
     {
-      "title": "Welcome to Supa",
+      "title": "Welcome to Sila",
       "assistant": "chat",
       "messages": {
         "role": "user",
-        "text": "Hello! Can you help me get started with Supa?",
+          "text": "Hello! Can you help me get started with Sila?",
         "createdAt": "2025-08-05T07:00:00.000Z",
         "main": true,
         "children": [
           {
             "role": "assistant",
-            "text": "Welcome to Supa! I'm here to help you get started...",
+            "text": "Welcome to Sila! I'm here to help you get started...",
             "createdAt": "2025-08-05T07:00:00.000Z",
             "main": true
           }
@@ -69,7 +69,7 @@ npm run build-demo-space my-demo.json --output ./my-demo
 
 ### Configuration Fields
 
-- **`type`**: Must be `"supa-space"`
+- **`type`**: Must be `"sila-space"`
 - **`version`**: Format version (currently `"1"`)
 - **`name`**: Display name for the space
 - **`createdAt`**: ISO date string for space creation time

@@ -89,7 +89,7 @@ export async function checkIfPathHasValidStructureAndReturnActualRootPath(path: 
     }
   }
 
-  throw new Error('Not a valid Supa space directory. Expected to find a space-v* directory.');
+  throw new Error('Not a valid Sila space directory. Expected to find a space-v* directory.');
 }
 
 /**

@@ -3,7 +3,7 @@ import { Menu } from 'electron';
 export function setupElectronMenu() {
   /** @type {import('electron').MenuItemConstructorOptions[]} */
   const template = [
-    // On macOS, the first menu is automatically the app menu (shows as "Supa")
+    // On macOS, the first menu is automatically the app menu (shows as "Sila")
     ...(process.platform === 'darwin' ? [/** @type {import('electron').MenuItemConstructorOptions} */ ({
       role: 'appMenu'  // This automatically creates the standard macOS app menu with Quit
     })] : []),

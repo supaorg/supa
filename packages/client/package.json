@@ -2,7 +2,7 @@
   "name": "@supa/client",
   "private": true,
   "version": "1.0.0",
-  "description": "The client for supa",
+  "description": "The client for Sila",
   "type": "module",
   "main": "./src/lib/index.ts",
   "types": "./src/lib/index.ts",

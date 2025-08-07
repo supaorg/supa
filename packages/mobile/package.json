@@ -1,7 +1,7 @@
 {
   "name": "@supa/mobile",
   "version": "1.0.0",
-  "description": "Supa Mobile App - SvelteKit + Capacitor",
+  "description": "Sila Mobile App - SvelteKit + Capacitor",
   "type": "module",
   "scripts": {
     "prepare": "svelte-kit sync",

@@ -10,10 +10,10 @@ import { type WatchEvent, type UnwatchFn, type FileHandle, type AppFileSystem } 
 import { interval } from "@supa/core";
 import { OpsParser } from "./OpsParser";
 
-export const LOCAL_SPACE_MD_FILE = 'supa.md';
-export const TEXT_INSIDE_LOCAL_SPACE_MD_FILE = `# Supa Space
+export const LOCAL_SPACE_MD_FILE = 'sila.md';
+export const TEXT_INSIDE_LOCAL_SPACE_MD_FILE = `# Sila Space
 
-This directory contains a Supa space. Please do not rename or modify the 'space-v1' folder as you won't be able to open the space from Supa. Supa needs it as is.`;
+This directory contains a Sila space. Please do not rename or modify the 'space-v1' folder as you won't be able to open the space from Sila. Sila needs it as is.`;
 
 /**
  * File system persistence layer that saves operations and secrets to local files.
@@ -161,7 +161,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     // Create ops directory
     await this.fs.mkdir(versionedPath + '/ops', { recursive: true });
 
-    // Create supa.md file if it doesn't exist
+    // Create sila.md file if it doesn't exist
     const readmeFile = this.spacePath + '/' + LOCAL_SPACE_MD_FILE;
     if (!await this.fs.exists(readmeFile)) {
       const file = await this.fs.create(readmeFile);

@@ -1,9 +1,9 @@
 {
-  "type": "supa-space",
+  "type": "sila-space",
   "version": "1",
   "name": "Getting Started Demo",
   "createdAt": "2024-01-15T10:30:00Z",
-  "description": "A simple demo space to get started with Supa",
+  "description": "A simple demo space to get started with Sila",
   
   "assistants": [
     {
@@ -12,7 +12,7 @@
       "button": "New query",
       "visible": true,
       "description": "A basic chat assistant",
-      "instructions": "You are Supa, an AI assistant. Be direct in all responses.",
+      "instructions": "You are Sila, an AI assistant. Be direct in all responses.",
       "targetLLM": "openai/gpt-4"
     }
   ],
@@ -26,17 +26,17 @@
   
   "conversations": [
     {
-      "title": "Welcome to Supa",
+      "title": "Welcome to Sila",
       "assistant": "chat",
       "messages": {
         "role": "user",
-        "text": "Hello! Can you help me get started with Supa?",
+        "text": "Hello! Can you help me get started with Sila?",
         "createdAt": "2024-01-15T10:30:00Z",
         "main": true,
         "children": [
           {
             "role": "assistant",
-            "text": "Welcome to Supa! I'm here to help you get started. Supa is an open alternative to ChatGPT that keeps your data private and doesn't require subscriptions.\n\nWhat would you like to know about?",
+            "text": "Welcome to Sila! I'm here to help you get started. Sila is an open alternative to ChatGPT that keeps your data private and doesn't require subscriptions.\n\nWhat would you like to know about?",
             "createdAt": "2024-01-15T10:30:05Z",
             "main": true,
             "children": [
@@ -48,7 +48,7 @@
                 "children": [
                   {
                     "role": "assistant",
-                    "text": "Supa has several great features:\n\n• **Workspaces** - Organize conversations and assistants\n• **Local first** - Use without relying on Supa servers\n• **Tabs like VSCode** - Create and switch between tabs\n• **Any AI** - From OpenAI to Ollama, bring your own keys\n• **Many themes** - From colorful to boring\n• **Assistants** - Create your own with custom prompts\n• **No subscriptions** - Pay as you go for API costs\n\nWould you like me to explain any of these in more detail?",
+                    "text": "Sila has several great features:\n\n• **Workspaces** - Organize conversations and assistants\n• **Local first** - Use without relying on Sila servers\n• **Tabs like VSCode** - Create and switch between tabs\n• **Any AI** - From OpenAI to Ollama, bring your own keys\n• **Many themes** - From colorful to boring\n• **Assistants** - Create your own with custom prompts\n• **No subscriptions** - Pay as you go for API costs\n\nWould you like me to explain any of these in more detail?",
                     "createdAt": "2024-01-15T10:30:15Z",
                     "main": true
                   }

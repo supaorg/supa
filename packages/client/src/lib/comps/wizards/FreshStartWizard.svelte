@@ -6,9 +6,9 @@
 <CenteredPage width="2xl">
   <div class="card p-8 mt-4 space-y-6 selectable-text">
     <div class="space-y-4">
-      <h2 class="h2">Welcome to Supa</h2>
+      <h2 class="h2">Welcome to Sila</h2>
       <p>
-        Supa is like ChatGPT but open source. It allows to use the best AI
+        Sila is like ChatGPT but open source. It allows to use the best AI
         models from different providers, keeps data private, and doesn't require
         a subscription.
       </p>

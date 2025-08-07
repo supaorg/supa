@@ -1,12 +1,12 @@
 {
   "name": "@supa/desktop",
   "version": "1.0.0",
-  "description": "Supa Desktop App - Svelte + Vite + Electron",
+  "description": "Sila Desktop App - Svelte + Vite + Electron",
   "type": "module",
   "main": "src-electron/main.js",
   "build": {
     "appId": "com.supa.desktop",
-    "productName": "Supa",
+    "productName": "Sila",
     "directories": {
       "output": "dist"
     },

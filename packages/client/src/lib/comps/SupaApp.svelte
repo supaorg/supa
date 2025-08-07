@@ -25,7 +25,7 @@
   });
 
   console.log(
-    "👋 Hey, if you see any bugs - please report them to https://github.com/supaorg/supa/issues",
+    "👋 Hey, if you see any bugs - please report them to https://github.com/silaorg/sila/issues",
   );
   console.log(
     "Reach out to the author of the project with any questions - Dmitry at d@dkury.com",

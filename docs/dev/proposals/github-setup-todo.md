@@ -22,7 +22,7 @@
   ```
 
 ### 2. **Set up GitHub Repository Secrets**
-Go to: `https://github.com/[username]/supa/settings/secrets/actions`
+Go to: `https://github.com/[username]/sila/settings/secrets/actions`
 
 - [ ] **MACOS_CERTIFICATE_P12**
   - Value: Base64-encoded p12 certificate (from step 1)

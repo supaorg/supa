@@ -1,4 +1,4 @@
-# Supa Desktop - SvelteKit + Electron
+# Sila Desktop - SvelteKit + Electron
 
 A desktop application built with SvelteKit and Electron, featuring Skeleton UI components and Tailwind CSS.
 

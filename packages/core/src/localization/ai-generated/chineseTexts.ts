@@ -48,7 +48,7 @@ export const chineseTexts: Partial<Texts> = {
     },
     defaultConfigMessage: "这是默认聊天应用的配置。您只能更改它使用的模型。<br /><a href=\"/apps/new-config\" class=\"anchor\">{defaultConfigGotoNew}</a> 如果您想创建新的聊天配置。",
     defaultConfigGotoNew: "点击这里",
-    description: "您可以基于默认聊天应用创建自己的系统提示（指令）。在Supa的未来版本中，将可以使用工具和外部API创建其他类型的应用。"
+    description: "您可以基于默认聊天应用创建自己的系统提示（指令）。在Sila的未来版本中，将可以使用工具和外部API创建其他类型的应用。"
   },
 
   appConfigDropdown: {
