@@ -12,7 +12,7 @@
   import { timeout } from "@sila/core";
   import Markdown from "../markdown/Markdown.svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
-  import PopupWindow from "@sila/client/comps/popups/PopupWindow.svelte";
+  import { Tooltip } from "@skeletonlabs/skeleton-svelte";
   import { Info } from "lucide-svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
@@ -37,8 +37,6 @@
 
   let isHoveringOverMessage = $state(false);
   let showEditAndCopyControls = $state(false);
-  let showInfo = $state(false);
-  let assistantInfoEl: HTMLDivElement | undefined = $state();
 
   async function copyMessage() {
     await navigator.clipboard.writeText(message?.text || "");
@@ -159,13 +157,28 @@
         <div class="flex items-center gap-2">
           {#if message.role === "assistant"}
             <p class="font-bold">{configName || "AI"}</p>
-            <button
-              class="opacity-70 hover:opacity-100"
-              title="Show message info"
-              onclick={() => (showInfo = true)}
+            <Tooltip
+              positioning={{ placement: "right" }}
+              contentBase="card bg-surface-200-800 p-3 shadow-lg min-w-[260px]"
+              openDelay={250}
             >
-              <Info size={14} />
-            </button>
+              {#snippet trigger()}
+                <button class="opacity-70 hover:opacity-100" aria-label="Message info">
+                  <Info size={14} />
+                </button>
+              {/snippet}
+              {#snippet content()}
+                <div class="text-sm space-y-1">
+                  <div><span class="opacity-70">Assistant:</span> {configName || data.getMessageProperty(message.id, "configName") || "AI"}</div>
+                  <div><span class="opacity-70">Model:</span> {data.getMessageProperty(message.id, "modelProvider") || "?"}/{data.getMessageProperty(message.id, "modelId") || "?"}</div>
+                  <div><span class="opacity-70">Created:</span> {new Date(message.createdAt).toLocaleString()}</div>
+                  {#if message.updatedAt}
+                    <div><span class="opacity-70">Updated:</span> {new Date(message.updatedAt).toLocaleString()}</div>
+                  {/if}
+                  <div class="opacity-60 text-xs mt-2">ID: {message.id}</div>
+                </div>
+              {/snippet}
+            </Tooltip>
           {:else}
             <p class="font-bold">Error</p>
           {/if}
@@ -273,20 +286,6 @@
     </div>
   </div>
 </div>
-
-{#if showInfo}
-  <PopupWindow title="Message Info" onClose={() => (showInfo = false)}>
-    <div class="p-2 text-sm">
-      <div class="mb-1"><span class="opacity-70">Assistant:</span> {configName || data.getMessageProperty(message.id, "configName") || "AI"}</div>
-      <div class="mb-1"><span class="opacity-70">Model:</span> {data.getMessageProperty(message.id, "modelProvider") || "?"}/{data.getMessageProperty(message.id, "modelId") || "?"}</div>
-      <div class="mb-1"><span class="opacity-70">Created:</span> {new Date(message.createdAt).toLocaleString()}</div>
-      {#if message.updatedAt}
-        <div class="mb-1"><span class="opacity-70">Updated:</span> {new Date(message.updatedAt).toLocaleString()}</div>
-      {/if}
-      <div class="mt-2 opacity-60">ID: {message.id}</div>
-    </div>
-  </PopupWindow>
-{/if}
 
 <style>
   :global {
