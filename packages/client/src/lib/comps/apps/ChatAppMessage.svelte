@@ -37,37 +37,12 @@
   let isHoveringOverMessage = $state(false);
   let showEditAndCopyControls = $state(false);
 
-  function parseProviderAndModel(modelStr: string | undefined): { provider?: string; model?: string } {
-    if (!modelStr) return {};
-    const parts = modelStr.split("/").filter(Boolean);
-    if (parts.length >= 2) {
-      return { provider: parts[0], model: parts.slice(1).join("/") };
-    }
-    return {};
-  }
-
-  function getModelDisplayForMessage(): { provider: string; model: string } {
-    const provider = (data.getMessageProperty(message.id, "modelProvider")
-      || data.getMessageProperty(message.id, "provider")
-      || "") as string;
-    const model = (data.getMessageProperty(message.id, "modelId")
-      || data.getMessageProperty(message.id, "model")
-      || "") as string;
-    if (provider && model) {
-      return { provider, model };
-    }
-
-    // Fallback: try to derive from config targetLLM
-    const cfgId = (vertex.getProperty("configId") as string) || data.getMessageProperty(message.id, "configId");
-    if (cfgId && clientState.currentSpace) {
-      const cfg = clientState.currentSpace.getAppConfig(cfgId);
-      const { provider: p, model: m } = parseProviderAndModel(cfg?.targetLLM);
-      if (p && m && !m.endsWith("auto")) {
-        return { provider: p, model: m };
-      }
-    }
-
-    return { provider: "?", model: "?" };
+  function getModelDisplayForMessage(): { provider: string; model: string } | null {
+    // Only use values stored on the message. If not available, return null (do not show anything)
+    const provider = (message as any)?.modelProviderFinal || (message as any)?.modelProvider || null;
+    const model = (message as any)?.modelIdFinal || (message as any)?.modelId || null;
+    if (provider && model) return { provider, model };
+    return null;
   }
 
   let modelInfo = $derived.by(() => getModelDisplayForMessage());
@@ -202,7 +177,9 @@
                 {#snippet content()}
                   <div class="text-sm space-y-1">
                     <div><span class="opacity-70">Assistant:</span> {configName || data.getMessageProperty(message.id, "configName") || "AI"}</div>
-                    <div><span class="opacity-70">Model:</span> {modelInfo.provider}/{modelInfo.model}</div>
+                    {#if modelInfo}
+                      <div><span class="opacity-70">Model:</span> {modelInfo.provider}/{modelInfo.model}</div>
+                    {/if}
                     <div><span class="opacity-70">Created:</span> {new Date(message.createdAt).toLocaleString()}</div>
                     {#if message.updatedAt}
                       <div><span class="opacity-70">Updated:</span> {new Date(message.updatedAt).toLocaleString()}</div>

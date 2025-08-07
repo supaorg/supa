@@ -145,6 +145,9 @@ export default class ChatAppBackend {
           if (info) {
             this.appTree.tree.setVertexProperty(messageToUse.id, "modelProvider", info.provider);
             this.appTree.tree.setVertexProperty(messageToUse.id, "modelId", info.model);
+            // Freeze the values so they don’t change if config changes later
+            this.appTree.tree.setVertexProperty(messageToUse.id, "modelProviderFinal", info.provider);
+            this.appTree.tree.setVertexProperty(messageToUse.id, "modelIdFinal", info.model);
             modelSaved = true;
           }
         }
@@ -161,6 +164,8 @@ export default class ChatAppBackend {
       if (modelInfo) {
         this.appTree.tree.setVertexProperty(messageToUse.id, "modelProvider", modelInfo.provider);
         this.appTree.tree.setVertexProperty(messageToUse.id, "modelId", modelInfo.model);
+        this.appTree.tree.setVertexProperty(messageToUse.id, "modelProviderFinal", modelInfo.provider);
+        this.appTree.tree.setVertexProperty(messageToUse.id, "modelIdFinal", modelInfo.model);
       }
       this.activeAgent = null;
 
@@ -256,6 +261,8 @@ export default class ChatAppBackend {
           if (info) {
             this.appTree.tree.setVertexProperty(newAssistant.id, 'modelProvider', info.provider);
             this.appTree.tree.setVertexProperty(newAssistant.id, 'modelId', info.model);
+            this.appTree.tree.setVertexProperty(newAssistant.id, 'modelProviderFinal', info.provider);
+            this.appTree.tree.setVertexProperty(newAssistant.id, 'modelIdFinal', info.model);
             modelSaved = true;
           }
         }
@@ -270,6 +277,8 @@ export default class ChatAppBackend {
       if (modelInfo) {
         this.appTree.tree.setVertexProperty(newAssistant.id, 'modelProvider', modelInfo.provider);
         this.appTree.tree.setVertexProperty(newAssistant.id, 'modelId', modelInfo.model);
+        this.appTree.tree.setVertexProperty(newAssistant.id, 'modelProviderFinal', modelInfo.provider);
+        this.appTree.tree.setVertexProperty(newAssistant.id, 'modelIdFinal', modelInfo.model);
       }
       this.activeAgent = null;
     } catch (error) {
