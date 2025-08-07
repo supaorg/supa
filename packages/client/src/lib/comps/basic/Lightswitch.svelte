@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { getOSColorScheme } from "@supa/client/utils/updateColorScheme";
-  import { clientState } from "@supa/client/state/clientState.svelte";
+  import { getOSColorScheme } from "@sila/client/utils/updateColorScheme";
+  import { clientState } from "@sila/client/state/clientState.svelte";
   import { Moon, Sun } from "lucide-svelte";
   import { onMount } from "svelte";
 

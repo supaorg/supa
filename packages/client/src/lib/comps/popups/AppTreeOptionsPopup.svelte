@@ -1,7 +1,7 @@
 <script lang="ts">
   import { EllipsisVertical } from "lucide-svelte";
-  import ContextMenu from "@supa/client/comps/ui/ContextMenu.svelte";
-  import { clientState } from "@supa/client/state/clientState.svelte";
+  import ContextMenu from "@sila/client/comps/ui/ContextMenu.svelte";
+  import { clientState } from "@sila/client/state/clientState.svelte";
 
   let { appTreeId }: { appTreeId: string } = $props();
   let openState = $state(false);

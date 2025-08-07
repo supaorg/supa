@@ -1,8 +1,8 @@
 <script lang="ts">
   import SendMessageForm from "../../comps/forms/SendMessageForm.svelte";
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import { ChatAppData } from "@supa/core";
-  import type { AppConfig } from "@supa/core";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import { ChatAppData } from "@sila/core";
+  import type { AppConfig } from "@sila/core";
   import { onMount } from "svelte";
 
   let { appConfig, onSend }: { appConfig?: AppConfig; onSend?: () => void } =

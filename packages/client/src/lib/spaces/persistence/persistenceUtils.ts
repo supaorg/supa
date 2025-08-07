@@ -1,7 +1,7 @@
-import type { PersistenceLayer } from "@supa/core";
+import type { PersistenceLayer } from "@sila/core";
 import { IndexedDBPersistenceLayer } from "./IndexedDBPersistenceLayer";
-import { FileSystemPersistenceLayer } from "@supa/core";
-import { clientState } from "@supa/client/state/clientState.svelte";
+import { FileSystemPersistenceLayer } from "@sila/core";
+import { clientState } from "@sila/client/state/clientState.svelte";
 
 /**
  * Determines which persistence layers are needed based on the space URI

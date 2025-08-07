@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import type { VertexChangeEvent } from "@supa/core";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import type { VertexChangeEvent } from "@sila/core";
   import { onMount } from "svelte";
   import AppTreeOptionsPopup from "../popups/AppTreeOptionsPopup.svelte";
 

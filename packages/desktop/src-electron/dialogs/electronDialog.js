@@ -10,37 +10,37 @@ export function setupDialogsInPreloader() {
   contextBridge.exposeInMainWorld('electronDialog', {
     /**
      * Open file/folder picker
-     * @param {import('@supa/client/appDialogs').OpenDialogOptions} options
+     * @param {import('@sila/client/appDialogs').OpenDialogOptions} options
      */
     openDialog: (options) => ipcRenderer.invoke(ipcOpen, options),
 
     /**
      * Show save dialog
-     * @param {import('@supa/client/appDialogs').SaveDialogOptions} options
+     * @param {import('@sila/client/appDialogs').SaveDialogOptions} options
      */
     saveDialog: (options) => ipcRenderer.invoke(ipcSave, options),
 
     /**
      * Show info message dialog
-     * @param {import('@supa/client/appDialogs').MessageDialogOptions} options
+     * @param {import('@sila/client/appDialogs').MessageDialogOptions} options
      */
     showInfo: (options) => ipcRenderer.invoke(ipcShowInfo, options),
 
     /**
      * Show warning message dialog
-     * @param {import('@supa/client/appDialogs').MessageDialogOptions} options
+     * @param {import('@sila/client/appDialogs').MessageDialogOptions} options
      */
     showWarning: (options) => ipcRenderer.invoke(ipcShowWarning, options),
 
     /**
      * Show error message dialog
-     * @param {import('@supa/client/appDialogs').MessageDialogOptions} options
+     * @param {import('@sila/client/appDialogs').MessageDialogOptions} options
      */
     showError: (options) => ipcRenderer.invoke(ipcShowError, options),
 
     /**
      * Show question message dialog
-     * @param {import('@supa/client/appDialogs').MessageDialogOptions} options
+     * @param {import('@sila/client/appDialogs').MessageDialogOptions} options
      */
     showQuestion: (options) => ipcRenderer.invoke(ipcShowQuestion, options),
 

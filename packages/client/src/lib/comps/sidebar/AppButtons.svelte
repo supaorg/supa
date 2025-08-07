@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import type { AppConfig } from "@supa/core";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import type { AppConfig } from "@sila/core";
   import { LayoutGrid, MessageCircle } from "lucide-svelte";
-  import SwinsNavButton from "@supa/client/swins/SwinsNavButton.svelte";
-  import { txtStore } from "@supa/client/state/txtStore.ts";
+  import SwinsNavButton from "@sila/client/swins/SwinsNavButton.svelte";
+  import { txtStore } from "@sila/client/state/txtStore.ts";
   import { untrack } from "svelte";
 
   let appConfigs = $state<AppConfig[]>([]);

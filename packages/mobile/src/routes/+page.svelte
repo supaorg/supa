@@ -1,5 +1,5 @@
 <script lang="ts">
-  import SupaApp from "@supa/client/comps/SupaApp.svelte";
+  import SupaApp from "@sila/client/comps/SupaApp.svelte";
 </script>
 
 <svelte:head>

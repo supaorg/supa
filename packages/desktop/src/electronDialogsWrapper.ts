@@ -1,4 +1,4 @@
-import type { AppDialogs, OpenDialogOptions, SaveDialogOptions, MessageDialogOptions, MessageDialogResult } from '@supa/client/appDialogs';
+import type { AppDialogs, OpenDialogOptions, SaveDialogOptions, MessageDialogOptions, MessageDialogResult } from '@sila/client/appDialogs';
 
 // Extend the Window interface to include our exposed dialog APIs
 declare global {

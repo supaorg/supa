@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { isDevMode } from "@supa/client/state/devMode";
-  import { spaceInspectorOpen } from "@supa/client/state/devMode";
-  import { clientState } from "@supa/client/state/clientState.svelte";
+  import { isDevMode } from "@sila/client/state/devMode";
+  import { spaceInspectorOpen } from "@sila/client/state/devMode";
+  import { clientState } from "@sila/client/state/clientState.svelte";
 
   async function testInfoDialog() {
     await clientState.dialog.showInfo({

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import ModelProviders from "@supa/client/comps/models/ModelProviders.svelte";
-  import CenteredPage from "@supa/client/comps/basic/CenteredPage.svelte";
-  import SwinsNavButton from "@supa/client/swins/SwinsNavButton.svelte";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import ModelProviders from "@sila/client/comps/models/ModelProviders.svelte";
+  import CenteredPage from "@sila/client/comps/basic/CenteredPage.svelte";
+  import SwinsNavButton from "@sila/client/swins/SwinsNavButton.svelte";
 
   let showProviderSetupPage = $state(false);
   let allowToStartNewConversationFromProviderSetup = $state(false);

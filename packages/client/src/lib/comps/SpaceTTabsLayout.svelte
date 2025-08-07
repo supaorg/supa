@@ -1,8 +1,8 @@
 <script lang="ts">
   import { TTabsRoot } from "ttabs-svelte";
-  import { getTtabsLayout, saveTtabsLayout } from "@supa/client/localDb";
+  import { getTtabsLayout, saveTtabsLayout } from "@sila/client/localDb";
   import { onDestroy, untrack } from "svelte";
-  import type { SpaceState } from "@supa/client/state/spaceState.svelte";
+  import type { SpaceState } from "@sila/client/state/spaceState.svelte";
 
   let { spaceState }: { spaceState: SpaceState } = $props();
 

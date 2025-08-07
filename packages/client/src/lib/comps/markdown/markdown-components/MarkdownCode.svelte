@@ -2,8 +2,8 @@
   import { codeToHtml } from "shiki";
   import type { Tokens } from "marked";
   import { Copy, Check } from "lucide-svelte";
-  import { timeout } from "@supa/core";
-  import { clientState } from "@supa/client/state/clientState.svelte";
+  import { timeout } from "@sila/core";
+  import { clientState } from "@sila/client/state/clientState.svelte";
 </script>
 
 <script lang="ts">

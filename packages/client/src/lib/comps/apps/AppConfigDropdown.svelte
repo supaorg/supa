@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { AppConfig } from "@supa/core";
-  import { txtStore } from "@supa/client/state/txtStore.ts";
-  import ContextMenu from "@supa/client/comps/ui/ContextMenu.svelte";
+  import type { AppConfig } from "@sila/core";
+  import { txtStore } from "@sila/client/state/txtStore.ts";
+  import ContextMenu from "@sila/client/comps/ui/ContextMenu.svelte";
   import { ChevronUp, Pencil, Plus } from "lucide-svelte";
-  import SwinsNavButton from "@supa/client/swins/SwinsNavButton.svelte";
-  import { clientState } from "@supa/client/state/clientState.svelte";
+  import SwinsNavButton from "@sila/client/swins/SwinsNavButton.svelte";
+  import { clientState } from "@sila/client/state/clientState.svelte";
 
   let {
     configId = "",

@@ -1,12 +1,12 @@
 <script lang="ts">
   import SpaceInspectorWindow from "../space-inspector/SpaceInspectorWindow.svelte";
   import DevPanel from "../dev/DevPanel.svelte";
-  import { isDevMode, spaceInspectorOpen } from "@supa/client/state/devMode";
+  import { isDevMode, spaceInspectorOpen } from "@sila/client/state/devMode";
   import OllamaAutoConfig from "../models/OllamaAutoConfig.svelte";
   import SpaceTTabsLayout from "../SpaceTTabsLayout.svelte";
   import HoverSidebar from "../sidebar/HoverSidebar.svelte";
   import SpaceSetupWizard from "../wizards/SpaceSetupWizard.svelte";
-  import type { SpaceState } from "@supa/client/state/spaceState.svelte";
+  import type { SpaceState } from "@sila/client/state/spaceState.svelte";
 
   let { spaceState }: { spaceState: SpaceState } = $props();
 

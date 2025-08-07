@@ -72,11 +72,11 @@ export function setupFSInPreloader() {
  */
 
 /**
- * @typedef {import('@supa/client/appFs').WatchEvent} WatchEvent
+ * @typedef {import('@sila/client/appFs').WatchEvent} WatchEvent
  */
 
 /**
- * @typedef {import('@supa/client/appFs').UnwatchFn} UnwatchFn
+ * @typedef {import('@sila/client/appFs').UnwatchFn} UnwatchFn
  */
 
 export class ElectronFileSystem {

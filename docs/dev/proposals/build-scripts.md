@@ -13,7 +13,7 @@ Our `packages/desktop/package.json` has complex build scripts like:
   "scripts": {
     "prepare-static-files": "cpy '../client/static/**' './static-compiled' && cpy './static-desktop/**' './static-compiled'",
     "dev": "npm run prepare-static-files && concurrently \"npm run dev:client\" \"npm run dev:sveltekit\" \"npm run dev:electron\"",
-    "build": "npm run prepare-static-files && npm run build -w @supa/client && npm run build:vite && npm run build:electron"
+    "build": "npm run prepare-static-files && npm run build -w @sila/client && npm run build:vite && npm run build:electron"
   }
 }
 ```
@@ -61,7 +61,7 @@ async function copyStaticFiles() {
 
 async function buildClient() {
   console.log('Building client...');
-  run('npm run build -w @supa/client', root);
+  run('npm run build -w @sila/client', root);
   console.log('✓ Client built');
 }
 
@@ -103,7 +103,7 @@ Simplify the scripts in `packages/desktop/package.json`:
     "dev": "npm run prepare-static-files && concurrently \"npm run dev:client\" \"npm run dev:sveltekit\" \"npm run dev:electron\"",
     "dev:without-starting-electron": "npm run prepare-static-files && concurrently \"npm run dev:sveltekit\" \"npm run dev:client\"",
     "dev:sveltekit": "vite dev --port 6969",
-    "dev:client": "npm run dev -w @supa/client",
+    "dev:client": "npm run dev -w @sila/client",
     "dev:electron": "wait-on http://localhost:6969 && electron . --dev --remote-debugging-port=9222",
     "build": "node ./build.js",
     "build:electron:mac": "node ./build.js --platform=mac",
@@ -134,14 +134,14 @@ For different use cases, consider these alternatives to `execSync`:
 ```javascript
 import npmRun from 'npm-run';
 
-npmRun.execSync('build -w @supa/client', { stdio: 'inherit' });
+npmRun.execSync('build -w @sila/client', { stdio: 'inherit' });
 ```
 
 #### Using `shelljs` (shell-like syntax)
 ```javascript
 import shell from 'shelljs';
 
-shell.exec('npm run build -w @supa/client');
+shell.exec('npm run build -w @sila/client');
 shell.exec('vite build');
 ```
 
@@ -149,7 +149,7 @@ shell.exec('vite build');
 ```javascript
 import execa from 'execa';
 
-await execa('npm', ['run', 'build', '-w', '@supa/client'], { stdio: 'inherit' });
+await execa('npm', ['run', 'build', '-w', '@sila/client'], { stdio: 'inherit' });
 ```
 
 ### CLI Options
@@ -233,7 +233,7 @@ export function buildOrchestrator() {
       
       // Build client
       console.log('Building client...');
-      run('npm run build -w @supa/client', root);
+      run('npm run build -w @sila/client', root);
       console.log('✓ Client built');
     },
     

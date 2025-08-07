@@ -3,7 +3,7 @@
   import AppButtons from "./AppButtons.svelte";
   import AppTrees from "./AppTrees.svelte";
   import SpaceSelectorPopup from "../popups/SpaceSelectorPopup.svelte";
-  import SwinsNavButton from "@supa/client/swins/SwinsNavButton.svelte";
+  import SwinsNavButton from "@sila/client/swins/SwinsNavButton.svelte";
   import SidebarToggle from "./SidebarToggle.svelte";
 </script>
 

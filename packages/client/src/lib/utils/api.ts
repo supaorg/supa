@@ -1,7 +1,7 @@
-import { clientState } from "@supa/client/state/clientState.svelte";
-import { savePointers, appendTreeOps, saveAllSecrets } from "@supa/client/localDb";
-import type { SpaceCreationResponse } from "@supa/core";
-import type { SpacePointer } from "@supa/client/spaces/SpacePointer";
+import { clientState } from "@sila/client/state/clientState.svelte";
+import { savePointers, appendTreeOps, saveAllSecrets } from "@sila/client/localDb";
+import type { SpaceCreationResponse } from "@sila/core";
+import type { SpacePointer } from "@sila/client/spaces/SpacePointer";
 
 // API Base URL - should match the server
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3131';

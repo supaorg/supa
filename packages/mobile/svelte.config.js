@@ -21,8 +21,8 @@ const config = {
     // and for builds - define them as aliases here.
     // .svelte-kit/tsconfig.json will get those automatically from "svelte-kit sync".
     alias: {
-      "@supa/client": "../client/src/lib",
-      "@supa/core": "../core/src",
+      "@sila/client": "../client/src/lib",
+      "@sila/core": "../core/src",
     },
 
     // Prerender all pages for static generation

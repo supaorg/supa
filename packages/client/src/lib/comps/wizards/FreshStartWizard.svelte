@@ -1,5 +1,5 @@
 <script lang="ts">
-  import CenteredPage from "@supa/client/comps/basic/CenteredPage.svelte";
+  import CenteredPage from "@sila/client/comps/basic/CenteredPage.svelte";
   import SpaceOpener from "../spaces/SpaceOpener.svelte";
 </script>
 

@@ -1,5 +1,5 @@
 {
-  "name": "@supa/mobile",
+  "name": "@sila/mobile",
   "version": "1.0.0",
   "description": "Sila Mobile App - SvelteKit + Capacitor",
   "type": "module",
@@ -7,11 +7,11 @@
     "prepare": "svelte-kit sync",
     "build": "npm run build:client && npm run build:vite && npx cap sync",
     "build:vite": "vite build",
-    "build:client": "npm run build -w @supa/client"
+    "build:client": "npm run build -w @sila/client"
   },
   "dependencies": {
-    "@supa/client": "*",
-    "@supa/core": "*",
+    "@sila/client": "*",
+    "@sila/core": "*",
     "@capacitor/android": "^7.4.2",
     "@capacitor/ios": "^7.4.2"
   },

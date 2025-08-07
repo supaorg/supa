@@ -1,13 +1,13 @@
-import { ConnectedPersistenceLayer } from "@supa/core";
-import type { VertexOperation } from "@supa/core";
+import { ConnectedPersistenceLayer } from "@sila/core";
+import type { VertexOperation } from "@sila/core";
 import {
   isMoveVertexOp,
   isAnyPropertyOp,
   newMoveVertexOp,
   newSetVertexPropertyOp
-} from "@supa/core";
-import { type WatchEvent, type UnwatchFn, type FileHandle, type AppFileSystem } from "@supa/core";
-import { interval } from "@supa/core";
+} from "@sila/core";
+import { type WatchEvent, type UnwatchFn, type FileHandle, type AppFileSystem } from "@sila/core";
+import { interval } from "@sila/core";
 import { OpsParser } from "./OpsParser";
 
 export const LOCAL_SPACE_MD_FILE = 'sila.md';

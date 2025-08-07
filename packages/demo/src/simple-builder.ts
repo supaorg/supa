@@ -1,5 +1,5 @@
 import { NodeFileSystem } from './node-file-system';
-import { Space, SpaceManager, uuid, FileSystemPersistenceLayer, ChatAppData } from "@supa/core";
+import { Space, SpaceManager, uuid, FileSystemPersistenceLayer, ChatAppData } from "@sila/core";
 import { rm } from 'fs/promises';
 
 interface DemoSpaceConfig {

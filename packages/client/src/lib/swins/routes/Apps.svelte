@@ -1,8 +1,8 @@
 <script lang="ts">
-  import AppConfigTableCell from "@supa/client/comps/app-configs/AppConfigTableCell.svelte";
-  import { txtStore } from "@supa/client/state/txtStore";
-  import { clientState } from "@supa/client/state/clientState.svelte";
-  import type { AppConfig } from "@supa/core";
+  import AppConfigTableCell from "@sila/client/comps/app-configs/AppConfigTableCell.svelte";
+  import { txtStore } from "@sila/client/state/txtStore";
+  import { clientState } from "@sila/client/state/clientState.svelte";
+  import type { AppConfig } from "@sila/core";
   import SwinsNavButton from "../SwinsNavButton.svelte";
   import { Plus } from "lucide-svelte";
 

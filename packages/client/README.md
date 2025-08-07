@@ -1,11 +1,11 @@
-# @supa/client
+# @sila/client
 
 The client library for Sila - provides UI components and functionality for building Sila-based applications.
 
 ## Installation
 
 ```bash
-npm install @supa/client
+npm install @sila/client
 ```
 
 ## Usage
@@ -13,8 +13,8 @@ npm install @supa/client
 ### Basic Setup
 
 ```js
-import { SupaApp } from '@supa/client';
-import '@supa/client/style.css'; // Required: Import the CSS
+import { SupaApp } from '@sila/client';
+import '@sila/client/style.css'; // Required: Import the CSS
 ```
 
 ### CSS Import
@@ -22,7 +22,7 @@ import '@supa/client/style.css'; // Required: Import the CSS
 **Important**: You must import the CSS file for the components to display correctly:
 
 ```js
-import '@supa/client/style.css';
+import '@sila/client/style.css';
 ```
 
 This CSS file includes:
@@ -35,8 +35,8 @@ This CSS file includes:
 
 ```svelte
 <script>
-  import { SupaApp } from '@supa/client';
-  import '@supa/client/style.css';
+  import { SupaApp } from '@sila/client';
+  import '@sila/client/style.css';
 </script>
 
 <SupaApp />

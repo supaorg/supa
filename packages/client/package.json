@@ -1,5 +1,5 @@
 {
-  "name": "@supa/client",
+  "name": "@sila/client",
   "private": true,
   "version": "1.0.0",
   "description": "The client for Sila",
@@ -15,7 +15,7 @@
     "build": "tailwindcss -i ./src/app.css -o ./src/lib/compiled-style.css"
   },
   "dependencies": {
-    "@supa/core": "*",
+    "@sila/core": "*",
     "@floating-ui/dom": "1.6.11",
     "@tailwindcss/forms": "^0.5.9",
     "@tailwindcss/typography": "^0.5.15",

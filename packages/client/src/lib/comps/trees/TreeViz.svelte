@@ -1,6 +1,6 @@
 <script lang="ts">
   import { writable } from "svelte/store";
-  import type { RepTree } from "@supa/core";
+  import type { RepTree } from "@sila/core";
   import TreeBlockViz from "./TreeBlockViz.svelte";
 
   export let tree: RepTree;

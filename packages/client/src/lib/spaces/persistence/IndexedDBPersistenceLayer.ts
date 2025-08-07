@@ -1,11 +1,11 @@
-import type { PersistenceLayer } from "@supa/core";
-import type { VertexOperation } from "@supa/core";
+import type { PersistenceLayer } from "@sila/core";
+import type { VertexOperation } from "@sila/core";
 import {
   getTreeOps,
   appendTreeOps,
   getAllSecrets,
   saveAllSecrets
-} from "@supa/client/localDb";
+} from "@sila/client/localDb";
 
 /**
  * One-way persistence layer that saves space and app tree operations to IndexedDB.

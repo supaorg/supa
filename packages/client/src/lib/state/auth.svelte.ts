@@ -1,5 +1,5 @@
-import { setCookie, getCookie } from "@supa/client/utils/cookies";
-import { apiRequest } from "@supa/client/utils/api";
+import { setCookie, getCookie } from "@sila/client/utils/cookies";
+import { apiRequest } from "@sila/client/utils/api";
 
 // Cookie configuration
 const COOKIE_OPTIONS = {
