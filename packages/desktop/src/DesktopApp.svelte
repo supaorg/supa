@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { SupaApp, type ClientStateConfig } from "@sila/client";
+  import { SilaApp, type ClientStateConfig } from "@sila/client";
   import { electronFsWrapper } from "./electronFsWrapper";
   import { electronDialogsWrapper } from "./electronDialogsWrapper";
 
@@ -30,4 +30,4 @@
   <title>Sila</title>
 </svelte:head>
 
-<SupaApp {config} />
+<SilaApp {config} />

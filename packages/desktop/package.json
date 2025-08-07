@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src-electron/main.js",
   "build": {
-    "appId": "com.supa.desktop",
+    "appId": "com.silaintelligence.app",
     "productName": "Sila",
     "directories": {
       "output": "dist"
@@ -19,8 +19,8 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "supaorg",
-      "repo": "supa"
+      "owner": "silaorg",
+      "repo": "sila"
     },
     "mac": {
       "category": "public.app-category.productivity",

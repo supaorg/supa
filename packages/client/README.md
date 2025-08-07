@@ -13,7 +13,7 @@ npm install @sila/client
 ### Basic Setup
 
 ```js
-import { SupaApp } from '@sila/client';
+import { SilaApp } from '@sila/client';
 import '@sila/client/style.css'; // Required: Import the CSS
 ```
 
@@ -35,11 +35,11 @@ This CSS file includes:
 
 ```svelte
 <script>
-  import { SupaApp } from '@sila/client';
+  import { SilaApp } from '@sila/client';
   import '@sila/client/style.css';
 </script>
 
-<SupaApp />
+<SilaApp />
 ```
 
 ## Development
