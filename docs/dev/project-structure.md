@@ -10,10 +10,11 @@ This should be enough to get started after cloning the repository:
 - **packages/client** is the client code with UI components written in Svelte.
 - **packages/desktop** is a Svelte /w Vite + Electron wrapper that is using the client package. We use it for desktop builds.
 - **packages/mobile** is a SvelteKit + Capacitor wrapper that is using the client package. We use it for mobile builds.
+- **packages/demo** is a tool to create demo workspaces out of a JSON
 
 ## How it ties together and builds
 
-Neither the core nor client gets their own dist/build. Rather than building - we import them to our dedicated SvelteKit projects in the desktop and mobile packages. Each of those uses <SupaApp> component from the client with a config that has integrations for Electron and Capacitor to work with their file systems and native dialogs.
+Neither the core nor client gets their own dist/build. Rather than building - we import them to our dedicated Vite projects in the desktop and mobile packages. Each of those uses <SupaApp> Svelte component from the client with a config that has integrations for Electron and Capacitor to work with their file systems and native dialogs.
 
 ## Quick facts about our tech stack
 

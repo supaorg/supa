@@ -12,3 +12,5 @@ export * from './tools';
 export * from './agents';
 export * from './spaces';
 export * from './apps';
+export type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from './appFs';
+export { FileSystemPersistenceLayer } from './spaces/persistence/FileSystemPersistenceLayer';

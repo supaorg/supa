@@ -7,6 +7,8 @@
 CLAUDE.md
 AGENTS.md
 
+demos
+
 .env*
 .DS_Store
 *.log 

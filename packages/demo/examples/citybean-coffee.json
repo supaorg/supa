@@ -1,0 +1,605 @@
+{
+  "type": "supa-space",
+  "version": "1",
+  "name": "CityBean Coffee Demo Workspace",
+  "createdAt": "2025-08-06T09:00:00Z",
+  "description": "Demo workspace for CityBean Coffee with seed conversations covering market and operations topics.",
+
+  "assistants": [
+    {
+      "id": "market",
+      "name": "Market",
+      "button": "New Market Question",
+      "visible": true,
+      "description": "External-facing copy, investor comms, competitor intel, campaign ideas.",
+      "instructions": "You are Market, CityBean Coffee’s marketing assistant. Produce concise, brand-consistent external communications and insights.",
+      "targetLLM": "openai/gpt-4o"
+    },
+    {
+      "id": "operations",
+      "name": "Operations",
+      "button": "New Ops Question",
+      "visible": true,
+      "description": "Internal KPIs, scheduling advice, SOP drafting, supply chain analytics.",
+      "instructions": "You are Operations, CityBean Coffee’s operational assistant. Provide data-driven answers, schedules, procedures, and analytics.",
+      "targetLLM": "openai/gpt-4o"
+    }
+  ],
+
+  "providers": [
+    {
+      "id": "openai",
+      "apiKey": "sk-demo-key-placeholder"
+    }
+  ],
+
+  "conversations": [
+    {
+      "title": "Morning KPI Pulse",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Morning! Give me real-time sales, labor, and waste numbers.",
+        "createdAt": "2025-08-06T09:00:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Here’s the live dashboard: total sales $43,280 (+3.2% vs yesterday), labor cost 28.5%, waste 14% at Store #7 (target ≤ 8%). I’ve flagged Store #7 for follow-up.",
+            "createdAt": "2025-08-06T09:00:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Rainy-Day Staffing Fix",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Forecast shows rain at noon. How should we adjust staffing?",
+        "createdAt": "2025-08-06T09:05:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Move one barista from lobby to drive-thru at Stores #3, #8, and #12 between 12:00-15:00. Expected wait-time drop: 18 s. Draft schedule sent to managers.",
+            "createdAt": "2025-08-06T09:05:06Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "TikTok Pumpkin Hook",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Need a 10-sec TikTok hook for the pumpkin latte launch.",
+        "createdAt": "2025-08-06T09:10:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Script: ‘Watch beans turn to pumpkin magic in 10 sec.’ Visual: slow-mo latte art swirl ➜ quick pumpkin stencil ➜ sip and smile. Hashtags: #PumpkinDevOps #BeanFlow #FallFuel",
+            "createdAt": "2025-08-06T09:10:04Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Q3 Investor Blurb",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Draft a 120-word Q3 update for investors. Mention franchise revenue growth.",
+        "createdAt": "2025-08-06T09:15:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "CityBean Coffee closed Q3 with 17% franchise revenue growth, fueled by 4 new cafés and 11% same-store sales lift. BeanFlow optimized roast cycles, cutting waste by 6 %. Loyalty app hit 210 k MAUs, and TikTok engagement tripled. We remain on track for 40 locations by FY-end and continue to reinvest in sustainable sourcing.",
+            "createdAt": "2025-08-06T09:15:07Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Latte Art Class Promo",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Write email + IG copy for Saturday’s latte art class with Eventbrite link https://evt.bz/latte-art.",
+        "createdAt": "2025-08-06T09:20:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Email subject: ‘Foam Like a Pro This Saturday’. Body: ‘Learn rosettas & hearts from our champion baristas. 9 AM at Flagship Café. Seats limited ➜ RSVP’. IG caption: ‘From bean to art – master latte art 6/8 ☕🎨 Sign-up in bio’. ",
+            "createdAt": "2025-08-06T09:20:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Bean Supplier Benchmark",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Compare BellaVista vs Alianza Colombian suppliers on cost and quality.",
+        "createdAt": "2025-08-06T09:25:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "BellaVista: $4.12/lb, 87 SCA score, 3-day lead. Alianza: $4.28/lb, 88 SCA, 7-day lead. Switching fully to BellaVista cuts COGS 4 % with negligible taste delta.",
+            "createdAt": "2025-08-06T09:25:04Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "FAQ Refresh",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Rewrite loyalty FAQ and add Spanish translation.",
+        "createdAt": "2025-08-06T09:30:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Updated FAQ:\n1. How do I earn Beans? — Earn 1 Bean per $1.\n2. How to redeem? — 50 Beans = free drink.\n(Spanish below.)\n\n1. ¿Cómo gano Beans? — 1 Bean por cada $1.\n2. ¿Cómo canjeo? — 50 Beans = bebida gratis.",
+            "createdAt": "2025-08-06T09:30:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Shift Kickoff Checklist",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Compress 4-page opening SOP into a 1-page printable.",
+        "createdAt": "2025-08-06T09:35:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "1. Power-on espresso & grinders\n2. Calibrate shots (±1 s)\n3. Prep milk jugs & alt-milks\n4. Stock pastry case\n5. Run waste check\n6. Open POS lane\n7. Team huddle (2 min).",            "createdAt": "2025-08-06T09:35:06Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Franchisee Onboarding Video Script",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Need 3-minute voice-over script introducing BeanFlow basics.",
+        "createdAt": "2025-08-06T09:40:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "[0:00-0:30] Welcome & mission\n[0:30-1:30] BeanFlow dashboard tour (live KPIs, roast planning)\n[1:30-2:15] Loyalty & POS integration\n[2:15-3:00] Support & next steps. End with call-to-action: ‘Log in and explore your first KPI pulse.’",
+            "createdAt": "2025-08-06T09:40:08Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Drive-Thru Bottleneck Root-Cause",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "POS timestamps show drive-thru delays at Store #12. Root cause?",
+        "createdAt": "2025-08-06T09:45:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Median order-to-pay is 88 s (target 60 s). Grinder B cleaning at 10 AM added 22 s per drink. Recommend schedule cleaning at 14 PM and retrain baristas on dual-grinder workflow.",
+            "createdAt": "2025-08-06T09:45:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Competitor Price Hike Alert",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Starbucks raised latte prices. Summarize impact on our margins.",
+        "createdAt": "2025-08-06T09:50:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Starbucks +$0.40 average. Our price gap widens to $0.25. Maintaining current pricing yields +6 % perceived value; we can absorb up to +$0.15 without losing parity.",
+            "createdAt": "2025-08-06T09:50:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Seasonal Menu Brainstorm",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Pitch 5 winter drinks; Ops to check COGS.",
+        "createdAt": "2025-08-06T09:55:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "1. Fireside Mocha\n2. Cardamom Cold Brew\n3. Cranberry White Flat\n4. Ginger Snap Latte\n5. Midnight Mint. Avg COGS: 28-32 %.",            "createdAt": "2025-08-06T09:55:06Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Overtime Cost Spike",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "OT cost spiked yesterday. What happened?",
+        "createdAt": "2025-08-06T10:00:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Sick leave overlap at Stores #2 & #6 caused double OT shifts (12 h). Alert sent to scheduling bot to auto search swaps.",
+            "createdAt": "2025-08-06T10:00:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Loyalty-App Bug Ticket",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Crash logs attached. Format GitHub issue.",
+        "createdAt": "2025-08-06T10:05:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Created issue #245: ‘NullPointer in RewardsManager.onLogin’. Steps to reproduce, stack trace, severity high, assignee @mobile-team.",
+            "createdAt": "2025-08-06T10:05:04Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Same-Store Sales Deck",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Give bullet outline for board deck with chart placeholders.",
+        "createdAt": "2025-08-06T10:10:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Slide 1: Title + FY context\nSlide 2: 12-mo SSS trend [chart]\nSlide 3: Drivers (loyalty, menu)\nSlide 4: Regional split [heatmap]\nSlide 5: Action plan & targets.",
+            "createdAt": "2025-08-06T10:10:06Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Espresso Grinder RFP",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Draft spec & scoring matrix for new grinders.",
+        "createdAt": "2025-08-06T10:15:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Spec: 2.5 g/s grind speed, 0.1 s tolerance, IoT telemetry. Scoring: Cost 30 %, Durability 30 %, Consistency 25 %, Service 15 %. Template sheet attached.",
+            "createdAt": "2025-08-06T10:15:07Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Food-Safety SOP Simplify",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Reformat HACCP section to bullets, update FDA temps.",
+        "createdAt": "2025-08-06T10:20:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Critical temps:\n• Milk ≤ 41 °F\n• Poultry ≥ 165 °F\n• Cooling 135 → 70 °F in 2 h.\nAdded checklist for daily log sign-off.",
+            "createdAt": "2025-08-06T10:20:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Green-Bean Futures Update",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Futures price dropped. Should we lock Q1 contracts?",
+        "createdAt": "2025-08-06T10:25:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "ICE Arabica fell 6 % to $1.48/lb. Locking 70 % of Q1 volume now saves ~$42 k vs last contract; reserve 30 % for possible further dips.",
+            "createdAt": "2025-08-06T10:25:04Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Holiday Gift Card Banner",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Need ad copy + alt text for Shopify banner.",
+        "createdAt": "2025-08-06T10:30:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Banner text: ‘Wrap Joy in a Cup – Gift Cards Now Live’. Alt: ‘Hand holding CityBean digital gift card with snowflake overlay’.",
+            "createdAt": "2025-08-06T10:30:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Cash-Drawer Variance Alert",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Drawer variance $180 yesterday. Outline investigation steps.",
+        "createdAt": "2025-08-06T10:35:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "1. Pull CCTV 18:00-22:00\n2. Compare POS voids\n3. Interview closers\n4. Audit cash log vs deposits. Email template drafted for manager.",
+            "createdAt": "2025-08-06T10:35:04Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Franchise Royalty Calculator",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Convert Excel royalty logic into SQL and validate.",
+        "createdAt": "2025-08-06T10:40:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "SQL snippet: `SELECT sales*0.05 AS royalty FROM monthly_sales WHERE franchisee_id=?`. Validated 50 sample rows – matches Excel within 0.01 %.",
+            "createdAt": "2025-08-06T10:40:06Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Specialty Milk Cost Analysis",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Oat-milk share up 11 %. Show cost impact and draft renegotiation email.",
+        "createdAt": "2025-08-06T10:45:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Cost impact: +$0.032 per drink, +$7.8k/mo. Draft email: ‘Volume up 11 %, seeking bulk price adjustment to $1.82/L. Happy to extend contract 12 mo.’",
+            "createdAt": "2025-08-06T10:45:07Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "CSR Impact Report Draft",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Need 400-word sustainability recap.",
+        "createdAt": "2025-08-06T10:50:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "[Opening] In 2025 CityBean composted 92 t of grounds, offset 480 t CO₂, and sourced 86 % Rainforest Alliance beans… [truncated at 400 words].",
+            "createdAt": "2025-08-06T10:50:06Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Weekend Weather Push",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Forecast sunny weekend. Craft geo SMS offers.",
+        "createdAt": "2025-08-06T10:55:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "SMS: ‘☀️ Sun bonus! Flash this text for BOGO cold brew today only’. Geo-target: cafés within 5 mi of parks.",
+            "createdAt": "2025-08-06T10:55:04Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Latte-Art Contest Results",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Tally votes & tweet winner copy.",
+        "createdAt": "2025-08-06T11:00:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Votes: Aria (35), Leo (29), Mina (27). Tweet: ‘🎉 Congrats Aria – our Latte-Art champ! Check her swan pour this weekend.’",
+            "createdAt": "2025-08-06T11:00:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Daily Coup-de-Thé Email",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "A/B test subject lines for matcha promo; pick winner.",
+        "createdAt": "2025-08-06T11:05:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Tested ‘Meet Your Matcha’ (32% open) vs ‘Green Goodness Inside’ (24%). Choose ‘Meet Your Matcha’.",
+            "createdAt": "2025-08-06T11:05:04Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "PTO Calendar Clash",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Managers PTO overlaps next week. Propose swap and notify HR.",
+        "createdAt": "2025-08-06T11:10:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Suggested swap: Miller (North Side) trades with Patel (Riverside) for Wed-Thu. Notification email queued to HR + both managers.",
+            "createdAt": "2025-08-06T11:10:05Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "New Franchise Pipeline Map",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Summarize CRM pipeline: hot leads and legal review.",
+        "createdAt": "2025-08-06T11:15:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "6 hot leads (Austin, Denver, Boise...) and 3 in legal (Phoenix, Tampa, Tacoma). Visual pipeline chart attached.",
+            "createdAt": "2025-08-06T11:15:04Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Store-Layout Heatmap Insight",
+      "assistant": "operations",
+      "messages": {
+        "role": "user",
+        "text": "Heatmap shows dead corner. Suggest merch move.",
+        "createdAt": "2025-08-06T11:20:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Relocate pastry display to north wall, shift merch to entry sightline. Expected uplift: +7 % pastry sales.",
+            "createdAt": "2025-08-06T11:20:04Z",
+            "main": true
+          }
+        ]
+      }
+    },
+
+    {
+      "title": "Year-End Strategy Memo",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Draft 1-page 2026 vision + CapEx forecast appendix.",
+        "createdAt": "2025-08-06T11:25:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "Vision: 40 cafés, 60% app orders, zero waste-to-landfill. CapEx: $3.4 M equipment, $1.2 M IT, $0.6 M training. Memo draft attached.",
+            "createdAt": "2025-08-06T11:25:06Z",
+            "main": true
+          }
+        ]
+      }
+    }
+  ]
+}
