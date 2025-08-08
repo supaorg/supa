@@ -13,6 +13,10 @@
     contentClass = "card bg-surface-200-800 p-3 shadow-lg min-w-[260px]",
     trigger,
     content,
+    onContentEnter = undefined as undefined | (() => void),
+    onContentLeave = undefined as undefined | (() => void),
+    onTriggerEnter = undefined as undefined | (() => void),
+    onTriggerLeave = undefined as undefined | (() => void),
   }: {
     placement?: Placement;
     offset?: number;
@@ -23,6 +27,10 @@
     contentClass?: string;
     trigger: Snippet<[]>;
     content: Snippet<[]>;
+    onContentEnter?: () => void;
+    onContentLeave?: () => void;
+    onTriggerEnter?: () => void;
+    onTriggerLeave?: () => void;
   } = $props();
 
   let isOpen = $state(false);
@@ -100,18 +108,22 @@
 
   function onTriggerMouseEnter() {
     scheduleOpen();
+    onTriggerEnter?.();
   }
   function onTriggerMouseLeave() {
     if (interactive && isOpen) return scheduleClose();
     scheduleClose();
+    onTriggerLeave?.();
   }
   function onContentMouseEnter() {
     if (!interactive) return;
     clearTimers();
+    onContentEnter?.();
   }
   function onContentMouseLeave() {
     if (!interactive) return;
     scheduleClose();
+    onContentLeave?.();
   }
 
   onMount(() => {

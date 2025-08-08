@@ -272,7 +272,10 @@
                 branchesNumber={vertex.parent?.children.length || 0}
               />
               {#if showEditAndCopyControls}
-                <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}>
+              <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}
+                onContentEnter={() => (isHoveringOverMessage = true)}
+                onContentLeave={() => (isHoveringOverMessage = false)}
+              >
                   {#snippet trigger()}
                     <button class="inline-flex items-center justify-center p-1 transition opacity-70 hover:opacity-100 relative top-[1px]" aria-label="Message info">
                       <Info size={14} />
