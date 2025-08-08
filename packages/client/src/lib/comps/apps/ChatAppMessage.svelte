@@ -12,7 +12,7 @@
   import { timeout } from "@sila/core";
   import Markdown from "../markdown/Markdown.svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
-  import { Tooltip } from "@skeletonlabs/skeleton-svelte";
+  import FloatingPopover from "@sila/client/comps/ui/FloatingPopover.svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
 
@@ -166,11 +166,7 @@
         <div class="flex items-center gap-2">
           {#if message.role === "assistant"}
             <div class="relative">
-              <Tooltip
-                positioning={{ placement: "right" }}
-                contentBase="z-[1000] card bg-surface-200-800 p-3 shadow-lg min-w-[260px]"
-                openDelay={250}
-              >
+              <FloatingPopover placement="right" offset={8} openDelay={250} closeDelay={150} interactive={true} zIndex={1200}>
                 {#snippet trigger()}
                   <span class="font-bold cursor-default hover:opacity-90">{configName || "AI"}</span>
                 {/snippet}
@@ -187,7 +183,7 @@
                     <div class="opacity-60 text-xs mt-2">ID: {message.id}</div>
                   </div>
                 {/snippet}
-              </Tooltip>
+              </FloatingPopover>
             </div>
           {:else}
             <p class="font-bold">Error</p>
