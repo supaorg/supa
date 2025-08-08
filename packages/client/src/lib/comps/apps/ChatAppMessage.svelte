@@ -13,6 +13,7 @@
   import Markdown from "../markdown/Markdown.svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
   import FloatingPopover from "@sila/client/comps/ui/FloatingPopover.svelte";
+  import ChatAppMessageInfo from "@sila/client/comps/apps/ChatAppMessageInfo.svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
 
@@ -166,22 +167,12 @@
         <div class="flex items-center gap-2">
           {#if message.role === "assistant"}
             <div class="relative">
-              <FloatingPopover placement="right" offset={8} openDelay={250} closeDelay={150} interactive={true} zIndex={1200}>
+              <FloatingPopover placement="right">
                 {#snippet trigger()}
                   <span class="font-bold cursor-default hover:opacity-90">{configName || "AI"}</span>
                 {/snippet}
                 {#snippet content()}
-                  <div class="text-sm space-y-1">
-                    <div><span class="opacity-70">Assistant:</span> {configName || data.getMessageProperty(message.id, "configName") || "AI"}</div>
-                    {#if modelInfo}
-                      <div><span class="opacity-70">Model:</span> {modelInfo.provider}/{modelInfo.model}</div>
-                    {/if}
-                    <div><span class="opacity-70">Created:</span> {new Date(message.createdAt).toLocaleString()}</div>
-                    {#if message.updatedAt}
-                      <div><span class="opacity-70">Updated:</span> {new Date(message.updatedAt).toLocaleString()}</div>
-                    {/if}
-                    <div class="opacity-60 text-xs mt-2">ID: {message.id}</div>
-                  </div>
+                  <ChatAppMessageInfo message={message} assistantName={configName || data.getMessageProperty(message.id, "configName") || "AI"} />
                 {/snippet}
               </FloatingPopover>
             </div>
