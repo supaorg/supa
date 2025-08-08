@@ -232,6 +232,14 @@ export default class ChatAppBackend {
     const parentVertexId = vertices[targetIdx - 1].id; // user vertex id
     const newAssistant = data.newMessageUnder(parentVertexId, 'assistant', 'thinking...');
 
+    // Make the new assistant branch the main one immediately and demote siblings
+    const parentVertex = this.appTree.tree.getVertex(parentVertexId);
+    if (parentVertex) {
+      for (const child of parentVertex.children) {
+        this.appTree.tree.setVertexProperty(child.id, 'main', child.id === newAssistant.id);
+      }
+    }
+
     // Set initial state and config info
     this.appTree.tree.setVertexProperty(newAssistant.id, 'inProgress', true);
     this.appTree.tree.setVertexProperty(newAssistant.id, 'configId', config.id);
