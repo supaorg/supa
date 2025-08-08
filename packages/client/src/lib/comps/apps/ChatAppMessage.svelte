@@ -203,7 +203,7 @@
             onmouseleave={hideControlsBar}
           >
             {@html replaceNewlinesWithHtmlBrs(message.text || "")}
-            <div class="absolute right-0 bottom-[-33px] flex items-center gap-2">
+            <div class="absolute right-0 bottom-[-33px]">
               <ChatAppMessageControls
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
@@ -214,16 +214,6 @@
                 {branchIndex}
                 branchesNumber={vertex.parent?.children.length || 0}
               />
-              <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}>
-                {#snippet trigger()}
-                  <button class="rounded-full p-1 opacity-70 hover:opacity-100" aria-label="Message info">
-                    <Info size={14} />
-                  </button>
-                {/snippet}
-                {#snippet content()}
-                  <ChatAppMessageInfo message={message} assistantName={configName || data.getMessageProperty(message.id, "configName") || "AI"} />
-                {/snippet}
-              </FloatingPopover>
             </div>
           </div>
         {/if}
@@ -271,7 +261,7 @@
               </div>
             {/if}
             <Markdown source={message.text ? message.text : ""} />
-            <div class="absolute">
+            <div class="absolute right-0 bottom-[-33px] flex items-center gap-2">
               <ChatAppMessageControls
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
@@ -281,6 +271,18 @@
                 {branchIndex}
                 branchesNumber={vertex.parent?.children.length || 0}
               />
+              {#if showEditAndCopyControls}
+                <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}>
+                  {#snippet trigger()}
+                    <button class="inline-flex items-center justify-center p-1 transition opacity-70 hover:opacity-100 relative top-[1px]" aria-label="Message info">
+                      <Info size={14} />
+                    </button>
+                  {/snippet}
+                  {#snippet content()}
+                    <ChatAppMessageInfo message={message} assistantName={configName || data.getMessageProperty(message.id, "configName") || "AI"} />
+                  {/snippet}
+                </FloatingPopover>
+              {/if}
             </div>
           </div>
         {/if}
