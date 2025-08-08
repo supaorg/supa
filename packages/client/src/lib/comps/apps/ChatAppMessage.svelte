@@ -37,8 +37,9 @@
   let isEditing = $state(false);
   let editText = $state("");
 
-  let isHoveringOverMessage = $state(false);
+  let hoverDepth = $state(0);
   let showEditAndCopyControls = $state(false);
+  let hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
 
   function getModelDisplayForMessage(): { provider: string; model: string } | null {
     // Only use values stored on the message. If not available, return null (do not show anything)
@@ -54,16 +55,21 @@
     await navigator.clipboard.writeText(message?.text || "");
   }
 
-  function showControlsBar() {
-    isHoveringOverMessage = true;
+  function beginHover() {
+    hoverDepth += 1;
+    if (hideControlsTimeout) { clearTimeout(hideControlsTimeout); hideControlsTimeout = null; }
     showEditAndCopyControls = true;
   }
 
-  function hideControlsBar() {
-    isHoveringOverMessage = false;
-    timeout(() => {
-      if (!isHoveringOverMessage) showEditAndCopyControls = false;
-    }, 300);
+  function endHover() {
+    hoverDepth = Math.max(0, hoverDepth - 1);
+    if (hoverDepth === 0) {
+      hideControlsTimeout = setTimeout(() => {
+        if (hoverDepth === 0) {
+          showEditAndCopyControls = false;
+        }
+      }, 250);
+    }
   }
   // Branch navigation: use siblings under the same parent
   let branchIndex = $derived.by(() => {
@@ -199,11 +205,17 @@
           <div
             class="relative p-3 rounded-lg preset-tonal group"
             role="region"
-            onmouseenter={showControlsBar}
-            onmouseleave={hideControlsBar}
+            onpointerenter={beginHover}
+            onpointerleave={endHover}
           >
             {@html replaceNewlinesWithHtmlBrs(message.text || "")}
-            <div class="absolute right-0 bottom-[-33px]">
+          </div>
+          <!-- Reserved toolbar row for user messages to avoid overlap/jump -->
+            <div class="mt-1 h-6 flex items-center justify-end" role="presentation"
+               onpointerenter={beginHover}
+               onpointerleave={endHover}
+          >
+            <div class:invisible={!showEditAndCopyControls} class:pointer-events-none={!showEditAndCopyControls}>
               <ChatAppMessageControls
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
@@ -231,8 +243,8 @@
           <div
             class="relative rounded-lg chat-message group"
             role="region"
-            onmouseenter={showControlsBar}
-            onmouseleave={hideControlsBar}
+            onpointerenter={beginHover}
+            onpointerleave={endHover}
           >
             {#if hasThinking}
               <div class="mb-3">
@@ -261,23 +273,18 @@
               </div>
             {/if}
             <Markdown source={message.text ? message.text : ""} />
-            <div class="absolute right-0 bottom-[-33px] flex items-center gap-2">
-              <ChatAppMessageControls
-                {showEditAndCopyControls}
-                onCopyMessage={() => copyMessage()}
-                onEditMessage={() => (isEditing = true)}
-                {prevBranch}
-                {nextBranch}
-                {branchIndex}
-                branchesNumber={vertex.parent?.children.length || 0}
-              />
+            <!-- Reserved toolbar row for assistant messages to avoid overlap/jump -->
+            <div class="mt-1 h-6 flex items-center justify-start gap-2" role="presentation"
+                 onpointerenter={beginHover}
+                 onpointerleave={endHover}
+            >
               {#if showEditAndCopyControls}
-              <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}
-                onContentEnter={() => { isHoveringOverMessage = true; showEditAndCopyControls = true; }}
-                onContentLeave={() => { isHoveringOverMessage = false; hideControlsBar(); }}
-              >
+                <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}
+                  onContentEnter={beginHover}
+                  onContentLeave={endHover}
+                >
                   {#snippet trigger()}
-                    <button class="inline-flex items-center justify-center p-1 transition opacity-70 hover:opacity-100 relative top-[1px]" aria-label="Message info">
+                    <button class="inline-flex items-center justify-center p-1 transition opacity-70 hover:opacity-100" aria-label="Message info">
                       <Info size={14} />
                     </button>
                   {/snippet}
@@ -286,6 +293,17 @@
                   {/snippet}
                 </FloatingPopover>
               {/if}
+              <div class:invisible={!showEditAndCopyControls} class:pointer-events-none={!showEditAndCopyControls}>
+                <ChatAppMessageControls
+                  {showEditAndCopyControls}
+                  onCopyMessage={() => copyMessage()}
+                  onEditMessage={() => (isEditing = true)}
+                  {prevBranch}
+                  {nextBranch}
+                  {branchIndex}
+                  branchesNumber={vertex.parent?.children.length || 0}
+                />
+              </div>
             </div>
           </div>
         {/if}
