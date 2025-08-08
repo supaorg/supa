@@ -165,7 +165,7 @@
       <div class="flex items-center justify-between gap-2 mt-2">
         <div class="flex items-center gap-2">
           {#if message.role === "assistant"}
-            <div class="relative z-[300]">
+            <div class="relative">
               <Tooltip
                 positioning={{ placement: "right" }}
                 contentBase="z-[1000] card bg-surface-200-800 p-3 shadow-lg min-w-[260px]"
