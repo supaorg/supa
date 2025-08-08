@@ -14,6 +14,8 @@
   import { clientState } from "@sila/client/state/clientState.svelte";
   import FloatingPopover from "@sila/client/comps/ui/FloatingPopover.svelte";
   import ChatAppMessageInfo from "@sila/client/comps/apps/ChatAppMessageInfo.svelte";
+  import ChatAssistantInfo from "@sila/client/comps/apps/ChatAssistantInfo.svelte";
+  import { Info } from "lucide-svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
 
@@ -172,7 +174,7 @@
                   <span class="font-bold cursor-default hover:opacity-90">{configName || "AI"}</span>
                 {/snippet}
                 {#snippet content()}
-                  <ChatAppMessageInfo message={message} assistantName={configName || data.getMessageProperty(message.id, "configName") || "AI"} />
+                  <ChatAssistantInfo configId={(vertex.getProperty("configId") as string) || data.getMessageProperty(message.id, "configId")} />
                 {/snippet}
               </FloatingPopover>
             </div>
@@ -201,7 +203,7 @@
             onmouseleave={hideControlsBar}
           >
             {@html replaceNewlinesWithHtmlBrs(message.text || "")}
-            <div class="absolute right-0 bottom-[-33px]">
+            <div class="absolute right-0 bottom-[-33px] flex items-center gap-2">
               <ChatAppMessageControls
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
@@ -212,6 +214,16 @@
                 {branchIndex}
                 branchesNumber={vertex.parent?.children.length || 0}
               />
+              <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}>
+                {#snippet trigger()}
+                  <button class="rounded-full p-1 opacity-70 hover:opacity-100" aria-label="Message info">
+                    <Info size={14} />
+                  </button>
+                {/snippet}
+                {#snippet content()}
+                  <ChatAppMessageInfo message={message} assistantName={configName || data.getMessageProperty(message.id, "configName") || "AI"} />
+                {/snippet}
+              </FloatingPopover>
             </div>
           </div>
         {/if}
