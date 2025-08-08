@@ -220,7 +220,6 @@
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
                 onEditMessage={() => (isEditing = true)}
-                onRerun={rerunInNewBranch}
                 {prevBranch}
                 {nextBranch}
                 {branchIndex}
@@ -298,6 +297,7 @@
                   {showEditAndCopyControls}
                   onCopyMessage={() => copyMessage()}
                   onEditMessage={() => (isEditing = true)}
+                  onRerun={rerunInNewBranch}
                   {prevBranch}
                   {nextBranch}
                   {branchIndex}
