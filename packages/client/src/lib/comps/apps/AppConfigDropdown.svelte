@@ -10,7 +10,8 @@
   let {
     configId = "",
     onChange,
-  }: { configId: string; onChange?: (id: string) => void } = $props();
+    highlighted = false,
+  }: { configId: string; onChange?: (id: string) => void; highlighted?: boolean } = $props();
 
   let visibleAppConfigs = $state<AppConfig[]>([]);
   let appConfigs = $state<AppConfig[]>([]);
@@ -56,7 +57,9 @@
 >
   {#snippet trigger()}
     <button
-      class="flex items-center gap-2 px-2 py-1 rounded-container transition-colors preset-outlined-primary-500"
+      class="flex items-center gap-2 px-2 py-1 rounded-container transition-colors"
+      class:preset-outlined-primary-500={highlighted}
+      class:preset-outlined-surface-200-800={!highlighted}
     >
       <span class="text-left truncate min-w-0">
         {#if visibleAppConfigs.length > 0 && currentConfig}
@@ -73,7 +76,7 @@
           {$txtStore.appConfigDropdown.placeholder}
         {/if}
       </span>
-      <ChevronUp size={18} color="var(--color-primary-500)" />
+      <ChevronUp size={18} class={highlighted ? 'text-primary-500' : 'text-surface-200-800'} />
     </button>
   {/snippet}
   {#snippet content()}
