@@ -87,7 +87,7 @@
       </p>
     </div>
     <button
-      class="btn preset-outlined-primary-500"
+      class="btn preset-filled-primary-500"
       onclick={createSpaceDialog}
       disabled={status !== "idle"}
     >
