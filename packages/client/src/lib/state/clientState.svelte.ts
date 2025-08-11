@@ -105,7 +105,7 @@ export class ClientState {
       this.layout.swins.open('settings', {}, 'Settings');
     },
     openSpaces: () => {
-      this.layout.swins.open('spaces', {}, 'Spaces');
+      this.layout.swins.open('spaces', {}, 'Workspaces');
     }
   };
 
