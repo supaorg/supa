@@ -33,21 +33,20 @@
   });
 </script>
 
-<div class="w-full max-w-[700px] flex flex-col p-3 rounded-lg preset-tonal">
-  <textarea
-    bind:this={textareaEl}
-    bind:value={text}
-    rows="4"
-    class="w-full resize-none border-0 bg-transparent p-3 leading-normal outline-none focus:ring-0 text-base"
-    oninput={handleInput}
-    onkeydown={handleKeydown}
-  ></textarea>
-  <div class="flex gap-2 mt-3 justify-end">
-    <button type="button" class="btn preset-outline" onclick={onCancel}>
-      Cancel
-    </button>
-    <button type="button" class="btn preset-filled" onclick={() => onSave(text)} disabled={text.trim().length === 0}>
-      Send
-    </button>
-  </div>
+<textarea
+  bind:this={textareaEl}
+  bind:value={text}
+  rows="2"
+  class="block w-full resize-none border-0 bg-transparent leading-normal outline-none focus:ring-0 text-[0.9375rem] whitespace-pre-wrap"
+  style="padding: 0;"
+  oninput={handleInput}
+  onkeydown={handleKeydown}
+></textarea>
+<div class="flex gap-2 mt-2 justify-end">
+  <button type="button" class="btn btn-sm preset-outline" onclick={onCancel}>
+    Cancel
+  </button>
+  <button type="button" class="btn btn-sm preset-filled" onclick={() => onSave(text)} disabled={text.trim().length === 0}>
+    Save
+  </button>
 </div>

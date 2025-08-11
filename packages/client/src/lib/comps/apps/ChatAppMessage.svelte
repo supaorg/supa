@@ -179,7 +179,7 @@
       </div>
     </div>
   {/if}
-  <div class="min-w-0 max-w-[85%]" class:ml-auto={message.role === "user"}>
+  <div class="min-w-0 max-w-[85%]" class:ml-auto={message.role === "user"} class:w-full={isEditing}>
     {#if message.role !== "user"}
       <div class="flex items-center justify-between gap-2 mt-2">
         <div class="flex items-center gap-2">
@@ -203,14 +203,16 @@
     <div>
       {#if message.role === "user"}
         {#if isEditing}
-          <ChatAppMessageEditForm
+          <div class="block w-full">
+            <ChatAppMessageEditForm
             initialValue={editText}
             onSave={(text) => {
               data.editMessage(vertex.id, text);
               isEditing = false;
             }}
             onCancel={() => (isEditing = false)}
-          />
+            />
+          </div>
         {:else}
           <div
             class="relative p-3 rounded-lg preset-tonal group"
@@ -240,14 +242,16 @@
         {/if}
       {:else}
         {#if isEditing}
-          <ChatAppMessageEditForm
+          <div class="block w-full">
+            <ChatAppMessageEditForm
             initialValue={editText}
             onSave={(text) => {
               data.editMessage(vertex.id, text);
               isEditing = false;
             }}
             onCancel={() => (isEditing = false)}
-          />
+            />
+          </div>
         {:else}
           <div
             class="relative rounded-lg chat-message group"
