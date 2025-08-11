@@ -165,6 +165,57 @@ export class ChatAppData {
     } as ThreadMessage;
   }
 
+  /** Create a new message directly under a specific parent message vertex */
+  newMessageUnder(parentVertexId: string, role: "user" | "assistant" | "error", text: string, thinking?: string): ThreadMessage {
+    const parentVertex = this.appTree.tree.getVertex(parentVertexId);
+    if (!parentVertex) throw new Error(`Parent vertex ${parentVertexId} not found`);
+
+    const properties: Record<string, any> = {
+      _n: "message",
+      createdAt: Date.now(),
+      text,
+      role,
+    };
+
+    if (role === "assistant" && this.configId) {
+      properties.configId = this.configId;
+      const cfg = this.space.getAppConfig(this.configId);
+      if (cfg) {
+        properties.configName = cfg.name;
+      }
+    }
+
+    if (thinking) {
+      properties.thinking = thinking;
+    }
+
+    const newMessageVertex = this.appTree.tree.newVertex(parentVertex.id, properties);
+    const props = newMessageVertex.getProperties();
+    return {
+      id: newMessageVertex.id,
+      ...props,
+    } as ThreadMessage;
+  }
+
+  /** Returns the path of message vertices from the messages root to the target (inclusive) */
+  getMessagePath(messageId: string): { vertices: Vertex[]; messages: ThreadMessage[] } {
+    const target = this.appTree.tree.getVertex(messageId);
+    if (!target) throw new Error(`Vertex ${messageId} not found`);
+
+    // Climb up to the messages container
+    const path: Vertex[] = [];
+    let cur: Vertex | undefined = target;
+    while (cur) {
+      if (cur === this.messagesVertex) break;
+      path.push(cur);
+      cur = cur.parent as Vertex | undefined;
+    }
+    // If we haven't reached messages container, include until just below it
+    path.reverse();
+    const messages = path.map((v) => v.getAsTypedObject<ThreadMessage>());
+    return { vertices: path, messages };
+  }
+
   askForReply(messageId: string): void {
     /*
     this.appTree.tree.newVertex(this.jobsVertex.id, {

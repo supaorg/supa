@@ -7,6 +7,7 @@
     open = false,
     onOpenChange,
     placement = "bottom",
+    zIndex = "50",
     closeOnInteractOutside = true,
     closeOnEscape = true,
     triggerClassNames = "",
@@ -19,6 +20,7 @@
     open: boolean;
     onOpenChange: (e: { open: boolean }) => void;
     placement?: "top" | "right" | "bottom" | "left";
+    zIndex?: string;
     closeOnInteractOutside?: boolean;
     closeOnEscape?: boolean;
     triggerClassNames?: string;
@@ -80,7 +82,7 @@
 
 <div bind:this={wrapperElement}>
   <Popover
-    zIndex="50"
+    {zIndex}
     {open}
     {onOpenChange}
     positioning={{ placement }}

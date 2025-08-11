@@ -228,7 +228,7 @@
         <div class="flex items-center justify-between p-2 text-sm">
           <div class="flex items-center gap-2">
             {#if showConfigSelector}
-              <AppConfigDropdown {configId} onChange={handleConfigChange} />
+              <AppConfigDropdown {configId} onChange={handleConfigChange} highlighted={isTextareaFocused} />
             {/if}
             {#if attachEnabled}
               <button

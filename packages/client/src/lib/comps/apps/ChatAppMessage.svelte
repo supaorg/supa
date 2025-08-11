@@ -12,6 +12,10 @@
   import { timeout } from "@sila/core";
   import Markdown from "../markdown/Markdown.svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
+  import FloatingPopover from "@sila/client/comps/ui/FloatingPopover.svelte";
+  import ChatAppMessageInfo from "@sila/client/comps/apps/ChatAppMessageInfo.svelte";
+  import ChatAssistantInfo from "@sila/client/comps/apps/ChatAssistantInfo.svelte";
+  import { Info } from "lucide-svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
 
@@ -33,23 +37,49 @@
   let isEditing = $state(false);
   let editText = $state("");
 
-  let isHoveringOverMessage = $state(false);
+  let hoverDepth = $state(0);
   let showEditAndCopyControls = $state(false);
+  let hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  function getModelDisplayForMessage(): { provider: string; model: string } | null {
+    // Only use values stored on the message. If not available, return null (do not show anything)
+    const provider = (message as any)?.modelProviderFinal || (message as any)?.modelProvider || null;
+    const model = (message as any)?.modelIdFinal || (message as any)?.modelId || null;
+    if (provider && model) return { provider, model };
+    return null;
+  }
+
+  let modelInfo = $derived.by(() => getModelDisplayForMessage());
 
   async function copyMessage() {
     await navigator.clipboard.writeText(message?.text || "");
   }
 
-  function showControlsBar() {
-    isHoveringOverMessage = true;
+  function beginHover() {
+    hoverDepth += 1;
+    if (hideControlsTimeout) { clearTimeout(hideControlsTimeout); hideControlsTimeout = null; }
     showEditAndCopyControls = true;
   }
 
-  function hideControlsBar() {
-    isHoveringOverMessage = false;
-    timeout(() => {
-      if (!isHoveringOverMessage) showEditAndCopyControls = false;
-    }, 300);
+  function endHover() {
+    hoverDepth = Math.max(0, hoverDepth - 1);
+    if (hoverDepth === 0) {
+      hideControlsTimeout = setTimeout(() => {
+        if (hoverDepth === 0) {
+          showEditAndCopyControls = false;
+        }
+      }, 250);
+    }
+  }
+
+  function forceKeepControls(open: boolean) {
+    if (open) {
+      // Popover opened – ensure controls remain visible
+      beginHover();
+    } else {
+      // Popover closed – decrement and maybe hide
+      endHover();
+    }
   }
   // Branch navigation: use siblings under the same parent
   let branchIndex = $derived.by(() => {
@@ -116,6 +146,10 @@
     });
   }
 
+  function rerunInNewBranch() {
+    data.triggerEvent("rerun-message", { messageId: vertex.id });
+  }
+
   // Branch switching: use vertex.children and data.switchMain
   function prevBranch() {
     const parent = vertex.parent;
@@ -145,12 +179,21 @@
       </div>
     </div>
   {/if}
-  <div class="min-w-0 max-w-[85%]" class:ml-auto={message.role === "user"}>
+  <div class="min-w-0 max-w-[85%]" class:ml-auto={message.role === "user"} class:w-full={isEditing}>
     {#if message.role !== "user"}
       <div class="flex items-center justify-between gap-2 mt-2">
         <div class="flex items-center gap-2">
           {#if message.role === "assistant"}
-            <p class="font-bold">{configName || "AI"}</p>
+            <div class="relative">
+              <FloatingPopover placement="right">
+                {#snippet trigger()}
+                  <span class="font-bold cursor-default hover:opacity-90">{configName || "AI"}</span>
+                {/snippet}
+                {#snippet content()}
+                  <ChatAssistantInfo configId={(vertex.getProperty("configId") as string) || data.getMessageProperty(message.id, "configId")} />
+                {/snippet}
+              </FloatingPopover>
+            </div>
           {:else}
             <p class="font-bold">Error</p>
           {/if}
@@ -160,22 +203,31 @@
     <div>
       {#if message.role === "user"}
         {#if isEditing}
-          <ChatAppMessageEditForm
+          <div class="block w-full">
+            <ChatAppMessageEditForm
             initialValue={editText}
             onSave={(text) => {
               data.editMessage(vertex.id, text);
               isEditing = false;
             }}
             onCancel={() => (isEditing = false)}
-          />
+            />
+          </div>
         {:else}
           <div
             class="relative p-3 rounded-lg preset-tonal group"
-            onmouseenter={showControlsBar}
-            onmouseleave={hideControlsBar}
+            role="region"
+            onpointerenter={beginHover}
+            onpointerleave={endHover}
           >
             {@html replaceNewlinesWithHtmlBrs(message.text || "")}
-            <div class="absolute right-0 bottom-[-33px]">
+          </div>
+          <!-- Reserved toolbar row for user messages to avoid overlap/jump -->
+            <div class="mt-1 h-6 flex items-center justify-end" role="presentation"
+               onpointerenter={beginHover}
+               onpointerleave={endHover}
+          >
+            <div class:invisible={!showEditAndCopyControls} class:pointer-events-none={!showEditAndCopyControls}>
               <ChatAppMessageControls
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
@@ -190,19 +242,22 @@
         {/if}
       {:else}
         {#if isEditing}
-          <ChatAppMessageEditForm
+          <div class="block w-full">
+            <ChatAppMessageEditForm
             initialValue={editText}
             onSave={(text) => {
               data.editMessage(vertex.id, text);
               isEditing = false;
             }}
             onCancel={() => (isEditing = false)}
-          />
+            />
+          </div>
         {:else}
           <div
             class="relative rounded-lg chat-message group"
-            onmouseenter={showControlsBar}
-            onmouseleave={hideControlsBar}
+            role="region"
+            onpointerenter={beginHover}
+            onpointerleave={endHover}
           >
             {#if hasThinking}
               <div class="mb-3">
@@ -231,25 +286,49 @@
               </div>
             {/if}
             <Markdown source={message.text ? message.text : ""} />
-            <div class="absolute">
-              <ChatAppMessageControls
-                {showEditAndCopyControls}
-                onCopyMessage={() => copyMessage()}
-                onEditMessage={() => (isEditing = true)}
-                {prevBranch}
-                {nextBranch}
-                {branchIndex}
-                branchesNumber={vertex.parent?.children.length || 0}
-              />
+            <!-- Reserved toolbar row for assistant messages to avoid overlap/jump -->
+            <div class="mt-1 h-6 flex items-center justify-start gap-2" role="presentation"
+                 onpointerenter={beginHover}
+                 onpointerleave={endHover}
+            >
+              {#if showEditAndCopyControls}
+                <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}
+                  onContentEnter={beginHover}
+                  onContentLeave={endHover}
+                  onOpenChange={forceKeepControls}
+                >
+                  {#snippet trigger()}
+                    <button class="inline-flex items-center justify-center p-1 transition opacity-70 hover:opacity-100" aria-label="Message info">
+                      <Info size={14} />
+                    </button>
+                  {/snippet}
+                  {#snippet content()}
+                    <ChatAppMessageInfo message={message} assistantName={configName || data.getMessageProperty(message.id, "configName") || "AI"} />
+                  {/snippet}
+                </FloatingPopover>
+              {/if}
+              <div class:invisible={!showEditAndCopyControls} class:pointer-events-none={!showEditAndCopyControls}>
+                <ChatAppMessageControls
+                  {showEditAndCopyControls}
+                  onCopyMessage={() => copyMessage()}
+                  onEditMessage={() => (isEditing = true)}
+                  onRerun={rerunInNewBranch}
+                  {prevBranch}
+                  {nextBranch}
+                  {branchIndex}
+                  branchesNumber={vertex.parent?.children.length || 0}
+                />
+              </div>
             </div>
           </div>
         {/if}
       {/if}
 
       {#if canRetry}
-        <button class="btn preset-filled-surface-500" onclick={retry}
-          >Retry</button
-        >
+        <div class="flex gap-2">
+          <button class="btn preset-filled-surface-500" onclick={retry}>Retry</button>
+          <button class="btn preset-outline" onclick={rerunInNewBranch}>Re-run (new branch)</button>
+        </div>
       {/if}
     </div>
   </div>

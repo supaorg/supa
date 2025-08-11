@@ -6,6 +6,11 @@ export type ThreadMessage = {
   inProgress: boolean | null;
   createdAt: number;
   updatedAt: number | null;
+  // Optional metadata
+  configId?: string | null;
+  configName?: string | null;
+  modelProvider?: string | null;
+  modelId?: string | null;
 }
 
 export interface AppConfig {
