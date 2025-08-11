@@ -71,6 +71,16 @@
       }, 250);
     }
   }
+
+  function forceKeepControls(open: boolean) {
+    if (open) {
+      // Popover opened – ensure controls remain visible
+      beginHover();
+    } else {
+      // Popover closed – decrement and maybe hide
+      endHover();
+    }
+  }
   // Branch navigation: use siblings under the same parent
   let branchIndex = $derived.by(() => {
     const parent = vertex.parent;
@@ -281,6 +291,7 @@
                 <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}
                   onContentEnter={beginHover}
                   onContentLeave={endHover}
+                  onOpenChange={forceKeepControls}
                 >
                   {#snippet trigger()}
                     <button class="inline-flex items-center justify-center p-1 transition opacity-70 hover:opacity-100" aria-label="Message info">

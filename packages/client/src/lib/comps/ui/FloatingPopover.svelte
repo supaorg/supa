@@ -17,6 +17,7 @@
     onContentLeave = undefined as undefined | (() => void),
     onTriggerEnter = undefined as undefined | (() => void),
     onTriggerLeave = undefined as undefined | (() => void),
+    onOpenChange = undefined as undefined | ((open: boolean) => void),
   }: {
     placement?: Placement;
     offset?: number;
@@ -31,6 +32,7 @@
     onContentLeave?: () => void;
     onTriggerEnter?: () => void;
     onTriggerLeave?: () => void;
+    onOpenChange?: (open: boolean) => void;
   } = $props();
 
   let isOpen = $state(false);
@@ -61,6 +63,7 @@
     attachToBody();
     startAutoUpdate();
     updatePosition();
+    onOpenChange?.(true);
   }
 
   function close() {
@@ -70,6 +73,7 @@
     if (contentEl) {
       contentEl.style.display = "none";
     }
+    onOpenChange?.(false);
   }
 
   function attachToBody() {
