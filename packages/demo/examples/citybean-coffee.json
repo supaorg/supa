@@ -601,5 +601,24 @@
         ]
       }
     }
+    ,
+    {
+      "title": "About CityBean Coffee",
+      "assistant": "market",
+      "messages": {
+        "role": "user",
+        "text": "Write a brief description about CityBean Coffee to communicate it to other people when they ask about the company",
+        "createdAt": "2025-08-06T11:30:00Z",
+        "main": true,
+        "children": [
+          {
+            "role": "assistant",
+            "text": "CityBean Coffee is a fast-growing regional chain with 17 company-owned cafés and 24 franchise locations. Our competitive moat is BeanFlow — an in-house platform that unifies dynamic supply chain, POS + loyalty, and real-time operations dashboards. Think ‘Starbucks meets DevOps’: a coffee company that iterates like a software startup.",
+            "createdAt": "2025-08-06T11:30:05Z",
+            "main": true
+          }
+        ]
+      }
+    }
   ]
 }
