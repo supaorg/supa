@@ -226,7 +226,7 @@
               <div class="mt-2 flex flex-wrap gap-2">
                 {#each attachments as att (att.id)}
                   {#if att.kind === 'image' && att.dataUrl}
-                    <img src={att.dataUrl} alt={att.name} class="max-h-40 rounded" />
+                    <img src={att.dataUrl} alt={att.name} class="rounded border object-contain max-w-[240px] max-h-[200px]" />
                   {:else}
                     <div class="text-xs opacity-70 border rounded px-2 py-1">{att.name}</div>
                   {/if}

@@ -46,7 +46,7 @@
     disabled = false,
     draftId,
     maxLines = Infinity,
-    attachEnabled = false,
+    attachEnabled = true,
     data = undefined,
     showConfigSelector = true,
   }: SendMessageFormProps = $props();
