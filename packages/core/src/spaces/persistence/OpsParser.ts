@@ -117,9 +117,12 @@ export class OpsParser {
         if (type === 'm') {
           operations.push(newMoveVertexOp(counter, peerId, targetId, value1));
         } else if (type === 'p') {
+          // value1 is the property key, value2 is the property value
+          const key = value1 as string;
+          const rawValue = value2;
           // Convert empty object ({}) to undefined
-          const propValue = value1 && typeof value1 === 'object' && Object.keys(value1).length === 0 ? undefined : value1;
-          operations.push(newSetVertexPropertyOp(counter, peerId, targetId, value1, propValue));
+          const propValue = rawValue && typeof rawValue === 'object' && Object.keys(rawValue).length === 0 ? undefined : rawValue;
+          operations.push(newSetVertexPropertyOp(counter, peerId, targetId, key, propValue));
         }
       } catch (error) {
         console.warn('Failed to parse operation line:', line, error);
