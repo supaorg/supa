@@ -389,6 +389,9 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     combined.set(iv);
     combined.set(new Uint8Array(encryptedBuffer), iv.length);
 
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(combined).toString('base64');
+    }
     return btoa(String.fromCharCode(...combined));
   }
 
@@ -405,9 +408,14 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     );
 
     // Convert base64 back to array buffer
-    const combined = new Uint8Array(
-      atob(encryptedData).split('').map(c => c.charCodeAt(0))
-    );
+    let combined: Uint8Array;
+    if (typeof Buffer !== 'undefined') {
+      combined = new Uint8Array(Buffer.from(encryptedData, 'base64'));
+    } else {
+      combined = new Uint8Array(
+        atob(encryptedData).split('').map(c => c.charCodeAt(0))
+      );
+    }
 
     // Extract IV and encrypted data
     const iv = combined.slice(0, 12);
