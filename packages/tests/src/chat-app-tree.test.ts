@@ -42,9 +42,9 @@ describe('Chat app tree creation and persistence', () => {
     chatData.title = 'My conversation';
 
     // Add a small chain of messages
-    chatData.newMessage('user', 'Hello');
-    chatData.newMessage('assistant', 'Hi!');
-    chatData.newMessage('user', 'How are you?');
+    await chatData.newMessage('user', 'Hello');
+    await chatData.newMessage('assistant', 'Hi!');
+    await chatData.newMessage('user', 'How are you?');
 
     const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
     const manager = new SpaceManager();
@@ -67,5 +67,37 @@ describe('Chat app tree creation and persistence', () => {
     // We can’t load app tree via loader easily without SpaceManager, but we can assert the space ops include message property ops
     // Basic sanity: at least some property ops saved
     expect(spaceOps.length).toBeGreaterThan(0);
+  });
+
+  it('persists image attachments by saving to CAS and storing file refs in message', async () => {
+    const fs = new NodeFileSystem();
+    const space = Space.newSpace(crypto.randomUUID());
+    const spaceId = space.getId();
+
+    // Minimal config and chat tree
+    const assistantId = 'assistant-attachments';
+    space.addAppConfig({ id: assistantId, name: 'Chat', button: 'New', visible: true, description: '', instructions: '' } as any);
+    const chatTree = ChatAppData.createNewChatTree(space, assistantId);
+    const chatData = new ChatAppData(space, chatTree);
+
+    const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=';
+
+    const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
+    const manager = new SpaceManager();
+    await manager.addNewSpace(space, [layer]);
+
+    // Create a user message with one image attachment
+    const msg = await chatData.newMessage('user', 'Here is an image', undefined, [
+      { id: 'a1', kind: 'image', name: 'pixel.png', mimeType: 'image/png', size: 68, dataUrl: tinyPng }
+    ]);
+
+    // Allow write to flush
+    await wait(1200);
+
+    // The saved message should have attachments with file refs (tree+vertex)
+    const attachments = (chatTree.tree.getVertex(msg.id) as any).getProperty('attachments');
+    expect(Array.isArray(attachments)).toBe(true);
+    expect(attachments[0]?.file?.tree).toBeTypeOf('string');
+    expect(attachments[0]?.file?.vertex).toBeTypeOf('string');
   });
 });

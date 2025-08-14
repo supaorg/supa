@@ -43,6 +43,13 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     this.opsParser = new OpsParser();
   }
 
+  getFileStoreProvider() {
+    return {
+      getSpaceRootPath: () => this.spacePath,
+      getFs: () => this.fs
+    };
+  }
+
   protected async doConnect(): Promise<void> {
     // Ensure space directory structure exists
     await this.ensureDirectoryStructure();

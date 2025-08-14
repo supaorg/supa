@@ -44,6 +44,15 @@ export class SpaceManager {
         persistenceLayers.map(layer => layer.saveTreeOps(spaceId, initOps))
       );
 
+      // Attach FileStore provider if available on a filesystem layer
+      for (const layer of persistenceLayers) {
+        if (typeof (layer as any).getFileStoreProvider === 'function') {
+          const provider = (layer as any).getFileStoreProvider();
+          space.setFileStoreProvider(provider);
+          break;
+        }
+      }
+
       // Set up operation tracking and sync
       this.setupOperationTracking(space, persistenceLayers);
       await this.setupTwoWaySync(space, persistenceLayers);
@@ -86,6 +95,24 @@ export class SpaceManager {
 
       space = new Space(new RepTree(uuid(), firstResult.ops));
 
+      // Attach FileStore provider if available
+      if (typeof (firstResult.layer as any).getFileStoreProvider === 'function') {
+        space.setFileStoreProvider((firstResult.layer as any).getFileStoreProvider());
+      } else {
+        // Try others as they complete
+        Promise.allSettled(layerPromises).then(results => {
+          for (const res of results) {
+            if (res.status === 'fulfilled') {
+              const l = res.value.layer as any;
+              if (typeof l.getFileStoreProvider === 'function') {
+                space.setFileStoreProvider(l.getFileStoreProvider());
+                break;
+              }
+            }
+          }
+        });
+      }
+
       // Continue with remaining layers as they complete
       Promise.allSettled(layerPromises).then(results => {
         results.forEach(result => {
@@ -113,6 +140,17 @@ export class SpaceManager {
 
       // Create space with all available ops (RepTree handles deduplication)
       space = new Space(new RepTree(uuid(), allOps));
+
+      // Attach FileStore provider if available among layers
+      for (const r of results) {
+        if (r.status === 'fulfilled') {
+          const l = (r.value.layer as any);
+          if (typeof l.getFileStoreProvider === 'function') {
+            space.setFileStoreProvider(l.getFileStoreProvider());
+            break;
+          }
+        }
+      }
     }
 
     // Sync the space tree ops between layers in case if they have different ops
@@ -334,7 +372,7 @@ export class SpaceManager {
       this.spaceLayers.set(spaceId, newLayers);
 
       // Set up tracking for the new layer
-      this.setupOperationTrackingForLayer(space, layer);
+      this.setupOperationTracking(space, [layer]);
     }
   }
 

@@ -3,6 +3,7 @@ import type {Space } from "./Space";
 import type { VertexPropertyType } from "reptree";
 import type { ThreadMessage } from "../models";
 import { AppTree } from "./AppTree";
+import { FilesTreeData } from "./files";
 
 export class ChatAppData {
   private root: Vertex;
@@ -130,12 +131,12 @@ export class ChatAppData {
     });
   }
 
-  newMessage(
+  async newMessage(
     role: "user" | "assistant" | "error",
     text: string,
     thinking?: string,
     attachments?: Array<any>
-  ): ThreadMessage {
+  ): Promise<ThreadMessage> {
     const lastMsgVertex = this.getLastMsgParentVertex();
 
     const properties: Record<string, any> = {
@@ -164,8 +165,60 @@ export class ChatAppData {
     const newMessageVertex = this.appTree.tree.newVertex(lastMsgVertex.id, properties);
 
     if (attachments && attachments.length > 0) {
-      // Phase 1: keep attachments in memory only (transient)
-      this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachments", attachments);
+      // Try to persist using FileStore if available
+      const store = this.space.getFileStore();
+      if (store) {
+        // Ensure there is a Files tree and YYYY/MM/DD folder
+        const filesTree = FilesTreeData.createNewFilesTree(this.space);
+        const now = new Date();
+        const parentFolder = FilesTreeData.ensureFolderPath(filesTree, [
+          now.getUTCFullYear().toString(),
+          String(now.getUTCMonth() + 1).padStart(2, '0'),
+          String(now.getUTCDate()).padStart(2, '0'),
+          'chat'
+        ]);
+
+        const refs: Array<any> = [];
+        for (const a of attachments) {
+          if (a?.kind === 'image' && typeof a?.dataUrl === 'string') {
+            try {
+              const put = await store.putDataUrl(a.dataUrl);
+              const fileVertex = FilesTreeData.createOrLinkFile({
+                filesTree,
+                parentFolder,
+                name: a.name || 'image',
+                contentId: put.fileId,
+                mimeType: a.mimeType,
+                size: a.size,
+                width: a.width,
+                height: a.height
+              });
+              refs.push({
+                id: a.id,
+                kind: 'image',
+                name: a.name,
+                alt: a.alt,
+                file: { tree: filesTree.getId(), vertex: fileVertex.id }
+              });
+            } catch (e) {
+              // If persist fails, fall back to in-memory
+              refs.push(a);
+            }
+          } else {
+            refs.push(a);
+          }
+        }
+        // Persist references
+        this.appTree.tree.setVertexProperty(newMessageVertex.id, "attachments", refs);
+        // Keep transient dataUrls for immediate preview if present
+        const dataUrls = attachments.map(a => a?.dataUrl).filter(Boolean);
+        if (dataUrls.length > 0) {
+          this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachmentsDataUrl", dataUrls);
+        }
+      } else {
+        // No store: keep in-memory only
+        this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachments", attachments);
+      }
     }
 
     const props = newMessageVertex.getProperties();

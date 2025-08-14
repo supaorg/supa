@@ -7,6 +7,9 @@ import { validateKey } from "../tools/providerKeyValidators";
 import { Vertex } from "reptree";
 import { AppConfigsData } from "./AppConfigsData";
 import uuid from "../utils/uuid";
+import type { FileStore } from "./files";
+import { createFileStore } from "./files";
+import type { FileStoreProvider } from "./files/FileStore";
 
 export class Space {
   readonly tree: RepTree;
@@ -16,6 +19,8 @@ export class Space {
   private treeLoadObservers: ((treeId: string) => void)[] = [];
   private treeLoader: ((treeId: string) => Promise<AppTree | undefined>) | undefined;
   readonly appTreesVertex: Vertex;
+
+  private fileStoreProvider: FileStoreProvider | null = null;
 
   readonly appConfigs: AppConfigsData;
 
@@ -76,6 +81,14 @@ export class Space {
   /** Space id is the same as the root vertex id of the space tree */
   getId(): string {
     return this.tree.root!.id;
+  }
+
+  setFileStoreProvider(provider: FileStoreProvider) {
+    this.fileStoreProvider = provider;
+  }
+
+  getFileStore(): FileStore | null {
+    return createFileStore(this.fileStoreProvider);
   }
 
   get rootVertex(): Vertex {
@@ -351,7 +364,7 @@ export class Space {
     return newVertex;
   }
 
-  getFirstVertexWithPropertyAtPath(path: string, key: string, value: VertexPropertyType): Vertex | undefined {
+  private getFirstVertexWithPropertyAtPath(path: string, key: string, value: VertexPropertyType): Vertex | undefined {
     const vertex = this.tree.getVertexByPath(path);
     if (!vertex) return undefined;
 
