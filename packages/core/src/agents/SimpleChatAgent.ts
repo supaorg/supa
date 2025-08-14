@@ -1,4 +1,4 @@
-import type { LangChatMessage } from "aiwrapper";
+import type { LangChatMessage, LangContentPart } from "aiwrapper";
 import { AppConfig, ThreadMessage } from "../models";
 import { Agent, AgentInput, AgentOutput } from "./Agent";
 
@@ -51,7 +51,18 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
       return p === "openai" || p === "openrouter" || p === "google" || p === "xai" || p === "anthropic";
     })();
 
-    const remappedMessages: any[] = [
+    function parseDataUrl(dataUrl: string): { base64: string; mimeType?: string } {
+      try {
+        const match = dataUrl.match(/^data:(.*?);base64,(.*)$/);
+        if (match && match[2]) {
+          return { mimeType: match[1], base64: match[2] };
+        }
+      } catch {}
+      // If it's already just base64 without prefix
+      return { base64: dataUrl };
+    }
+
+    const remappedMessages: LangChatMessage[] = [
       { role: "system", content: systemPrompt },
       ...messages.map((m) => {
         // Validate and normalize the role - only allow "assistant" or "user"
@@ -70,14 +81,15 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
 
         const images = ((m as any).attachments as Array<any>).filter(a => a?.kind === 'image' && typeof a?.dataUrl === 'string');
         if (supportsVision && images.length > 0) {
-          const parts: any[] = [];
+          const parts: LangContentPart[] = [];
           if (m.text && m.text.trim().length > 0) {
             parts.push({ type: 'text', text: m.text });
           }
           for (const img of images) {
-            parts.push({ type: 'image_url', image_url: { url: img.dataUrl } });
+            const { base64, mimeType } = parseDataUrl(img.dataUrl as string);
+            parts.push({ type: 'image', image: { kind: 'base64', base64, mimeType } });
           }
-          return { role: normalizedRole, content: parts } as any;
+          return { role: normalizedRole as "assistant" | "user", content: parts } as LangChatMessage;
         }
 
         // Fallback: models without vision get a descriptive text instead of binary
