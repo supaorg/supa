@@ -30,3 +30,15 @@ Neither the core nor client gets their own dist/build. Rather than building - we
 - Sync handled by RepTree
 - Tiling tabs like in VSCode are built with TTabs
 - Context for AI agent generated with Airul
+
+## Tests
+
+- Test package lives under `packages/tests` and uses Vitest (Node environment)
+- Run all tests from the repo root: `npm test` or `npm -w packages/tests run test`
+- File persistence tests use local assets stored in `packages/tests/assets/images/`.
+  - Supported formats: `.png`, `.jpg/.jpeg`, `.webp`, and `.b64` (base64 text files)
+  - Add real images (e.g., downloaded from Wikipedia) to that directory and commit them to exercise CAS and metadata logic deterministically and without network
+- Tests cover:
+  - Space creation and file-system persistence (ops, secrets)
+  - Files CAS write/read roundtrips and Files AppTree linking
+  - Chat attachments persistence: saving images to CAS and storing file references in messages
