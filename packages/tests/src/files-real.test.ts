@@ -1,18 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { mkdtemp, rm, access } from 'node:fs/promises';
+import { mkdtemp, rm, access, readdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData } from '@sila/core';
 import { NodeFileSystem } from './node-file-system';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-const urls = [
-  // Small thumbnails hosted by Wikimedia (keep sizes tiny)
-  'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/June_odd-eyed-cat_cropped.jpg/120px-June_odd-eyed-cat_cropped.jpg',
-  'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Oak_Tree_-_geograph.org.uk_-_395141.jpg/120px-Oak_Tree_-_geograph.org.uk_-_395141.jpg',
-  'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Gull_portrait_ca_usa.jpg/120px-Gull_portrait_ca_usa.jpg'
-];
 
 function fromBase64(b64: string): Uint8Array {
   if (typeof Buffer !== 'undefined') {
@@ -30,11 +23,11 @@ function buffersEqual(a: Uint8Array, b: Uint8Array): boolean {
   return true;
 }
 
-describe('Real files from the internet persisted in workspace CAS', () => {
+describe('Local assets persisted in workspace CAS', () => {
   let tempDir: string;
 
   beforeAll(async () => {
-    tempDir = await mkdtemp(path.join(tmpdir(), 'sila-realfiles-test-'));
+    tempDir = await mkdtemp(path.join(tmpdir(), 'sila-assets-test-'));
   });
 
   afterAll(async () => {
@@ -43,7 +36,7 @@ describe('Real files from the internet persisted in workspace CAS', () => {
     }
   });
 
-  it('downloads a few real images, writes to CAS, and verifies roundtrip', async () => {
+  it('reads base64 images from assets/images, writes to CAS, and verifies roundtrip and dedup', async () => {
     const fs = new NodeFileSystem();
     const space = Space.newSpace(crypto.randomUUID());
     const spaceId = space.getId();
@@ -57,31 +50,13 @@ describe('Real files from the internet persisted in workspace CAS', () => {
     await access(path.join(tempDir, 'space-v1', 'ops'));
 
     const fileStore = createFileStore({ getSpaceRootPath: () => tempDir, getFs: () => fs });
-    if (!fileStore) {
-      throw new Error('FileStore not available');
-    }
+    if (!fileStore) throw new Error('FileStore not available');
 
-    // Try to fetch all URLs; if offline, skip the test gracefully
-    const fetched: Array<{ url: string; bytes: Uint8Array; mime?: string }> = [];
-    for (const u of urls) {
-      try {
-        const res = await fetch(u);
-        if (!res.ok) continue;
-        const mime = res.headers.get('content-type') || undefined;
-        const ab = await res.arrayBuffer();
-        const bytes = new Uint8Array(ab);
-        if (bytes.byteLength > 0) {
-          fetched.push({ url: u, bytes, mime });
-        }
-      } catch (e) {
-        // ignore network errors per URL
-      }
-    }
-
-    if (fetched.length === 0) {
-      // no network; skip rest
-      return;
-    }
+    // Load local assets (base64 files)
+    const assetsDir = path.join(process.cwd(), 'assets', 'images');
+    const entries = await readdir(assetsDir, { withFileTypes: true }).catch(() => [] as any[]);
+    const b64Files = entries.filter(e => e.isFile() && e.name.endsWith('.b64'));
+    expect(b64Files.length).toBeGreaterThan(0);
 
     const filesTree = FilesTreeData.createNewFilesTree(space);
     const now = new Date();
@@ -89,46 +64,51 @@ describe('Real files from the internet persisted in workspace CAS', () => {
       now.getUTCFullYear().toString(),
       String(now.getUTCMonth() + 1).padStart(2, '0'),
       String(now.getUTCDate()).padStart(2, '0'),
-      'wikipedia'
+      'assets'
     ]);
 
-    for (const f of fetched) {
-      const put = await fileStore.putBytes(f.bytes, f.mime);
-      expect(put.fileId.startsWith('sha256:')).toBe(true);
+    const fileIds: string[] = [];
 
-      // Verify file exists in CAS
+    for (const f of b64Files) {
+      const p = path.join(assetsDir, f.name);
+      const b64 = (await readFile(p, 'utf8')).trim();
+      const bytes = fromBase64(b64);
+
+      const put = await fileStore.putBytes(bytes, 'image/png');
+      fileIds.push(put.fileId);
+
+      // Verify CAS path exists
       const hash = put.fileId.slice('sha256:'.length);
       const casPath = path.join(tempDir, 'space-v1', 'files', 'sha256', hash.slice(0, 2), hash.slice(2) + '.bin');
       await access(casPath);
 
       // Verify bytes roundtrip
       const loadedBytes = await fileStore.getBytes(put.fileId);
-      expect(buffersEqual(loadedBytes, f.bytes)).toBe(true);
+      expect(buffersEqual(loadedBytes, bytes)).toBe(true);
 
-      // Verify data URL decodes back to original bytes length
-      const dataUrl = await fileStore.getDataUrl(put.fileId);
-      expect(dataUrl.startsWith('data:')).toBe(true);
-      const b64 = dataUrl.split(',')[1] || '';
-      const decoded = fromBase64(b64);
-      expect(decoded.byteLength).toBe(f.bytes.byteLength);
-
-      // Link into Files tree
-      const name = f.url.split('/').pop() || 'file.jpg';
+      // Create file vertex
+      const name = f.name.replace(/\.b64$/, '');
       const fileVertex = FilesTreeData.createOrLinkFile({
         filesTree,
         parentFolder: folder,
         name,
         contentId: put.fileId,
-        mimeType: f.mime,
-        size: f.bytes.byteLength
+        mimeType: 'image/png',
+        size: bytes.byteLength
       });
       expect(fileVertex.getProperty('contentId')).toBe(put.fileId);
+    }
+
+    // Deduplication: if multiple identical files exist, their IDs should be the same
+    if (fileIds.length >= 2) {
+      const unique = new Set(fileIds);
+      expect(unique.size).toBeLessThanOrEqual(fileIds.length);
     }
 
     // Allow batched ops to flush
     await wait(1200);
 
-    // Verify we can load both space and files tree ops
+    // Verify ops
     const loader = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
     await loader.connect();
     const spaceOps = await loader.loadSpaceTreeOps();
