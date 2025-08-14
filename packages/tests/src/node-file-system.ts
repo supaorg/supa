@@ -66,4 +66,9 @@ export class NodeFileSystem implements AppFileSystem {
   async watch(path: string, callback: (event: WatchEvent) => void, options?: { recursive?: boolean }): Promise<UnwatchFn> {
     return () => {};
   }
+
+  async readBinaryFile(path: string): Promise<Uint8Array> {
+    const buf = await readFile(path);
+    return new Uint8Array(buf);
+  }
 }

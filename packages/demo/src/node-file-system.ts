@@ -72,4 +72,9 @@ export class NodeFileSystem implements AppFileSystem {
     // For build scripts, we don't need file watching
     return () => {};
   }
+
+  async readBinaryFile(path: string): Promise<Uint8Array> {
+    const buf = await readFile(path);
+    return new Uint8Array(buf);
+  }
 } 
