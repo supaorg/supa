@@ -1,0 +1,20 @@
+{
+  "name": "@sila/tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Vitest suite for Sila core components",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@sila/core": "*"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.1",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.12.7",
+    "tsx": "^4.0.0"
+  }
+}
