@@ -23,6 +23,14 @@ function buffersEqual(a: Uint8Array, b: Uint8Array): boolean {
   return true;
 }
 
+function mimeFromName(name: string): string | undefined {
+  const lower = name.toLowerCase();
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  return undefined;
+}
+
 describe('Local assets persisted in workspace CAS', () => {
   let tempDir: string;
 
@@ -36,7 +44,7 @@ describe('Local assets persisted in workspace CAS', () => {
     }
   });
 
-  it('reads base64 images from assets/images, writes to CAS, and verifies roundtrip and dedup', async () => {
+  it('reads images from assets/images (.b64 or binary), writes to CAS, and verifies roundtrip and dedup', async () => {
     const fs = new NodeFileSystem();
     const space = Space.newSpace(crypto.randomUUID());
     const spaceId = space.getId();
@@ -52,11 +60,11 @@ describe('Local assets persisted in workspace CAS', () => {
     const fileStore = createFileStore({ getSpaceRootPath: () => tempDir, getFs: () => fs });
     if (!fileStore) throw new Error('FileStore not available');
 
-    // Load local assets (base64 files)
+    // Load local assets
     const assetsDir = path.join(process.cwd(), 'assets', 'images');
     const entries = await readdir(assetsDir, { withFileTypes: true }).catch(() => [] as any[]);
-    const b64Files = entries.filter(e => e.isFile() && e.name.endsWith('.b64'));
-    expect(b64Files.length).toBeGreaterThan(0);
+    const files = entries.filter(e => e.isFile() && (/(\.b64|\.png|\.jpg|\.jpeg|\.webp)$/i).test(e.name));
+    expect(files.length).toBeGreaterThan(0);
 
     const filesTree = FilesTreeData.createNewFilesTree(space);
     const now = new Date();
@@ -69,12 +77,22 @@ describe('Local assets persisted in workspace CAS', () => {
 
     const fileIds: string[] = [];
 
-    for (const f of b64Files) {
+    for (const f of files) {
       const p = path.join(assetsDir, f.name);
-      const b64 = (await readFile(p, 'utf8')).trim();
-      const bytes = fromBase64(b64);
+      let bytes: Uint8Array;
+      let mime: string | undefined;
+      if (f.name.toLowerCase().endsWith('.b64')) {
+        const b64 = (await readFile(p, 'utf8')).trim();
+        bytes = fromBase64(b64);
+        // attempt to infer mime from prefix inside b64 is not possible here; default to png
+        mime = 'image/png';
+      } else {
+        const buf = await readFile(p);
+        bytes = new Uint8Array(buf);
+        mime = mimeFromName(f.name);
+      }
 
-      const put = await fileStore.putBytes(bytes, 'image/png');
+      const put = await fileStore.putBytes(bytes, mime);
       fileIds.push(put.fileId);
 
       // Verify CAS path exists
@@ -87,13 +105,13 @@ describe('Local assets persisted in workspace CAS', () => {
       expect(buffersEqual(loadedBytes, bytes)).toBe(true);
 
       // Create file vertex
-      const name = f.name.replace(/\.b64$/, '');
+      const name = f.name.replace(/\.b64$/i, '');
       const fileVertex = FilesTreeData.createOrLinkFile({
         filesTree,
         parentFolder: folder,
         name,
         contentId: put.fileId,
-        mimeType: 'image/png',
+        mimeType: mime,
         size: bytes.byteLength
       });
       expect(fileVertex.getProperty('contentId')).toBe(put.fileId);
