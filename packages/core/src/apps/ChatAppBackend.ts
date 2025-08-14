@@ -131,6 +131,8 @@ export default class ChatAppBackend {
         ...messagesToUse.map((m) => ({
           role: m.role,
           text: m.text,
+          // Pass attachments through for Phase 1 (in-memory). The agent will translate to provider format
+          attachments: (m as any).attachments,
         }))];
 
       let modelSaved = false;
@@ -254,7 +256,7 @@ export default class ChatAppBackend {
 
     const messagesForLang = [
       { role: 'system', text: config.instructions },
-      ...inputMessages.map((m) => ({ role: m.role, text: m.text }))
+      ...inputMessages.map((m) => ({ role: m.role, text: m.text, attachments: (m as any).attachments }))
     ];
 
     try {

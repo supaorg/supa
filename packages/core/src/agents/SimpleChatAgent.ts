@@ -44,19 +44,49 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
 
     // @TODO: add meta data to messages with the current date, model, config name, etc
 
-    const remappedMessages: LangChatMessage[] = [
+    const supportsVision = (() => {
+      if (!resolvedModel) return false;
+      const p = resolvedModel.provider;
+      // Simple allowlist for Phase 1; will switch to Lang.models capabilities later
+      return p === "openai" || p === "openrouter" || p === "google" || p === "xai" || p === "anthropic";
+    })();
+
+    const remappedMessages: any[] = [
       { role: "system", content: systemPrompt },
-      ...messages.map((m): LangChatMessage => {
+      ...messages.map((m) => {
         // Validate and normalize the role - only allow "assistant" or "user"
         let normalizedRole = (m.role || "user");
         if (normalizedRole !== "assistant" && normalizedRole !== "user") {
           normalizedRole = "user";
         }
 
+        const hasImages = Array.isArray((m as any).attachments) && (m as any).attachments.length > 0;
+        if (!hasImages) {
+          return {
+            role: normalizedRole as "assistant" | "user",
+            content: m.text || "",
+          } as LangChatMessage;
+        }
+
+        const images = ((m as any).attachments as Array<any>).filter(a => a?.kind === 'image' && typeof a?.dataUrl === 'string');
+        if (supportsVision && images.length > 0) {
+          const parts: any[] = [];
+          if (m.text && m.text.trim().length > 0) {
+            parts.push({ type: 'text', text: m.text });
+          }
+          for (const img of images) {
+            parts.push({ type: 'image_url', image_url: { url: img.dataUrl } });
+          }
+          return { role: normalizedRole, content: parts } as any;
+        }
+
+        // Fallback: models without vision get a descriptive text instead of binary
+        const names = images.map((a) => a.name).filter(Boolean).join(', ');
+        const note = `\n\n[User attached ${images.length} image(s): ${names}]`;
         return {
           role: normalizedRole as "assistant" | "user",
-          content: m.text || "",
-        };
+          content: (m.text || "") + note,
+        } as LangChatMessage;
       }),
     ];
 
