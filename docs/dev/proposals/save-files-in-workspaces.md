@@ -1,4 +1,4 @@
-## Save files in workspaces (content-addressed storage)
+## Save files in workspaces (content-addressed storage + Files AppTree)
 
 Goal: Introduce a durable, content-addressed file store for binary assets (images, PDFs, etc.) inside each workspace, referenced from app trees. Desktop (FileSystem) only for Phase 1; browser/IndexedDB will remain in-memory for assets for now.
 
@@ -8,7 +8,7 @@ Goal: Introduce a durable, content-addressed file store for binary assets (image
 - References to files are stored in app trees (e.g., message attachments) as `fileId = sha256:HASH` plus metadata.
 - UI can render thumbnails by loading from disk on demand (create a data URL at read time) and caching transiently.
 
-### Directory layout
+### Directory layout (bytes on disk)
 Under the workspace path used by `FileSystemPersistenceLayer`:
 
 ```
@@ -27,24 +27,44 @@ Notes:
 - Extension `.bin` is optional. We can omit it, as the MIME type is stored in metadata.
 - The file’s full ID is `sha256:HASH` (lowercase hex). Path can be derived from ID.
 
-### Referencing files from app trees
-We do not write blobs into the tree. Instead, we store references plus metadata. Example (message attachment):
+### Files AppTree (metadata, logical folders)
+Create a dedicated `AppTree` with `appId = "files"` that holds folder and file vertices. It’s a logical, browsable view; bytes live in CAS on disk.
+
+Default structure (date-based):
+```
+files/
+  2025/
+    08/
+      14/
+        cat.jpg    (vertex)
+```
+
+Vertex types:
+- Folder vertex
+  - `_n: "folder"`, `name: string`, `createdAt: number`
+- File vertex
+  - `_n: "file"`, `name: string`
+  - `contentId: "sha256:<hex>"` (points to bytes in CAS)
+  - `mimeType?: string`, `size?: number`
+  - `width?: number`, `height?: number` (images), `alt?: string`, `tags?: string[]`
+  - `createdAt: number`
+
+### Referencing files from messages
+Messages don’t embed blobs. They reference file vertices:
 
 ```ts
-export type MessageAttachmentRef = {
-  id: string;                  // attachment instance id (uuid)
+type FileRef = { tree: string; vertex: string }; // { filesTreeId, fileVertexId }
+
+type MessageAttachmentRef = {
+  id: string;
   kind: 'image' | 'file';
-  fileId: string;              // content id, e.g. 'sha256:abcdef...'
-  name?: string;               // original filename
-  mimeType?: string;
-  size?: number;               // bytes
-  width?: number;              // images only
-  height?: number;             // images only
-  alt?: string;                // optional alt text
+  file: FileRef;              // JSON ref to Files AppTree
+  name?: string;              // shown label; can differ from vertex.name if needed
+  alt?: string;
 };
 ```
 
-During message creation (or later background persist), we convert in-memory attachments (data URLs) into `MessageAttachmentRef`s and set them on the message (non-transient). For immediate UI rendering, we may also set a transient `attachmentsDataUrl` property on the vertex with data URLs for quick preview; persistence filters out transients.
+The file vertex contains `contentId` (sha256) to resolve CAS bytes. For instant previews, we may also set a transient `attachmentsDataUrl[]` on the message; persistence filters transients.
 
 ### FileStore API (core)
 Introduce a small API in `@sila/core` to read/write files in a workspace when a `FileSystemPersistenceLayer` is present.
@@ -78,14 +98,18 @@ Implementation notes:
 1) User attaches images → UI keeps data URLs for previews.
 2) When persisting (on send or in background), if desktop file store available:
    - Convert each data URL to bytes
-   - `fileId = fileStore.putDataUrl(dataUrl)`
-   - Replace `attachments` on the message with `MessageAttachmentRef[]` (non-transient)
-   - Optionally keep a transient `attachmentsDataUrl[]` for immediate display until `getDataUrl(fileId)` lazy loads them later.
+   - `fileId = fileStore.putDataUrl(dataUrl)` (compute sha256 and store in CAS)
+   - Ensure Files AppTree exists; ensure folder path `files/YYYY/MM/DD`
+   - Create a `file` vertex with `name`, `contentId = fileId`, `mimeType`, `size`, `width/height`, `createdAt`
+   - Set message `attachments` to `MessageAttachmentRef[]` with `{ file: { tree: filesTreeId, vertex: fileVertexId } }`
+   - Optionally keep transient `attachmentsDataUrl[]` for immediate display
 
 ### Read flow
 - For message rendering:
   - If transient `attachmentsDataUrl` exists, use it.
-  - Else call `fileStore.getDataUrl(fileId)` and cache the result transiently for the session.
+  - Else resolve `fileRef` → load file vertex → get `contentId` → `fileStore.getDataUrl(contentId)` and cache transiently.
+- For agent/model input:
+  - Resolve `fileRef` to `contentId`, read bytes or data URL, and send as AIWrapper `LangContentPart` with `{ type: 'image', image: { kind: 'base64', ... } }`.
 
 ### Persistence interaction
 - `FileSystemPersistenceLayer.saveTreeOps` already filters `transient` property ops. We will mark UI caches (e.g., `attachmentsDataUrl`) as transient.
@@ -105,8 +129,9 @@ Implementation notes:
 ### Minimal changes
 - Core: add `FileStore` and a `createFileStore(space: Space): FileStore | null` helper for desktop.
 - App FS: add `readBinaryFile(path: string): Promise<Uint8Array>` desktop implementation.
-- Chat attachments: switch from `dataUrl` to `{ fileId, ... }` when file store is available.
-- UI: lazy-load previews from `fileId` when needed.
+- Files AppTree helpers: `ensureFilesTree`, `ensureFolderPath`, `createOrLinkFile`.
+- Chat attachments: store `attachments` as JSON refs `{ file: { tree, vertex } }`; keep transient data URLs for previews.
+- UI: lazy-load previews from `fileRef` via Files AppTree → CAS.
 
 ### Out of scope (Phase 1)
 - Browser/IndexedDB file persistence.
