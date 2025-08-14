@@ -1,4 +1,4 @@
-import { LangResultWithMessages } from "aiwrapper";
+import type { LangChatMessage } from "aiwrapper";
 import { AppConfig, ThreadMessage } from "../models";
 import { Agent, AgentInput, AgentOutput } from "./Agent";
 
@@ -44,41 +44,34 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
 
     // @TODO: add meta data to messages with the current date, model, config name, etc
 
-    const remappedMessages = [
+    const remappedMessages: LangChatMessage[] = [
       { role: "system", content: systemPrompt },
-      ...messages.map((m) => {
+      ...messages.map((m): LangChatMessage => {
         // Validate and normalize the role - only allow "assistant" or "user"
-        let normalizedRole = m.role || "user";
+        let normalizedRole = (m.role || "user");
         if (normalizedRole !== "assistant" && normalizedRole !== "user") {
           normalizedRole = "user";
         }
-        
+
         return {
-          role: normalizedRole,
+          role: normalizedRole as "assistant" | "user",
           content: m.text || "",
         };
       }),
     ];
 
     const promptStartPerf = performance.now();
-    const finalResult: LangResultWithMessages = await new Promise<
-      LangResultWithMessages
-    >((resolve, reject) => {
-      lang.chat(remappedMessages, (res) => {
+    const finalResult = await lang.chat(remappedMessages, {
+      onResult: (res: any) => {
         if (this.hasStopped) {
-          resolve(res);
           return;
         }
 
         onStream?.({
           text: res.answer,
-          thinking: res.thinking
+          thinking: (res as any).thinking,
         });
-      })
-        .then((res) => {          
-          resolve(res);
-        })
-        .catch(reject);
+      },
     });
 
     const promptEndPerf = performance.now();
@@ -86,7 +79,7 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
 
     return {
       text: finalResult.answer,
-      thinking: finalResult.thinking
+      thinking: (finalResult as any).thinking
     };
   }
 
