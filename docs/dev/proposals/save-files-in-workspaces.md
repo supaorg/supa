@@ -28,7 +28,7 @@ Notes:
 - The file’s full ID is `sha256:HASH` (lowercase hex). Path can be derived from ID.
 
 ### Files AppTree (metadata, logical folders)
-Create a dedicated `AppTree` with `appId = "files"` that holds folder and file vertices. It’s a logical, browsable view; bytes live in CAS on disk.
+Create a dedicated `AppTree` whose `appId` is a UUID like any other app tree. Mark it as a files tree with a root property (e.g., `appKind: 'files'` or `filesTree: true`). It’s a logical, browsable view; bytes live in CAS on disk.
 
 Default structure (date-based):
 ```
@@ -48,6 +48,43 @@ Vertex types:
   - `mimeType?: string`, `size?: number`
   - `width?: number`, `height?: number` (images), `alt?: string`, `tags?: string[]`
   - `createdAt: number`
+
+Helper: Files tree creation
+
+We can provide a small helper in core (future code) to create and initialize a files app tree.
+
+```ts
+// Pseudocode/spec – implementation to be added later
+export class FilesTreeData {
+  static createNewFilesTree(space: Space): AppTree {
+    const appId = crypto.randomUUID(); // or uuid()
+    const tree = space.newAppTree(appId);
+    const root = tree.tree.root!;
+    // Mark as files tree
+    root.setProperty('appKind', 'files');
+    // Logical root folder
+    tree.tree.newNamedVertex(root.id, 'files');
+    return tree;
+  }
+
+  static ensureFolderPath(filesTree: AppTree, segments: string[]): Vertex {
+    // Walk/create folder vertices under 'files'
+  }
+
+  static createOrLinkFile(params: {
+    filesTree: AppTree;
+    parentFolder: Vertex;
+    name: string;
+    contentId: string; // sha256:...
+    mimeType?: string;
+    size?: number;
+    width?: number;
+    height?: number;
+  }): Vertex {
+    // Create a file vertex under parent with provided metadata
+  }
+}
+```
 
 ### Referencing files from messages
 Messages don’t embed blobs. They reference file vertices:
