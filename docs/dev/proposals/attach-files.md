@@ -1,16 +1,17 @@
 ## Attach images and files to chat messages
 
-Goal: Allow users to attach images first, then other files, to chat messages in the desktop and mobile apps. Show previews in the UI and send attachments to providers that support multimodal inputs. Keep data local-first while respecting provider capabilities and privacy.
+Goal: Allow users to attach images first (Phase 1), then other files later, to chat messages. In Phase 1 we will not implement persistent storage for attachments; we will keep attachments in memory during the session and send them to the LLM as base64. A later task will address durable storage and retrieval.
 
 ### Scope (Phase 1)
 - User can attach one or more images to a user message via button or drag-and-drop
 - Previews shown before sending; removable
-- Attachments persisted alongside the thread in the space
+- No disk persistence for assets; attachments are stored in-memory for the session only
+- Images are sent to the model as base64 (not URLs)
 - When supported by the selected model/provider, images are included in the LLM request
-- Graceful fallback for models that don’t support images (send textual reference/warning)
+- Graceful fallback for models that don’t support vision (send textual reference/warning)
 
 ### Data model changes (core)
-- Add a dedicated type and include it on `ThreadMessage`.
+- Add a dedicated type and include it on `ThreadMessage`. In Phase 1, the attachment binary is kept in-memory (base64 data URL) and is not written to disk.
 
 Proposed new types in `packages/core/src/models.ts`:
 ```ts
@@ -23,8 +24,9 @@ export type MessageAttachment = {
   width?: number;             // images only
   height?: number;            // images only
   // Storage
-  path?: string | null;       // absolute or space-relative path (desktop/mobile FS)
-  dataUrl?: string | null;    // inline base64 for transient/mobile/IDB
+  // Phase 1: keep in memory only; do not persist to disk
+  path?: string | null;       // reserved for Phase 2 persistent storage
+  dataUrl?: string | null;    // inline base64 for runtime use and request payloads
   createdAt: number;          // unix ms
 };
 
@@ -36,14 +38,12 @@ declare module './models' {
 ```
 
 Notes:
-- We keep both `path` and `dataUrl` to support desktop FS and web/IndexedDB. One of them must be present.
-- We avoid adding binary APIs to `AppFileSystem` in Phase 1. Desktop persists files on disk; web uses `dataUrl`.
+- Phase 1 avoids file-system writes. We keep `dataUrl` in memory and pass it to the LLM. `path` is reserved for the future persistent storage task.
+- We avoid adding binary APIs to `AppFileSystem` in Phase 1.
 
-### Storage layout
-- Desktop (Electron): store under the current space root
-  - `attachments/<threadId>/<messageId>/<attachmentId>.<ext>`
-  - Save a tiny JSON index per message (or derive from the graph) is optional; the message already carries attachment metadata
-- Mobile/web: store data URLs inside the message; optional optimization with IDB Blobs in a follow-up
+### Storage layout (Phase 1: none)
+- No disk persistence in Phase 1. Attachments live in memory (component state and message object) for the duration of the session.
+- A follow-up proposal will define persistent storage on desktop (FS) and web/mobile (IDB/Blobs) and migration from in-memory to durable storage.
 
 ### UI/UX changes
 
@@ -75,20 +75,19 @@ In `packages/core/src/apps/ChatAppBackend.ts`:
 
 In `packages/core/src/agents/SimpleChatAgent.ts`:
 - Detect `attachments` on user messages
-- Convert image attachments into provider-compatible message content when supported
-  - OpenAI/GPT‑4o style: content array with `{ type: 'text' | 'image_url' }`
-  - Google Gemini style: contents/parts with `inlineData` or image URL
-- Fallback: if provider doesn’t support vision, prepend a system line like: “User attached N image(s): name1, name2. Describe what you can infer without seeing images.” and do not send binary data
+- Convert image attachments into provider-compatible message content when supported. Always send images as base64 (data URLs), not external URLs.
+  - OpenAI-like (GPT‑4o family): use `image_url` with a `data:` URL containing base64
+  - Gemini 1.5 family: use `inlineData` parts with base64 (subject to AIWrapper mapping)
+- Fallback: if provider doesn’t support vision, prepend a system line like: “User attached N image(s): name1, name2. Describe what you can infer without seeing images.” and do not include image data
 
 Provider capability detection:
-- Prefer a capability API if AIWrapper exposes it in future (`Lang.models.capabilities`)
-- Phase 1: simple allowlist by provider id: `openai`, `google`, `anthropic (new)`, `xai`, etc. We can iterate
+- Use AIWrapper model metadata from `Lang.models` to detect vision capability (e.g., capabilities map or input types). Where capability metadata is missing, maintain a small allowlist by provider/model id as a fallback.
 
 Privacy and confirmation:
 - If model is a cloud provider and attachments are present, show a one-time confirmation: “Images will be sent to the provider for processing” with “Don’t ask again”
 
 ### API mapping (Phase 1)
-We abstract within `SimpleChatAgent` so the rest of the app stays provider-agnostic.
+We abstract within `SimpleChatAgent` so the rest of the app stays provider-agnostic. Images are provided as base64.
 
 Pseudo-code inside `SimpleChatAgent`:
 ```ts
@@ -100,11 +99,11 @@ const langMessages: LangChatMessage[] = messages.flatMap(m => {
 });
 ```
 
-For OpenAI-like providers that accept data URLs:
-- Convert each image to a `data:image/<type>;base64,...` URL or write to a temporary local HTTP server (not planned) and send the URL
+For OpenAI-like providers:
+- Convert each image to a `data:image/<type>;base64,...` URL and send as `image_url` content parts. Do not use hosted URLs.
 
 For Gemini:
-- Prefer base64 inline parts if supported by AIWrapper; otherwise, we may need direct SDK calls later
+- Use base64 inline parts (`inlineData`) if supported by AIWrapper; otherwise, add an adapter layer within AIWrapper usage.
 
 ### Validation and limits
 - Max images per message: 5 (configurable)
@@ -121,25 +120,23 @@ For Gemini:
 ### Migration and compatibility
 - Existing threads remain valid; new optional `attachments` field is ignored where absent
 - UI controls appear immediately but can be gated by feature flag in settings: “Enable attachments”
+- Phase 1 will not persist images to disk; users lose attachments after app restart. This is acceptable for initial testing.
 
 ### Implementation steps
 1) Core types
    - Add `MessageAttachment` and `attachments?: MessageAttachment[]` to `ThreadMessage`
 2) Client UI
    - Add file input + dropzone in `SendMessageForm.svelte`
-   - Add local state for pending attachments; previews and removal
+   - Add local state for pending attachments; previews and removal (in-memory only)
    - Wire `send` to pass attachments to `ChatAppBackend` via `data.newMessage('user', text, attachments)`
-3) Persistence
-   - Desktop: write files under `attachments/<threadId>/<messageId>/...`; store relative `path`
-   - Web/mobile: store `dataUrl` in message; later optimize
-4) Backend
-   - Update `ChatAppData`/`ChatAppBackend` to support creating messages with attachments
-   - Update `SimpleChatAgent` to transform attachments for providers that support vision; fallback otherwise
-5) Provider support
-   - Implement OpenAI/GPT‑4o image input path first
-   - Add Google Gemini 1.5 second
-6) QA
-   - Test desktop drag-drop, file picker, previews, persistence, retries, and stop behavior
+3) Backend
+   - Update `ChatAppData`/`ChatAppBackend` to support creating messages with attachments (no persistence)
+   - Update `SimpleChatAgent` to transform attachments for providers that support vision; fallback otherwise. Always send base64.
+4) Provider support
+   - Implement OpenAI/GPT‑4o base64 image input path first
+   - Add Google Gemini 1.5 base64 path second
+5) QA
+   - Test desktop drag-drop, file picker, previews, retries, stop behavior. Validate capability detection via `Lang.models`.
 
 ### Open questions / Future work
 - Non-image files: PDFs/Docs → summarize/parse. Likely separate toolchain (embed/extract text client-side, attach as context)
