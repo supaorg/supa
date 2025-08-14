@@ -80,6 +80,21 @@ Internals:
   - Resolve message file reference to the file vertex
   - Read `contentId` and load bytes or data URL from CAS via `FileStore`
 
+### Integration: Chat attachments (Phase 1)
+See also: `docs/dev/proposals/attach-files.md`.
+
+- When a user message carries image attachments (data URLs), the backend persists them to CAS if a desktop `FileStore` is available.
+- A Files AppTree is ensured (created on demand) and a date-based folder path is used: `files/YYYY/MM/DD/chat`.
+- For each image, a `file` vertex is created with metadata and `contentId = sha256:<hex>`.
+- The chat message `attachments` property is stored as JSON references of the form:
+  - `{ id, kind: 'image', name?, alt?, file: { tree: <filesTreeId>, vertex: <fileVertexId> } }`.
+- For immediate UI preview, transient `attachmentsDataUrl` is set on the message and ignored by persistence.
+- If persistence is not available or fails, attachments remain transient in-memory as before.
+
+### Obtaining a FileStore in core
+- `SpaceManager` wires the `FileSystemPersistenceLayer` to a `Space` by setting a provider so `space.getFileStore()` returns a valid `FileStore` on desktop.
+- Apps can call `space.getFileStore()` and use `FilesTreeData` to organize metadata under the Files AppTree.
+
 ### Persistence and CRDT
 - Only metadata and references are stored as CRDT vertex operations under app trees
 - Binary bytes are not part of ops; they are stored in the workspace CAS folder
