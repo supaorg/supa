@@ -24,6 +24,12 @@ function fromBase64(b64: string): Uint8Array {
   return out;
 }
 
+function buffersEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.byteLength !== b.byteLength) return false;
+  for (let i = 0; i < a.byteLength; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
 describe('Real files from the internet persisted in workspace CAS', () => {
   let tempDir: string;
 
@@ -94,6 +100,10 @@ describe('Real files from the internet persisted in workspace CAS', () => {
       const hash = put.fileId.slice('sha256:'.length);
       const casPath = path.join(tempDir, 'space-v1', 'files', 'sha256', hash.slice(0, 2), hash.slice(2) + '.bin');
       await access(casPath);
+
+      // Verify bytes roundtrip
+      const loadedBytes = await fileStore.getBytes(put.fileId);
+      expect(buffersEqual(loadedBytes, f.bytes)).toBe(true);
 
       // Verify data URL decodes back to original bytes length
       const dataUrl = await fileStore.getDataUrl(put.fileId);
