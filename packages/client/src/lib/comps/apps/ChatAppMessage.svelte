@@ -31,6 +31,7 @@
       typeof message.thinking === "string" &&
       message.thinking.trim().length > 0,
   );
+  let attachments = $derived.by(() => (message as any)?.attachments as Array<any> | undefined);
   let isAIGenerating = $derived(
     !!message?.inProgress && message?.role === "assistant",
   );
@@ -221,6 +222,17 @@
             onpointerleave={endHover}
           >
             {@html replaceNewlinesWithHtmlBrs(message.text || "")}
+            {#if attachments && attachments.length > 0}
+              <div class="mt-2 flex flex-wrap gap-2">
+                {#each attachments as att (att.id)}
+                  {#if att.kind === 'image' && att.dataUrl}
+                    <img src={att.dataUrl} alt={att.name} class="max-h-40 rounded" />
+                  {:else}
+                    <div class="text-xs opacity-70 border rounded px-2 py-1">{att.name}</div>
+                  {/if}
+                {/each}
+              </div>
+            {/if}
           </div>
           <!-- Reserved toolbar row for user messages to avoid overlap/jump -->
             <div class="mt-1 h-6 flex items-center justify-end" role="presentation"

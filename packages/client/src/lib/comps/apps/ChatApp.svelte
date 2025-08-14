@@ -120,8 +120,19 @@
     }
   }
 
-  async function sendMsg(query: string) {
-    data.newMessage("user", query);
+  type AttachmentPreview = {
+    id: string;
+    kind: 'image' | 'file';
+    name: string;
+    mimeType: string;
+    size: number;
+    dataUrl?: string;
+    width?: number;
+    height?: number;
+  };
+
+  async function sendMsg(query: string, attachments?: AttachmentPreview[]) {
+    data.newMessage("user", query, undefined, attachments);
 
     timeout(scrollToBottom, 100);
   }

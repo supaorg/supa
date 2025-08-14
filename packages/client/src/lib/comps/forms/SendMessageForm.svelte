@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Send, StopCircle, Paperclip } from "lucide-svelte";
+  import { Send, StopCircle, Paperclip, Plus, Image as ImageIcon } from "lucide-svelte";
+  import ContextMenu from "@sila/client/comps/ui/ContextMenu.svelte";
   import AppConfigDropdown from "@sila/client/comps/apps/AppConfigDropdown.svelte";
   import { onMount, tick } from "svelte";
   import { focusTrap } from "@sila/client/utils/focusTrap";
@@ -11,8 +12,19 @@
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
 
+  type AttachmentPreview = {
+    id: string;
+    kind: 'image' | 'file';
+    name: string;
+    mimeType: string;
+    size: number;
+    dataUrl?: string;
+    width?: number;
+    height?: number;
+  };
+
   interface SendMessageFormProps {
-    onSend: (msg: string) => void;
+    onSend: (msg: string, attachments?: AttachmentPreview[]) => void;
     onStop?: () => void;
     isFocused?: boolean;
     placeholder?: string;
@@ -47,6 +59,9 @@
   let isTextareaFocused = $state(false);
   let textareaElement: HTMLTextAreaElement | null = $state(null);
   let isSending = $state(false);
+  let attachmentsMenuOpen = $state(false);
+  let fileInputEl: HTMLInputElement | null = $state(null);
+  let pendingAttachments = $state<AttachmentPreview[]>([]);
 
   let canSendMessage = $derived(
     !disabled && status === "can-send-message" && query.trim().length > 0,
@@ -97,6 +112,62 @@
       await tick();
       adjustTextareaHeight();
     }
+  }
+
+  async function onFilesSelected(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) return;
+    const selected = Array.from(files);
+
+    const previews: AttachmentPreview[] = [];
+    for (const file of selected) {
+      // Only images for Phase 1
+      if (!file.type.startsWith('image/')) continue;
+      const dataUrl = await toDataUrl(file);
+      const dims = await getImageDimensions(dataUrl);
+      previews.push({
+        id: crypto.randomUUID(),
+        kind: 'image',
+        name: file.name,
+        mimeType: file.type,
+        size: file.size,
+        dataUrl,
+        width: dims?.width,
+        height: dims?.height,
+      });
+    }
+
+    pendingAttachments = [...pendingAttachments, ...previews];
+    // reset input to allow re-selecting the same file
+    if (fileInputEl) fileInputEl.value = "";
+    attachmentsMenuOpen = false;
+  }
+
+  function removeAttachment(id: string) {
+    pendingAttachments = pendingAttachments.filter(a => a.id !== id);
+  }
+
+  function openFilePicker() {
+    fileInputEl?.click();
+  }
+
+  function toDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function getImageDimensions(src: string): Promise<{ width: number; height: number } | null> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.width, height: img.height });
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
   }
 
   function adjustTextareaHeight() {
@@ -166,7 +237,7 @@
       return;
     }
 
-    onSend(query);
+    onSend(query, pendingAttachments);
     isSending = true;
     query = "";
     if (textareaElement) {
@@ -177,6 +248,9 @@
     if (draftId) {
       await clientState.currentSpaceState?.deleteDraft(draftId);
     }
+
+    // Clear in-memory attachments after sending
+    pendingAttachments = [];
 
     // Force reset to base height after clearing content
     if (textareaElement) {
@@ -224,20 +298,49 @@
           {disabled}
         ></textarea>
 
+        <!-- Attachments previews (in-memory) -->
+        {#if pendingAttachments.length > 0}
+          <div class="flex flex-wrap gap-2 px-2 pt-2">
+            {#each pendingAttachments as att (att.id)}
+              <div class="relative group border rounded-md p-1 bg-surface-100-900">
+                {#if att.kind === 'image' && att.dataUrl}
+                  <img src={att.dataUrl} alt={att.name} class="max-h-16 max-w-24 rounded" />
+                {:else}
+                  <div class="text-xs opacity-70">{att.name}</div>
+                {/if}
+                <button class="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-surface-200-800 hover:bg-surface-300-700 flex items-center justify-center"
+                        onclick={() => removeAttachment(att.id)} aria-label="Remove attachment">
+                  ×
+                </button>
+              </div>
+            {/each}
+          </div>
+        {/if}
+
         <!-- Bottom toolbar -->
         <div class="flex items-center justify-between p-2 text-sm">
           <div class="flex items-center gap-2">
+            {#if attachEnabled}
+              <ContextMenu open={attachmentsMenuOpen} onOpenChange={(e) => attachmentsMenuOpen = e.open} placement="top" maxWidth="280px">
+                {#snippet trigger()}
+                  <button class="flex items-center justify-center h-9 w-9 p-0" aria-label="Add attachments" {disabled}>
+                    <Plus size={20} />
+                  </button>
+                {/snippet}
+                {#snippet content()}
+                  <div class="space-y-2">
+                    <button class="flex items-center gap-2 w-full text-left hover:bg-surface-300-700/30 rounded px-2 py-1" onclick={openFilePicker}>
+                      <ImageIcon size={18} />
+                      <span>Add photos & files</span>
+                    </button>
+                  </div>
+                {/snippet}
+              </ContextMenu>
+              <input type="file" accept="image/*" multiple class="hidden" bind:this={fileInputEl} onchange={onFilesSelected} />
+            {/if}
+
             {#if showConfigSelector}
               <AppConfigDropdown {configId} onChange={handleConfigChange} highlighted={isTextareaFocused} />
-            {/if}
-            {#if attachEnabled}
-              <button
-                class="flex items-center justify-center h-9 w-9 p-0"
-                aria-label={$txtStore.messageForm.attachFile}
-                {disabled}
-              >
-                <Paperclip size={20} />
-              </button>
             {/if}
           </div>
           <div class="flex items-center gap-2">

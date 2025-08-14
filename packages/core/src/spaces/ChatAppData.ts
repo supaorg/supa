@@ -130,7 +130,12 @@ export class ChatAppData {
     });
   }
 
-  newMessage(role: "user" | "assistant" | "error", text: string, thinking?: string): ThreadMessage {
+  newMessage(
+    role: "user" | "assistant" | "error",
+    text: string,
+    thinking?: string,
+    attachments?: Array<any>
+  ): ThreadMessage {
     const lastMsgVertex = this.getLastMsgParentVertex();
 
     const properties: Record<string, any> = {
@@ -157,6 +162,11 @@ export class ChatAppData {
     }
 
     const newMessageVertex = this.appTree.tree.newVertex(lastMsgVertex.id, properties);
+
+    if (attachments && attachments.length > 0) {
+      // Phase 1: keep attachments in memory only (transient)
+      this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachments", attachments);
+    }
 
     const props = newMessageVertex.getProperties();
     return {
