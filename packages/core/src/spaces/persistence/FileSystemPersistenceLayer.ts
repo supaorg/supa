@@ -118,7 +118,10 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
 
     if (Object.keys(secrets).length === 0) return;
 
-    await this.writeSecretsToFile(secrets);
+    // Merge with existing secrets to avoid race conditions overwriting keys
+    const existing = await this.readSecretsFromFile();
+    const merged = { ...(existing || {}), ...secrets };
+    await this.writeSecretsToFile(merged);
   }
 
   async startListening?(onIncomingOps: (treeId: string, ops: VertexOperation[]) => void): Promise<void> {
@@ -160,6 +163,9 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
 
     // Create ops directory
     await this.fs.mkdir(versionedPath + '/ops', { recursive: true });
+
+    // Create files CAS base directory
+    await this.fs.mkdir(versionedPath + '/files/sha256', { recursive: true });
 
     // Create sila.md file if it doesn't exist
     const readmeFile = this.spacePath + '/' + LOCAL_SPACE_MD_FILE;

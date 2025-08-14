@@ -51,6 +51,10 @@ export class ElectronFsWrapper implements AppFileSystem {
     return this.api.mkdir(path, options);
   }
 
+  async readBinaryFile(path: string): Promise<Uint8Array> {
+    return this.api.readBinaryFile(path);
+  }
+
   async watch(
     path: string,
     callback: (event: WatchEvent) => void,

@@ -51,6 +51,11 @@ export function setupFSInPreloader() {
 
     /**
      * @param {string} path
+     */
+    readBinaryFile: (path) => electronFs.readBinaryFile(path),
+
+    /**
+     * @param {string} path
      * @param {function(Object): void} callback
      * @param {Object} [options]
      */
@@ -230,6 +235,20 @@ export class ElectronFileSystem {
       await fs.mkdir(dirPath, { recursive: options?.recursive || false });
     } catch (error) {
       console.error('Failed to create directory:', dirPath, error);
+      throw error;
+    }
+  }
+
+  /**
+   * @param {string} filePath - The file path to read as bytes
+   * @returns {Promise<Uint8Array>}
+   */
+  async readBinaryFile(filePath) {
+    try {
+      const buf = await fs.readFile(filePath);
+      return new Uint8Array(buf);
+    } catch (error) {
+      console.error('Failed to read binary file:', filePath, error);
       throw error;
     }
   }
