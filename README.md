@@ -16,7 +16,7 @@ Sila is an open alternative to ChatGPT. It allows you to use the best AI models 
 - [Download for macOS](#) 
 - [Download for Windows](#)
 
-**For developers:** Want to build from source? Check out our [quick start guide](docs/dev/quick-start.md).
+**For developers:** Want to build from source? Check out our [quick start guide](docs/dev/quick-start.md) and [development documentation](docs/dev/README.md).
 
 ## Features
 
@@ -47,6 +47,14 @@ Create your own assistants with their own prompts and models
 ### No subscriptions
 
 Pay as you go, either for API costs from AI providers or the actual compute if you run models yourself.
+
+## Documentation
+
+### Product
+Learn about Sila's features and how to use them effectively. Check out our [product documentation](docs/product/README.md) for user guides, feature overviews, and troubleshooting.
+
+### Development
+For developers and contributors, we have comprehensive [development documentation](docs/dev/README.md) covering the codebase, architecture, testing, and contribution guidelines.
 
 ## Related projects
 Sila is built alongside several companion projects that enable its features:
