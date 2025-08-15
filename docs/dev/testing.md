@@ -30,7 +30,16 @@ npm -w packages/tests run test:watch
 
 # Run tests from the tests package directly
 npm -w packages/tests run test
+
+# Run specific test file
+npm -w packages/tests run test -- --run src/ai-image-bug.test.ts
 ```
+
+### AI Testing Requirements
+Some tests require OpenAI API access:
+- Create a `.env` file in the root directory
+- Add `OPENAI_API_KEY=your_actual_openai_api_key`
+- Tests will skip if no valid API key is available
 
 ### Environment Considerations
 If your environment blocks postinstall scripts, you can still run tests:
@@ -64,12 +73,19 @@ npm -w packages/tests run test
 - **File references**: Verifies that messages store proper references to file vertices
 - **Metadata handling**: Tests that file metadata (MIME type, size, etc.) is preserved
 
+### 5. AI Integration Testing
+- **Vision capabilities**: Tests that AI can see and respond to attached images
+- **Backend initialization**: Verifies proper backend creation and message processing
+- **Response verification**: Confirms AI responses contain expected content
+- **Follow-up questions**: Tests that AI maintains context across multiple messages
+
 ## Local Assets for File Tests
 
 To maintain deterministic and offline testing, file tests use local assets stored in:
 
 ```
 packages/tests/assets/images/
+packages/tests/assets/to-send/
 ```
 
 ### Supported Formats
@@ -77,6 +93,10 @@ packages/tests/assets/images/
 - `.jpg/.jpeg` - JPEG images  
 - `.webp` - WebP images
 - `.b64` - Base64-encoded text files
+
+### AI Testing Assets
+The `assets/to-send/` directory contains files specifically for AI testing:
+- `cat.jpg` - Used in AI image bug reproduction tests to verify vision capabilities
 
 ### Adding Test Assets
 You can add real images to the assets folder and commit them. Tests will automatically discover any supported files placed here.
@@ -97,6 +117,7 @@ You can add real images to the assets folder and commit them. Tests will automat
 - `files.test.ts` - File CAS operations and metadata
 - `files-real.test.ts` - Real file handling with actual assets
 - `chat-app-tree.test.ts` - Chat application tree operations
+- `ai-image-bug.test.ts` - AI image attachment and response testing
 
 ### Test Utilities
 - `node-file-system.ts` - Node.js file system utilities for testing

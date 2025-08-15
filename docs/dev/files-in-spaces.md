@@ -56,6 +56,8 @@ export interface FileStore {
 }
 ```
 
+
+
 Create a FileStore instance when a desktop file system is available:
 
 ```ts
