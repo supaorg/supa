@@ -135,8 +135,8 @@
   };
 
   async function sendMsg(query: string, attachments?: AttachmentPreview[]) {
-    data.newMessage("user", query, undefined, attachments);
-
+    // Wait for the message to be created and attachments to be saved
+    await data.newMessage("user", query, undefined, attachments);
     timeout(scrollToBottom, 100);
   }
 
@@ -189,3 +189,4 @@
     </section>
   </div>
 </div>
+

@@ -43,8 +43,8 @@
     );
     const chatAppData = new ChatAppData(clientState.currentSpace, newTree);
     
-    // Pass attachments to newMessage
-    chatAppData.newMessage("user", message, undefined, attachments);
+    // Pass attachments to newMessage and wait for it to complete
+    await chatAppData.newMessage("user", message, undefined, attachments);
 
     const layout = clientState.currentSpaceState?.layout;
     if (layout) {

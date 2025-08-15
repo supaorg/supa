@@ -130,7 +130,7 @@ describe('AI Image Bug Reproduction', () => {
 
     // Wait for the AI response to be generated
     // The backend should automatically process the user message and generate a response
-    await wait(10000); // Wait up to 10 seconds for AI response
+    await wait(15000); // Wait up to 15 seconds for AI response
 
     // Get the latest message (should be the AI response)
     const messages = chatData.messageVertices;
