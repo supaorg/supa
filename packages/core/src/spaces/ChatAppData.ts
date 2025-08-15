@@ -226,6 +226,37 @@ export class ChatAppData {
               // If persist fails, fall back to in-memory
               refs.push(a);
             }
+          } else if (a?.kind === 'text' && typeof a?.content === 'string') {
+            try {
+              // Store text content in CAS (same as images)
+              const textBlob = new Blob([a.content], { type: 'text/plain' });
+              const put = await store.putBlob(textBlob);
+              
+              const fileVertex = FilesTreeData.createOrLinkFile({
+                filesTree,
+                parentFolder,
+                name: a.name || 'text-file',
+                hash: put.hash,
+                mimeType: a.mimeType,
+                size: a.size,
+                width: a.width, // Use lineCount as width for consistency
+                height: a.height // Use charCount as height for consistency
+              });
+              
+              refs.push({
+                id: a.id,
+                kind: 'text',
+                name: a.name,
+                alt: a.alt || 'text file', // Use language as alt text
+                file: { tree: filesTree.getId(), vertex: fileVertex.id }
+              });
+            } catch (e) {
+              // If persist fails, fall back to in-memory with transient content
+              refs.push({
+                ...a,
+                content: a.content // Keep content only for transient fallback
+              });
+            }
           } else {
             refs.push(a);
           }

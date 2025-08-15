@@ -8,20 +8,23 @@
   import { txtStore } from "@sila/client/state/txtStore";
   import { clientState } from "@sila/client/state/clientState.svelte";
   import type { ChatAppData } from "@sila/core";
-  import { processFileForUpload, optimizeImageSize, toDataUrl, getImageDimensions } from "@sila/client/utils/fileProcessing";
+  import { processFileForUpload, optimizeImageSize, toDataUrl, getImageDimensions, processTextFileForUpload, optimizeTextFile, readFileAsText, extractTextFileMetadata, type TextFileMetadata } from "@sila/client/utils/fileProcessing";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
 
   export type AttachmentPreview = {
     id: string;
-    kind: 'image' | 'file';
+    kind: 'image' | 'text' | 'file';
     name: string;
     mimeType: string;
     size: number;
-    dataUrl?: string;
-    width?: number;
-    height?: number;
+    dataUrl?: string; // For images (transient)
+    content?: string; // For text files (transient, only during upload)
+    metadata?: TextFileMetadata; // For text files (transient, only during upload)
+    width?: number; // For images, or lineCount for text files
+    height?: number; // For images, or charCount for text files
+    alt?: string; // For accessibility, language for text files
   };
 
   interface SendMessageFormProps {
@@ -124,28 +127,52 @@
     const previews: AttachmentPreview[] = [];
     for (const file of selected) {
       try {
-        // Step 1: Process file (convert HEIC if needed)
-        const processedFile = await processFileForUpload(file);
+        // Check if it's a text file first
+        const isText = await processTextFileForUpload(file).then(() => true).catch(() => false);
         
-        // Step 2: Resize image if needed (2048x2048 max)
-        const optimizedFile = await optimizeImageSize(processedFile);
-        
-        // Only images for Phase 1
-        if (!optimizedFile.type.startsWith('image/')) continue;
-        
-        const dataUrl = await toDataUrl(optimizedFile);
-        const dims = await getImageDimensions(dataUrl);
-        
-        previews.push({
-          id: crypto.randomUUID(),
-          kind: 'image',
-          name: optimizedFile.name, // Use converted filename
-          mimeType: optimizedFile.type, // Use optimized MIME type
-          size: optimizedFile.size,
-          dataUrl,
-          width: dims?.width,
-          height: dims?.height,
-        });
+        if (isText) {
+          // Process text file
+          const processedFile = await processTextFileForUpload(file);
+          const optimizedFile = await optimizeTextFile(processedFile);
+          
+          // Read text content
+          const content = await readFileAsText(optimizedFile);
+          const metadata = extractTextFileMetadata(optimizedFile, content);
+          
+          previews.push({
+            id: crypto.randomUUID(),
+            kind: 'text',
+            name: optimizedFile.name,
+            mimeType: optimizedFile.type,
+            size: optimizedFile.size,
+            content,
+            metadata,
+            width: metadata.lineCount, // Use lineCount as width for consistency
+            height: metadata.charCount, // Use charCount as height for consistency
+            alt: metadata.language, // Use language as alt text
+          });
+        } else {
+          // Process image file
+          const processedFile = await processFileForUpload(file);
+          const optimizedFile = await optimizeImageSize(processedFile);
+          
+          // Only images for now
+          if (!optimizedFile.type.startsWith('image/')) continue;
+          
+          const dataUrl = await toDataUrl(optimizedFile);
+          const dims = await getImageDimensions(dataUrl);
+          
+          previews.push({
+            id: crypto.randomUUID(),
+            kind: 'image',
+            name: optimizedFile.name, // Use converted filename
+            mimeType: optimizedFile.type, // Use optimized MIME type
+            size: optimizedFile.size,
+            dataUrl,
+            width: dims?.width,
+            height: dims?.height,
+          });
+        }
       } catch (error) {
         console.error(`Failed to process ${file.name}:`, error);
       }
@@ -300,7 +327,14 @@
           <div class="flex flex-wrap gap-2 px-2 pt-2">
             {#each pendingAttachments as att (att.id)}
               <div class="relative group border rounded-md p-1 bg-surface-100-900">
-                {#if att.kind === 'image' && att.dataUrl}
+                {#if att.kind === 'text' && att.metadata}
+                  <div class="text-xs opacity-70 border rounded px-2 py-1">
+                    <div class="font-medium">{att.name}</div>
+                    <div class="text-xs opacity-60">
+                      {att.metadata.language} • {att.metadata.lineCount} lines • {att.metadata.wordCount} words
+                    </div>
+                  </div>
+                {:else if att.kind === 'image' && att.dataUrl}
                   <img src={att.dataUrl} alt={att.name} class="max-h-16 max-w-24 rounded" />
                 {:else}
                   <div class="text-xs opacity-70">{att.name}</div>
@@ -333,7 +367,7 @@
                   </div>
                 {/snippet}
               </ContextMenu>
-              <input type="file" accept="image/*" multiple class="hidden" bind:this={fileInputEl} onchange={onFilesSelected} />
+              <input type="file" accept="image/*,.txt,.md,.json,.csv,.js,.ts,.py,.java,.c,.cpp,.h,.cs,.php,.rb,.go,.rs,.swift,.kt,.scala,.sh,.bat,.ps1,.yml,.yaml,.toml,.ini,.cfg,.conf,.xml,.html,.css,.log,.tsv" multiple class="hidden" bind:this={fileInputEl} onchange={onFilesSelected} />
             {/if}
 
             {#if showConfigSelector}

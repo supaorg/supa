@@ -122,13 +122,16 @@
 
   type AttachmentPreview = {
     id: string;
-    kind: 'image' | 'file';
+    kind: 'image' | 'text' | 'file';
     name: string;
     mimeType: string;
     size: number;
-    dataUrl?: string;
-    width?: number;
-    height?: number;
+    dataUrl?: string; // For images (transient)
+    content?: string; // For text files (transient, only during upload)
+    metadata?: any; // For text files (transient, only during upload)
+    width?: number; // For images, or lineCount for text files
+    height?: number; // For images, or charCount for text files
+    alt?: string; // For accessibility, language for text files
   };
 
   async function sendMsg(query: string, attachments?: AttachmentPreview[]) {
