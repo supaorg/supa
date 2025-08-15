@@ -7,18 +7,24 @@ export interface HeicConverter {
 export class BrowserHeicConverter implements HeicConverter {
   async convert(heicFile: File): Promise<Blob> {
     try {
-      const { heic2any } = await import('heic2any');
+      // Dynamic import to avoid Node.js issues in tests
+      const heic2any = (await import('heic2any')).default;
       
-      const jpegBlob = await heic2any({
+      const result = await heic2any({
         blob: heicFile,
         toType: 'image/jpeg',
         quality: 0.85 // Good balance of quality and size
       });
       
-      return jpegBlob;
+      // heic2any can return Blob or Blob[], we need a single Blob
+      if (Array.isArray(result)) {
+        return result[0]; // Return first blob if array
+      }
+      
+      return result;
     } catch (error) {
       console.error('HEIC conversion failed:', error);
-      throw new Error(`Failed to convert HEIC file: ${error.message}`);
+      throw new Error(`Failed to convert HEIC file: ${(error as Error).message}`);
     }
   }
 }
