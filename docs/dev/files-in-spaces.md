@@ -109,3 +109,13 @@ See also: `docs/dev/proposals/attach-files.md`.
 
 ### Garbage collection (future)
 - Phase 1 does not delete blobs. Future maintenance can scan live `hash`es and reclaim unreferenced files.
+
+### Hash Collision Considerations
+
+SHA-256 produces 256-bit (32-byte) hashes, giving 2^256 possible values. The probability of collision is extremely low:
+
+- **Birthday paradox**: With 2^128 files, collision probability is ~50%
+- **Realistic usage**: Even with millions of files, collision probability is negligible
+- **Cryptographic strength**: SHA-256 is designed to be collision-resistant
+
+**Recommendation**: SHA-256 provides excellent collision resistance for all practical purposes. The system can always be upgraded to support other hash algorithms in the future if needed.
