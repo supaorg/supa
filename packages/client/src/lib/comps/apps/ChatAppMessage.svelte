@@ -31,7 +31,7 @@
       typeof message.thinking === "string" &&
       message.thinking.trim().length > 0,
   );
-  let attachments = $derived.by(() => (message as any)?.attachments as Array<any> | undefined);
+  let attachments = $state<Array<any> | undefined>(undefined);
   let isAIGenerating = $derived(
     !!message?.inProgress && message?.role === "assistant",
   );
@@ -111,6 +111,29 @@
     if (!isEditing) {
       editText = message?.text || "";
     }
+  });
+
+  // Resolve file references in attachments
+  $effect(() => {
+    const messageAttachments = (message as any)?.attachments;
+    if (!messageAttachments || messageAttachments.length === 0) {
+      attachments = undefined;
+      return;
+    }
+
+    // If attachments already have dataUrl, use them directly
+    if (messageAttachments.some((att: any) => att.dataUrl)) {
+      attachments = messageAttachments;
+      return;
+    }
+
+    // Otherwise, resolve file references asynchronously
+    data.resolveMessageAttachments(message).then((resolvedMessage) => {
+      attachments = (resolvedMessage as any).attachments;
+    }).catch((error) => {
+      console.warn("Failed to resolve attachments:", error);
+      attachments = messageAttachments; // Fallback to original
+    });
   });
 
   onMount(() => {

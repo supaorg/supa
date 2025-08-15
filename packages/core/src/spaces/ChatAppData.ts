@@ -4,12 +4,14 @@ import type { VertexPropertyType } from "reptree";
 import type { ThreadMessage } from "../models";
 import { AppTree } from "./AppTree";
 import { FilesTreeData } from "./files";
+import { FileResolver } from "./files/FileResolver";
 
 export class ChatAppData {
   private root: Vertex;
   private referenceInSpace: Vertex;
   // @TODO temporary: support update callback for message edits/branch switching
   private updateCallbacks: Set<(vertices: Vertex[]) => void> = new Set();
+  private fileResolver: FileResolver;
 
   static createNewChatTree(space: Space, configId: string): AppTree {
     const tree = space.newAppTree("default-chat").tree;
@@ -28,6 +30,7 @@ export class ChatAppData {
 
   constructor(private space: Space, private appTree: AppTree) {
     const root = appTree.tree.root;
+    this.fileResolver = new FileResolver(space);
 
     if (!root) {
       throw new Error("Root vertex not found");
@@ -82,6 +85,25 @@ export class ChatAppData {
       current = next;
     }
     return vs;
+  }
+
+  /**
+   * Resolves file references in message attachments to data URLs
+   * Used for UI rendering and AI consumption
+   */
+  async resolveMessageAttachments(message: ThreadMessage): Promise<ThreadMessage> {
+    const attachments = (message as any).attachments;
+    if (!attachments || attachments.length === 0) {
+      return message;
+    }
+
+    const resolvedAttachments = await this.fileResolver.resolveAttachments(attachments);
+    
+    // Create a new message object with resolved attachments
+    return {
+      ...message,
+      attachments: resolvedAttachments,
+    } as ThreadMessage;
   }
 
   triggerEvent(eventName: string, data: any) {

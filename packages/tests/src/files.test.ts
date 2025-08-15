@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData } from '@sila/core';
 import { NodeFileSystem } from './node-file-system';
+import { FileResolver } from '@sila/core';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -103,5 +104,74 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		// Load app tree ops
 		const appOps = await loader.loadTreeOps(filesTree.getId());
 		expect(appOps.length).toBeGreaterThan(0);
+	});
+
+	it('resolves file references to data URLs for UI and AI consumption', async () => {
+		const fs = new NodeFileSystem();
+
+		const space = Space.newSpace(crypto.randomUUID());
+		const spaceId = space.getId();
+		space.name = 'File Resolution Test Space';
+
+		const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
+		const manager = new SpaceManager();
+		await manager.addNewSpace(space, [layer]);
+
+		// Give time to ensure base structure is on disk
+		await wait(600);
+
+		// Create file store and put an image
+		const fileStore = createFileStore({
+			getSpaceRootPath: () => tempDir,
+			getFs: () => fs
+		});
+		expect(fileStore).toBeTruthy();
+
+		const dataUrl = makePngDataUrl();
+		const put = await fileStore!.putDataUrl(dataUrl);
+
+		// Create a files app tree and file vertex
+		const filesTree = FilesTreeData.createNewFilesTree(space);
+		const folder = FilesTreeData.ensureFolderPath(filesTree, ['test']);
+		const fileVertex = FilesTreeData.createOrLinkFile({
+			filesTree,
+			parentFolder: folder,
+			name: 'test.png',
+			hash: put.hash,
+			mimeType: 'image/png',
+			size: 68
+		});
+
+		// Create a message with file reference (no dataUrl)
+		const messageWithFileRef = {
+			id: 'msg1',
+			role: 'user' as const,
+			text: 'Here is an image',
+			attachments: [
+				{
+					id: 'att1',
+					kind: 'image',
+					name: 'test.png',
+					file: { tree: filesTree.getId(), vertex: fileVertex.id }
+				}
+			]
+		};
+
+		// Test file resolution
+		const fileResolver = new FileResolver(space);
+		const resolvedAttachments = await fileResolver.resolveAttachments(messageWithFileRef.attachments);
+
+		expect(resolvedAttachments).toHaveLength(1);
+		expect(resolvedAttachments[0].id).toBe('att1');
+		expect(resolvedAttachments[0].kind).toBe('image');
+		expect(resolvedAttachments[0].name).toBe('test.png');
+		expect(resolvedAttachments[0].dataUrl).toBeTruthy();
+		expect(resolvedAttachments[0].dataUrl.startsWith('data:')).toBe(true);
+		expect(resolvedAttachments[0].mimeType).toBe('image/png');
+		expect(resolvedAttachments[0].size).toBe(68);
+
+		// Test that the resolved dataUrl matches the original
+		const resolvedDataUrl = resolvedAttachments[0].dataUrl;
+		expect(resolvedDataUrl).toBe(dataUrl);
 	});
 });

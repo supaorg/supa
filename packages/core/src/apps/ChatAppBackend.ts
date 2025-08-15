@@ -126,14 +126,22 @@ export default class ChatAppBackend {
         messages.slice(0, -1) :
         messages;
 
+      // Resolve file references in messages before sending to AI
+      const resolvedMessages = await Promise.all(
+        messagesToUse.map(async (m) => {
+          const resolvedMessage = await this.data.resolveMessageAttachments(m);
+          return {
+            role: resolvedMessage.role,
+            text: resolvedMessage.text,
+            attachments: (resolvedMessage as any).attachments,
+          };
+        })
+      );
+
       const messagesForLang = [
         { role: "system", text: config.instructions },
-        ...messagesToUse.map((m) => ({
-          role: m.role,
-          text: m.text,
-          // Pass attachments through for Phase 1 (in-memory). The agent will translate to provider format
-          attachments: (m as any).attachments,
-        }))];
+        ...resolvedMessages
+      ];
 
       let modelSaved = false;
       const initialResponse = await simpleChatAgent.input(messagesForLang, (resp) => {
