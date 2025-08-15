@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { FilesAppData } from "@sila/core";
   import type { Vertex } from "@sila/core";
-  import { Folder, File as FileIcon } from "lucide-svelte";
+  import { Folder, File as FileIcon, Upload, Plus } from "lucide-svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
 
   let { data }: { data: FilesAppData } = $props();
@@ -16,6 +16,11 @@
   let files = $state<Vertex[]>([]);
 
   let unobserveCurrent: (() => void) | undefined;
+  
+  // Upload state
+  let isDragOver = $state(false);
+  let isUploading = $state(false);
+  let fileInputEl: HTMLInputElement | null = $state(null);
 
   onMount(() => {
     filesRoot = data.filesVertex;
@@ -103,12 +108,161 @@
     // Fallback to data URL if electron API not available
     return "";
   }
+
+  // Upload functions
+  function openFilePicker() {
+    fileInputEl?.click();
+  }
+
+  async function onFilesSelected(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) return;
+    
+    await uploadFiles(Array.from(files));
+    
+    // Reset input to allow re-selecting the same file
+    if (fileInputEl) fileInputEl.value = "";
+  }
+
+  async function uploadFiles(fileList: File[]) {
+    if (isUploading || !currentFolder) return;
+    
+    isUploading = true;
+    
+    try {
+      const store = (data as any).space.getFileStore();
+      if (!store) {
+        console.error("File store not available");
+        return;
+      }
+
+      const filesTree = await FilesAppData.getOrCreateDefaultFilesTree((data as any).space);
+      
+      for (const file of fileList) {
+        try {
+          // Convert file to data URL
+          const dataUrl = await toDataUrl(file);
+          
+          // Upload to file store
+          const put = await store.putDataUrl(dataUrl);
+          
+          // Get image dimensions if it's an image
+          let width: number | undefined;
+          let height: number | undefined;
+          if (file.type.startsWith('image/')) {
+            const dims = await getImageDimensions(dataUrl);
+            width = dims?.width;
+            height = dims?.height;
+          }
+          
+          // Create file vertex in current folder
+          const { FilesTreeData } = await import("@sila/core");
+          FilesTreeData.createOrLinkFile({
+            filesTree,
+            parentFolder: currentFolder,
+            name: file.name,
+            hash: put.hash,
+            mimeType: file.type,
+            size: file.size,
+            width,
+            height
+          });
+          
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      isUploading = false;
+    }
+  }
+
+  function toDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function getImageDimensions(src: string): Promise<{ width: number; height: number } | null> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.width, height: img.height });
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  }
+
+  // Drag and drop handlers
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    isDragOver = true;
+  }
+
+  function handleDragLeave(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    isDragOver = false;
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    isDragOver = false;
+    
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      uploadFiles(Array.from(files));
+    }
+  }
 </script>
 
 <div class="flex flex-col w-full h-full overflow-hidden">
-  <div class="flex-grow overflow-y-auto pt-2">
+  <div 
+    class="flex-grow overflow-y-auto pt-2"
+    class:bg-primary-500/10={isDragOver}
+    class:border-2={isDragOver}
+    class:border-dashed={isDragOver}
+    class:border-primary-500={isDragOver}
+    ondragover={handleDragOver}
+    ondragleave={handleDragLeave}
+    ondrop={handleDrop}
+  >
     <div class="w-full max-w-4xl mx-auto">
-      <h2 class="h2 mb-2">Files</h2>
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="h2">Files</h2>
+        {#if currentFolder}
+          <button
+            class="btn btn-sm preset-outline flex items-center gap-2"
+            onclick={openFilePicker}
+            disabled={isUploading}
+            type="button"
+          >
+            {#if isUploading}
+              <div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+              Uploading...
+            {:else}
+              <Plus size={16} />
+              Upload Files
+            {/if}
+          </button>
+        {/if}
+      </div>
+      
+      <!-- Hidden file input -->
+      <input 
+        type="file" 
+        multiple 
+        class="hidden" 
+        bind:this={fileInputEl} 
+        onchange={onFilesSelected} 
+      />
 
       {#if !filesRoot}
         <p class="text-muted-foreground">Files root not found.</p>
