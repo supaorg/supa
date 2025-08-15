@@ -12,7 +12,7 @@
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
 
-  type AttachmentPreview = {
+  export type AttachmentPreview = {
     id: string;
     kind: 'image' | 'file';
     name: string;

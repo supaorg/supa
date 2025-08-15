@@ -1,5 +1,5 @@
 <script lang="ts">
-  import SendMessageForm from "../../comps/forms/SendMessageForm.svelte";
+  import SendMessageForm, { type AttachmentPreview } from "../../comps/forms/SendMessageForm.svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
   import { ChatAppData } from "@sila/core";
   import type { AppConfig } from "@sila/core";
@@ -19,15 +19,15 @@
 
   const placeholder = "Write a message...";
 
-  function handleSend(msg: string) {
+  function handleSend(msg: string, attachments?: AttachmentPreview[]) {
     if (!msg) {
       return;
     }
 
-    newThread(msg);
+    newThread(msg, attachments);
   }
 
-  async function newThread(message: string = "") {
+  async function newThread(message: string = "", attachments?: AttachmentPreview[]) {
     if (!targetAppConfig) {
       throw new Error("App config not found");
     }
@@ -42,7 +42,9 @@
       targetAppConfig.id,
     );
     const chatAppData = new ChatAppData(clientState.currentSpace, newTree);
-    chatAppData.newMessage("user", message);
+    
+    // Pass attachments to newMessage
+    chatAppData.newMessage("user", message, undefined, attachments);
 
     const layout = clientState.currentSpaceState?.layout;
     if (layout) {
