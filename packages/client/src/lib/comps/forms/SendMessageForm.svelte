@@ -68,7 +68,7 @@
   let pendingAttachments = $state<AttachmentPreview[]>([]);
 
   let canSendMessage = $derived(
-    !disabled && status === "can-send-message" && query.trim().length > 0,
+    !disabled && status === "can-send-message" && (query.trim().length > 0 || pendingAttachments.length > 0),
   );
 
   let configId = $state("");
