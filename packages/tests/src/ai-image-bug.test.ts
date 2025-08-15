@@ -70,7 +70,7 @@ describe('AI Image Bug Reproduction', () => {
       button: 'New query',
       visible: true,
       description: 'Assistant that can see images',
-      instructions: 'You are a helpful assistant that can see images. When shown an image, describe what you see in one word.',
+      instructions: 'You are a helpful assistant that can see images. When shown an image, describe what you see in one word. If no image is provided, respond with exactly "NO IMAGE".',
       targetLLM: 'openai/gpt-4o' // Use GPT-4o which supports JSON responses
     } as any);
 
@@ -89,6 +89,14 @@ describe('AI Image Bug Reproduction', () => {
     const catImageBuffer = await readFile(catImagePath);
     const catImageBase64 = catImageBuffer.toString('base64');
     const catImageDataUrl = `data:image/jpeg;base64,${catImageBase64}`;
+
+    // Debug: Check if image was loaded correctly
+    console.log('Image loaded:', {
+      path: catImagePath,
+      size: catImageBuffer.length,
+      dataUrlLength: catImageDataUrl.length,
+      dataUrlPreview: catImageDataUrl.substring(0, 100) + '...'
+    });
 
     // Create a user message with the cat image
     const userMessage = await chatData.newMessage('user', 'What animal do you see in this image? Say only the animal name in one word.', undefined, [
@@ -177,7 +185,7 @@ describe('AI Image Bug Reproduction', () => {
       button: 'New query',
       visible: true,
       description: 'Assistant that can see images',
-      instructions: 'You are a helpful assistant that can see images. When shown an image, describe what you see in one word.',
+      instructions: 'You are a helpful assistant that can see images. When shown an image, describe what you see in one word. If no image is provided, respond with exactly "NO IMAGE".',
       targetLLM: 'openai/gpt-4o' // Use GPT-4o which supports JSON responses
     } as any);
 
@@ -295,4 +303,80 @@ describe('AI Image Bug Reproduction', () => {
     // This test always passes - it's just for documentation
     expect(true).toBe(true);
   });
+
+  it('should say NO IMAGE when no image is provided', async () => {
+    // Skip test if no OpenAI API key is available
+    if (!openaiApiKey || openaiApiKey === 'your_openai_api_key_here') {
+      console.log('Skipping test: No valid OpenAI API key available');
+      return;
+    }
+
+    const fs = new NodeFileSystem();
+    const space = Space.newSpace(crypto.randomUUID());
+    const spaceId = space.getId();
+
+    // Set up file store
+    space.setFileStoreProvider({
+      getSpaceRootPath: () => tempDir,
+      getFs: () => fs
+    });
+
+    // Set up persistence
+    const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
+    const manager = new SpaceManager();
+    await manager.addNewSpace(space, [layer]);
+
+    // Add OpenAI provider
+    space.saveModelProviderConfig({
+      id: 'openai',
+      type: 'cloud',
+      apiKey: openaiApiKey
+    });
+
+    // Add a chat assistant config
+    const assistantId = 'vision-assistant';
+    space.addAppConfig({
+      id: assistantId,
+      name: 'Vision Assistant',
+      button: 'New query',
+      visible: true,
+      description: 'Assistant that can see images',
+      instructions: 'You are a helpful assistant that can see images. When shown an image, describe what you see in one word. If no image is provided, respond with exactly "NO IMAGE".',
+      targetLLM: 'openai/gpt-4o'
+    } as any);
+
+    // Set up backend
+    const backend = new Backend(space, true);
+
+    // Create chat tree
+    const chatTree = ChatAppData.createNewChatTree(space, assistantId);
+    const chatData = new ChatAppData(space, chatTree);
+
+    // Wait for backend to initialize
+    await wait(1000);
+
+    // Create a user message WITHOUT any image
+    const userMessage = await chatData.newMessage('user', 'What do you see in this image?', undefined, []);
+
+    // Wait for AI response
+    await wait(10000);
+
+    // Get the response
+    const messages = chatData.messageVertices;
+    const response = messages[messages.length - 1];
+    
+    if (!response) {
+      throw new Error('No response found');
+    }
+
+    const responseData = response.getAsTypedObject<any>();
+    if (responseData.role !== 'assistant') {
+      throw new Error('No assistant response generated');
+    }
+
+    console.log('Response without image:', responseData.text);
+    
+    // Should say "NO IMAGE"
+    expect(responseData.text.trim()).toBe('NO IMAGE');
+  }, 30000);
 });
