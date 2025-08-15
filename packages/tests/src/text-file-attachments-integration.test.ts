@@ -1,30 +1,61 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Space } from '@sila/core';
-import { ChatAppData } from '@sila/core';
-import { SimpleChatAgent } from '@sila/core';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import { Space, ChatAppData, FileSystemPersistenceLayer, SpaceManager } from '@sila/core';
+import { NodeFileSystem } from './node-file-system';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
-// Mock createSpace function for testing
-async function createSpace(name: string): Promise<Space> {
-  // This is a simplified mock - in a real test environment you'd use the actual implementation
-  return {
-    close: async () => {},
-    getFileStore: () => null,
-    getAppConfig: () => null,
-    loadAppTree: async () => null
-  } as any;
-}
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+
 
 describe('Text File Attachments Integration', () => {
   let space: Space;
   let chatData: ChatAppData;
+  let chatTree: any;
+  let tempDir: string;
+  let fs: NodeFileSystem;
+
+  beforeAll(async () => {
+    tempDir = await mkdtemp(path.join(tmpdir(), 'sila-text-attachments-test-'));
+  });
+
+  afterAll(async () => {
+    if (tempDir) {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
 
   beforeEach(async () => {
-    space = await createSpace('test-space');
-    chatData = new ChatAppData(space, 'test-chat');
+    fs = new NodeFileSystem();
+    
+    // Create a real space for testing
+    space = Space.newSpace(crypto.randomUUID());
+    const spaceId = space.getId();
+    
+    // Add a chat assistant config
+    const assistantId = 'test-assistant';
+    space.addAppConfig({
+      id: assistantId,
+      name: 'Test Chat',
+      button: 'New query',
+      visible: true,
+      description: 'Test chat for text file attachments',
+      instructions: 'Be helpful'
+    } as any);
+
+    // Create a chat tree
+    chatTree = ChatAppData.createNewChatTree(space, assistantId);
+    chatData = new ChatAppData(space, chatTree);
+
+    // Set up file store
+    const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
+    const manager = new SpaceManager();
+    await manager.addNewSpace(space, [layer]);
   });
 
   afterEach(async () => {
-    await space.close();
+    // Space doesn't have a close method, just clean up references
   });
 
   describe('ChatAppData Integration', () => {
@@ -69,13 +100,16 @@ function test() {
       // Send message with text file attachment
       const message = await chatData.newMessage('user', 'Please review this file', undefined, [attachment]);
 
+      // Allow time for file store operations to complete
+      await wait(1200);
+
       // Verify message was created
       expect(message).toBeDefined();
       expect(message.text).toBe('Please review this file');
       expect(message.role).toBe('user');
 
       // Verify attachment was persisted
-      const messageVertex = chatData.appTree.tree.getVertex(message.id);
+      const messageVertex = chatTree.tree.getVertex(message.id);
       const attachments = messageVertex?.getProperty('attachments') as any[];
       expect(attachments).toBeDefined();
       expect(attachments.length).toBe(1);
@@ -124,12 +158,15 @@ function test() {
       // Send message with both attachments
       const message = await chatData.newMessage('user', 'Here are both files', undefined, [textAttachment, imageAttachment]);
 
+      // Allow time for file store operations to complete
+      await wait(1200);
+
       // Verify message was created
       expect(message).toBeDefined();
       expect(message.text).toBe('Here are both files');
 
       // Verify both attachments were persisted
-      const messageVertex = chatData.appTree.tree.getVertex(message.id);
+      const messageVertex = chatTree.tree.getVertex(message.id);
       const attachments = messageVertex?.getProperty('attachments') as any[];
       expect(attachments).toBeDefined();
       expect(attachments.length).toBe(2);
@@ -170,10 +207,13 @@ function test() {
 
       const message = await chatData.newMessage('user', 'Large file attached', undefined, [attachment]);
 
+      // Allow time for file store operations to complete
+      await wait(1200);
+
       expect(message).toBeDefined();
       
       // Verify the large file was handled
-      const messageVertex = chatData.appTree.tree.getVertex(message.id);
+      const messageVertex = chatTree.tree.getVertex(message.id);
       const attachments = messageVertex?.getProperty('attachments') as any[];
       expect(attachments[0].kind).toBe('text');
       expect(attachments[0].width).toBe(1000); // lineCount
@@ -279,7 +319,7 @@ function test() {
       expect(message).toBeDefined();
       
       // Verify empty file was handled
-      const messageVertex = chatData.appTree.tree.getVertex(message.id);
+      const messageVertex = chatTree.tree.getVertex(message.id);
       const attachments = messageVertex?.getProperty('attachments') as any[];
       expect(attachments[0].kind).toBe('text');
       expect(attachments[0].name).toBe('test.txt');
@@ -348,7 +388,7 @@ function test() {
 
         expect(message).toBeDefined();
         
-        const messageVertex = chatData.appTree.tree.getVertex(message.id);
+        const messageVertex = chatTree.tree.getVertex(message.id);
         const attachments = messageVertex?.getProperty('attachments') as any[];
         expect(attachments[0].kind).toBe('text');
         expect(attachments[0].name).toBe(testCase.name);

@@ -77,6 +77,10 @@ export class FileResolver {
 				name: attachment.name,
 				alt: attachment.alt,
 				dataUrl: attachment.dataUrl || "",
+				mimeType: attachment.mimeType,
+				size: attachment.size,
+				width: attachment.width,
+				height: attachment.height,
 			});
 		}
 

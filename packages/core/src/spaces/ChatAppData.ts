@@ -229,8 +229,8 @@ export class ChatAppData {
           } else if (a?.kind === 'text' && typeof a?.content === 'string') {
             try {
               // Store text content in CAS (same as images)
-              const textBlob = new Blob([a.content], { type: 'text/plain' });
-              const put = await store.putBlob(textBlob);
+              const textBytes = new TextEncoder().encode(a.content);
+              const put = await store.putBytes(textBytes, a.mimeType || 'text/plain');
               
               const fileVertex = FilesTreeData.createOrLinkFile({
                 filesTree,
@@ -248,7 +248,9 @@ export class ChatAppData {
                 kind: 'text',
                 name: a.name,
                 alt: a.alt || 'text file', // Use language as alt text
-                file: { tree: filesTree.getId(), vertex: fileVertex.id }
+                file: { tree: filesTree.getId(), vertex: fileVertex.id },
+                width: a.width, // Preserve lineCount as width
+                height: a.height // Preserve charCount as height
               });
             } catch (e) {
               // If persist fails, fall back to in-memory with transient content
