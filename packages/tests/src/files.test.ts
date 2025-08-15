@@ -174,4 +174,44 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		const resolvedDataUrl = resolvedAttachments[0].dataUrl;
 		expect(resolvedDataUrl).toBe(dataUrl);
 	});
+
+	it('minimal file resolution test - core functionality only', async () => {
+		// Minimal setup: space with file store provider
+		const space = Space.newSpace(crypto.randomUUID());
+		const fs = new NodeFileSystem();
+		
+		// Connect file store to space
+		space.setFileStoreProvider({
+			getSpaceRootPath: () => tempDir,
+			getFs: () => fs
+		});
+
+		// Store a simple file
+		const fileStore = space.getFileStore();
+		expect(fileStore).toBeTruthy();
+		
+		const dataUrl = makePngDataUrl();
+		const put = await fileStore!.putDataUrl(dataUrl);
+
+		// Create minimal file vertex
+		const filesTree = FilesTreeData.createNewFilesTree(space);
+		const fileVertex = FilesTreeData.createOrLinkFile({
+			filesTree,
+			parentFolder: filesTree.tree.getVertexByPath('files')!,
+			name: 'test.png',
+			hash: put.hash,
+			mimeType: 'image/png'
+		});
+
+		// Test resolution
+		const fileResolver = new FileResolver(space);
+		const resolved = await fileResolver.resolveAttachments([
+			{ file: { tree: filesTree.getId(), vertex: fileVertex.id } }
+		]);
+
+		// Core assertions
+		expect(resolved).toHaveLength(1);
+		expect(resolved[0].dataUrl).toBe(dataUrl); // Should match original
+		expect(resolved[0].mimeType).toBe('image/png'); // Should preserve MIME type
+	});
 });
