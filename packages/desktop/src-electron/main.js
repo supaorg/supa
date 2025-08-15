@@ -1,11 +1,41 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { setupDialogsInMain } from './dialogs/electronDialogsMain.js';
 import { setupElectronMenu } from './electronMenu.js';
 import { createWindow } from './electronWindow.js';
 import { setupAutoUpdater, checkForUpdates } from './autoUpdater.js';
+import { setupFileProtocol } from './fileProtocol.js';
+import { spaceManager } from './spaceManager.js';
 
 // Development mode check
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
+
+/**
+ * Setup IPC handlers for space management
+ */
+function setupSpaceManagementIPC() {
+  console.log('Setting up space management IPC handlers...');
+  
+  ipcMain.handle('register-space', async (event, { spaceId, rootPath, name, createdAt }) => {
+    console.log('IPC: Registering space:', spaceId, rootPath);
+    spaceManager.registerSpace(spaceId, rootPath, name, createdAt);
+    return true;
+  });
+
+  ipcMain.handle('unregister-space', async (event, spaceId) => {
+    console.log('IPC: Unregistering space:', spaceId);
+    return spaceManager.unregisterSpace(spaceId);
+  });
+
+  ipcMain.handle('has-space', async (event, spaceId) => {
+    return spaceManager.hasSpace(spaceId);
+  });
+
+  ipcMain.handle('get-all-spaces', async (event) => {
+    return spaceManager.getAllSpaces();
+  });
+  
+  console.log('Space management IPC handlers setup complete');
+}
 
 // Keep a global reference of the window object
 /** @type {BrowserWindow | null} */
@@ -20,6 +50,15 @@ app.whenReady().then(async () => {
 
   // Set the app name for menus
   app.setName('Sila');
+  
+  // Setup custom file protocol
+  console.log('Setting up file protocol in main process...');
+  setupFileProtocol();
+  console.log('File protocol setup complete');
+
+  // Setup IPC handlers for space management
+  setupSpaceManagementIPC();
+  
   mainWindow = createWindow(isDev);
   setupElectronMenu();
   setupDialogsInMain();

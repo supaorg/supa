@@ -137,6 +137,24 @@ export class ClientState {
       // Create SpaceState instances for all pointers
       this._spaceStates = pointers.map(pointer => new SpaceState(pointer, this._spaceManager));
 
+      // Register existing spaces with electron file system for file protocol
+      console.log('Checking for electron file system API...');
+      console.log('window.electronFileSystem available:', typeof window !== 'undefined' && !!(window as any).electronFileSystem);
+      if (typeof window !== 'undefined' && (window as any).electronFileSystem) {
+        console.log('Registering existing spaces with electron file system...');
+        for (const pointer of pointers) {
+          console.log('Registering space:', pointer.id, pointer.uri);
+          (window as any).electronFileSystem.registerSpace(
+            pointer.id,
+            pointer.uri,
+            pointer.name,
+            pointer.createdAt
+          );
+        }
+      } else {
+        console.warn('Electron file system API not available during initialization');
+      }
+
       // Check authentication and filter spaces (dummy for now)
       await this.auth.checkAuth();
       if (this.auth.isAuthenticated) {
@@ -192,6 +210,16 @@ export class ClientState {
 
     await this._spaceManager.addNewSpace(space, persistenceLayers);
 
+    // Register space with electron file system for file protocol
+    if (typeof window !== 'undefined' && (window as any).electronFileSystem) {
+      (window as any).electronFileSystem.registerSpace(
+        spaceId, 
+        pointer.uri, 
+        space.name || null, 
+        space.createdAt
+      );
+    }
+
     // Add to our collections
     this.pointers = [...this.pointers, pointer];
     const newSpaceState = new SpaceState(pointer, this._spaceManager);
@@ -210,6 +238,11 @@ export class ClientState {
    * Remove a space by ID
    */
   async removeSpace(spaceId: string): Promise<void> {
+    // Unregister space from electron file system
+    if (typeof window !== 'undefined' && (window as any).electronFileSystem) {
+      (window as any).electronFileSystem.unregisterSpace(spaceId);
+    }
+
     // Find and disconnect the space being removed (since we keep spaces connected now)
     const spaceToRemove = this._spaceStates.find(s => s.pointer.id === spaceId);
     if (spaceToRemove) {
@@ -402,6 +435,19 @@ export class ClientState {
     // Load the space using SpaceManager
     const space = await this._spaceManager.loadSpace(pointer, persistenceLayers);
 
+    // Register space with electron file system for file protocol
+    if (typeof window !== 'undefined' && (window as any).electronFileSystem) {
+      console.log('Registering loaded space with electron file system:', spaceId, spaceRootPath);
+      (window as any).electronFileSystem.registerSpace(
+        spaceId, 
+        spaceRootPath, 
+        space.name || null, 
+        space.createdAt
+      );
+    } else {
+      console.warn('Electron file system API not available when loading space:', spaceId);
+    }
+
     // Update pointer with actual space metadata
     pointer.name = space.name || null;
     pointer.createdAt = space.createdAt;
@@ -436,6 +482,31 @@ export class ClientState {
     // Load theme for current space
     if (this.currentSpaceState) {
       await this.currentSpaceState.theme.loadSpaceTheme(this.currentSpaceState.pointer.id);
+    }
+
+    // Try to register spaces with electron file system (in case API is now available)
+    this._registerSpacesWithElectron();
+  }
+
+  /**
+   * Register all current spaces with the electron file system
+   */
+  private _registerSpacesWithElectron(): void {
+    if (typeof window !== 'undefined' && (window as any).electronFileSystem) {
+      console.log('Registering spaces with electron file system (delayed)...');
+      for (const pointer of this.pointers) {
+        console.log('Registering space:', pointer.id, pointer.uri);
+        (window as any).electronFileSystem.registerSpace(
+          pointer.id,
+          pointer.uri,
+          pointer.name,
+          pointer.createdAt
+        );
+      }
+    } else {
+      // Poll for API availability
+      console.log('Electron file system API not available, will retry...');
+      setTimeout(() => this._registerSpacesWithElectron(), 1000);
     }
   }
 

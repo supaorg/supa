@@ -17,12 +17,12 @@ export class FilesTreeData {
 		if (!root) throw new Error("Files root not found");
 		let cur = root as Vertex;
 		for (const seg of segments) {
-			const found = cur.children.find((c) => c.name === seg);
+			const found = cur.children.find((c) => c.getProperty("_n") === seg);
 			if (found) {
 				cur = found;
 				continue;
 			}
-			const v = filesTree.tree.newVertex(cur.id, { _n: "folder", name: seg, createdAt: Date.now() });
+			const v = filesTree.tree.newVertex(cur.id, { _n: seg, createdAt: Date.now() });
 			cur = v;
 		}
 		return cur;

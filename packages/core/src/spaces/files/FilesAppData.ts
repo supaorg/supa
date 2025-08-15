@@ -19,13 +19,26 @@ export class FilesAppData {
     return appTree;
   }
 
-  static getOrCreateDefaultFilesTree(space: Space): AppTree {
+  static async getOrCreateDefaultFilesTree(space: Space): Promise<AppTree> {
     // First, try to find an existing files tree by checking all loaded app trees
     const appTrees = (space as any).appTrees;
     for (const [treeId, appTree] of appTrees) {
       if (appTree && appTree.getAppId() === "files") {
         return appTree;
       }
+    }
+
+    // Try to load any existing files tree from persistence
+    try {
+      const appTreeIds = space.getAppTreeIds();
+      for (const treeId of appTreeIds) {
+        const appTree = await space.loadAppTree(treeId);
+        if (appTree && appTree.getAppId() === "files") {
+          return appTree;
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to load existing files tree:", error);
     }
 
     // If no files tree exists, create one using createNewFilesTree to ensure proper structure

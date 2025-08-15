@@ -20,6 +20,13 @@ How Sila handles binary file storage and management:
 - Chat attachments integration
 - On-disk layout and metadata
 
+### [Electron Custom File Protocol](./electron-file-protocol.md)
+How Sila serves files directly from CAS using a custom protocol:
+- `sila://` protocol implementation
+- Space-aware file serving
+- Performance optimization
+- Security considerations
+
 ### [Testing](./testing.md)
 Testing infrastructure and practices in Sila:
 - Vitest test suite

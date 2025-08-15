@@ -191,7 +191,7 @@ export class ChatAppData {
       const store = this.space.getFileStore();
       if (store) {
         // Use the default files tree for all attachments
-        const filesTree = FilesTreeData.getOrCreateDefaultFilesTree(this.space);
+        const filesTree = await FilesTreeData.getOrCreateDefaultFilesTree(this.space);
         const now = new Date();
         const parentFolder = FilesTreeData.ensureFolderPath(filesTree, [
           now.getUTCFullYear().toString(),
