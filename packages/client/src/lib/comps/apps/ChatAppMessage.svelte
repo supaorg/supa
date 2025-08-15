@@ -307,7 +307,17 @@
             {#if attachments && attachments.length > 0}
               <div class="mt-2 flex flex-wrap gap-2">
                 {#each attachments as att (att.id)}
-                  {#if att.kind === 'image' && (att.fileUrl || att.dataUrl)}
+                  {#if att.kind === 'text' && (att.fileUrl || att.dataUrl)}
+                    <div class="mt-2 border rounded-lg p-3 bg-surface-50-950">
+                      <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium">{att.name}</span>
+                        <span class="text-xs opacity-60">
+                          {att.alt || 'text'} • {att.width || 'unknown'} lines
+                        </span>
+                      </div>
+                      <iframe src={att.fileUrl || att.dataUrl} class="w-full h-48 border-0" title={att.name}></iframe>
+                    </div>
+                  {:else if att.kind === 'image' && (att.fileUrl || att.dataUrl)}
                     <img src={att.fileUrl || att.dataUrl} alt={att.name} class="rounded border object-contain max-w-[240px] max-h-[200px]" />
                   {:else if att.kind === 'file' && (att.fileUrl || att.dataUrl)}
                     {#if isViewableFile(att.mimeType)}
