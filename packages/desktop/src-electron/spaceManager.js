@@ -21,9 +21,6 @@ class SpaceManager {
       name,
       createdAt: createdAt || new Date()
     });
-    console.log(`Registered space: ${spaceId} -> ${rootPath}`);
-    console.log(`Total spaces in manager: ${this.spaces.size}`);
-    console.log(`All spaces:`, Array.from(this.spaces.keys()));
   }
 
   /**
@@ -31,11 +28,7 @@ class SpaceManager {
    * @param {string} spaceId - The space ID to unregister
    */
   unregisterSpace(spaceId) {
-    const removed = this.spaces.delete(spaceId);
-    if (removed) {
-      console.log(`Unregistered space: ${spaceId}`);
-    }
-    return removed;
+    return this.spaces.delete(spaceId);
   }
 
   /**
@@ -44,11 +37,7 @@ class SpaceManager {
    * @returns {string|null} The space root path or null if not found
    */
   getSpaceRootPath(spaceId) {
-    console.log(`Looking up space: ${spaceId}`);
-    console.log(`Total spaces in manager: ${this.spaces.size}`);
-    console.log(`Available space IDs:`, Array.from(this.spaces.keys()));
     const space = this.spaces.get(spaceId);
-    console.log(`Space found:`, !!space);
     return space ? space.rootPath : null;
   }
 
@@ -77,7 +66,6 @@ class SpaceManager {
    */
   clear() {
     this.spaces.clear();
-    console.log('Cleared all registered spaces');
   }
 }
 

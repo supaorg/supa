@@ -173,6 +173,35 @@ The protocol returns appropriate HTTP status codes:
 - Scalable to any file size
 - Fast loading regardless of file size
 
+## Streaming Support
+
+The protocol supports HTTP range requests for efficient streaming of large files like videos:
+
+### How It Works
+1. **Browser Detection**: When using `<video>` or `<audio>` elements, browsers automatically send range requests
+2. **Range Requests**: Browser requests specific byte ranges (e.g., `bytes=0-1023`)
+3. **Chunked Response**: Protocol handler serves only the requested chunks
+4. **Seekable Media**: Users can jump to any position in videos/audio
+
+### Example
+```html
+<video src="sila://spaces/space-123/files/video-hash?type=video/mp4" controls />
+```
+
+The browser automatically sends requests like:
+```
+Range: bytes=0-1023
+Range: bytes=1024-2047
+Range: bytes=2048-3071
+...
+```
+
+### Benefits
+- **Memory Efficient**: Only requested chunks are loaded
+- **Seekable**: Users can jump to any position
+- **Progressive**: Media loads as needed
+- **Bandwidth Optimized**: Only necessary data is transferred
+
 ## Debugging
 
 ### Main Process Logs
@@ -198,6 +227,97 @@ Registering space: space-123 /path/to/space
 3. **Streaming**: Support for large video files
 4. **Thumbnails**: Automatic thumbnail generation for images
 5. **CDN Integration**: Support for external file storage
+
+## Streaming Support for Large Files
+
+For large files like videos, the current implementation loads the entire file into memory. To support streaming, we can enhance the protocol handler to:
+
+### 1. Range Request Support
+
+Handle HTTP `Range` headers for partial content requests:
+
+```javascript
+protocol.handle('sila', async (request) => {
+  const range = request.headers.get('range');
+  if (range) {
+    // Parse range: bytes=0-1023
+    const match = range.match(/bytes=(\d+)-(\d*)/);
+    if (match) {
+      const start = parseInt(match[1]);
+      const end = match[2] ? parseInt(match[2]) : null;
+      return streamFileRange(filePath, start, end, mimeType);
+    }
+  }
+  // Fall back to full file response
+});
+```
+
+### 2. Streaming Implementation
+
+```javascript
+async function streamFileRange(filePath, start, end, mimeType) {
+  const stat = await fs.stat(filePath);
+  const fileSize = stat.size;
+  
+  const actualEnd = end || fileSize - 1;
+  const contentLength = actualEnd - start + 1;
+  
+  const stream = fs.createReadStream(filePath, { start, end: actualEnd });
+  
+  const headers = {
+    'Content-Range': `bytes ${start}-${actualEnd}/${fileSize}`,
+    'Accept-Ranges': 'bytes',
+    'Content-Length': contentLength.toString()
+  };
+  
+  if (mimeType) {
+    headers['Content-Type'] = mimeType;
+  }
+  
+  return new Response(stream, { 
+    status: 206, // Partial Content
+    headers 
+  });
+}
+```
+
+### 3. Video-Specific Optimizations
+
+For video files, we can add:
+
+- **Chunked Transfer**: Stream in smaller chunks for better memory management
+- **Adaptive Bitrate**: Serve different quality versions based on network conditions
+- **Preload Hints**: Provide metadata for better buffering
+- **Caching Headers**: Optimize caching for video content
+
+### 4. Implementation Strategy
+
+1. **Detect Large Files**: Use file size threshold (e.g., > 10MB)
+2. **Check Range Headers**: Browser automatically sends range requests for videos
+3. **Stream Response**: Use Node.js streams instead of loading entire file
+4. **Memory Management**: Monitor memory usage and implement cleanup
+
+### 5. Example Usage
+
+```html
+<!-- Browser automatically handles range requests for video streaming -->
+<video src="sila://spaces/space-123/files/video-hash?type=video/mp4" controls>
+  <source src="sila://spaces/space-123/files/video-hash?type=video/mp4" type="video/mp4">
+</video>
+```
+
+The browser will automatically send range requests like:
+```
+Range: bytes=0-1023
+Range: bytes=1024-2047
+...
+```
+
+This enables:
+- **Seekable Video**: Users can jump to any position
+- **Progressive Loading**: Video loads as needed
+- **Bandwidth Optimization**: Only requested chunks are transferred
+- **Memory Efficiency**: No large file loading into memory
 
 ## Related Files
 

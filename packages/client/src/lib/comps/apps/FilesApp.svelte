@@ -97,14 +97,7 @@
     
     // Use the electron file system API if available
     if ((window as any).electronFileSystem) {
-      const url = (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType);
-      console.log('Generated file URL:', {
-        spaceId,
-        hash,
-        mimeType,
-        url
-      });
-      return url;
+      return (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType);
     }
     
     // Fallback to data URL if electron API not available

@@ -138,12 +138,8 @@ export class ClientState {
       this._spaceStates = pointers.map(pointer => new SpaceState(pointer, this._spaceManager));
 
       // Register existing spaces with electron file system for file protocol
-      console.log('Checking for electron file system API...');
-      console.log('window.electronFileSystem available:', typeof window !== 'undefined' && !!(window as any).electronFileSystem);
       if (typeof window !== 'undefined' && (window as any).electronFileSystem) {
-        console.log('Registering existing spaces with electron file system...');
         for (const pointer of pointers) {
-          console.log('Registering space:', pointer.id, pointer.uri);
           (window as any).electronFileSystem.registerSpace(
             pointer.id,
             pointer.uri,
@@ -151,8 +147,6 @@ export class ClientState {
             pointer.createdAt
           );
         }
-      } else {
-        console.warn('Electron file system API not available during initialization');
       }
 
       // Check authentication and filter spaces (dummy for now)
@@ -437,15 +431,12 @@ export class ClientState {
 
     // Register space with electron file system for file protocol
     if (typeof window !== 'undefined' && (window as any).electronFileSystem) {
-      console.log('Registering loaded space with electron file system:', spaceId, spaceRootPath);
       (window as any).electronFileSystem.registerSpace(
         spaceId, 
         spaceRootPath, 
         space.name || null, 
         space.createdAt
       );
-    } else {
-      console.warn('Electron file system API not available when loading space:', spaceId);
     }
 
     // Update pointer with actual space metadata
@@ -493,9 +484,7 @@ export class ClientState {
    */
   private _registerSpacesWithElectron(): void {
     if (typeof window !== 'undefined' && (window as any).electronFileSystem) {
-      console.log('Registering spaces with electron file system (delayed)...');
       for (const pointer of this.pointers) {
-        console.log('Registering space:', pointer.id, pointer.uri);
         (window as any).electronFileSystem.registerSpace(
           pointer.id,
           pointer.uri,
@@ -505,7 +494,6 @@ export class ClientState {
       }
     } else {
       // Poll for API availability
-      console.log('Electron file system API not available, will retry...');
       setTimeout(() => this._registerSpacesWithElectron(), 1000);
     }
   }
