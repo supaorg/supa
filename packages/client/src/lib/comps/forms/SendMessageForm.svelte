@@ -326,7 +326,7 @@
         {#if pendingAttachments.length > 0}
           <div class="flex flex-wrap gap-2 px-2 pt-2">
             {#each pendingAttachments as att (att.id)}
-              <div class="relative group border rounded-md p-1 bg-surface-100-900">
+              <div class="relative group rounded-md p-1 bg-surface-100-900">
                 {#if att.kind === 'text' && att.metadata}
                   <div class="text-xs opacity-70 border rounded px-2 py-1">
                     <div class="font-medium">{att.name}</div>
@@ -354,7 +354,11 @@
             {#if attachEnabled}
               <ContextMenu open={attachmentsMenuOpen} onOpenChange={(e) => attachmentsMenuOpen = e.open} placement="top" maxWidth="280px">
                 {#snippet trigger()}
-                  <button class="flex items-center justify-center h-9 w-9 p-0" aria-label="Add attachments" {disabled}>
+                  <button 
+                    class="flex items-center justify-center h-9 w-9 rounded-container transition-colors preset-outlined-surface-200-800" 
+                    aria-label="Add attachments" 
+                    {disabled}
+                  >
                     <Plus size={20} />
                   </button>
                 {/snippet}
@@ -378,7 +382,7 @@
             {#if status === "ai-message-in-progress"}
               <button
                 onclick={stopMsg}
-                class="flex items-center justify-center h-9 w-9 p-0"
+                class="flex items-center justify-center h-9 w-9 rounded-container transition-colors preset-outlined-surface-200-800"
                 aria-label={$txtStore.messageForm.stop}
               >
                 <StopCircle size={20} />
@@ -386,8 +390,9 @@
             {:else}
               <button
                 onclick={sendMsg}
-                class="flex items-center justify-center h-9 w-9 p-0"
-                class:text-primary-500={canSendMessage}
+                class="flex items-center justify-center h-9 w-9 rounded-container transition-colors"
+                class:preset-outlined-primary-500={canSendMessage}
+                class:preset-outlined-surface-200-800={!canSendMessage}
                 class:opacity-50={!canSendMessage}
                 disabled={!canSendMessage}
                 aria-label={$txtStore.messageForm.send}
