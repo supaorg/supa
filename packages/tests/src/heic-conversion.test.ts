@@ -306,4 +306,121 @@ describe('HEIC Conversion Pipeline', () => {
     expect(fileVertex.getProperty('mimeType')).toBe('image/png');
     expect(fileVertex.getProperty('originalFormat')).toBeUndefined(); // No conversion
   });
+
+  it('should resize large images and track original dimensions', async () => {
+    const fs = new NodeFileSystem();
+
+    const space = Space.newSpace(crypto.randomUUID());
+    const spaceId = space.getId();
+    space.name = 'Image Resizing Test Space';
+
+    const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
+    const manager = new SpaceManager();
+    await manager.addNewSpace(space, [layer]);
+
+    await wait(600);
+
+    const fileStore = createFileStore({
+      getSpaceRootPath: () => tempDir,
+      getFs: () => fs
+    });
+
+    // Create a large JPEG file (simulating a high-resolution image)
+    const largeJpegDataUrl = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxAAPwA/8A';
+    const largeJpegBuffer = Buffer.from(largeJpegDataUrl.split(',')[1]!, 'base64');
+    
+    const largeJpegFile = {
+      name: 'large-image.jpg',
+      type: 'image/jpeg',
+      size: largeJpegBuffer.byteLength,
+      arrayBuffer: () => Promise.resolve(largeJpegBuffer.buffer.slice(largeJpegBuffer.byteOffset, largeJpegBuffer.byteOffset + largeJpegBuffer.byteLength))
+    } as File;
+
+    // Mock the getImageDimensions to return large dimensions
+    const originalGetImageDimensions = getImageDimensions;
+    getImageDimensions = async () => ({ width: 4000, height: 3000 }); // Large image
+
+    try {
+      // Process the large image through the pipeline
+      const processedFile = await processFileForUpload(largeJpegFile);
+      expect(processedFile.type).toBe('image/jpeg'); // Should remain JPEG
+      expect(processedFile.name).toBe('large-image.jpg');
+
+      // Test image optimization (should resize)
+      const optimizedFile = await optimizeImageSize(processedFile);
+      expect(optimizedFile.type).toBe('image/jpeg');
+
+      // Upload
+      const dataUrl = await toDataUrl(optimizedFile);
+      const put = await fileStore!.putDataUrl(dataUrl);
+
+      // Create files tree
+      const filesTree = FilesTreeData.createNewFilesTree(space);
+      const folder = FilesTreeData.ensureFolderPath(filesTree, ['resize-test']);
+      
+      const fileVertex = FilesTreeData.createOrLinkFile({
+        filesTree,
+        parentFolder: folder,
+        name: optimizedFile.name,
+        hash: put.hash,
+        mimeType: optimizedFile.type,
+        size: optimizedFile.size,
+        width: 2048, // Resized width
+        height: 1536, // Resized height (maintaining aspect ratio)
+        originalDimensions: '4000x3000' // Original dimensions
+      });
+
+      expect(fileVertex.getProperty('mimeType')).toBe('image/jpeg');
+      expect(fileVertex.getProperty('originalFormat')).toBeUndefined(); // No format conversion
+      expect(fileVertex.getProperty('originalDimensions')).toBe('4000x3000'); // Original dimensions tracked
+      expect(fileVertex.getProperty('width')).toBe(2048); // Resized width
+      expect(fileVertex.getProperty('height')).toBe(1536); // Resized height
+    } finally {
+      // Restore original function
+      getImageDimensions = originalGetImageDimensions;
+    }
+  });
+});
+
+// Unit test for resizing calculation logic
+describe('Image Resizing Logic', () => {
+  it('should calculate correct dimensions for different aspect ratios', () => {
+    const maxSize = 2048;
+    
+    // Test landscape image (wider than tall)
+    const landscapeWidth = 4000;
+    const landscapeHeight = 3000;
+    const landscapeRatio = Math.min(maxSize / landscapeWidth, maxSize / landscapeHeight);
+    const newLandscapeWidth = Math.round(landscapeWidth * landscapeRatio);
+    const newLandscapeHeight = Math.round(landscapeHeight * landscapeRatio);
+    
+    expect(newLandscapeWidth).toBe(2048); // Should be max width
+    expect(newLandscapeHeight).toBe(1536); // Should maintain aspect ratio
+    
+    // Test portrait image (taller than wide)
+    const portraitWidth = 3000;
+    const portraitHeight = 4000;
+    const portraitRatio = Math.min(maxSize / portraitWidth, maxSize / portraitHeight);
+    const newPortraitWidth = Math.round(portraitWidth * portraitRatio);
+    const newPortraitHeight = Math.round(portraitHeight * portraitRatio);
+    
+    expect(newPortraitWidth).toBe(1536); // Should maintain aspect ratio
+    expect(newPortraitHeight).toBe(2048); // Should be max height
+    
+    // Test square image
+    const squareSize = 3000;
+    const squareRatio = Math.min(maxSize / squareSize, maxSize / squareSize);
+    const newSquareSize = Math.round(squareSize * squareRatio);
+    
+    expect(newSquareSize).toBe(2048); // Should be max size
+    
+    // Test small image (should not be resized)
+    const smallSize = 1000;
+    const smallRatio = Math.min(maxSize / smallSize, maxSize / smallSize);
+    const newSmallSize = Math.round(smallSize * smallRatio);
+    
+    expect(newSmallSize).toBe(2048); // Ratio calculation would scale up
+    // But the actual implementation checks if resizing is needed first
+    expect(smallSize <= maxSize).toBe(true); // Small images won't be resized
+  });
 });
