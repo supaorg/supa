@@ -21,12 +21,16 @@ export class Backend {
         throw new Error(`App tree with id ${appTreeId} not found`);
       }
 
-      if (appTree.getAppId() !== "default-chat") {
-        console.warn(`There's no backend for app ${appTree.getAppId()}`);
-        return;
+      const appId = appTree.getAppId();
+      
+      if (appId === "default-chat") {
+        this.appBackends.push(new ChatAppBackend(space, appTree));
+      } else if (appId === "files") {
+        // Files app trees don't need a backend for now
+        console.log(`Files app tree loaded: ${appTreeId}`);
+      } else {
+        console.warn(`There's no backend for app ${appId}`);
       }
-
-      this.appBackends.push(new ChatAppBackend(space, appTree));
     });
   }
 }

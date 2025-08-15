@@ -1,14 +1,15 @@
 import type { Vertex } from "reptree";
 import { AppTree } from "../AppTree";
 import type { Space } from "../Space";
+import { FilesAppData } from "./FilesAppData";
 
 export class FilesTreeData {
 	static createNewFilesTree(space: Space): AppTree {
-		const tree = space.newAppTree(crypto.randomUUID()).tree;
-		const root = tree.root!;
-		root.setProperty("appKind", "files");
-		root.newNamedChild("files");
-		return new AppTree(tree);
+		return FilesAppData.createNewFilesTree(space);
+	}
+
+	static getOrCreateDefaultFilesTree(space: Space): AppTree {
+		return FilesAppData.getOrCreateDefaultFilesTree(space);
 	}
 
 	static ensureFolderPath(filesTree: AppTree, segments: string[]): Vertex {

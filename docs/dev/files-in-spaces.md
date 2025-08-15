@@ -37,7 +37,8 @@ A dedicated app tree holds folders and files as vertices; this is a browsable lo
   - Optional: `mimeType`, `size`, `width`, `height`, `alt`, `tags[]`, `createdAt`
 
 Helper APIs in `@sila/core`:
-- `FilesTreeData.createNewFilesTree(space)` → creates an app tree and marks root with `appKind: 'files'` and `files` folder
+- `FilesTreeData.createNewFilesTree(space)` → creates an app tree and marks root with `appId: 'files'` and `name: 'Files'` and `files` folder
+- `FilesTreeData.getOrCreateDefaultFilesTree(space)` → gets existing files tree or creates a new one (reused for all attachments)
 - `FilesTreeData.ensureFolderPath(filesTree, [segments])` → creates/returns nested folders
 - `FilesTreeData.createOrLinkFile({...})` → creates a file vertex with metadata or returns existing
 

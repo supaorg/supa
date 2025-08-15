@@ -369,4 +369,112 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(originalAttachments).toHaveLength(1);
 		expect(originalAttachments[0].dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
 	});
+
+	it('creates files app tree with correct appId and name', async () => {
+		// Test that files app trees are created with the correct appId and name
+		
+		const space = Space.newSpace(crypto.randomUUID());
+		const filesTree = FilesTreeData.createNewFilesTree(space);
+		
+		// Check that the app tree has the correct appId
+		expect(filesTree.getAppId()).toBe('files');
+		
+		// Check that the root has the correct name property
+		const root = filesTree.tree.root;
+		expect(root?.getProperty('name')).toBe('Files');
+		
+		// Check that the files folder exists
+		const filesFolder = filesTree.tree.getVertexByPath('files');
+		expect(filesFolder).toBeDefined();
+	});
+
+	it('reuses the same default files tree for multiple attachments', async () => {
+		// Test that multiple calls to getOrCreateDefaultFilesTree return the same tree
+		
+		const space = Space.newSpace(crypto.randomUUID());
+		
+		// First call should create a new tree
+		const filesTree1 = FilesTreeData.getOrCreateDefaultFilesTree(space);
+		const treeId1 = filesTree1.getId();
+		
+		// Second call should return the same tree
+		const filesTree2 = FilesTreeData.getOrCreateDefaultFilesTree(space);
+		const treeId2 = filesTree2.getId();
+		
+		// Third call should also return the same tree
+		const filesTree3 = FilesTreeData.getOrCreateDefaultFilesTree(space);
+		const treeId3 = filesTree3.getId();
+		
+		// All should be the same tree
+		expect(treeId1).toBe(treeId2);
+		expect(treeId2).toBe(treeId3);
+		expect(treeId1).toBe(treeId3);
+		
+		// Verify it's a files tree
+		expect(filesTree1.getAppId()).toBe('files');
+		expect(filesTree2.getAppId()).toBe('files');
+		expect(filesTree3.getAppId()).toBe('files');
+	});
+
+
+
+	it('uses the same default files tree for multiple messages with attachments', async () => {
+		// Test that multiple messages with attachments all use the same default files tree
+		
+		const space = Space.newSpace(crypto.randomUUID());
+		const fs = new NodeFileSystem();
+		
+		// Connect file store to space
+		space.setFileStoreProvider({
+			getSpaceRootPath: () => tempDir,
+			getFs: () => fs
+		});
+
+		// Create a chat app tree
+		const appTree = ChatAppData.createNewChatTree(space, 'test-config');
+		const chatData = new ChatAppData(space, appTree);
+
+		// Create attachments
+		const attachment1 = {
+			id: 'att1',
+			kind: 'image',
+			name: 'test1.png',
+			dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=',
+			mimeType: 'image/png',
+			size: 68
+		};
+
+		const attachment2 = {
+			id: 'att2',
+			kind: 'image',
+			name: 'test2.png',
+			dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=',
+			mimeType: 'image/png',
+			size: 68
+		};
+
+		// Create first message with attachment
+		const message1 = await chatData.newMessage('user', 'First message with image', undefined, [attachment1]);
+		
+		// Create second message with attachment
+		const message2 = await chatData.newMessage('user', 'Second message with image', undefined, [attachment2]);
+
+		// Get the file references from both messages
+		const message1Attachments = (message1 as any).attachments;
+		const message2Attachments = (message2 as any).attachments;
+		
+		expect(message1Attachments).toHaveLength(1);
+		expect(message2Attachments).toHaveLength(1);
+		
+		// Both should reference the same files tree
+		const treeId1 = message1Attachments[0].file.tree;
+		const treeId2 = message2Attachments[0].file.tree;
+		
+		expect(treeId1).toBe(treeId2);
+		
+		// Verify it's a files tree
+		const filesTree = await space.loadAppTree(treeId1);
+		expect(filesTree).toBeDefined();
+		expect(filesTree!.getAppId()).toBe('files');
+	});
 });

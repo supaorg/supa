@@ -1,4 +1,5 @@
 import ChatAppLoader from "@sila/client/comps/apps/ChatAppLoader.svelte";
+import FilesAppLoader from "@sila/client/comps/apps/FilesAppLoader.svelte";
 import Sidebar from "@sila/client/comps/sidebar/Sidebar.svelte";
 import SidebarToggle from "@sila/client/comps/sidebar/SidebarToggle.svelte";
 import {
@@ -146,6 +147,7 @@ export class LayoutStore {
   private _setupTtabs(): void {
     this.ttabs.registerComponent('sidebar', Sidebar);
     this.ttabs.registerComponent('chat', ChatAppLoader);
+    this.ttabs.registerComponent('files', FilesAppLoader);
     this.ttabs.registerComponent('sidebarToggle', SidebarToggle);
     this.ttabs.registerComponent('noTabsContent', DefaultAppPage);
 
@@ -243,6 +245,50 @@ export class LayoutStore {
 
     // Set the component for the tab
     this.ttabs.setComponent(tab, 'chat', { treeId });
+    this.ttabs.setFocusedActiveTab(tab);
+  }
+
+  openFilesTab(treeId: string, name: string): void {
+    // First, check if a tab with this treeId already exists
+    const existingTabId = this._findTabByTreeId(treeId);
+    if (existingTabId) {
+      // If tab exists, just activate it
+      this.ttabs.setFocusedActiveTab(existingTabId);
+      return;
+    }
+
+    if (!this.layoutRefs.contentGrid) {
+      // Find the first non root grid
+      const grids = Object.values(this.ttabs.getTiles()).filter(tile => tile.type === 'grid' && !tile.parent);
+      if (grids.length === 0) {
+        console.error("No non root grid found");
+        return;
+      }
+      this.layoutRefs.contentGrid = grids[0].id;
+    }
+
+    const grid = this.ttabs.getGrid(this.layoutRefs.contentGrid);
+    let tab: string;
+
+    // Check for a lazy tab and if it exists, update it
+    const lazyTabs = this.ttabs.getLazyTabs(grid.id);
+
+    if (lazyTabs.length > 0) {
+      // Reuse the first lazy tab we found
+      const lazyTab = lazyTabs[0];
+      tab = lazyTab.id;
+
+      // Update the tab name
+      this.ttabs.updateTile(tab, {
+        name
+      });
+    } else {
+      // No lazy tabs found, create a new one
+      tab = this.ttabs.addTab(grid.id, name, true, true);
+    }
+
+    // Set the component for the tab
+    this.ttabs.setComponent(tab, 'files', { treeId });
     this.ttabs.setFocusedActiveTab(tab);
   }
 

@@ -8,6 +8,7 @@
 
   let appTreeId = $state<string | undefined>(undefined);
   let name = $state<string | undefined>(undefined);
+  let appId = $state<string | undefined>(undefined);
 
   let ttabs = $derived(clientState.currentSpaceState?.layout.ttabs);
 
@@ -42,7 +43,7 @@
       if (tile.type === "tab") {
         const content = ttabs.getTabContent(tile.id);
         if (
-          content?.componentId === "chat" &&
+          (content?.componentId === "chat" || content?.componentId === "files") &&
           content?.data?.componentProps?.treeId === treeId
         ) {
           return tile.id;
@@ -56,7 +57,30 @@
     const vertex = clientState.currentSpace?.getVertex(id);
     appTreeId = vertex?.getProperty("tid") as string | undefined;
     name = vertex?.getProperty("_n") as string | undefined;
+    
+    // Load the app tree to get the appId
+    if (appTreeId) {
+      loadAppTreeInfo();
+    }
   });
+
+  async function loadAppTreeInfo() {
+    if (!appTreeId) return;
+    
+    try {
+      const appTree = await clientState.currentSpace?.loadAppTree(appTreeId);
+      if (appTree) {
+        appId = appTree.getAppId();
+        // Use the name from the app tree if available
+        const appTreeName = appTree.tree.root?.getProperty("name") as string;
+        if (appTreeName) {
+          name = appTreeName;
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to load app tree info:", error);
+    }
+  }
 
   $effect(() => {
     const unobserve = clientState.currentSpace?.tree.observe(id, onSpaceChange);
@@ -82,11 +106,15 @@
     }
   }
 
-  function openChat() {
+  function openApp() {
     const layout = clientState.currentSpaceState?.layout;
 
     if (appTreeId && layout) {
-      layout.openChatTab(appTreeId, name ?? "New chat");
+      if (appId === "files") {
+        layout.openFilesTab(appTreeId, name ?? "Files");
+      } else {
+        layout.openChatTab(appTreeId, name ?? "New chat");
+      }
     }
   }
 </script>
@@ -98,7 +126,7 @@
       ${isActive ? "preset-filled-primary-500" : ""} 
       ${!isOpen ? "hover:preset-tonal" : ""}`}
   >
-    <button class="flex-grow py-1 px-2 truncate text-left" onclick={openChat}>
+    <button class="flex-grow py-1 px-2 truncate text-left" onclick={openApp}>
       <span>{name ?? "New chat"}</span>
     </button>
     {#if isActive}
