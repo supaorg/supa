@@ -412,15 +412,15 @@
                       {/if}
                     </div>
                   {:else if att.kind === 'image' && (att.fileUrl || att.dataUrl)}
-                    <img src={att.fileUrl || att.dataUrl} alt={att.name} class="rounded border object-contain max-w-[240px] max-h-[200px]" />
+                    <img src={att.fileUrl || att.dataUrl} alt={att.name} class="rounded object-contain max-w-[240px] max-h-[200px]" />
                   {:else if att.kind === 'file' && (att.fileUrl || att.dataUrl)}
                     {#if isViewableFile(att.mimeType)}
                       {#if att.mimeType?.startsWith('video/')}
-                        <video src={att.fileUrl || att.dataUrl} controls class="rounded border object-contain max-w-[240px] max-h-[200px]">
+                        <video src={att.fileUrl || att.dataUrl} controls class="rounded object-contain max-w-[240px] max-h-[200px]">
                           <track kind="captions" />
                         </video>
                       {:else if att.mimeType === 'application/pdf'}
-                        <iframe src={att.fileUrl || att.dataUrl} class="rounded border w-[240px] h-[200px]" title={att.name}></iframe>
+                        <iframe src={att.fileUrl || att.dataUrl} class="rounded w-[240px] h-[200px]" title={att.name}></iframe>
                       {:else}
                         <div class="text-xs opacity-70 border rounded px-2 py-1">{att.name}</div>
                       {/if}
