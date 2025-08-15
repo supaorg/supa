@@ -94,10 +94,13 @@ export class ChatAppData {
   async resolveMessageAttachments(message: ThreadMessage): Promise<ThreadMessage> {
     const attachments = (message as any).attachments;
     if (!attachments || attachments.length === 0) {
+      console.log('No attachments to resolve for message:', message.id);
       return message;
     }
 
+    console.log('Resolving attachments for message:', message.id, 'attachments:', attachments);
     const resolvedAttachments = await this.fileResolver.resolveAttachments(attachments);
+    console.log('Resolved attachments:', resolvedAttachments);
     
     // Create a new message object with resolved attachments
     return {

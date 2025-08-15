@@ -110,6 +110,13 @@ describe('AI Image Bug Reproduction', () => {
       }
     ]);
 
+    // Debug: Check if attachments were stored correctly
+    console.log('User message created:', userMessage);
+    console.log('User message attachments:', (userMessage as any).attachments);
+    
+    // Wait a moment for any async operations to complete
+    await wait(1000);
+
     // Debug: Check what app backends were created
     console.log('App backends created:', backend['appBackends'].length);
     console.log('App tree ID:', chatTree.getId());
@@ -226,6 +233,13 @@ describe('AI Image Bug Reproduction', () => {
         dataUrl: catImageDataUrl
       }
     ]);
+
+    // Debug: Check if attachments were stored correctly
+    console.log('User message created (test 2):', userMessage);
+    console.log('User message attachments (test 2):', (userMessage as any).attachments);
+    
+    // Wait a moment for any async operations to complete
+    await wait(1000);
 
     // Wait for backend to initialize and process the first message
     await wait(2000);
