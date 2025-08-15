@@ -226,10 +226,12 @@
 <div class="flex flex-col w-full h-full overflow-hidden">
   <div 
     class="flex-grow overflow-y-auto pt-2"
-    class:bg-primary-500/10={isDragOver}
+    class:bg-blue-50={isDragOver}
     class:border-2={isDragOver}
     class:border-dashed={isDragOver}
-    class:border-primary-500={isDragOver}
+    class:border-blue-500={isDragOver}
+    role="button"
+    tabindex="0"
     ondragover={handleDragOver}
     ondragleave={handleDragLeave}
     ondrop={handleDrop}
