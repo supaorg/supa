@@ -8,6 +8,7 @@
   import { txtStore } from "@sila/client/state/txtStore";
   import { clientState } from "@sila/client/state/clientState.svelte";
   import type { ChatAppData } from "@sila/core";
+  import { processFileForUpload, optimizeImageSize, toDataUrl, getImageDimensions } from "@sila/client/utils/fileProcessing";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
@@ -122,20 +123,32 @@
 
     const previews: AttachmentPreview[] = [];
     for (const file of selected) {
-      // Only images for Phase 1
-      if (!file.type.startsWith('image/')) continue;
-      const dataUrl = await toDataUrl(file);
-      const dims = await getImageDimensions(dataUrl);
-      previews.push({
-        id: crypto.randomUUID(),
-        kind: 'image',
-        name: file.name,
-        mimeType: file.type,
-        size: file.size,
-        dataUrl,
-        width: dims?.width,
-        height: dims?.height,
-      });
+      try {
+        // Step 1: Process file (convert HEIC if needed)
+        const processedFile = await processFileForUpload(file);
+        
+        // Step 2: Resize image if needed (2048x2048 max)
+        const optimizedFile = await optimizeImageSize(processedFile);
+        
+        // Only images for Phase 1
+        if (!optimizedFile.type.startsWith('image/')) continue;
+        
+        const dataUrl = await toDataUrl(optimizedFile);
+        const dims = await getImageDimensions(dataUrl);
+        
+        previews.push({
+          id: crypto.randomUUID(),
+          kind: 'image',
+          name: optimizedFile.name, // Use converted filename
+          mimeType: optimizedFile.type, // Use optimized MIME type
+          size: optimizedFile.size,
+          dataUrl,
+          width: dims?.width,
+          height: dims?.height,
+        });
+      } catch (error) {
+        console.error(`Failed to process ${file.name}:`, error);
+      }
     }
 
     pendingAttachments = [...pendingAttachments, ...previews];
@@ -152,23 +165,7 @@
     fileInputEl?.click();
   }
 
-  function toDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
 
-  function getImageDimensions(src: string): Promise<{ width: number; height: number } | null> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve({ width: img.width, height: img.height });
-      img.onerror = () => resolve(null);
-      img.src = src;
-    });
-  }
 
   function adjustTextareaHeight() {
     if (!textareaElement) return;

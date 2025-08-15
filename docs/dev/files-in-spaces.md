@@ -35,6 +35,7 @@ A dedicated app tree holds folders and files as vertices; this is a browsable lo
   - `_n: "file"`, `name: string`
   - `hash: "<hex>"`
   - Optional: `mimeType`, `size`, `width`, `height`, `alt`, `tags[]`, `createdAt`
+  - Conversion metadata: `originalFormat`, `conversionQuality`, `originalDimensions`, `originalFilename`
 
 Helper APIs in `@sila/core`:
 - `FilesTreeData.createNewFilesTree(space)` → creates an app tree and marks root with `appId: 'files'` and `name: 'Files'` and `files` folder
@@ -72,12 +73,33 @@ Internals:
 - Derives CAS path; writes only if it does not exist
 - `getDataUrl` returns a `data:application/octet-stream;base64,...` for previews; callers may override MIME when known
 
+### File Conversion Pipeline
+Sila automatically processes uploaded files to ensure optimal compatibility and performance:
+
+**HEIC to JPEG Conversion:**
+- HEIC files from iPhones are automatically converted to JPEG format
+- Original filename is preserved with `.jpg` extension (e.g., `IMG_1234.HEIC` → `IMG_1234.jpg`)
+- Conversion metadata is stored: `originalFormat`, `conversionQuality`, `originalFilename`
+
+**Image Size Optimization:**
+- Images larger than 2048x2048 pixels are automatically resized
+- Aspect ratio is maintained during resizing
+- Original dimensions are tracked in `originalDimensions` metadata
+- Quality is optimized to 85% JPEG for good file size vs quality balance
+
+**Extensibility:**
+- The conversion pipeline uses a pluggable architecture via `HeicConverter` interface
+- Browser environment uses `heic2any` library for actual conversion
+- Node.js environment uses mock converter for testing
+- Additional format conversions (WebP, AVIF) can be easily added
+
 ### Read/Write flows
 - Write:
   - UI obtains data URLs or bytes
+  - **File processing**: HEIC conversion and image optimization applied
   - `fileStore.putDataUrl(...)` or `fileStore.putBytes(...)` → returns `hash`
   - Ensure `files/YYYY/MM/DD` folder exists in Files AppTree
-  - Create a `file` vertex with `hash` and metadata
+  - Create a `file` vertex with `hash` and metadata (including conversion info)
   - Attach JSON references from messages to the file vertex if needed
 - Read:
   - Resolve message file reference to the file vertex

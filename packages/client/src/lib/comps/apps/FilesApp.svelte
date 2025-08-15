@@ -4,6 +4,7 @@
   import type { Vertex } from "@sila/core";
   import { Folder, File as FileIcon, Upload, Plus } from "lucide-svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
+  import { processFileForUpload, optimizeImageSize, toDataUrl, getImageDimensions } from "@sila/client/utils/fileProcessing";
 
   let { data }: { data: FilesAppData } = $props();
 
@@ -141,32 +142,51 @@
       
       for (const file of fileList) {
         try {
-          // Convert file to data URL
-          const dataUrl = await toDataUrl(file);
+          // Step 1: Process file (convert HEIC if needed)
+          const processedFile = await processFileForUpload(file);
           
-          // Upload to file store
+          // Step 2: Resize image if needed (2048x2048 max)
+          const optimizedFile = await optimizeImageSize(processedFile);
+          
+          // Step 3: Convert to data URL
+          const dataUrl = await toDataUrl(optimizedFile);
+          
+          // Step 4: Upload to CAS (deduplication happens here)
           const put = await store.putDataUrl(dataUrl);
           
-          // Get image dimensions if it's an image
+          // Step 5: Get image dimensions if it's an image
           let width: number | undefined;
           let height: number | undefined;
-          if (file.type.startsWith('image/')) {
+          let originalDimensions: string | undefined;
+          if (optimizedFile.type.startsWith('image/')) {
             const dims = await getImageDimensions(dataUrl);
             width = dims?.width;
             height = dims?.height;
+            
+            // If the file was resized, get original dimensions
+            if (processedFile !== file || optimizedFile !== processedFile) {
+              const originalDims = await getImageDimensions(await toDataUrl(file));
+              if (originalDims) {
+                originalDimensions = `${originalDims.width}x${originalDims.height}`;
+              }
+            }
           }
           
-          // Create file vertex in current folder
+          // Step 6: Create vertex with converted filename and optimized data
           const { FilesTreeData } = await import("@sila/core");
           FilesTreeData.createOrLinkFile({
             filesTree,
             parentFolder: currentFolder,
-            name: file.name,
-            hash: put.hash,
-            mimeType: file.type,
-            size: file.size,
+            name: optimizedFile.name, // Use converted filename
+            hash: put.hash,  // Hash of optimized data
+            mimeType: optimizedFile.type, // Optimized MIME type
+            size: optimizedFile.size,
             width,
-            height
+            height,
+            originalFormat: file.type !== optimizedFile.type ? file.type : undefined,
+            conversionQuality: file.type !== optimizedFile.type ? 0.85 : undefined,
+            originalDimensions,
+            originalFilename: file.name !== optimizedFile.name ? file.name : undefined
           });
           
         } catch (error) {
@@ -180,23 +200,7 @@
     }
   }
 
-  function toDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
 
-  function getImageDimensions(src: string): Promise<{ width: number; height: number } | null> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve({ width: img.width, height: img.height });
-      img.onerror = () => resolve(null);
-      img.src = src;
-    });
-  }
 
   // Drag and drop handlers
   function handleDragOver(e: DragEvent) {
@@ -332,6 +336,15 @@
                   {/if}
                   {#if file.getProperty("width") && file.getProperty("height")}
                     <div>Dimensions: {file.getProperty("width")} × {file.getProperty("height")}</div>
+                  {/if}
+                  {#if file.getProperty("originalFormat")}
+                    <div class="text-blue-600">Converted from: {file.getProperty("originalFormat")}</div>
+                    {#if file.getProperty("originalFilename")}
+                      <div class="text-blue-600">Original: {file.getProperty("originalFilename")}</div>
+                    {/if}
+                  {/if}
+                  {#if file.getProperty("originalDimensions")}
+                    <div class="text-blue-600">Original dimensions: {file.getProperty("originalDimensions")}</div>
                   {/if}
                 </div>
               </div>
