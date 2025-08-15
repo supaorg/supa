@@ -41,10 +41,14 @@
     vertex.setProperty(key, value);
   }
 
-  function getPropertyType(value: any): 'string' | 'number' | 'boolean' | 'other' {
+  function getPropertyType(value: any): 'string' | 'number' | 'boolean' | 'object' | 'array' | 'other' {
     if (typeof value === 'string') return 'string';
     if (typeof value === 'number') return 'number';
     if (typeof value === 'boolean') return 'boolean';
+    if (typeof value === 'object' && value !== null) {
+      if (Array.isArray(value)) return 'array';
+      return 'object';
+    }
     return 'other';
   }
 
@@ -137,6 +141,8 @@
                 onchange={(e) => handleBooleanChange(key, e)}
               />
             </label>
+          {:else if getPropertyType(value) === 'object' || getPropertyType(value) === 'array'}
+            <pre class="property-value font-mono text-xs bg-surface-500/20 p-2 rounded border max-w-full overflow-auto whitespace-pre-wrap">{JSON.stringify(value, null, 2)}</pre>
           {:else}
             <span class="property-value font-mono text-xs">{formatPropertyValue(key, value)}</span>
           {/if}
