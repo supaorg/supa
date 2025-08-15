@@ -62,13 +62,7 @@ Guidelines and rules for AI-assisted development:
 
 ## Proposals
 
-See [proposals](./proposals/) for feature proposals and design documents:
-- File attachments
-- Build scripts
-- Demo spaces
-- GitHub setup
-- Multi-platform file system
-- Shortcuts in Electron
+See [proposals](./proposals/) for feature proposals. We delete proposals when we complete them  (in production and tested).
 
 ## Related Projects
 
