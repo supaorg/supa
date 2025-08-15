@@ -64,14 +64,8 @@ export class FileResolver {
 					}
 				} catch (error) {
 					console.warn("Failed to resolve file reference:", error);
-					// Fall back to showing just the name
-					resolved.push({
-						id: attachment.id,
-						kind: attachment.kind,
-						name: attachment.name,
-						alt: attachment.alt,
-						dataUrl: "", // Empty dataUrl indicates resolution failed
-					});
+					// Skip attachments that failed to resolve instead of including empty dataUrl
+					// This prevents AI from receiving invalid base64 data
 				}
 				continue;
 			}
@@ -150,17 +144,7 @@ export class FileResolver {
 	 * Loads an app tree by ID
 	 */
 	private async loadAppTree(treeId: string): Promise<AppTree | undefined> {
-		// First check if already loaded
-		const existingTree = this.space.getAppTree(treeId);
-		if (existingTree) {
-			return existingTree;
-		}
-
-		// Try to load via tree loader
-		if (this.space.treeLoader) {
-			return await this.space.treeLoader(treeId);
-		}
-
-		return undefined;
+		// Use the public loadAppTree method from Space
+		return await this.space.loadAppTree(treeId);
 	}
 }

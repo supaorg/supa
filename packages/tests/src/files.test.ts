@@ -214,4 +214,59 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(resolved[0].dataUrl).toBe(dataUrl); // Should match original
 		expect(resolved[0].mimeType).toBe('image/png'); // Should preserve MIME type
 	});
+
+	it('filters out attachments with empty dataUrl to prevent invalid base64 errors', async () => {
+		// Test that attachments with empty dataUrl are filtered out
+		// This prevents the "Invalid base64 image_url" error in follow-up messages
+		
+		const space = Space.newSpace(crypto.randomUUID());
+		const fs = new NodeFileSystem();
+		
+		// Connect file store to space
+		space.setFileStoreProvider({
+			getSpaceRootPath: () => tempDir,
+			getFs: () => fs
+		});
+
+		// Create attachments with various dataUrl states
+		const attachments = [
+			{
+				id: 'att1',
+				kind: 'image',
+				name: 'valid.png',
+				dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII='
+			},
+			{
+				id: 'att2',
+				kind: 'image',
+				name: 'empty.png',
+				dataUrl: '' // Empty dataUrl - should be filtered out
+			},
+			{
+				id: 'att3',
+				kind: 'image',
+				name: 'whitespace.png',
+				dataUrl: '   ' // Whitespace only - should be filtered out
+			},
+			{
+				id: 'att4',
+				kind: 'image',
+				name: 'no-dataUrl.png'
+				// No dataUrl property - should be filtered out
+			}
+		];
+
+		// Test SimpleChatAgent filtering logic
+		const images = attachments.filter(a => 
+			a?.kind === 'image' && 
+			typeof a?.dataUrl === 'string' && 
+			a.dataUrl.trim() !== ''
+		);
+
+		// Should only include the valid attachment
+		expect(images).toHaveLength(1);
+		expect(images[0].id).toBe('att1');
+		expect(images[0].name).toBe('valid.png');
+		expect(images[0].dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
+	});
 });

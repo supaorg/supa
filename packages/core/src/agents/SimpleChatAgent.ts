@@ -79,7 +79,7 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
           } as LangChatMessage;
         }
 
-        const images = ((m as any).attachments as Array<any>).filter(a => a?.kind === 'image' && typeof a?.dataUrl === 'string');
+        const images = ((m as any).attachments as Array<any>).filter(a => a?.kind === 'image' && typeof a?.dataUrl === 'string' && a.dataUrl.trim() !== '');
         if (supportsVision && images.length > 0) {
           const parts: LangContentPart[] = [];
           if (m.text && m.text.trim().length > 0) {
