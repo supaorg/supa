@@ -122,20 +122,32 @@
 
     const previews: AttachmentPreview[] = [];
     for (const file of selected) {
-      // Only images for Phase 1
-      if (!file.type.startsWith('image/')) continue;
-      const dataUrl = await toDataUrl(file);
-      const dims = await getImageDimensions(dataUrl);
-      previews.push({
-        id: crypto.randomUUID(),
-        kind: 'image',
-        name: file.name,
-        mimeType: file.type,
-        size: file.size,
-        dataUrl,
-        width: dims?.width,
-        height: dims?.height,
-      });
+      try {
+        // Step 1: Process file (convert HEIC if needed)
+        const processedFile = await processFileForUpload(file);
+        
+        // Step 2: Resize image if needed (2048x2048 max)
+        const optimizedFile = await optimizeImageSize(processedFile);
+        
+        // Only images for Phase 1
+        if (!optimizedFile.type.startsWith('image/')) continue;
+        
+        const dataUrl = await toDataUrl(optimizedFile);
+        const dims = await getImageDimensions(dataUrl);
+        
+        previews.push({
+          id: crypto.randomUUID(),
+          kind: 'image',
+          name: file.name, // Keep original filename
+          mimeType: optimizedFile.type, // Use optimized MIME type
+          size: optimizedFile.size,
+          dataUrl,
+          width: dims?.width,
+          height: dims?.height,
+        });
+      } catch (error) {
+        console.error(`Failed to process ${file.name}:`, error);
+      }
     }
 
     pendingAttachments = [...pendingAttachments, ...previews];
@@ -167,6 +179,117 @@
       img.onload = () => resolve({ width: img.width, height: img.height });
       img.onerror = () => resolve(null);
       img.src = src;
+    });
+  }
+
+  // HEIC Conversion Pipeline Functions
+  async function processFileForUpload(file: File): Promise<File> {
+    // Check if it's a HEIC file
+    if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+      try {
+        // Convert HEIC to JPEG
+        const convertedBlob = await convertHeicToJpeg(file);
+        
+        // Create new File object with converted data but original name
+        return new File([convertedBlob], file.name, {
+          type: 'image/jpeg',
+          lastModified: file.lastModified
+        });
+      } catch (error) {
+        console.warn(`HEIC conversion failed for ${file.name}, skipping:`, error);
+        throw error; // Skip this file
+      }
+    }
+    
+    // Return original file if no conversion needed
+    return file;
+  }
+
+  async function convertHeicToJpeg(heicFile: File): Promise<Blob> {
+    try {
+      // Use heic2any library for browser-based conversion
+      const { heic2any } = await import('heic2any');
+      
+      const jpegBlob = await heic2any({
+        blob: heicFile,
+        toType: 'image/jpeg',
+        quality: 0.85 // Good balance of quality and size
+      });
+      
+      return jpegBlob;
+    } catch (error) {
+      console.error('HEIC conversion failed:', error);
+      throw new Error(`Failed to convert HEIC file: ${error.message}`);
+    }
+  }
+
+  async function optimizeImageSize(file: File): Promise<File> {
+    // Only process image files
+    if (!file.type.startsWith('image/')) {
+      return file;
+    }
+    
+    try {
+      // Get image dimensions
+      const dimensions = await getImageDimensions(await toDataUrl(file));
+      if (!dimensions) return file;
+      
+      const { width, height } = dimensions;
+      const maxSize = 2048;
+      
+      // Check if resizing is needed
+      if (width <= maxSize && height <= maxSize) {
+        return file; // No resizing needed
+      }
+      
+      // Calculate new dimensions maintaining aspect ratio
+      const ratio = Math.min(maxSize / width, maxSize / height);
+      const newWidth = Math.round(width * ratio);
+      const newHeight = Math.round(height * ratio);
+      
+      // Resize image
+      const resizedBlob = await resizeImage(file, newWidth, newHeight, 0.85);
+      
+      // Create new File object with resized data
+      return new File([resizedBlob], file.name, {
+        type: file.type,
+        lastModified: file.lastModified
+      });
+    } catch (error) {
+      console.warn(`Image resizing failed for ${file.name}, using original:`, error);
+      return file; // Fallback to original
+    }
+  }
+
+  async function resizeImage(file: File, width: number, height: number, quality: number = 0.85): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw resized image
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Convert to blob
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to create blob from canvas'));
+            }
+          },
+          file.type,
+          quality
+        );
+      };
+      
+      img.onerror = () => reject(new Error('Failed to load image for resizing'));
+      img.src = URL.createObjectURL(file);
     });
   }
 
