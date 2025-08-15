@@ -230,13 +230,22 @@ export class ChatAppData {
             refs.push(a);
           }
         }
-        // Persist references
-        this.appTree.tree.setVertexProperty(newMessageVertex.id, "attachments", refs);
-        // Keep transient dataUrls for immediate preview if present
-        const dataUrls = attachments.map(a => a?.dataUrl).filter(Boolean);
-        if (dataUrls.length > 0) {
-          this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachmentsDataUrl", dataUrls);
-        }
+        // Persist references with transient dataUrls for immediate preview
+        const refsWithDataUrls = refs.map((ref, index) => {
+          if (ref.file && attachments[index]?.dataUrl) {
+            // Include transient dataUrl and other properties for immediate preview
+            return { 
+              ...ref, 
+              dataUrl: attachments[index].dataUrl,
+              mimeType: attachments[index].mimeType,
+              size: attachments[index].size,
+              width: attachments[index].width,
+              height: attachments[index].height
+            };
+          }
+          return ref;
+        });
+        this.appTree.tree.setVertexProperty(newMessageVertex.id, "attachments", refsWithDataUrls);
       } else {
         // No store: keep in-memory only
         this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachments", attachments);

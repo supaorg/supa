@@ -5,6 +5,7 @@ import path from 'node:path';
 import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData } from '@sila/core';
 import { NodeFileSystem } from './node-file-system';
 import { FileResolver } from '@sila/core';
+import { ChatAppData } from '@sila/core';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -268,5 +269,104 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(images[0].id).toBe('att1');
 		expect(images[0].name).toBe('valid.png');
 		expect(images[0].dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
+	});
+
+	it('creates attachments with both file references and transient dataUrl for immediate preview', async () => {
+		// Test that when creating a message with attachments, we get both
+		// file references (for persistence) and transient dataUrl (for immediate preview)
+		
+		const space = Space.newSpace(crypto.randomUUID());
+		const fs = new NodeFileSystem();
+		
+		// Connect file store to space
+		space.setFileStoreProvider({
+			getSpaceRootPath: () => tempDir,
+			getFs: () => fs
+		});
+
+		// Create a chat app tree
+		const appTree = ChatAppData.createNewChatTree(space, 'test-config');
+		const chatData = new ChatAppData(space, appTree);
+
+		// Create attachments with dataUrl
+		const attachments = [
+			{
+				id: 'att1',
+				kind: 'image',
+				name: 'test.png',
+				dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=',
+				mimeType: 'image/png',
+				size: 68
+			}
+		];
+
+		// Create a message with attachments
+		const message = await chatData.newMessage('user', 'Here is an image', undefined, attachments);
+
+		// Check that the message has attachments with both file reference and dataUrl
+		const messageAttachments = (message as any).attachments;
+		expect(messageAttachments).toHaveLength(1);
+		
+		const attachment = messageAttachments[0];
+		expect(attachment.id).toBe('att1');
+		expect(attachment.kind).toBe('image');
+		expect(attachment.name).toBe('test.png');
+		expect(attachment.dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
+		expect(attachment.file).toBeDefined();
+		expect(attachment.file.tree).toBeDefined();
+		expect(attachment.file.vertex).toBeDefined();
+
+		// Verify that the file reference points to a valid file vertex
+		const filesTree = await space.loadAppTree(attachment.file.tree);
+		expect(filesTree).toBeDefined();
+		
+		const fileVertex = filesTree!.tree.getVertex(attachment.file.vertex);
+		expect(fileVertex).toBeDefined();
+		expect(fileVertex!.getProperty('hash')).toBeDefined();
+		expect(fileVertex!.getProperty('name')).toBe('test.png');
+		expect(fileVertex!.getProperty('mimeType')).toBe('image/png');
+	});
+
+	it('reproduces bug: first AI response should see image in attachments with dataUrl', async () => {
+		// Test that when a message has attachments with dataUrl, the AI can see them immediately
+		// This reproduces the bug where first AI response doesn't see the image
+		
+		const space = Space.newSpace(crypto.randomUUID());
+		const fs = new NodeFileSystem();
+		
+		// Connect file store to space
+		space.setFileStoreProvider({
+			getSpaceRootPath: () => tempDir,
+			getFs: () => fs
+		});
+
+		// Create a chat app tree
+		const appTree = ChatAppData.createNewChatTree(space, 'test-config');
+		const chatData = new ChatAppData(space, appTree);
+
+		// Create a message with attachments that have dataUrl
+		const message = await chatData.newMessage('user', 'What do you see in this image?', undefined, [
+			{
+				id: 'att1',
+				kind: 'image',
+				name: 'test.png',
+				dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=',
+				mimeType: 'image/png',
+				size: 68
+			}
+		]);
+
+		// Test that resolveMessageAttachments preserves the dataUrl
+		const resolvedMessage = await chatData.resolveMessageAttachments(message);
+		const resolvedAttachments = (resolvedMessage as any).attachments;
+		
+		expect(resolvedAttachments).toHaveLength(1);
+		expect(resolvedAttachments[0].dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
+		expect(resolvedAttachments[0].mimeType).toBe('image/png');
+
+		// Test that the original message also has the dataUrl preserved
+		const originalAttachments = (message as any).attachments;
+		expect(originalAttachments).toHaveLength(1);
+		expect(originalAttachments[0].dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
 	});
 });
