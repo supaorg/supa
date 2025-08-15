@@ -64,7 +64,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(Buffer.from(loadedBytes)).toEqual(Buffer.from(origBytes));
 
 		// Verify CAS path exists and readable
-		const casPath = path.join(tempDir, 'space-v1', 'files', 'sha256', put.hash.slice(0, 2), put.hash.slice(2) + '.bin');
+		const casPath = path.join(tempDir, 'space-v1', 'files', 'sha256', put.hash.slice(0, 2), put.hash.slice(2));
 		await access(casPath);
 		const raw = await readFile(casPath);
 		expect(raw.byteLength).toBeGreaterThan(0);

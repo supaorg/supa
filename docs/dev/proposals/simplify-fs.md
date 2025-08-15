@@ -37,7 +37,7 @@ The current file system design has unnecessary complexity with the `fileId` conc
 4. **Simplify path derivation**
    - `makeBytesPath(hash: string)` directly uses hash
    - No need for `pathFromFileId()` function
-   - Path format: `{hash[0..1]}/{hash[2..]}.bin`
+   - Path format: `{hash[0..1]}/{hash[2..]}`
 
 ### Benefits
 
@@ -90,13 +90,13 @@ The file system layout changes to use hash directly as filename:
     files/
       sha256/
         ab/
-          cdef...89.bin  # {hash[0..1]}/{hash[2..]}.bin (same structure, cleaner naming)
+          cdef...89      # {hash[0..1]}/{hash[2..]} (same structure, cleaner naming)
 ```
 
 **Current system**: Uses `fileId = "sha256:<hash>"` as the identifier, then extracts hash for path
 **Proposed system**: Uses `hash` directly as the identifier and filename
 
-The path structure remains the same (`{hash[0..1]}/{hash[2..]}.bin`) but the naming is cleaner and more direct.
+The path structure remains the same (`{hash[0..1]}/{hash[2..]}`) but the naming is cleaner and more direct.
 
 ### File Vertex Properties (Updated)
 

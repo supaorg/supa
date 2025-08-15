@@ -17,13 +17,13 @@ All bytes live under the workspace path used by `FileSystemPersistenceLayer`:
     files/
       sha256/
         ab/
-          cdef...89.bin  # full hash split as 2+rest, binary content
+          cdef...89      # full hash split as 2+rest, binary content
     secrets              # encrypted secrets
     space.json           # metadata with space id
 ```
 
 - Files are addressed directly by their SHA-256 hash.
-- The path is derived as `space-v1/files/sha256/<hash[0..1]>/<hash[2..]>.bin`.
+- The path is derived as `space-v1/files/sha256/<hash[0..1]>/<hash[2..]>`.
 - The CAS is deduplicated by construction; identical bytes map to the same path.
 
 ### Files AppTree (logical structure and metadata)

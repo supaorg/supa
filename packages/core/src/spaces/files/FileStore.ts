@@ -55,7 +55,7 @@ function parseDataUrl(dataUrl: string): { mimeType: string | undefined; data: Ui
 function makeBytesPath(spaceRoot: string, hash: string): string {
 	const prefix = hash.slice(0, 2);
 	const rest = hash.slice(2);
-	return `${spaceRoot}/space-v1/files/sha256/${prefix}/${rest}.bin`;
+	return `${spaceRoot}/space-v1/files/sha256/${prefix}/${rest}`;
 }
 
 class FileSystemFileStore implements FileStore {
