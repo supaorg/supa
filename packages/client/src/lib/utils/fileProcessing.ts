@@ -8,8 +8,11 @@ export async function processFileForUpload(file: File): Promise<File> {
       // Convert HEIC to JPEG
       const convertedBlob = await heicConverter.convert(file);
       
-      // Create new File object with converted data but original name
-      return new File([convertedBlob], file.name, {
+      // Change the extension to reflect the conversion
+      const newName = file.name.replace(/\.heic$/i, '.jpg');
+      
+      // Create new File object with converted data and updated name
+      return new File([convertedBlob], newName, {
         type: 'image/jpeg',
         lastModified: file.lastModified
       });

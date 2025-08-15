@@ -112,7 +112,7 @@ describe('HEIC Conversion Pipeline', () => {
     // Test HEIC conversion pipeline
     const processedFile = await processFileForUpload(heicFile);
     expect(processedFile.type).toBe('image/jpeg');
-    expect(processedFile.name).toBe('from-iphone.heic'); // Original name preserved
+    expect(processedFile.name).toBe('from-iphone.jpg'); // Extension changed to reflect conversion
 
     // Test image optimization
     const optimizedFile = await optimizeImageSize(processedFile);
@@ -137,7 +137,7 @@ describe('HEIC Conversion Pipeline', () => {
     const fileVertex = FilesTreeData.createOrLinkFile({
       filesTree,
       parentFolder: folder,
-      name: heicFile.name,
+      name: processedFile.name, // Use the converted filename
       hash: put.hash,
       mimeType: optimizedFile.type,
       size: optimizedFile.size,
@@ -145,13 +145,15 @@ describe('HEIC Conversion Pipeline', () => {
       height: dimensions!.height,
       originalFormat: 'image/heic',
       conversionQuality: 0.85,
-      originalDimensions: undefined // Would be set if resized
+      originalDimensions: undefined, // Would be set if resized
+      originalFilename: heicFile.name // Store original filename
     });
 
     expect(fileVertex.getProperty('hash')).toBe(put.hash);
     expect(fileVertex.getProperty('mimeType')).toBe('image/jpeg');
     expect(fileVertex.getProperty('originalFormat')).toBe('image/heic');
     expect(fileVertex.getProperty('conversionQuality')).toBe(0.85);
+    expect(fileVertex.getProperty('originalFilename')).toBe('from-iphone.heic');
 
     // Allow ops to be flushed
     await wait(1200);
@@ -227,21 +229,23 @@ describe('HEIC Conversion Pipeline', () => {
     const fileVertex1 = FilesTreeData.createOrLinkFile({
       filesTree,
       parentFolder: folder,
-      name: heicFile1.name,
+      name: processedFile1.name, // Use converted filename
       hash: put1.hash,
       mimeType: processedFile1.type,
       size: processedFile1.size,
-      originalFormat: 'image/heic'
+      originalFormat: 'image/heic',
+      originalFilename: heicFile1.name
     });
 
     const fileVertex2 = FilesTreeData.createOrLinkFile({
       filesTree,
       parentFolder: folder,
-      name: heicFile2.name,
+      name: processedFile2.name, // Use converted filename
       hash: put2.hash,
       mimeType: processedFile2.type,
       size: processedFile2.size,
-      originalFormat: 'image/heic'
+      originalFormat: 'image/heic',
+      originalFilename: heicFile2.name
     });
 
     // Should be the same vertex due to deduplication

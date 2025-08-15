@@ -172,12 +172,12 @@
             }
           }
           
-          // Step 6: Create vertex with original filename but optimized data
+          // Step 6: Create vertex with converted filename and optimized data
           const { FilesTreeData } = await import("@sila/core");
           FilesTreeData.createOrLinkFile({
             filesTree,
             parentFolder: currentFolder,
-            name: file.name, // Keep original filename
+            name: optimizedFile.name, // Use converted filename
             hash: put.hash,  // Hash of optimized data
             mimeType: optimizedFile.type, // Optimized MIME type
             size: optimizedFile.size,
@@ -185,7 +185,8 @@
             height,
             originalFormat: file.type !== optimizedFile.type ? file.type : undefined,
             conversionQuality: file.type !== optimizedFile.type ? 0.85 : undefined,
-            originalDimensions
+            originalDimensions,
+            originalFilename: file.name !== optimizedFile.name ? file.name : undefined
           });
           
         } catch (error) {
@@ -338,9 +339,12 @@
                   {/if}
                   {#if file.getProperty("originalFormat")}
                     <div class="text-blue-600">Converted from: {file.getProperty("originalFormat")}</div>
+                    {#if file.getProperty("originalFilename")}
+                      <div class="text-blue-600">Original: {file.getProperty("originalFilename")}</div>
+                    {/if}
                   {/if}
                   {#if file.getProperty("originalDimensions")}
-                    <div class="text-blue-600">Original: {file.getProperty("originalDimensions")}</div>
+                    <div class="text-blue-600">Original dimensions: {file.getProperty("originalDimensions")}</div>
                   {/if}
                 </div>
               </div>

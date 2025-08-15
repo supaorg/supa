@@ -139,7 +139,7 @@
         previews.push({
           id: crypto.randomUUID(),
           kind: 'image',
-          name: file.name, // Keep original filename
+          name: optimizedFile.name, // Use converted filename
           mimeType: optimizedFile.type, // Use optimized MIME type
           size: optimizedFile.size,
           dataUrl,

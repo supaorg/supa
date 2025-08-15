@@ -40,8 +40,9 @@ export class FilesTreeData {
 		originalFormat?: string; // Track if file was converted
 		conversionQuality?: number; // Track conversion quality
 		originalDimensions?: string; // Track original dimensions if resized
+		originalFilename?: string; // Track original filename if changed
 	}): Vertex {
-		const { filesTree, parentFolder, name, hash, mimeType, size, width, height, originalFormat, conversionQuality, originalDimensions } = params;
+		const { filesTree, parentFolder, name, hash, mimeType, size, width, height, originalFormat, conversionQuality, originalDimensions, originalFilename } = params;
 		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
 		if (existing) return existing;
 		return filesTree.tree.newVertex(parentFolder.id, {
@@ -55,6 +56,7 @@ export class FilesTreeData {
 			originalFormat, // Store original format if different
 			conversionQuality, // Store conversion quality
 			originalDimensions, // Store original dimensions if resized
+			originalFilename, // Store original filename if changed
 			createdAt: Date.now(),
 		});
 	}
