@@ -8,7 +8,7 @@ export class FilesTreeData {
 		return FilesAppData.createNewFilesTree(space);
 	}
 
-	static getOrCreateDefaultFilesTree(space: Space): AppTree {
+	static async getOrCreateDefaultFilesTree(space: Space): Promise<AppTree> {
 		return FilesAppData.getOrCreateDefaultFilesTree(space);
 	}
 
