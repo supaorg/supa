@@ -54,23 +54,23 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		// Put a small image
 		const dataUrl = makePngDataUrl();
 		const put = await fileStore!.putDataUrl(dataUrl);
-		expect(put.fileId.startsWith('sha256:')).toBe(true);
+		expect(put.hash).toBeTruthy();
+		expect(put.hash.length).toBe(64); // SHA-256 hex string length
 
 		// Bytes roundtrip check
 		const origB64 = dataUrl.split(',')[1]!;
 		const origBytes = typeof Buffer !== 'undefined' ? new Uint8Array(Buffer.from(origB64, 'base64')) : (() => { const s = atob(origB64); const u = new Uint8Array(s.length); for (let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; })();
-		const loadedBytes = await fileStore!.getBytes(put.fileId);
+		const loadedBytes = await fileStore!.getBytes(put.hash);
 		expect(Buffer.from(loadedBytes)).toEqual(Buffer.from(origBytes));
 
 		// Verify CAS path exists and readable
-		const hash = put.fileId.slice('sha256:'.length);
-		const casPath = path.join(tempDir, 'space-v1', 'files', 'sha256', hash.slice(0, 2), hash.slice(2) + '.bin');
+		const casPath = path.join(tempDir, 'space-v1', 'files', 'sha256', put.hash.slice(0, 2), put.hash.slice(2) + '.bin');
 		await access(casPath);
 		const raw = await readFile(casPath);
 		expect(raw.byteLength).toBeGreaterThan(0);
 
 		// Retrieve as data URL
-		const loadedDataUrl = await fileStore!.getDataUrl(put.fileId);
+		const loadedDataUrl = await fileStore!.getDataUrl(put.hash);
 		expect(loadedDataUrl.startsWith('data:')).toBe(true);
 
 		// Create a files app tree and link file
@@ -85,11 +85,11 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 			filesTree,
 			parentFolder: folder,
 			name: 'pixel.png',
-			contentId: put.fileId,
+			hash: put.hash,
 			mimeType: 'image/png',
 			size: raw.byteLength
 		});
-		expect(fileVertex.getProperty('contentId')).toBe(put.fileId);
+		expect(fileVertex.getProperty('hash')).toBe(put.hash);
 
 		// Allow ops to be flushed
 		await wait(1200);

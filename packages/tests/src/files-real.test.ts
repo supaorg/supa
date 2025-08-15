@@ -75,7 +75,7 @@ describe('Local assets persisted in workspace CAS', () => {
       'assets'
     ]);
 
-    const fileIds: string[] = [];
+    const hashes: string[] = [];
 
     for (const f of files) {
       const p = path.join(assetsDir, f.name);
@@ -93,15 +93,14 @@ describe('Local assets persisted in workspace CAS', () => {
       }
 
       const put = await fileStore.putBytes(bytes, mime);
-      fileIds.push(put.fileId);
+      hashes.push(put.hash);
 
       // Verify CAS path exists
-      const hash = put.fileId.slice('sha256:'.length);
-      const casPath = path.join(tempDir, 'space-v1', 'files', 'sha256', hash.slice(0, 2), hash.slice(2) + '.bin');
+      const casPath = path.join(tempDir, 'space-v1', 'files', 'sha256', put.hash.slice(0, 2), put.hash.slice(2) + '.bin');
       await access(casPath);
 
       // Verify bytes roundtrip
-      const loadedBytes = await fileStore.getBytes(put.fileId);
+      const loadedBytes = await fileStore.getBytes(put.hash);
       expect(buffersEqual(loadedBytes, bytes)).toBe(true);
 
       // Create file vertex
@@ -110,17 +109,17 @@ describe('Local assets persisted in workspace CAS', () => {
         filesTree,
         parentFolder: folder,
         name,
-        contentId: put.fileId,
+        hash: put.hash,
         mimeType: mime,
         size: bytes.byteLength
       });
-      expect(fileVertex.getProperty('contentId')).toBe(put.fileId);
+      expect(fileVertex.getProperty('hash')).toBe(put.hash);
     }
 
-    // Deduplication: if multiple identical files exist, their IDs should be the same
-    if (fileIds.length >= 2) {
-      const unique = new Set(fileIds);
-      expect(unique.size).toBeLessThanOrEqual(fileIds.length);
+    // Deduplication: if multiple identical files exist, their hashes should be the same
+    if (hashes.length >= 2) {
+      const unique = new Set(hashes);
+      expect(unique.size).toBeLessThanOrEqual(hashes.length);
     }
 
     // Allow batched ops to flush

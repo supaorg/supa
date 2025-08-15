@@ -31,19 +31,19 @@ export class FilesTreeData {
 		filesTree: AppTree;
 		parentFolder: Vertex;
 		name: string;
-		contentId: string;
+		hash: string;
 		mimeType?: string;
 		size?: number;
 		width?: number;
 		height?: number;
 	}): Vertex {
-		const { filesTree, parentFolder, name, contentId, mimeType, size, width, height } = params;
-		const existing = parentFolder.children.find((c) => c.getProperty("contentId") === contentId || c.name === name);
+		const { filesTree, parentFolder, name, hash, mimeType, size, width, height } = params;
+		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
 		if (existing) return existing;
 		return filesTree.tree.newVertex(parentFolder.id, {
 			_n: "file",
 			name,
-			contentId,
+			hash,
 			mimeType,
 			size,
 			width,

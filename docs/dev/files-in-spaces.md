@@ -22,7 +22,7 @@ All bytes live under the workspace path used by `FileSystemPersistenceLayer`:
     space.json           # metadata with space id
 ```
 
-- Files are addressed as `fileId = sha256:<lowercase-hex>`.
+- Files are addressed directly by their SHA-256 hash.
 - The path is derived as `space-v1/files/sha256/<hash[0..1]>/<hash[2..]>.bin`.
 - The CAS is deduplicated by construction; identical bytes map to the same path.
 
@@ -33,7 +33,7 @@ A dedicated app tree holds folders and files as vertices; this is a browsable lo
   - `_n: "folder"`, `name: string`, `createdAt: number`
 - File vertex properties:
   - `_n: "file"`, `name: string`
-  - `contentId: "sha256:<hex>"`
+  - `hash: "<hex>"`
   - Optional: `mimeType`, `size`, `width`, `height`, `alt`, `tags[]`, `createdAt`
 
 Helper APIs in `@sila/core`:
@@ -46,12 +46,12 @@ Provided by `@sila/core` under `spaces/files`:
 
 ```ts
 export interface FileStore {
-  putDataUrl(dataUrl: string): Promise<{ fileId: string; hash: string; mimeType?: string; size: number }>;
-  putBytes(bytes: Uint8Array, mimeType?: string): Promise<{ fileId: string; hash: string; size: number }>;
-  exists(fileId: string): Promise<boolean>;
-  getBytes(fileId: string): Promise<Uint8Array>;
-  getDataUrl(fileId: string): Promise<string>;
-  delete(fileId: string): Promise<void>; // no-op in Phase 1
+  putDataUrl(dataUrl: string): Promise<{ hash: string; mimeType?: string; size: number }>;
+  putBytes(bytes: Uint8Array, mimeType?: string): Promise<{ hash: string; size: number }>;
+  exists(hash: string): Promise<boolean>;
+  getBytes(hash: string): Promise<Uint8Array>;
+  getDataUrl(hash: string): Promise<string>;
+  delete(hash: string): Promise<void>; // no-op in Phase 1
 }
 ```
 
@@ -65,27 +65,27 @@ const fileStore = createFileStore({
 ```
 
 Internals:
-- Computes SHA-256 over bytes to form `fileId`
+- Computes SHA-256 over bytes to form hash
 - Derives CAS path; writes only if it does not exist
 - `getDataUrl` returns a `data:application/octet-stream;base64,...` for previews; callers may override MIME when known
 
 ### Read/Write flows
 - Write:
   - UI obtains data URLs or bytes
-  - `fileStore.putDataUrl(...)` or `fileStore.putBytes(...)` → returns `fileId`
+  - `fileStore.putDataUrl(...)` or `fileStore.putBytes(...)` → returns `hash`
   - Ensure `files/YYYY/MM/DD` folder exists in Files AppTree
-  - Create a `file` vertex with `contentId = fileId` and metadata
+  - Create a `file` vertex with `hash` and metadata
   - Attach JSON references from messages to the file vertex if needed
 - Read:
   - Resolve message file reference to the file vertex
-  - Read `contentId` and load bytes or data URL from CAS via `FileStore`
+  - Read `hash` and load bytes or data URL from CAS via `FileStore`
 
 ### Integration: Chat attachments (Phase 1)
 See also: `docs/dev/proposals/attach-files.md`.
 
 - When a user message carries image attachments (data URLs), the backend persists them to CAS if a desktop `FileStore` is available.
 - A Files AppTree is ensured (created on demand) and a date-based folder path is used: `files/YYYY/MM/DD/chat`.
-- For each image, a `file` vertex is created with metadata and `contentId = sha256:<hex>`.
+- For each image, a `file` vertex is created with metadata and `hash = <hex>`.
 - The chat message `attachments` property is stored as JSON references of the form:
   - `{ id, kind: 'image', name?, alt?, file: { tree: <filesTreeId>, vertex: <fileVertexId> } }`.
 - For immediate UI preview, transient `attachmentsDataUrl` is set on the message and ignored by persistence.
@@ -105,4 +105,4 @@ See also: `docs/dev/proposals/attach-files.md`.
 - Web: IndexedDB persistence for blobs is out of scope for Phase 1; UI may keep attachments in-memory.
 
 ### Garbage collection (future)
-- Phase 1 does not delete blobs. Future maintenance can scan live `contentId`s and reclaim unreferenced files.
+- Phase 1 does not delete blobs. Future maintenance can scan live `hash`es and reclaim unreferenced files.

@@ -1,10 +1,10 @@
 export interface FileStore {
-	putDataUrl(dataUrl: string): Promise<{ fileId: string; hash: string; mimeType?: string; size: number }>;
-	putBytes(bytes: Uint8Array, mimeType?: string): Promise<{ fileId: string; hash: string; size: number }>;
-	exists(fileId: string): Promise<boolean>;
-	getBytes(fileId: string): Promise<Uint8Array>;
-	getDataUrl(fileId: string): Promise<string>;
-	delete(fileId: string): Promise<void>;
+	putDataUrl(dataUrl: string): Promise<{ hash: string; mimeType?: string; size: number }>;
+	putBytes(bytes: Uint8Array, mimeType?: string): Promise<{ hash: string; size: number }>;
+	exists(hash: string): Promise<boolean>;
+	getBytes(hash: string): Promise<Uint8Array>;
+	getDataUrl(hash: string): Promise<string>;
+	delete(hash: string): Promise<void>;
 }
 
 import type { AppFileSystem } from "../../appFs";
@@ -52,9 +52,7 @@ function parseDataUrl(dataUrl: string): { mimeType: string | undefined; data: Ui
 	return { mimeType, data: bin };
 }
 
-function pathFromFileId(spaceRoot: string, fileId: string): string {
-	if (!fileId.startsWith("sha256:")) throw new Error("Unsupported file id");
-	const hash = fileId.slice("sha256:".length);
+function makeBytesPath(spaceRoot: string, hash: string): string {
 	const prefix = hash.slice(0, 2);
 	const rest = hash.slice(2);
 	return `${spaceRoot}/space-v1/files/sha256/${prefix}/${rest}.bin`;
@@ -63,49 +61,42 @@ function pathFromFileId(spaceRoot: string, fileId: string): string {
 class FileSystemFileStore implements FileStore {
 	constructor(private spaceRoot: string, private fs: AppFileSystem) {}
 
-	private makeBytesPath(hash: string): string {
-		const prefix = hash.slice(0, 2);
-		const rest = hash.slice(2);
-		return `${this.spaceRoot}/space-v1/files/sha256/${prefix}/${rest}.bin`;
-	}
-
-	async putDataUrl(dataUrl: string): Promise<{ fileId: string; hash: string; mimeType?: string; size: number }> {
+	async putDataUrl(dataUrl: string): Promise<{ hash: string; mimeType?: string; size: number }> {
 		const { mimeType, data } = parseDataUrl(dataUrl);
 		const res = await this.putBytes(data, mimeType);
 		return { ...res };
 	}
 
-	async putBytes(bytes: Uint8Array, mimeType?: string): Promise<{ fileId: string; hash: string; size: number }> {
+	async putBytes(bytes: Uint8Array, mimeType?: string): Promise<{ hash: string; size: number }> {
 		const hash = await sha256(bytes);
-		const fileId = `sha256:${hash}`;
-		const path = this.makeBytesPath(hash);
+		const path = makeBytesPath(this.spaceRoot, hash);
 		if (await this.fs.exists(path)) {
-			return { fileId, hash, size: bytes.byteLength };
+			return { hash, size: bytes.byteLength };
 		}
 		const handle = await this.fs.create(path);
 		await handle.write(bytes);
 		await handle.close();
-		return { fileId, hash, size: bytes.byteLength };
+		return { hash, size: bytes.byteLength };
 	}
 
-	async exists(fileId: string): Promise<boolean> {
-		const path = pathFromFileId(this.spaceRoot, fileId);
+	async exists(hash: string): Promise<boolean> {
+		const path = makeBytesPath(this.spaceRoot, hash);
 		return await this.fs.exists(path);
 	}
 
-	async getBytes(fileId: string): Promise<Uint8Array> {
-		const path = pathFromFileId(this.spaceRoot, fileId);
+	async getBytes(hash: string): Promise<Uint8Array> {
+		const path = makeBytesPath(this.spaceRoot, hash);
 		return await this.fs.readBinaryFile(path);
 	}
 
-	async getDataUrl(fileId: string): Promise<string> {
-		const bytes = await this.getBytes(fileId);
+	async getDataUrl(hash: string): Promise<string> {
+		const bytes = await this.getBytes(hash);
 		const base64 = typeof Buffer !== "undefined" ? Buffer.from(bytes).toString("base64") : btoa(String.fromCharCode(...bytes));
 		// mimeType is unknown at CAS level; callers can override if known
 		return `data:application/octet-stream;base64,${base64}`;
 	}
 
-	async delete(fileId: string): Promise<void> {
+	async delete(hash: string): Promise<void> {
 		// GC is out of scope for Phase 1; no-op
 	}
 }

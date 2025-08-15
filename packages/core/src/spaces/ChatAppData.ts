@@ -187,7 +187,7 @@ export class ChatAppData {
                 filesTree,
                 parentFolder,
                 name: a.name || 'image',
-                contentId: put.fileId,
+                hash: put.hash,
                 mimeType: a.mimeType,
                 size: a.size,
                 width: a.width,
