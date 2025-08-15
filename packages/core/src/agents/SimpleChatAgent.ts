@@ -102,7 +102,6 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
       }),
     ];
 
-    const promptStartPerf = performance.now();
     const finalResult = await lang.chat(remappedMessages, {
       onResult: (res: any) => {
         if (this.hasStopped) {
@@ -115,9 +114,6 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
         });
       },
     });
-
-    const promptEndPerf = performance.now();
-    console.log(`Prompt took ${promptEndPerf - promptStartPerf} milliseconds`);
 
     return {
       text: finalResult.answer,

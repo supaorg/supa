@@ -100,7 +100,7 @@ export default class ChatAppBackend {
     const lastMessage = messages[messages.length - 1];
     const messageToUse = lastMessage?.role === "error" ?
       lastMessage :
-      this.data.newMessage("assistant", "thinking...");
+      await this.data.newMessage("assistant", "thinking...");
 
     // @TODO: consider making TypedVertex<ThreadMessage> that can be used to set properties
     // @TODO: or consider just having data.updateMessage(message)

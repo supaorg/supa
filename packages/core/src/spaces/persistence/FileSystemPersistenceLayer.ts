@@ -29,6 +29,7 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
   private saveOpsIntervalMs = 500;
   private saveSecretsTimer: (() => void) | null = null;
   private saveSecretsIntervalMs = 1000;
+  private secretsWriteChain: Promise<void> = Promise.resolve();
   private onIncomingOpsCallback: ((treeId: string, ops: VertexOperation[]) => void) | null = null;
   private savedPeerIds = new Set<string>();
   private opsParser: OpsParser;
@@ -125,10 +126,14 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
 
     if (Object.keys(secrets).length === 0) return;
 
-    // Merge with existing secrets to avoid race conditions overwriting keys
-    const existing = await this.readSecretsFromFile();
-    const merged = { ...(existing || {}), ...secrets };
-    await this.writeSecretsToFile(merged);
+    // Serialize writes to avoid last-writer-wins race conditions
+    this.secretsWriteChain = this.secretsWriteChain.then(async () => {
+      const existing = await this.readSecretsFromFile();
+      const merged = { ...(existing || {}), ...secrets };
+      await this.writeSecretsToFile(merged);
+    });
+
+    await this.secretsWriteChain;
   }
 
   async startListening?(onIncomingOps: (treeId: string, ops: VertexOperation[]) => void): Promise<void> {
