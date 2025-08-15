@@ -7,9 +7,7 @@
     "docs/dev/project-structure.md",
     "package.json",
     "tsconfig.json",
-    "docs/dev/for-ai/rules.md",
-    "docs/dev/for-ai/svelte.md",
-    "docs/dev/for-ai/skeleton.md"
+    "docs/dev/for-ai/*"
   ],
   "output": {
     "cursor": true,
