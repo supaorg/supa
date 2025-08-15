@@ -18,6 +18,7 @@
   import { Info } from "lucide-svelte";
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
+  import FilePreview from "../files/FilePreview.svelte";
 
   let { vertex, data }: { vertex: Vertex; data: ChatAppData } = $props();
 
@@ -38,10 +39,7 @@
   let isEditing = $state(false);
   let editText = $state("");
 
-  // State for text file content
-  let textFileContents = $state<Map<string, string>>(new Map());
-  let textFileLoading = $state<Set<string>>(new Set());
-  let textFileErrors = $state<Set<string>>(new Set());
+
 
   let hoverDepth = $state(0);
   let showEditAndCopyControls = $state(false);
@@ -161,17 +159,7 @@
     });
   });
 
-  // Auto-load text file content when attachments are available
-  $effect(() => {
-    if (!attachments) return;
-    
-    attachments.forEach((att) => {
-      if (att.kind === 'text' && (att.fileUrl || att.dataUrl) && !textFileContents.has(att.id)) {
-        // Auto-load text files for better UX
-        fetchTextFileContent(att.id, (att.fileUrl || att.dataUrl) || '');
-      }
-    });
-  });
+
 
   // Helper function to generate sila:// URLs
   async function getFileUrl(treeId: string, vertexId: string, mimeType?: string): Promise<string> {
@@ -200,60 +188,7 @@
     }
   }
 
-  // Helper function to check if a file type can be viewed in the browser
-  function isViewableFile(mimeType?: string): boolean {
-    if (!mimeType) return false;
-    
-    return (
-      mimeType.startsWith('image/') ||
-      mimeType.startsWith('video/') ||
-      mimeType === 'application/pdf' ||
-      mimeType.startsWith('text/')
-    );
-  }
 
-  // Helper function to fetch text file content
-  async function fetchTextFileContent(attachmentId: string, fileUrl: string): Promise<void> {
-    if (textFileContents.has(attachmentId) || textFileLoading.has(attachmentId)) {
-      return; // Already loaded or loading
-    }
-
-    textFileLoading.add(attachmentId);
-    textFileErrors.delete(attachmentId);
-
-    try {
-      const response = await fetch(fileUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      const content = await response.text();
-      textFileContents.set(attachmentId, content);
-    } catch (error) {
-      console.warn('Failed to fetch text file content:', error);
-      textFileErrors.add(attachmentId);
-    } finally {
-      textFileLoading.delete(attachmentId);
-    }
-  }
-
-  // Helper function to render text content based on MIME type
-  function renderTextContent(content: string, mimeType?: string): string {
-    if (mimeType === 'text/markdown' || mimeType === 'text/x-markdown') {
-      // For markdown, we'll return the raw content and let the parent handle rendering
-      return content;
-    }
-    
-    // For plain text, escape HTML and preserve whitespace
-    return content
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-      .replace(/\n/g, '<br>')
-      .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
-      .replace(/ /g, '&nbsp;');
-  }
 
   onMount(() => {
     const unobserve = data.observeMessage(vertex.id, (msg) => {
@@ -367,69 +302,14 @@
             {#if attachments && attachments.length > 0}
               <div class="mt-2 flex flex-wrap gap-2">
                 {#each attachments as att (att.id)}
-                  {#if att.kind === 'text' && (att.fileUrl || att.dataUrl)}
-                    <div class="mt-2 border rounded-lg p-3 bg-surface-50-950">
-                      <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium">{att.name}</span>
-                        <span class="text-xs opacity-60">
-                          {att.alt || 'text'} • {att.width || 'unknown'} lines
-                        </span>
-                      </div>
-                      
-                      {#if textFileLoading.has(att.id)}
-                        <div class="flex items-center justify-center h-48 text-surface-500-500-token">
-                          <span class="animate-pulse">Loading...</span>
-                        </div>
-                      {:else if textFileErrors.has(att.id)}
-                        <div class="flex items-center justify-center h-48 text-red-500">
-                          <span>Failed to load content</span>
-                        </div>
-                      {:else if textFileContents.has(att.id)}
-                        {@const content = textFileContents.get(att.id)}
-                        {@const renderedContent = renderTextContent(content, att.mimeType)}
-                        {#if att.mimeType === 'text/markdown' || att.mimeType === 'text/x-markdown'}
-                          <div class="max-h-48 overflow-y-auto">
-                            <Markdown source={content} />
-                          </div>
-                        {:else}
-                          <div class="max-h-48 overflow-y-auto text-sm font-mono whitespace-pre-wrap">
-                            {@html renderedContent}
-                          </div>
-                        {/if}
-                      {:else}
-                        <div class="flex items-center justify-center h-48 text-surface-500-500-token">
-                          <span>Click to load content</span>
-                        </div>
-                      {/if}
-                      
-                      {#if !textFileContents.has(att.id) && !textFileLoading.has(att.id) && !textFileErrors.has(att.id)}
-                        <button 
-                          class="mt-2 btn btn-sm preset-outline"
-                          onclick={() => fetchTextFileContent(att.id, (att.fileUrl || att.dataUrl) || '')}
-                        >
-                          Load Content
-                        </button>
-                      {/if}
-                    </div>
-                  {:else if att.kind === 'image' && (att.fileUrl || att.dataUrl)}
-                    <img src={att.fileUrl || att.dataUrl} alt={att.name} class="rounded object-contain max-w-[240px] max-h-[200px]" />
-                  {:else if att.kind === 'file' && (att.fileUrl || att.dataUrl)}
-                    {#if isViewableFile(att.mimeType)}
-                      {#if att.mimeType?.startsWith('video/')}
-                        <video src={att.fileUrl || att.dataUrl} controls class="rounded object-contain max-w-[240px] max-h-[200px]">
-                          <track kind="captions" />
-                        </video>
-                      {:else if att.mimeType === 'application/pdf'}
-                        <iframe src={att.fileUrl || att.dataUrl} class="rounded w-[240px] h-[200px]" title={att.name}></iframe>
-                      {:else}
-                        <div class="text-xs opacity-70 border rounded px-2 py-1">{att.name}</div>
-                      {/if}
-                    {:else}
-                      <div class="text-xs opacity-70 border rounded px-2 py-1">{att.name}</div>
-                    {/if}
-                  {:else}
-                    <div class="text-xs opacity-70 border rounded px-2 py-1">{att.name}</div>
-                  {/if}
+                  <FilePreview 
+                    attachment={att} 
+                    showGallery={false}
+                    onGalleryOpen={() => {
+                      // TODO: Implement gallery opening
+                      console.log('Gallery opening for:', att.name);
+                    }}
+                  />
                 {/each}
               </div>
             {/if}
