@@ -39,7 +39,7 @@ Developers interact with vertices at a high level (e.g., `setProperty`, `newName
 - Chat tree
   - Root stores the chat config ID and contains a `messages` branch. Messages are vertices with properties `{ _n: "message", text, role, createdAt, ... }`.
 - Files tree
-  - Root is marked with `appKind: 'files'` and contains a logical `files` folder. Child vertices represent folders and files (with metadata such as `contentId`, `mimeType`, `size`). Bytes are not stored in ops.
+  - Root is marked with `appKind: 'files'` and contains a logical `files` folder. Child vertices represent folders and files (with metadata such as `hash`, `mimeType`, `size`). Bytes are not stored in ops.
 
 ## Persistence
 
