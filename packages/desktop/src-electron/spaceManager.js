@@ -12,8 +12,8 @@ class SpaceManager {
    * Register a space with its root path
    * @param {string} spaceId - The space ID
    * @param {string} rootPath - The root path of the space
-   * @param {string} name - The space name (optional)
-   * @param {Date} createdAt - When the space was created (optional)
+   * @param {string|null} name - The space name (optional)
+   * @param {Date|null} createdAt - When the space was created (optional)
    */
   registerSpace(spaceId, rootPath, name = null, createdAt = null) {
     this.spaces.set(spaceId, {

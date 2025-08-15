@@ -113,7 +113,7 @@
     }
   });
 
-  // Resolve file references in attachments
+  // Resolve file references in attachments and convert to sila:// URLs
   $effect(() => {
     const messageAttachments = (message as any)?.attachments;
     if (!messageAttachments || messageAttachments.length === 0) {
@@ -121,20 +121,79 @@
       return;
     }
 
-    // If attachments already have dataUrl, use them directly
-    if (messageAttachments.some((att: any) => att.dataUrl)) {
-      attachments = messageAttachments;
-      return;
-    }
+    // Process attachments to use sila:// protocol
+    const processAttachments = async () => {
+      const processedAttachments = await Promise.all(
+        messageAttachments.map(async (att: any) => {
+          // If already has dataUrl (transient data), convert to sila:// URL
+          if (att.dataUrl && att.dataUrl.startsWith('data:')) {
+            // For transient data, we need to get the file hash from the file reference
+            if (att.file?.tree && att.file?.vertex) {
+              const fileUrl = await getFileUrl(att.file.tree, att.file.vertex, att.mimeType);
+              return { ...att, fileUrl };
+            }
+            // If no file reference, keep the dataUrl as fallback
+            return att;
+          }
 
-    // Otherwise, resolve file references asynchronously
-    data.resolveMessageAttachments(message).then((resolvedMessage) => {
-      attachments = (resolvedMessage as any).attachments;
-    }).catch((error) => {
-      console.warn("Failed to resolve attachments:", error);
+          // If has file reference, generate sila:// URL
+          if (att.file?.tree && att.file?.vertex) {
+            const fileUrl = await getFileUrl(att.file.tree, att.file.vertex, att.mimeType);
+            return { ...att, fileUrl };
+          }
+
+          // Fallback: keep original attachment
+          return att;
+        })
+      );
+
+      attachments = processedAttachments;
+    };
+
+    processAttachments().catch((error) => {
+      console.warn('Failed to process attachments:', error);
       attachments = messageAttachments; // Fallback to original
     });
   });
+
+  // Helper function to generate sila:// URLs
+  async function getFileUrl(treeId: string, vertexId: string, mimeType?: string): Promise<string> {
+    if (!(window as any).electronFileSystem) {
+      return ''; // Fallback for non-Electron environments
+    }
+
+    try {
+      const spaceId = (data as any).space.getId();
+      
+      // Load the app tree and get the file vertex to access its hash
+      const appTree = await (data as any).space.loadAppTree(treeId);
+      if (!appTree) return '';
+      
+      const fileVertex = appTree.tree.getVertex(vertexId);
+      if (!fileVertex) return '';
+      
+      const hash = fileVertex.getProperty("hash") as string;
+      if (!hash) return '';
+
+      const url = (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType || 'application/octet-stream');
+      return url;
+    } catch (error) {
+      console.warn('Failed to generate file URL:', error);
+      return '';
+    }
+  }
+
+  // Helper function to check if a file type can be viewed in the browser
+  function isViewableFile(mimeType?: string): boolean {
+    if (!mimeType) return false;
+    
+    return (
+      mimeType.startsWith('image/') ||
+      mimeType.startsWith('video/') ||
+      mimeType === 'application/pdf' ||
+      mimeType.startsWith('text/')
+    );
+  }
 
   onMount(() => {
     const unobserve = data.observeMessage(vertex.id, (msg) => {
@@ -248,8 +307,22 @@
             {#if attachments && attachments.length > 0}
               <div class="mt-2 flex flex-wrap gap-2">
                 {#each attachments as att (att.id)}
-                  {#if att.kind === 'image' && att.dataUrl}
-                    <img src={att.dataUrl} alt={att.name} class="rounded border object-contain max-w-[240px] max-h-[200px]" />
+                  {#if att.kind === 'image' && (att.fileUrl || att.dataUrl)}
+                    <img src={att.fileUrl || att.dataUrl} alt={att.name} class="rounded border object-contain max-w-[240px] max-h-[200px]" />
+                  {:else if att.kind === 'file' && (att.fileUrl || att.dataUrl)}
+                    {#if isViewableFile(att.mimeType)}
+                      {#if att.mimeType?.startsWith('video/')}
+                        <video src={att.fileUrl || att.dataUrl} controls class="rounded border object-contain max-w-[240px] max-h-[200px]">
+                          <track kind="captions" />
+                        </video>
+                      {:else if att.mimeType === 'application/pdf'}
+                        <iframe src={att.fileUrl || att.dataUrl} class="rounded border w-[240px] h-[200px]" title={att.name}></iframe>
+                      {:else}
+                        <div class="text-xs opacity-70 border rounded px-2 py-1">{att.name}</div>
+                      {/if}
+                    {:else}
+                      <div class="text-xs opacity-70 border rounded px-2 py-1">{att.name}</div>
+                    {/if}
                   {:else}
                     <div class="text-xs opacity-70 border rounded px-2 py-1">{att.name}</div>
                   {/if}
