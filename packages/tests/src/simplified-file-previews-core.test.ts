@@ -6,26 +6,21 @@ import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, Files
 import { NodeFileSystem } from './node-file-system';
 import type { FileReference } from '@sila/core/spaces/files/FileResolver';
 
-// Mock the client state for testing
-const mockClientState = {
-  currentSpace: null as any,
-};
+// Core file resolver that works without Svelte
+class CoreFileResolver {
+  constructor(private space: Space) {}
 
-// Mock the ClientFileResolver to work with our test space
-class MockClientFileResolver {
-  static async resolveFileReference(fileRef: FileReference) {
-    if (!mockClientState.currentSpace) {
-      return null;
-    }
-
+  async resolveFileReference(fileRef: FileReference) {
     try {
-      const filesTree = await mockClientState.currentSpace.loadAppTree(fileRef.tree);
+      const filesTree = await this.space.loadAppTree(fileRef.tree);
       if (!filesTree) {
+        console.warn(`Files tree not found: ${fileRef.tree}`);
         return null;
       }
 
       const fileVertex = filesTree.tree.getVertex(fileRef.vertex);
       if (!fileVertex) {
+        console.warn(`File vertex not found: ${fileRef.vertex}`);
         return null;
       }
 
@@ -37,11 +32,13 @@ class MockClientFileResolver {
       const height = fileVertex.getProperty('height') as number;
 
       if (!hash) {
+        console.warn(`File vertex missing hash: ${fileRef.vertex}`);
         return null;
       }
 
-      const fileStore = mockClientState.currentSpace.getFileStore();
+      const fileStore = this.space.getFileStore();
       if (!fileStore) {
+        console.warn('FileStore not available for resolving file references');
         return null;
       }
 
@@ -65,7 +62,7 @@ class MockClientFileResolver {
     }
   }
 
-  static async resolveFileReferences(fileRefs: FileReference[]) {
+  async resolveFileReferences(fileRefs: FileReference[]) {
     const resolved = [];
     for (const fileRef of fileRefs) {
       const resolvedFile = await this.resolveFileReference(fileRef);
@@ -183,7 +180,7 @@ class AttachmentMigration {
   }
 }
 
-describe('Simplified File Previews (Node.js)', () => {
+describe('Simplified File Previews (Core)', () => {
   let tempDir: string;
   let spaceManager: SpaceManager;
   let testSpace: Space;
@@ -193,12 +190,12 @@ describe('Simplified File Previews (Node.js)', () => {
 
   beforeEach(async () => {
     // Create temporary directory
-    tempDir = await mkdtemp(path.join(tmpdir(), 'sila-simplified-previews-test-'));
+    tempDir = await mkdtemp(path.join(tmpdir(), 'sila-simplified-previews-core-test-'));
     
     // Create space manager and test space
     spaceManager = new SpaceManager();
     testSpace = Space.newSpace(crypto.randomUUID());
-    testSpace.name = 'Simplified File Previews Test Space';
+    testSpace.name = 'Simplified File Previews Core Test Space';
 
     // Create file system persistence layer
     const fs = new NodeFileSystem();
@@ -208,9 +205,8 @@ describe('Simplified File Previews (Node.js)', () => {
     // Wait for persistence to initialize
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Create files tree
-    filesTree = await testSpace.newAppTree('files');
-    const parentFolder = filesTree.tree.getVertexByPath('files');
+    // Create files tree using the proper API
+    filesTree = FilesTreeData.createNewFilesTree(testSpace);
     
     // Create file store
     const fileStore = createFileStore({
@@ -223,11 +219,12 @@ describe('Simplified File Previews (Node.js)', () => {
     const testImageBytes = Buffer.from(testImageData, 'base64');
     const put = await fileStore!.putBytes(testImageBytes, 'image/png');
 
-    // Create file vertex
-    fileVertex = filesTree.tree.newVertex(parentFolder.id, {
-      _n: 'test-image.png',
-      hash: put.hash,
+    // Create file vertex using the proper API
+    fileVertex = FilesTreeData.createOrLinkFile({
+      filesTree,
+      parentFolder: filesTree.tree.getVertexByPath('files')!,
       name: 'test-image.png',
+      hash: put.hash,
       mimeType: 'image/png',
       size: put.size,
       width: 800,
@@ -238,9 +235,6 @@ describe('Simplified File Previews (Node.js)', () => {
       tree: filesTree.getId(),
       vertex: fileVertex.id,
     };
-
-    // Set up mock client state
-    mockClientState.currentSpace = testSpace;
   });
 
   afterEach(async () => {
@@ -476,7 +470,8 @@ describe('Simplified File Previews (Node.js)', () => {
 
   describe('File Reference Resolution', () => {
     it('should resolve file references to file information', async () => {
-      const fileInfo = await MockClientFileResolver.resolveFileReference(fileRef);
+      const fileResolver = new CoreFileResolver(testSpace);
+      const fileInfo = await fileResolver.resolveFileReference(fileRef);
 
       expect(fileInfo).toBeDefined();
       expect(fileInfo?.id).toBe(fileVertex.id);
@@ -490,18 +485,20 @@ describe('Simplified File Previews (Node.js)', () => {
     });
 
     it('should handle missing file references gracefully', async () => {
+      const fileResolver = new CoreFileResolver(testSpace);
       const missingFileRef: FileReference = {
         tree: 'non-existent-tree',
         vertex: 'non-existent-vertex',
       };
 
-      const fileInfo = await MockClientFileResolver.resolveFileReference(missingFileRef);
+      const fileInfo = await fileResolver.resolveFileReference(missingFileRef);
       expect(fileInfo).toBeNull();
     });
 
     it('should resolve multiple file references', async () => {
+      const fileResolver = new CoreFileResolver(testSpace);
       const fileRefs = [fileRef, { tree: 'other-tree', vertex: 'other-vertex' }];
-      const fileInfos = await MockClientFileResolver.resolveFileReferences(fileRefs);
+      const fileInfos = await fileResolver.resolveFileReferences(fileRefs);
 
       expect(fileInfos).toHaveLength(1); // Only the valid one should resolve
       expect(fileInfos[0]?.id).toBe(fileVertex.id);
@@ -538,7 +535,8 @@ describe('Simplified File Previews (Node.js)', () => {
       expect(fileRefs[0]).toEqual(fileRef);
 
       // 4. Resolve file references for preview
-      const fileInfos = await MockClientFileResolver.resolveFileReferences(fileRefs);
+      const fileResolver = new CoreFileResolver(testSpace);
+      const fileInfos = await fileResolver.resolveFileReferences(fileRefs);
       expect(fileInfos).toHaveLength(1);
       expect(fileInfos[0]?.name).toBe('test-image.png');
       expect(fileInfos[0]?.dataUrl).toMatch(/^data:image\/png;base64,/);
@@ -548,6 +546,40 @@ describe('Simplified File Previews (Node.js)', () => {
       expect(fileInfos[0]?.mimeType).toBe('image/png');
       expect(fileInfos[0]?.width).toBe(800);
       expect(fileInfos[0]?.height).toBe(600);
+    });
+  });
+
+  describe('Performance Benefits', () => {
+    it('should demonstrate payload size reduction', () => {
+      const legacyMessage = {
+        id: 'msg1',
+        text: 'Here is an image',
+        attachments: [
+          {
+            id: 'att1',
+            kind: 'image',
+            name: 'test.png',
+            mimeType: 'image/png',
+            size: 1024,
+            width: 800,
+            height: 600,
+            dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=',
+            file: fileRef,
+          },
+        ],
+      };
+
+      const simpleMessage = AttachmentMigration.migrateMessage(legacyMessage);
+
+      const legacyPayload = JSON.stringify(legacyMessage.attachments);
+      const simplePayload = JSON.stringify(simpleMessage.attachments);
+
+      console.log(`Legacy payload size: ${legacyPayload.length} bytes`);
+      console.log(`Simple payload size: ${simplePayload.length} bytes`);
+      console.log(`Size reduction: ${((1 - simplePayload.length / legacyPayload.length) * 100).toFixed(1)}%`);
+
+      expect(simplePayload.length).toBeLessThan(legacyPayload.length);
+      expect(simplePayload.length).toBeLessThan(200); // Should be very small
     });
   });
 });
