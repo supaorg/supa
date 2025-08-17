@@ -36,10 +36,14 @@
       hasError = false;
       errorMessage = '';
       
+      // Debug: log the fileRef to see what we're getting
+      console.log('FilePreview received fileRef:', fileRef);
+      
       // Validate fileRef before attempting to resolve
       if (!fileRef || !fileRef.tree || !fileRef.vertex) {
         hasError = true;
         errorMessage = 'Invalid file reference';
+        console.warn('FilePreview: Invalid fileRef:', fileRef);
         return;
       }
       

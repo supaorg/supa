@@ -39,6 +39,12 @@ export class FileResolver {
 	 */
 	async resolveFileReference(fileRef: FileReference): Promise<ResolvedFileInfo | null> {
 		try {
+			// Validate fileRef before proceeding
+			if (!fileRef || !fileRef.tree || !fileRef.vertex) {
+				console.warn('Invalid file reference:', fileRef);
+				return null;
+			}
+
 			// Load the files app tree
 			const filesTree = await this.loadAppTree(fileRef.tree);
 			if (!filesTree) {
@@ -107,6 +113,12 @@ export class FileResolver {
 	 */
 	async getFileMetadata(fileRef: FileReference): Promise<Omit<ResolvedFileInfo, 'url'> | null> {
 		try {
+			// Validate fileRef before proceeding
+			if (!fileRef || !fileRef.tree || !fileRef.vertex) {
+				console.warn('Invalid file reference:', fileRef);
+				return null;
+			}
+
 			const filesTree = await this.loadAppTree(fileRef.tree);
 			if (!filesTree) {
 				return null;
