@@ -1,209 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData, FileResolver } from '@sila/core';
+import { NodeFileSystem } from './node-file-system';
 import type { FileReference } from '@sila/core/spaces/files/FileResolver';
-
-// Mock the client state for browser testing
-const mockClientState = {
-  currentSpace: null as any,
-};
-
-// Mock file store for browser environment
-class MockFileStore {
-  private files = new Map<string, Uint8Array>();
-
-  async putBytes(bytes: Uint8Array, mimeType?: string) {
-    const hash = await this.computeHash(bytes);
-    this.files.set(hash, bytes);
-    return { hash, size: bytes.length };
-  }
-
-  async putDataUrl(dataUrl: string) {
-    const base64 = dataUrl.split(',')[1];
-    const bytes = new Uint8Array(Buffer.from(base64, 'base64'));
-    return this.putBytes(bytes);
-  }
-
-  async getBytes(hash: string) {
-    const bytes = this.files.get(hash);
-    if (!bytes) {
-      throw new Error(`File not found: ${hash}`);
-    }
-    return bytes;
-  }
-
-  async getDataUrl(hash: string) {
-    const bytes = await this.getBytes(hash);
-    const base64 = Buffer.from(bytes).toString('base64');
-    return `data:application/octet-stream;base64,${base64}`;
-  }
-
-  async exists(hash: string) {
-    return this.files.has(hash);
-  }
-
-  private async computeHash(bytes: Uint8Array): Promise<string> {
-    // Simple hash for testing - in real implementation this would be SHA-256
-    let hash = 0;
-    for (let i = 0; i < bytes.length; i++) {
-      const char = bytes[i];
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return hash.toString(16).padStart(64, '0');
-  }
-}
-
-// Mock space and app tree for browser testing
-class MockSpace {
-  private appTrees = new Map<string, MockAppTree>();
-  private fileStore = new MockFileStore();
-
-  constructor(public id: string) {}
-
-  async newAppTree(appId: string) {
-    const tree = new MockAppTree(appId);
-    this.appTrees.set(tree.id, tree);
-    return tree;
-  }
-
-  async loadAppTree(treeId: string) {
-    return this.appTrees.get(treeId);
-  }
-
-  getFileStore() {
-    return this.fileStore;
-  }
-}
-
-class MockAppTree {
-  public id: string;
-  public tree: MockTree;
-
-  constructor(appId: string) {
-    this.id = `${appId}-${Math.random().toString(36).substr(2, 9)}`;
-    this.tree = new MockTree();
-  }
-
-  getId() {
-    return this.id;
-  }
-}
-
-class MockTree {
-  private vertices = new Map<string, MockVertex>();
-
-  constructor() {
-    // Create root vertex
-    const root = new MockVertex('root', { _n: 'root' });
-    this.vertices.set('root', root);
-  }
-
-  newVertex(parentId: string, properties: Record<string, any>) {
-    const id = `vertex-${Math.random().toString(36).substr(2, 9)}`;
-    const vertex = new MockVertex(id, properties);
-    this.vertices.set(id, vertex);
-    return vertex;
-  }
-
-  getVertex(id: string) {
-    return this.vertices.get(id);
-  }
-
-  getVertexByPath(path: string) {
-    // Simple path resolution for testing
-    if (path === 'files') {
-      const filesVertex = new MockVertex('files', { _n: 'files' });
-      this.vertices.set('files', filesVertex);
-      return filesVertex;
-    }
-    return this.vertices.get(path);
-  }
-}
-
-class MockVertex {
-  public id: string;
-  private properties: Record<string, any>;
-
-  constructor(id: string, properties: Record<string, any>) {
-    this.id = id;
-    this.properties = properties;
-  }
-
-  getProperty(key: string) {
-    return this.properties[key];
-  }
-
-  setProperty(key: string, value: any) {
-    this.properties[key] = value;
-  }
-}
-
-// Mock FileResolver for browser testing
-class MockFileResolver {
-  constructor(private space: MockSpace) {}
-
-  async resolveFileReference(fileRef: FileReference) {
-    try {
-      const filesTree = await this.space.loadAppTree(fileRef.tree);
-      if (!filesTree) {
-        console.warn(`Files tree not found: ${fileRef.tree}`);
-        return null;
-      }
-
-      const fileVertex = filesTree.tree.getVertex(fileRef.vertex);
-      if (!fileVertex) {
-        console.warn(`File vertex not found: ${fileRef.vertex}`);
-        return null;
-      }
-
-      const hash = fileVertex.getProperty('hash') as string;
-      const name = fileVertex.getProperty('name') as string;
-      const mimeType = fileVertex.getProperty('mimeType') as string;
-      const size = fileVertex.getProperty('size') as number;
-      const width = fileVertex.getProperty('width') as number;
-      const height = fileVertex.getProperty('height') as number;
-
-      if (!hash) {
-        console.warn(`File vertex missing hash: ${fileRef.vertex}`);
-        return null;
-      }
-
-      const fileStore = this.space.getFileStore();
-      if (!fileStore) {
-        console.warn('FileStore not available for resolving file references');
-        return null;
-      }
-
-      const bytes = await fileStore.getBytes(hash);
-      const base64 = Buffer.from(bytes).toString('base64');
-      const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
-
-      return {
-        id: fileRef.vertex,
-        name: name || 'Unknown file',
-        mimeType,
-        size,
-        width,
-        height,
-        dataUrl,
-        hash,
-      };
-    } catch (error) {
-      console.error('Failed to resolve file reference:', error);
-      return null;
-    }
-  }
-
-  async resolveFileReferences(fileRefs: FileReference[]) {
-    const resolved = [];
-    for (const fileRef of fileRefs) {
-      const resolvedFile = await this.resolveFileReference(fileRef);
-      if (resolvedFile) {
-        resolved.push(resolvedFile);
-      }
-    }
-    return resolved;
-  }
-}
 
 // Simple attachment types for testing
 interface SimpleAttachment {
@@ -264,30 +65,56 @@ class FilePreviewUtils {
 }
 
 describe('Simplified File Previews (Browser)', () => {
-  let testSpace: MockSpace;
-  let filesTree: MockAppTree;
-  let fileVertex: MockVertex;
+  let tempDir: string;
+  let spaceManager: SpaceManager;
+  let testSpace: Space;
+  let filesTree: any;
+  let fileVertex: any;
   let fileRef: FileReference;
-  let fileResolver: MockFileResolver;
+  let fileResolver: FileResolver;
 
   beforeEach(async () => {
-    // Create mock space
-    testSpace = new MockSpace('test-space-id');
+    // Create temporary directory
+    tempDir = await mkdtemp(path.join(tmpdir(), 'sila-simplified-previews-browser-test-'));
     
-    // Create files tree
-    filesTree = await testSpace.newAppTree('files');
-    const parentFolder = filesTree.tree.getVertexByPath('files');
-    
-    // Create a test file in the mock file store
-    const testImageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=';
-    const testImageBytes = new Uint8Array(Buffer.from(testImageData, 'base64'));
-    const put = await testSpace.getFileStore().putBytes(testImageBytes, 'image/png');
+    // Create space manager and test space
+    spaceManager = new SpaceManager();
+    testSpace = Space.newSpace(crypto.randomUUID());
+    testSpace.name = 'Simplified File Previews Browser Test Space';
 
-    // Create file vertex
-    fileVertex = filesTree.tree.newVertex(parentFolder!.id, {
-      _n: 'test-image.png',
-      hash: put.hash,
+    // Create file system persistence layer
+    const fs = new NodeFileSystem();
+    const layer = new FileSystemPersistenceLayer(tempDir, testSpace.getId(), fs);
+    await spaceManager.addNewSpace(testSpace, [layer]);
+
+    // Wait for persistence to initialize
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Ensure the space has a FileStore provider
+    if (typeof layer.getFileStoreProvider === 'function') {
+      testSpace.setFileStoreProvider(layer.getFileStoreProvider());
+    }
+
+    // Create files tree using the proper API
+    filesTree = FilesTreeData.createNewFilesTree(testSpace);
+    
+    // Create file store
+    const fileStore = createFileStore({
+      getSpaceRootPath: () => tempDir,
+      getFs: () => fs
+    });
+
+    // Create a test file in CAS
+    const testImageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=';
+    const testImageBytes = Buffer.from(testImageData, 'base64');
+    const put = await fileStore!.putBytes(testImageBytes, 'image/png');
+
+    // Create file vertex using the proper API
+    fileVertex = FilesTreeData.createOrLinkFile({
+      filesTree,
+      parentFolder: filesTree.tree.getVertexByPath('files')!,
       name: 'test-image.png',
+      hash: put.hash,
       mimeType: 'image/png',
       size: put.size,
       width: 800,
@@ -299,11 +126,16 @@ describe('Simplified File Previews (Browser)', () => {
       vertex: fileVertex.id,
     };
 
-    // Set up mock client state
-    mockClientState.currentSpace = testSpace;
-
     // Create framework-agnostic file resolver
-    fileResolver = new MockFileResolver(testSpace);
+    fileResolver = new FileResolver(testSpace);
+  });
+
+  afterEach(async () => {
+    // Clean up
+    if (tempDir) {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+    await spaceManager.closeSpace(testSpace.getId());
   });
 
   describe('Simple Attachments', () => {
@@ -497,14 +329,16 @@ describe('Simplified File Previews (Browser)', () => {
       const arrayBuffer = await testFile.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
       
-      // Store in mock file store
-      const put = await testSpace.getFileStore().putBytes(bytes, 'text/plain');
+      // Store in file store
+      const fileStore = testSpace.getFileStore();
+      const put = await fileStore!.putBytes(bytes, 'text/plain');
       
       // Create file vertex
-      const textFileVertex = filesTree.tree.newVertex('files', {
-        _n: 'test.txt',
-        hash: put.hash,
+      const textFileVertex = FilesTreeData.createOrLinkFile({
+        filesTree,
+        parentFolder: filesTree.tree.getVertexByPath('files')!,
         name: 'test.txt',
+        hash: put.hash,
         mimeType: 'text/plain',
         size: put.size,
       });
@@ -527,14 +361,16 @@ describe('Simplified File Previews (Browser)', () => {
       // Test data URL handling
       const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=';
       
-      // Store data URL in mock file store
-      const put = await testSpace.getFileStore().putDataUrl(dataUrl);
+      // Store data URL in file store
+      const fileStore = testSpace.getFileStore();
+      const put = await fileStore!.putDataUrl(dataUrl);
       
       // Create file vertex
-      const dataUrlVertex = filesTree.tree.newVertex('files', {
-        _n: 'data-url-image.png',
-        hash: put.hash,
+      const dataUrlVertex = FilesTreeData.createOrLinkFile({
+        filesTree,
+        parentFolder: filesTree.tree.getVertexByPath('files')!,
         name: 'data-url-image.png',
+        hash: put.hash,
         mimeType: 'image/png',
         size: put.size,
       });
@@ -551,6 +387,11 @@ describe('Simplified File Previews (Browser)', () => {
       expect(fileInfo?.name).toBe('data-url-image.png');
       expect(fileInfo?.mimeType).toBe('image/png');
       expect(fileInfo?.dataUrl).toMatch(/^data:image\/png;base64,/);
+      
+      // Debug: let's see what we actually got
+      console.log('Debug - Expected name: data-url-image.png, Got:', fileInfo?.name);
+      console.log('Debug - File vertex ID:', dataUrlVertex.id);
+      console.log('Debug - File reference:', dataUrlFileRef);
     });
   });
 });
