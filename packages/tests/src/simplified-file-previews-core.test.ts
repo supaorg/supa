@@ -19,7 +19,7 @@ interface LegacyAttachment {
   kind: string;
   name?: string;
   alt?: string;
-  dataUrl?: string;
+  	url?: string;
   mimeType?: string;
   size?: number;
   width?: number;
@@ -305,7 +305,7 @@ describe('Simplified File Previews (Core)', () => {
       expect(fileInfo?.width).toBe(800);
       expect(fileInfo?.height).toBe(600);
       expect(fileInfo?.hash).toBe(fileVertex.getProperty('hash'));
-      expect(fileInfo?.dataUrl).toMatch(/^data:image\/png;base64,/);
+      		expect(fileInfo?.url).toMatch(/^sila:\/\/spaces\/[^\/]+\/files\/[^\/]+/);
     });
 
     it('should handle missing file references gracefully', async () => {
@@ -351,7 +351,7 @@ describe('Simplified File Previews (Core)', () => {
       const fileInfos = await fileResolver.resolveFileReferences(fileRefs);
       expect(fileInfos).toHaveLength(1);
       expect(fileInfos[0]?.name).toBe('test-image.png');
-      expect(fileInfos[0]?.dataUrl).toMatch(/^data:image\/png;base64,/);
+      		expect(fileInfos[0]?.url).toMatch(/^sila:\/\/spaces\/[^\/]+\/files\/[^\/]+/);
 
       // 4. Verify the complete workflow works
       expect(fileInfos[0]?.id).toBe(fileVertex.id);
@@ -586,7 +586,10 @@ describe('Simplified File Previews (Core)', () => {
       };
 
       const fileInfo = await fileResolver.resolveFileReference(invalidFileRef);
-      expect(fileInfo).toBeNull();
+      // Since we no longer use file store, this should succeed and generate a URL
+      expect(fileInfo).toBeDefined();
+      expect(fileInfo?.url).toMatch(/^sila:\/\/spaces\/[^\/]+\/files\/non-existent-hash/);
+      expect(fileInfo?.name).toBe('invalid-file.png');
     });
 
     it('should handle missing file properties gracefully', async () => {

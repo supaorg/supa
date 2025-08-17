@@ -26,7 +26,7 @@ export interface ResolvedFileInfo {
 	size?: number;
 	width?: number;
 	height?: number;
-	dataUrl: string;
+	url: string; // sila:// URL instead of dataUrl
 	hash: string;
 }
 
@@ -66,21 +66,9 @@ export class FileResolver {
 				return null;
 			}
 
-			// Get the file store and load bytes
-			const fileStore = this.space.getFileStore();
-			if (!fileStore) {
-				console.warn('FileStore not available for resolving file references');
-				return null;
-			}
-
-			// Load the bytes from CAS
-			const bytes = await fileStore.getBytes(hash);
-
-			// Convert bytes to data URL with proper MIME type
-			const base64 = typeof Buffer !== 'undefined' 
-				? Buffer.from(bytes).toString('base64') 
-				: btoa(String.fromCharCode(...bytes));
-			const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
+			// Generate sila:// URL instead of loading bytes
+			const spaceId = this.space.getId();
+			const url = `sila://spaces/${spaceId}/files/${hash}${mimeType ? `?type=${encodeURIComponent(mimeType)}` : ''}`;
 
 			return {
 				id: fileRef.vertex,
@@ -89,7 +77,7 @@ export class FileResolver {
 				size,
 				width,
 				height,
-				dataUrl,
+				url,
 				hash,
 			};
 		} catch (error) {
@@ -115,9 +103,9 @@ export class FileResolver {
 	}
 
 	/**
-	 * Gets file metadata without loading the actual bytes (for lightweight operations)
+	 * Gets file metadata without generating URL (for lightweight operations)
 	 */
-	async getFileMetadata(fileRef: FileReference): Promise<Omit<ResolvedFileInfo, 'dataUrl'> | null> {
+	async getFileMetadata(fileRef: FileReference): Promise<Omit<ResolvedFileInfo, 'url'> | null> {
 		try {
 			const filesTree = await this.loadAppTree(fileRef.tree);
 			if (!filesTree) {

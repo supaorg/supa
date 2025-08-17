@@ -31,9 +31,9 @@ export class ClientFileResolver {
   }
 
   /**
-   * Gets file metadata without loading the actual bytes (for lightweight operations)
+   * Gets file metadata without generating URL (for lightweight operations)
    */
-  static async getFileMetadata(fileRef: FileReference): Promise<Omit<ResolvedFileInfo, 'dataUrl'> | null> {
+  static async getFileMetadata(fileRef: FileReference): Promise<Omit<ResolvedFileInfo, 'url'> | null> {
     if (!clientState.currentSpace) {
       return null;
     }
