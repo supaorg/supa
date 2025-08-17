@@ -1,14 +1,13 @@
 <script lang="ts">
-  import { Play, Download } from 'lucide-svelte';
+  import { Download } from 'lucide-svelte';
+  import type { ResolvedFileInfo } from '@sila/client/lib/utils/fileResolver';
   
   let {
-    attachment,
+    fileInfo,
     showGallery = false,
-    onGalleryOpen,
   }: {
-    attachment: any;
+    fileInfo: ResolvedFileInfo;
     showGallery?: boolean;
-    onGalleryOpen: () => void;
   } = $props();
 
   let videoElement: HTMLVideoElement;
@@ -25,17 +24,11 @@
     hasError = true;
   }
 
-  function handleVideoClick() {
-    if (showGallery) {
-      onGalleryOpen();
-    }
-  }
-
   function handleDownload(e: Event) {
     e.stopPropagation();
     const link = document.createElement('a');
-    link.href = attachment.fileUrl || attachment.dataUrl;
-    link.download = attachment.name;
+    link.href = fileInfo.url;
+    link.download = fileInfo.name;
     link.click();
   }
 
@@ -71,13 +64,12 @@
   {:else}
     <video
       bind:this={videoElement}
-      src={attachment.fileUrl || attachment.dataUrl}
+      src={fileInfo.url}
       class="rounded object-contain max-w-[240px] max-h-[200px]"
       onloadeddata={handleVideoLoad}
       onerror={handleVideoError}
       onplay={handleVideoPlay}
       onpause={handleVideoPause}
-      onclick={handleVideoClick}
       controls
     >
       <track kind="captions" />
@@ -85,9 +77,11 @@
     
     {#if showGallery}
       <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded flex items-center justify-center opacity-0 group-hover:opacity-100">
-        <button class="btn-icon bg-white/90 hover:bg-white" onclick={handleVideoClick}>
-          <Play size={16} />
-        </button>
+        <div class="btn-icon bg-white/90">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+        </div>
       </div>
     {/if}
     

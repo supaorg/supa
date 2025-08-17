@@ -1,15 +1,14 @@
 <script lang="ts">
-  import { FileText, Download } from 'lucide-svelte';
+  import { Download } from 'lucide-svelte';
   import Markdown from '../markdown/Markdown.svelte';
+  import type { ResolvedFileInfo } from '@sila/client/lib/utils/fileResolver';
   
   let {
-    attachment,
+    fileInfo,
     showGallery = false,
-    onGalleryOpen,
   }: {
-    attachment: any;
+    fileInfo: ResolvedFileInfo;
     showGallery?: boolean;
-    onGalleryOpen: () => void;
   } = $props();
 
   let content = $state<string | null>(null);
@@ -18,7 +17,7 @@
 
   // Auto-load content when component mounts
   $effect(() => {
-    if (attachment && (attachment.fileUrl || attachment.dataUrl)) {
+    if (fileInfo && fileInfo.url) {
       loadContent();
     }
   });
@@ -30,7 +29,7 @@
     hasError = false;
 
     try {
-      const response = await fetch(attachment.fileUrl || attachment.dataUrl);
+      const response = await fetch(fileInfo.url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -43,17 +42,11 @@
     }
   }
 
-  function handleTextClick() {
-    if (showGallery) {
-      onGalleryOpen();
-    }
-  }
-
   function handleDownload(e: Event) {
     e.stopPropagation();
     const link = document.createElement('a');
-    link.href = attachment.fileUrl || attachment.dataUrl;
-    link.download = attachment.name;
+    link.href = fileInfo.url;
+    link.download = fileInfo.name;
     link.click();
   }
 
@@ -77,9 +70,9 @@
 
 <div class="text-preview border rounded-lg p-3 bg-surface-50-950">
   <div class="flex items-center justify-between mb-2">
-    <span class="text-sm font-medium">{attachment.name}</span>
+    <span class="text-sm font-medium">{fileInfo.name}</span>
     <span class="text-xs opacity-60">
-      {attachment.alt || 'text'} • {attachment.width || 'unknown'} lines
+      {fileInfo.mimeType || 'text'} • {fileInfo.size ? `${fileInfo.size} bytes` : 'unknown size'}
     </span>
   </div>
   
@@ -94,15 +87,14 @@
       </div>
     {:else if content}
       <div 
-        class="max-h-48 overflow-y-auto text-sm font-mono whitespace-pre-wrap cursor-pointer hover:bg-surface-100-900 rounded p-2 transition-colors"
-        onclick={handleTextClick}
+        class="max-h-48 overflow-y-auto text-sm font-mono whitespace-pre-wrap hover:bg-surface-100-900 rounded p-2 transition-colors"
       >
-        {#if attachment.mimeType === 'text/markdown' || attachment.mimeType === 'text/x-markdown'}
+        {#if fileInfo.mimeType === 'text/markdown' || fileInfo.mimeType === 'text/x-markdown'}
           <div class="prose prose-sm max-w-none">
             <Markdown source={content} />
           </div>
         {:else}
-          {@html renderTextContent(content, attachment.mimeType)}
+          {@html renderTextContent(content, fileInfo.mimeType)}
         {/if}
       </div>
     {:else}
