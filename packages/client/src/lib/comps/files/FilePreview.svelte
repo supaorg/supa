@@ -36,6 +36,13 @@
       hasError = false;
       errorMessage = '';
       
+      // Validate fileRef before attempting to resolve
+      if (!fileRef || !fileRef.tree || !fileRef.vertex) {
+        hasError = true;
+        errorMessage = 'Invalid file reference';
+        return;
+      }
+      
       const fileInfo = await ClientFileResolver.resolveFileReference(fileRef);
       if (fileInfo) {
         resolvedFile = fileInfo;
