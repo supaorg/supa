@@ -99,56 +99,8 @@ interface LegacyAttachment {
   content?: string;
 }
 
-// Migration utilities for testing
-class AttachmentMigration {
-  static toSimpleAttachments(legacyAttachments: LegacyAttachment[]): SimpleAttachment[] {
-    return legacyAttachments
-      .filter(att => att.file?.tree && att.file?.vertex)
-      .map(att => ({
-        id: att.id,
-        kind: att.kind as SimpleAttachment['kind'],
-        file: att.file!,
-        alt: att.alt,
-      }));
-  }
-
-  static toLegacyAttachments(simpleAttachments: SimpleAttachment[]): LegacyAttachment[] {
-    return simpleAttachments.map(att => ({
-      id: att.id,
-      kind: att.kind,
-      file: att.file,
-      alt: att.alt,
-    }));
-  }
-
-  static canMigrateMessage(message: any): boolean {
-    const attachments = message?.attachments;
-    if (!attachments || !Array.isArray(attachments)) {
-      return true;
-    }
-    return attachments.every((att: any) => 
-      att?.file?.tree && att?.file?.vertex
-    );
-  }
-
-  static migrateMessage(message: any): any {
-    if (!this.canMigrateMessage(message)) {
-      return message;
-    }
-
-    const attachments = message?.attachments;
-    if (!attachments || !Array.isArray(attachments)) {
-      return message;
-    }
-
-    const simpleAttachments = this.toSimpleAttachments(attachments);
-    
-    return {
-      ...message,
-      attachments: simpleAttachments,
-    };
-  }
-
+// Utility functions for testing
+class FilePreviewUtils {
   static extractFileReferences(message: any): FileReference[] {
     const attachments = message?.attachments;
     if (!attachments || !Array.isArray(attachments)) {
@@ -253,26 +205,22 @@ describe('Simplified File Previews (Svelte)', () => {
     });
 
     it('should work with Svelte reactive stores', () => {
-      // Test that the migration utilities work with Svelte patterns
-      const legacyMessage = {
+      // Test that the utility functions work with Svelte patterns
+      const message = {
         id: 'msg1',
         text: 'Here is an image',
         attachments: [
           {
             id: 'att1',
             kind: 'image',
-            name: 'test.png',
-            mimeType: 'image/png',
-            size: 1024,
-            dataUrl: 'data:image/png;base64,test',
             file: fileRef,
           },
         ],
       };
 
-      const simpleMessage = AttachmentMigration.migrateMessage(legacyMessage);
-      expect(simpleMessage.attachments).toHaveLength(1);
-      expect(simpleMessage.attachments[0].file).toEqual(fileRef);
+      const fileRefs = FilePreviewUtils.extractFileReferences(message);
+      expect(fileRefs).toHaveLength(1);
+      expect(fileRefs[0]).toEqual(fileRef);
     });
   });
 
@@ -401,15 +349,15 @@ describe('Simplified File Previews (Svelte)', () => {
         }
       };
 
-      const derivedStore = {
-        subscribe: (callback: (value: any) => void) => {
-          baseStore.subscribe((baseValue) => {
-            const fileRefs = AttachmentMigration.extractFileReferences(baseValue.messages[0]);
-            callback({ fileRefs });
-          });
-          return { unsubscribe: () => {} };
-        }
-      };
+             const derivedStore = {
+         subscribe: (callback: (value: any) => void) => {
+           baseStore.subscribe((baseValue) => {
+             const fileRefs = FilePreviewUtils.extractFileReferences(baseValue.messages[0]);
+             callback({ fileRefs });
+           });
+           return { unsubscribe: () => {} };
+         }
+       };
 
       let derivedValue: any;
       const unsubscribe = derivedStore.subscribe((value) => {
