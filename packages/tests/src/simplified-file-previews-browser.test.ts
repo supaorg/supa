@@ -137,21 +137,21 @@ class MockVertex {
   }
 }
 
-// Mock the ClientFileResolver for browser testing
-class MockClientFileResolver {
-  static async resolveFileReference(fileRef: FileReference) {
-    if (!mockClientState.currentSpace) {
-      return null;
-    }
+// Mock FileResolver for browser testing
+class MockFileResolver {
+  constructor(private space: MockSpace) {}
 
+  async resolveFileReference(fileRef: FileReference) {
     try {
-      const filesTree = await mockClientState.currentSpace.loadAppTree(fileRef.tree);
+      const filesTree = await this.space.loadAppTree(fileRef.tree);
       if (!filesTree) {
+        console.warn(`Files tree not found: ${fileRef.tree}`);
         return null;
       }
 
       const fileVertex = filesTree.tree.getVertex(fileRef.vertex);
       if (!fileVertex) {
+        console.warn(`File vertex not found: ${fileRef.vertex}`);
         return null;
       }
 
@@ -163,11 +163,13 @@ class MockClientFileResolver {
       const height = fileVertex.getProperty('height') as number;
 
       if (!hash) {
+        console.warn(`File vertex missing hash: ${fileRef.vertex}`);
         return null;
       }
 
-      const fileStore = mockClientState.currentSpace.getFileStore();
+      const fileStore = this.space.getFileStore();
       if (!fileStore) {
+        console.warn('FileStore not available for resolving file references');
         return null;
       }
 
@@ -191,7 +193,7 @@ class MockClientFileResolver {
     }
   }
 
-  static async resolveFileReferences(fileRefs: FileReference[]) {
+  async resolveFileReferences(fileRefs: FileReference[]) {
     const resolved = [];
     for (const fileRef of fileRefs) {
       const resolvedFile = await this.resolveFileReference(fileRef);
@@ -266,6 +268,7 @@ describe('Simplified File Previews (Browser)', () => {
   let filesTree: MockAppTree;
   let fileVertex: MockVertex;
   let fileRef: FileReference;
+  let fileResolver: MockFileResolver;
 
   beforeEach(async () => {
     // Create mock space
@@ -298,6 +301,9 @@ describe('Simplified File Previews (Browser)', () => {
 
     // Set up mock client state
     mockClientState.currentSpace = testSpace;
+
+    // Create framework-agnostic file resolver
+    fileResolver = new MockFileResolver(testSpace);
   });
 
   describe('Simple Attachments', () => {
@@ -416,7 +422,7 @@ describe('Simplified File Previews (Browser)', () => {
 
   describe('File Reference Resolution', () => {
     it('should resolve file references to file information', async () => {
-      const fileInfo = await MockClientFileResolver.resolveFileReference(fileRef);
+      const fileInfo = await fileResolver.resolveFileReference(fileRef);
 
       expect(fileInfo).toBeDefined();
       expect(fileInfo?.id).toBe(fileVertex.id);
@@ -435,13 +441,13 @@ describe('Simplified File Previews (Browser)', () => {
         vertex: 'non-existent-vertex',
       };
 
-      const fileInfo = await MockClientFileResolver.resolveFileReference(missingFileRef);
+      const fileInfo = await fileResolver.resolveFileReference(missingFileRef);
       expect(fileInfo).toBeNull();
     });
 
     it('should resolve multiple file references', async () => {
       const fileRefs = [fileRef, { tree: 'other-tree', vertex: 'other-vertex' }];
-      const fileInfos = await MockClientFileResolver.resolveFileReferences(fileRefs);
+      const fileInfos = await fileResolver.resolveFileReferences(fileRefs);
 
       expect(fileInfos).toHaveLength(1); // Only the valid one should resolve
       expect(fileInfos[0]?.id).toBe(fileVertex.id);
@@ -469,7 +475,7 @@ describe('Simplified File Previews (Browser)', () => {
       expect(fileRefs[0]).toEqual(fileRef);
 
       // 3. Resolve file references for preview
-      const fileInfos = await MockClientFileResolver.resolveFileReferences(fileRefs);
+      const fileInfos = await fileResolver.resolveFileReferences(fileRefs);
       expect(fileInfos).toHaveLength(1);
       expect(fileInfos[0]?.name).toBe('test-image.png');
       expect(fileInfos[0]?.dataUrl).toMatch(/^data:image\/png;base64,/);
@@ -509,7 +515,7 @@ describe('Simplified File Previews (Browser)', () => {
       };
 
       // Resolve the file reference
-      const fileInfo = await MockClientFileResolver.resolveFileReference(textFileRef);
+      const fileInfo = await fileResolver.resolveFileReference(textFileRef);
       
       expect(fileInfo).toBeDefined();
       expect(fileInfo?.name).toBe('test.txt');
@@ -539,7 +545,7 @@ describe('Simplified File Previews (Browser)', () => {
       };
 
       // Resolve the file reference
-      const fileInfo = await MockClientFileResolver.resolveFileReference(dataUrlFileRef);
+      const fileInfo = await fileResolver.resolveFileReference(dataUrlFileRef);
       
       expect(fileInfo).toBeDefined();
       expect(fileInfo?.name).toBe('data-url-image.png');

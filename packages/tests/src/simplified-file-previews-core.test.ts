@@ -2,77 +2,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData } from '@sila/core';
+import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData, FileResolver } from '@sila/core';
 import { NodeFileSystem } from './node-file-system';
 import type { FileReference } from '@sila/core/spaces/files/FileResolver';
-
-// Core file resolver that works without Svelte
-class CoreFileResolver {
-  constructor(private space: Space) {}
-
-  async resolveFileReference(fileRef: FileReference) {
-    try {
-      const filesTree = await this.space.loadAppTree(fileRef.tree);
-      if (!filesTree) {
-        console.warn(`Files tree not found: ${fileRef.tree}`);
-        return null;
-      }
-
-      const fileVertex = filesTree.tree.getVertex(fileRef.vertex);
-      if (!fileVertex) {
-        console.warn(`File vertex not found: ${fileRef.vertex}`);
-        return null;
-      }
-
-      const hash = fileVertex.getProperty('hash') as string;
-      const name = fileVertex.getProperty('name') as string;
-      const mimeType = fileVertex.getProperty('mimeType') as string;
-      const size = fileVertex.getProperty('size') as number;
-      const width = fileVertex.getProperty('width') as number;
-      const height = fileVertex.getProperty('height') as number;
-
-      if (!hash) {
-        console.warn(`File vertex missing hash: ${fileRef.vertex}`);
-        return null;
-      }
-
-      const fileStore = this.space.getFileStore();
-      if (!fileStore) {
-        console.warn('FileStore not available for resolving file references');
-        return null;
-      }
-
-      const bytes = await fileStore.getBytes(hash);
-      const base64 = Buffer.from(bytes).toString('base64');
-      const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
-
-      return {
-        id: fileRef.vertex,
-        name: name || 'Unknown file',
-        mimeType,
-        size,
-        width,
-        height,
-        dataUrl,
-        hash,
-      };
-    } catch (error) {
-      console.error('Failed to resolve file reference:', error);
-      return null;
-    }
-  }
-
-  async resolveFileReferences(fileRefs: FileReference[]) {
-    const resolved = [];
-    for (const fileRef of fileRefs) {
-      const resolvedFile = await this.resolveFileReference(fileRef);
-      if (resolvedFile) {
-        resolved.push(resolvedFile);
-      }
-    }
-    return resolved;
-  }
-}
 
 // Simple attachment types for testing
 interface SimpleAttachment {
@@ -139,6 +71,7 @@ describe('Simplified File Previews (Core)', () => {
   let filesTree: any;
   let fileVertex: any;
   let fileRef: FileReference;
+  let fileResolver: FileResolver;
 
   beforeEach(async () => {
     // Create temporary directory
@@ -156,6 +89,11 @@ describe('Simplified File Previews (Core)', () => {
 
     // Wait for persistence to initialize
     await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Ensure the space has a FileStore provider
+    if (typeof layer.getFileStoreProvider === 'function') {
+      testSpace.setFileStoreProvider(layer.getFileStoreProvider());
+    }
 
     // Create files tree using the proper API
     filesTree = FilesTreeData.createNewFilesTree(testSpace);
@@ -187,6 +125,9 @@ describe('Simplified File Previews (Core)', () => {
       tree: filesTree.getId(),
       vertex: fileVertex.id,
     };
+
+    // Create framework-agnostic file resolver
+    fileResolver = new FileResolver(testSpace);
   });
 
   afterEach(async () => {
@@ -354,7 +295,6 @@ describe('Simplified File Previews (Core)', () => {
 
   describe('File Reference Resolution', () => {
     it('should resolve file references to file information', async () => {
-      const fileResolver = new CoreFileResolver(testSpace);
       const fileInfo = await fileResolver.resolveFileReference(fileRef);
 
       expect(fileInfo).toBeDefined();
@@ -369,7 +309,6 @@ describe('Simplified File Previews (Core)', () => {
     });
 
     it('should handle missing file references gracefully', async () => {
-      const fileResolver = new CoreFileResolver(testSpace);
       const missingFileRef: FileReference = {
         tree: 'non-existent-tree',
         vertex: 'non-existent-vertex',
@@ -380,7 +319,6 @@ describe('Simplified File Previews (Core)', () => {
     });
 
     it('should resolve multiple file references', async () => {
-      const fileResolver = new CoreFileResolver(testSpace);
       const fileRefs = [fileRef, { tree: 'other-tree', vertex: 'other-vertex' }];
       const fileInfos = await fileResolver.resolveFileReferences(fileRefs);
 
@@ -410,7 +348,6 @@ describe('Simplified File Previews (Core)', () => {
       expect(fileRefs[0]).toEqual(fileRef);
 
       // 3. Resolve file references for preview
-      const fileResolver = new CoreFileResolver(testSpace);
       const fileInfos = await fileResolver.resolveFileReferences(fileRefs);
       expect(fileInfos).toHaveLength(1);
       expect(fileInfos[0]?.name).toBe('test-image.png');
@@ -634,8 +571,6 @@ describe('Simplified File Previews (Core)', () => {
 
   describe('File Resolution Edge Cases', () => {
     it('should handle file store errors gracefully', async () => {
-      const fileResolver = new CoreFileResolver(testSpace);
-      
       // Create a file reference that exists in the tree but not in the file store
       const invalidFileVertex = filesTree.tree.newVertex(filesTree.tree.getVertexByPath('files')!.id, {
         _n: 'invalid-file.png',
@@ -655,8 +590,6 @@ describe('Simplified File Previews (Core)', () => {
     });
 
     it('should handle missing file properties gracefully', async () => {
-      const fileResolver = new CoreFileResolver(testSpace);
-      
       // Create a file vertex with missing properties
       const incompleteFileVertex = filesTree.tree.newVertex(filesTree.tree.getVertexByPath('files')!.id, {
         _n: 'incomplete-file.png',

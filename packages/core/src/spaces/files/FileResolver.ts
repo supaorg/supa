@@ -187,7 +187,7 @@ export class FileResolver {
 			// If has file reference, resolve it
 			if (attachment.file?.tree && attachment.file?.vertex) {
 				try {
-					const resolvedAttachment = await this.resolveFileReference(
+					const resolvedAttachment = await this.resolveFileReferenceForAttachment(
 						attachment.file as FileReference,
 						attachment,
 						fileStore
@@ -221,9 +221,9 @@ export class FileResolver {
 	}
 
 	/**
-	 * Resolves a single file reference to a data URL
+	 * Resolves a single file reference to a data URL for attachments
 	 */
-	private async resolveFileReference(
+	private async resolveFileReferenceForAttachment(
 		fileRef: FileReference,
 		originalAttachment: any,
 		fileStore: any
