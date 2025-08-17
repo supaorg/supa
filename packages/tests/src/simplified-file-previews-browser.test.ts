@@ -225,56 +225,8 @@ interface LegacyAttachment {
   content?: string;
 }
 
-// Migration utilities for testing
-class AttachmentMigration {
-  static toSimpleAttachments(legacyAttachments: LegacyAttachment[]): SimpleAttachment[] {
-    return legacyAttachments
-      .filter(att => att.file?.tree && att.file?.vertex)
-      .map(att => ({
-        id: att.id,
-        kind: att.kind as SimpleAttachment['kind'],
-        file: att.file!,
-        alt: att.alt,
-      }));
-  }
-
-  static toLegacyAttachments(simpleAttachments: SimpleAttachment[]): LegacyAttachment[] {
-    return simpleAttachments.map(att => ({
-      id: att.id,
-      kind: att.kind,
-      file: att.file,
-      alt: att.alt,
-    }));
-  }
-
-  static canMigrateMessage(message: any): boolean {
-    const attachments = message?.attachments;
-    if (!attachments || !Array.isArray(attachments)) {
-      return true;
-    }
-    return attachments.every((att: any) => 
-      att?.file?.tree && att?.file?.vertex
-    );
-  }
-
-  static migrateMessage(message: any): any {
-    if (!this.canMigrateMessage(message)) {
-      return message;
-    }
-
-    const attachments = message?.attachments;
-    if (!attachments || !Array.isArray(attachments)) {
-      return message;
-    }
-
-    const simpleAttachments = this.toSimpleAttachments(attachments);
-    
-    return {
-      ...message,
-      attachments: simpleAttachments,
-    };
-  }
-
+// Utility functions for testing
+class FilePreviewUtils {
   static extractFileReferences(message: any): FileReference[] {
     const attachments = message?.attachments;
     if (!attachments || !Array.isArray(attachments)) {
@@ -383,116 +335,7 @@ describe('Simplified File Previews (Browser)', () => {
     });
   });
 
-  describe('Migration Utilities', () => {
-    it('should convert legacy attachments to simple attachments', () => {
-      const legacyAttachments: LegacyAttachment[] = [
-        {
-          id: 'att1',
-          kind: 'image',
-          name: 'test.png',
-          mimeType: 'image/png',
-          size: 1024,
-          dataUrl: 'data:image/png;base64,test',
-          file: fileRef,
-        },
-        {
-          id: 'att2',
-          kind: 'text',
-          name: 'test.txt',
-          content: 'Hello world',
-          // No file reference - should be filtered out
-        },
-      ];
-
-      const simpleAttachments = AttachmentMigration.toSimpleAttachments(legacyAttachments);
-
-      expect(simpleAttachments).toHaveLength(1);
-      expect(simpleAttachments[0].id).toBe('att1');
-      expect(simpleAttachments[0].kind).toBe('image');
-      expect(simpleAttachments[0].file).toEqual(fileRef);
-    });
-
-    it('should convert simple attachments back to legacy format', () => {
-      const simpleAttachments: SimpleAttachment[] = [
-        {
-          id: 'att1',
-          kind: 'image',
-          file: fileRef,
-          alt: 'Test image',
-        },
-      ];
-
-      const legacyAttachments = AttachmentMigration.toLegacyAttachments(simpleAttachments);
-
-      expect(legacyAttachments).toHaveLength(1);
-      expect(legacyAttachments[0].id).toBe('att1');
-      expect(legacyAttachments[0].kind).toBe('image');
-      expect(legacyAttachments[0].file).toEqual(fileRef);
-      expect(legacyAttachments[0].alt).toBe('Test image');
-    });
-  });
-
-  describe('Message Migration', () => {
-    it('should check if message can be migrated', () => {
-      const migratableMessage = {
-        id: 'msg1',
-        text: 'Hello',
-        attachments: [
-          {
-            id: 'att1',
-            kind: 'image',
-            file: fileRef,
-          },
-        ],
-      };
-
-      const nonMigratableMessage = {
-        id: 'msg2',
-        text: 'Hello',
-        attachments: [
-          {
-            id: 'att1',
-            kind: 'image',
-            dataUrl: 'data:image/png;base64,test',
-            // No file reference
-          },
-        ],
-      };
-
-      expect(AttachmentMigration.canMigrateMessage(migratableMessage)).toBe(true);
-      expect(AttachmentMigration.canMigrateMessage(nonMigratableMessage)).toBe(false);
-    });
-
-    it('should migrate messages to use simple attachments', () => {
-      const originalMessage = {
-        id: 'msg1',
-        text: 'Hello',
-        attachments: [
-          {
-            id: 'att1',
-            kind: 'image',
-            name: 'test.png',
-            mimeType: 'image/png',
-            size: 1024,
-            dataUrl: 'data:image/png;base64,test',
-            file: fileRef,
-          },
-        ],
-      };
-
-      const migratedMessage = AttachmentMigration.migrateMessage(originalMessage);
-
-      expect(migratedMessage.id).toBe('msg1');
-      expect(migratedMessage.text).toBe('Hello');
-      expect(migratedMessage.attachments).toHaveLength(1);
-      expect(migratedMessage.attachments[0].id).toBe('att1');
-      expect(migratedMessage.attachments[0].kind).toBe('image');
-      expect(migratedMessage.attachments[0].file).toEqual(fileRef);
-      // Legacy properties should be removed
-      expect(migratedMessage.attachments[0].name).toBeUndefined();
-      expect(migratedMessage.attachments[0].dataUrl).toBeUndefined();
-    });
-
+  describe('Utility Functions', () => {
     it('should extract file references from messages', () => {
       const message = {
         id: 'msg1',
@@ -511,7 +354,7 @@ describe('Simplified File Previews (Browser)', () => {
         ],
       };
 
-      const fileRefs = AttachmentMigration.extractFileReferences(message);
+      const fileRefs = FilePreviewUtils.extractFileReferences(message);
 
       expect(fileRefs).toHaveLength(2);
       expect(fileRefs[0]).toEqual(fileRef);
@@ -537,8 +380,8 @@ describe('Simplified File Previews (Browser)', () => {
         attachments: [],
       };
 
-      expect(AttachmentMigration.hasFileAttachments(messageWithFiles)).toBe(true);
-      expect(AttachmentMigration.hasFileAttachments(messageWithoutFiles)).toBe(false);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithFiles)).toBe(true);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithoutFiles)).toBe(false);
     });
 
     it('should count file attachments in messages', () => {
@@ -565,7 +408,7 @@ describe('Simplified File Previews (Browser)', () => {
         ],
       };
 
-      const count = AttachmentMigration.getFileAttachmentCount(message);
+      const count = FilePreviewUtils.getFileAttachmentCount(message);
 
       expect(count).toBe(2);
     });
@@ -607,40 +450,31 @@ describe('Simplified File Previews (Browser)', () => {
 
   describe('End-to-End Workflow', () => {
     it('should handle complete file preview workflow', async () => {
-      // 1. Create a message with legacy attachments
-      const legacyMessage = {
+      // 1. Create a message with simple attachments
+      const message = {
         id: 'msg1',
         text: 'Here is an image',
         attachments: [
           {
             id: 'att1',
             kind: 'image',
-            name: 'test.png',
-            mimeType: 'image/png',
-            size: 1024,
-            dataUrl: 'data:image/png;base64,test',
             file: fileRef,
           },
         ],
       };
 
-      // 2. Migrate to simple attachments
-      const simpleMessage = AttachmentMigration.migrateMessage(legacyMessage);
-      expect(simpleMessage.attachments).toHaveLength(1);
-      expect(simpleMessage.attachments[0].file).toEqual(fileRef);
-
-      // 3. Extract file references
-      const fileRefs = AttachmentMigration.extractFileReferences(simpleMessage);
+      // 2. Extract file references
+      const fileRefs = FilePreviewUtils.extractFileReferences(message);
       expect(fileRefs).toHaveLength(1);
       expect(fileRefs[0]).toEqual(fileRef);
 
-      // 4. Resolve file references for preview
+      // 3. Resolve file references for preview
       const fileInfos = await MockClientFileResolver.resolveFileReferences(fileRefs);
       expect(fileInfos).toHaveLength(1);
       expect(fileInfos[0]?.name).toBe('test-image.png');
       expect(fileInfos[0]?.dataUrl).toMatch(/^data:image\/png;base64,/);
 
-      // 5. Verify the complete workflow works
+      // 4. Verify the complete workflow works
       expect(fileInfos[0]?.id).toBe(fileVertex.id);
       expect(fileInfos[0]?.mimeType).toBe('image/png');
       expect(fileInfos[0]?.width).toBe(800);

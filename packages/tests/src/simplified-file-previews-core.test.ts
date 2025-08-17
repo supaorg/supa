@@ -448,4 +448,228 @@ describe('Simplified File Previews (Core)', () => {
       expect(payload).toContain('"vertex"');
     });
   });
+
+  describe('Error Handling and Edge Cases', () => {
+    it('should handle null or undefined file references', () => {
+      const messageWithNull = {
+        id: 'msg1',
+        text: 'Hello',
+        attachments: [
+          {
+            id: 'att1',
+            kind: 'image',
+            file: null,
+          },
+        ],
+      };
+
+      const messageWithUndefined = {
+        id: 'msg2',
+        text: 'Hello',
+        attachments: [
+          {
+            id: 'att1',
+            kind: 'image',
+            file: undefined,
+          },
+        ],
+      };
+
+      expect(FilePreviewUtils.extractFileReferences(messageWithNull)).toHaveLength(0);
+      expect(FilePreviewUtils.extractFileReferences(messageWithUndefined)).toHaveLength(0);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithNull)).toBe(false);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithUndefined)).toBe(false);
+    });
+
+    it('should handle malformed file references', () => {
+      const messageWithMalformedRefs = {
+        id: 'msg1',
+        text: 'Hello',
+        attachments: [
+          {
+            id: 'att1',
+            kind: 'image',
+            file: { tree: 'valid-tree' }, // Missing vertex
+          },
+          {
+            id: 'att2',
+            kind: 'image',
+            file: { vertex: 'valid-vertex' }, // Missing tree
+          },
+          {
+            id: 'att3',
+            kind: 'image',
+            file: { tree: '', vertex: '' }, // Empty strings
+          },
+        ],
+      };
+
+      const fileRefs = FilePreviewUtils.extractFileReferences(messageWithMalformedRefs);
+      expect(fileRefs).toHaveLength(0);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithMalformedRefs)).toBe(false);
+    });
+
+    it('should handle messages without attachments property', () => {
+      const messageWithoutAttachments = {
+        id: 'msg1',
+        text: 'Hello',
+      };
+
+      const messageWithNullAttachments = {
+        id: 'msg2',
+        text: 'Hello',
+        attachments: null,
+      };
+
+      const messageWithUndefinedAttachments = {
+        id: 'msg3',
+        text: 'Hello',
+        attachments: undefined,
+      };
+
+      expect(FilePreviewUtils.extractFileReferences(messageWithoutAttachments)).toHaveLength(0);
+      expect(FilePreviewUtils.extractFileReferences(messageWithNullAttachments)).toHaveLength(0);
+      expect(FilePreviewUtils.extractFileReferences(messageWithUndefinedAttachments)).toHaveLength(0);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithoutAttachments)).toBe(false);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithNullAttachments)).toBe(false);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithUndefinedAttachments)).toBe(false);
+    });
+
+    it('should handle non-array attachments', () => {
+      const messageWithStringAttachments = {
+        id: 'msg1',
+        text: 'Hello',
+        attachments: 'not-an-array',
+      };
+
+      const messageWithObjectAttachments = {
+        id: 'msg2',
+        text: 'Hello',
+        attachments: { some: 'object' },
+      };
+
+      expect(FilePreviewUtils.extractFileReferences(messageWithStringAttachments)).toHaveLength(0);
+      expect(FilePreviewUtils.extractFileReferences(messageWithObjectAttachments)).toHaveLength(0);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithStringAttachments)).toBe(false);
+      expect(FilePreviewUtils.hasFileAttachments(messageWithObjectAttachments)).toBe(false);
+    });
+  });
+
+  describe('Different File Types', () => {
+    it('should handle various file types in simple attachments', () => {
+      const imageAttachment: SimpleAttachment = {
+        id: 'img1',
+        kind: 'image',
+        file: fileRef,
+        alt: 'Test image',
+      };
+
+      const textAttachment: SimpleAttachment = {
+        id: 'txt1',
+        kind: 'text',
+        file: { tree: 'text-tree', vertex: 'text-vertex' },
+      };
+
+      const videoAttachment: SimpleAttachment = {
+        id: 'vid1',
+        kind: 'video',
+        file: { tree: 'video-tree', vertex: 'video-vertex' },
+      };
+
+      const pdfAttachment: SimpleAttachment = {
+        id: 'pdf1',
+        kind: 'pdf',
+        file: { tree: 'pdf-tree', vertex: 'pdf-vertex' },
+      };
+
+      const fileAttachment: SimpleAttachment = {
+        id: 'file1',
+        kind: 'file',
+        file: { tree: 'file-tree', vertex: 'file-vertex' },
+      };
+
+      expect(imageAttachment.kind).toBe('image');
+      expect(textAttachment.kind).toBe('text');
+      expect(videoAttachment.kind).toBe('video');
+      expect(pdfAttachment.kind).toBe('pdf');
+      expect(fileAttachment.kind).toBe('file');
+
+      // All should have valid file references
+      expect(imageAttachment.file.tree).toBeTruthy();
+      expect(textAttachment.file.tree).toBeTruthy();
+      expect(videoAttachment.file.tree).toBeTruthy();
+      expect(pdfAttachment.file.tree).toBeTruthy();
+      expect(fileAttachment.file.tree).toBeTruthy();
+    });
+
+    it('should process mixed file types in messages', () => {
+      const message = {
+        id: 'msg1',
+        text: 'Mixed file types',
+        attachments: [
+          {
+            id: 'img1',
+            kind: 'image',
+            file: { tree: 'img-tree', vertex: 'img-vertex' },
+          },
+          {
+            id: 'txt1',
+            kind: 'text',
+            file: { tree: 'txt-tree', vertex: 'txt-vertex' },
+          },
+          {
+            id: 'vid1',
+            kind: 'video',
+            file: { tree: 'vid-tree', vertex: 'vid-vertex' },
+          },
+        ],
+      };
+
+      const fileRefs = FilePreviewUtils.extractFileReferences(message);
+      expect(fileRefs).toHaveLength(3);
+      expect(FilePreviewUtils.hasFileAttachments(message)).toBe(true);
+      expect(FilePreviewUtils.getFileAttachmentCount(message)).toBe(3);
+    });
+  });
+
+  describe('File Resolution Edge Cases', () => {
+    it('should handle file store errors gracefully', async () => {
+      const fileResolver = new CoreFileResolver(testSpace);
+      
+      // Create a file reference that exists in the tree but not in the file store
+      const invalidFileVertex = filesTree.tree.newVertex(filesTree.tree.getVertexByPath('files')!.id, {
+        _n: 'invalid-file.png',
+        hash: 'non-existent-hash',
+        name: 'invalid-file.png',
+        mimeType: 'image/png',
+        size: 0,
+      });
+
+      const invalidFileRef: FileReference = {
+        tree: filesTree.getId(),
+        vertex: invalidFileVertex.id,
+      };
+
+      const fileInfo = await fileResolver.resolveFileReference(invalidFileRef);
+      expect(fileInfo).toBeNull();
+    });
+
+    it('should handle missing file properties gracefully', async () => {
+      const fileResolver = new CoreFileResolver(testSpace);
+      
+      // Create a file vertex with missing properties
+      const incompleteFileVertex = filesTree.tree.newVertex(filesTree.tree.getVertexByPath('files')!.id, {
+        _n: 'incomplete-file.png',
+        // Missing hash, mimeType, size, etc.
+      });
+
+      const incompleteFileRef: FileReference = {
+        tree: filesTree.getId(),
+        vertex: incompleteFileVertex.id,
+      };
+
+      const fileInfo = await fileResolver.resolveFileReference(incompleteFileRef);
+      expect(fileInfo).toBeNull();
+    });
+  });
 });
