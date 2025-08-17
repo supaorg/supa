@@ -1,5 +1,5 @@
 import { clientState } from '../state/clientState.svelte';
-import { FileResolver, type ResolvedFileInfo, type FileReference } from '@sila/core/spaces/files/FileResolver';
+import { FileResolver, type ResolvedFileInfo, type FileReference } from '@sila/core';
 
 export { type ResolvedFileInfo, type FileReference };
 

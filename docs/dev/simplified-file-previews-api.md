@@ -18,7 +18,7 @@ interface FileReference {
 ### 1. Extract File References from Messages
 
 ```typescript
-import { extractFileReferences } from '@sila/client/utils/fileResolver';
+import { extractFileReferences } from '@sila/client/lib/utils/fileResolver';
 
 // From a ThreadMessage object
 const fileRefs = extractFileReferences(message);
@@ -28,7 +28,7 @@ const fileRefs = extractFileReferences(message);
 ### 2. Resolve File References to URLs
 
 ```typescript
-import { ClientFileResolver } from '@sila/client/utils/fileResolver';
+import { ClientFileResolver } from '@sila/client/lib/utils/fileResolver';
 
 // Get metadata and sila:// URL
 const fileInfo = await ClientFileResolver.resolveFileReference(fileRef);
