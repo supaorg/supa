@@ -19,8 +19,141 @@ export interface ResolvedAttachment {
 	height?: number;
 }
 
+export interface ResolvedFileInfo {
+	id: string;
+	name: string;
+	mimeType?: string;
+	size?: number;
+	width?: number;
+	height?: number;
+	dataUrl: string;
+	hash: string;
+}
+
 export class FileResolver {
 	constructor(private space: Space) {}
+
+	/**
+	 * Resolves a single file reference to file information
+	 * Framework-agnostic method for resolving file references
+	 */
+	async resolveFileReference(fileRef: FileReference): Promise<ResolvedFileInfo | null> {
+		try {
+			// Load the files app tree
+			const filesTree = await this.loadAppTree(fileRef.tree);
+			if (!filesTree) {
+				console.warn(`Files tree not found: ${fileRef.tree}`);
+				return null;
+			}
+
+			// Get the file vertex
+			const fileVertex = filesTree.tree.getVertex(fileRef.vertex);
+			if (!fileVertex) {
+				console.warn(`File vertex not found: ${fileRef.vertex}`);
+				return null;
+			}
+
+			// Extract metadata from the file vertex
+			const hash = fileVertex.getProperty('hash') as string;
+			const name = fileVertex.getProperty('name') as string;
+			const mimeType = fileVertex.getProperty('mimeType') as string;
+			const size = fileVertex.getProperty('size') as number;
+			const width = fileVertex.getProperty('width') as number;
+			const height = fileVertex.getProperty('height') as number;
+
+			if (!hash) {
+				console.warn(`File vertex missing hash: ${fileRef.vertex}`);
+				return null;
+			}
+
+			// Get the file store and load bytes
+			const fileStore = this.space.getFileStore();
+			if (!fileStore) {
+				console.warn('FileStore not available for resolving file references');
+				return null;
+			}
+
+			// Load the bytes from CAS
+			const bytes = await fileStore.getBytes(hash);
+
+			// Convert bytes to data URL with proper MIME type
+			const base64 = typeof Buffer !== 'undefined' 
+				? Buffer.from(bytes).toString('base64') 
+				: btoa(String.fromCharCode(...bytes));
+			const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
+
+			return {
+				id: fileRef.vertex,
+				name: name || 'Unknown file',
+				mimeType,
+				size,
+				width,
+				height,
+				dataUrl,
+				hash,
+			};
+		} catch (error) {
+			console.error('Failed to resolve file reference:', error);
+			return null;
+		}
+	}
+
+	/**
+	 * Resolves multiple file references
+	 */
+	async resolveFileReferences(fileRefs: FileReference[]): Promise<ResolvedFileInfo[]> {
+		const resolved: ResolvedFileInfo[] = [];
+		
+		for (const fileRef of fileRefs) {
+			const resolvedFile = await this.resolveFileReference(fileRef);
+			if (resolvedFile) {
+				resolved.push(resolvedFile);
+			}
+		}
+		
+		return resolved;
+	}
+
+	/**
+	 * Gets file metadata without loading the actual bytes (for lightweight operations)
+	 */
+	async getFileMetadata(fileRef: FileReference): Promise<Omit<ResolvedFileInfo, 'dataUrl'> | null> {
+		try {
+			const filesTree = await this.loadAppTree(fileRef.tree);
+			if (!filesTree) {
+				return null;
+			}
+
+			const fileVertex = filesTree.tree.getVertex(fileRef.vertex);
+			if (!fileVertex) {
+				return null;
+			}
+
+			const hash = fileVertex.getProperty('hash') as string;
+			const name = fileVertex.getProperty('name') as string;
+			const mimeType = fileVertex.getProperty('mimeType') as string;
+			const size = fileVertex.getProperty('size') as number;
+			const width = fileVertex.getProperty('width') as number;
+			const height = fileVertex.getProperty('height') as number;
+
+			if (!hash) {
+				return null;
+			}
+
+			return {
+				id: fileRef.vertex,
+				name: name || 'Unknown file',
+				mimeType,
+				size,
+				width,
+				height,
+				hash,
+			};
+		} catch (error) {
+			console.error('Failed to get file metadata:', error);
+			return null;
+		}
+	}
 
 	/**
 	 * Resolves file references in attachments to data URLs
