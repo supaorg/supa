@@ -6,7 +6,12 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:node": "vitest run --config vitest.config.ts",
+    "test:browser": "vitest run --config vitest.config.browser.ts",
+    "test:simplified-previews": "vitest run src/simplified-file-previews*.test.ts",
+    "test:simplified-previews:node": "vitest run --config vitest.config.ts src/simplified-file-previews-node.test.ts",
+    "test:simplified-previews:browser": "vitest run --config vitest.config.browser.ts src/simplified-file-previews-browser.test.ts"
   },
   "dependencies": {
     "@sila/core": "*"
@@ -15,6 +20,8 @@
     "vitest": "^2.1.1",
     "typescript": "^5.4.0",
     "@types/node": "^20.12.7",
-    "tsx": "^4.0.0"
+    "tsx": "^4.0.0",
+    "happy-dom": "^14.10.1",
+    "jsdom": "^24.0.0"
   }
 }
