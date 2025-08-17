@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Download } from 'lucide-svelte';
   import { formatFileSize, getFileIcon } from '@sila/client/utils/filePreview';
-  import type { ResolvedFileInfo } from '@sila/client/lib/utils/fileResolver';
+  import type { ResolvedFileInfo } from '../../utils/fileResolver';
   
   export let fileInfo: ResolvedFileInfo;
 

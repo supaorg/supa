@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Download } from 'lucide-svelte';
   import Markdown from '../markdown/Markdown.svelte';
-  import type { ResolvedFileInfo } from '@sila/client/lib/utils/fileResolver';
+  import type { ResolvedFileInfo } from '../../utils/fileResolver';
   
   let {
     fileInfo,

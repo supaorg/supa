@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { getFilePreviewConfig } from '@sila/client/utils/filePreview';
-  import { ClientFileResolver } from '@sila/client/lib/utils/fileResolver';
+  import { ClientFileResolver } from '../../utils/fileResolver';
   import ImageFilePreview from './ImageFilePreview.svelte';
   import VideoFilePreview from './VideoFilePreview.svelte';
   import PdfFilePreview from './PdfFilePreview.svelte';
   import TextFilePreview from './TextFilePreview.svelte';
   import DownloadFilePreview from './DownloadFilePreview.svelte';
-  import type { FileReference, ResolvedFileInfo } from '@sila/client/lib/utils/fileResolver';
+  import type { FileReference, ResolvedFileInfo } from '../../utils/fileResolver';
   
   let {
     fileRef,
