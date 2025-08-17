@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Download } from 'lucide-svelte';
   import type { ResolvedFileInfo } from '../../utils/fileResolver';
   
   let {
@@ -20,14 +19,6 @@
   function handleIframeError() {
     isLoading = false;
     hasError = true;
-  }
-
-  function handleDownload(e: Event) {
-    e.stopPropagation();
-    const link = document.createElement('a');
-    link.href = fileInfo.url;
-    link.download = fileInfo.name;
-    link.click();
   }
 </script>
 
@@ -64,12 +55,7 @@
         </div>
       {/if}
       
-      <button 
-        class="absolute top-2 right-2 btn-icon bg-white/90 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
-        onclick={handleDownload}
-      >
-        <Download size={14} />
-      </button>
+
     </div>
   {/if}
 </div>
