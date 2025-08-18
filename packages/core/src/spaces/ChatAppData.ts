@@ -289,19 +289,13 @@ export class ChatAppData {
     } as ThreadMessage;
   }
 
-  /** Resolve target app tree and parent folder for file saves based on optional fileTarget. Defaults to Files AppTree. */
+  /** Resolve target app tree and parent folder for file saves based on optional fileTarget. Defaults to this chat tree under 'files'. */
   private async resolveFileTarget(fileTarget?: { treeId?: string; path?: string; createParents?: boolean }): Promise<{ targetTree: AppTree; parentFolder: Vertex } > {
-    // Default: Files AppTree with date/chat subfolder
+    // Default: save under the current chat tree at 'files'
     if (!fileTarget || (!fileTarget.treeId && !fileTarget.path)) {
-      const filesTree = await FilesTreeData.getOrCreateDefaultFilesTree(this.space);
-      const now = new Date();
-      const parentFolder = FilesTreeData.ensureFolderPath(filesTree, [
-        now.getUTCFullYear().toString(),
-        String(now.getUTCMonth() + 1).padStart(2, '0'),
-        String(now.getUTCDate()).padStart(2, '0'),
-        'chat'
-      ]);
-      return { targetTree: filesTree, parentFolder };
+      const targetTree = this.appTree;
+      const parentFolder = this.ensureFolderPathInTree(targetTree, ['files'], true);
+      return { targetTree, parentFolder };
     }
 
     // Targeted: load specified tree, ensure path (default to 'files')
