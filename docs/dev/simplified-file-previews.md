@@ -1,15 +1,12 @@
-# Simplified File Previews in Chat
+# File Previews
 
-This document describes the new simplified file preview system that replaces the current attachment-based approach with a more efficient file reference system.
+This document describes how file previews work across the app.
 
 ## Overview
 
-The current file preview system sends complete attachment objects containing all file metadata (name, size, mimeType, dataUrl, etc.) along with file references. This creates redundancy and increases payload size.
-
-The new system simplifies this by:
-1. **Sending only file references**: `{ tree: filesTreeId, vertex: fileVertexId }`
-2. **Resolving metadata in the UI**: Using the client state to load file information on-demand
-3. **Single source of truth**: All file metadata comes from the actual file vertices in the Files AppTree
+- Messages contain lightweight file references only
+- The UI resolves references to metadata and a `sila://` URL when needed
+- Previews render either an image preview or a regular file tile
 
 ## Architecture
 
@@ -21,18 +18,8 @@ interface FileReference {
 }
 ```
 
-### Simple Attachments
-```typescript
-interface SimpleAttachment {
-  id: string;
-  kind: 'image' | 'text' | 'video' | 'pdf' | 'file';
-  file: FileReference;
-  alt?: string; // Optional alt text for accessibility
-}
-```
-
 ### Client-Side Resolution
-The `ClientFileResolver` utility resolves file references using the current space state:
+The resolver resolves file references using the current space state:
 
 ```typescript
 // Resolve a single file reference
@@ -44,33 +31,29 @@ const fileInfos = await ClientFileResolver.resolveFileReferences(fileRefs);
 
 ## Components
 
-### FileReferencePreview.svelte
-A new preview component that:
-- Takes a `FileReference` as input
-- Resolves the file using `ClientFileResolver`
-- Renders the appropriate preview component
-- Handles loading and error states
+### FilePreview.svelte
+- Takes a `FileReference`
+- Resolves to `ResolvedFileInfo`
+- Chooses a preview implementation based on MIME type
 
-### ChatAppMessageSimple.svelte
-A new chat message component that:
-- Extracts simple attachments from messages
-- Uses `FileReferencePreview` for each attachment
-- Provides a cleaner, more efficient rendering pipeline
+### ImageFilePreview.svelte
+- Renders images with object-contain and viewport padding
 
-## Migration Strategy
+### RegularFilePreview.svelte
+- Renders an icon, filename, and friendly format label for non-images
 
-### Backward Compatibility
-The system maintains backward compatibility through:
+### FileGalleryModal.svelte
+- Popover-based modal for viewing the active file
+- ESC and backdrop click to close
+- Uses `clientState.gallery` with `open()` and `close()`
 
-1. **Type Guards**: `isSimpleAttachment()` and `isLegacyAttachment()` functions
-2. **Conversion Utilities**: `toSimpleAttachment()` and `toLegacyAttachment()` functions
-3. **Migration Helper**: `AttachmentMigration` class for bulk conversions
+## URL Format
 
-### Gradual Migration
-1. **Phase 1**: Deploy new components alongside existing ones
-2. **Phase 2**: Update new messages to use simple attachments
-3. **Phase 3**: Migrate existing messages (optional)
-4. **Phase 4**: Remove legacy components
+Files are served via the custom protocol:
+
+```
+sila://spaces/{spaceId}/files/{hash}?type={mimeType}&name={fileName}
+```
 
 ## Benefits
 
@@ -85,60 +68,31 @@ The system maintains backward compatibility through:
 - **Simpler data flow**: No need to sync metadata between attachments and file vertices
 
 ### User Experience
-- **Faster message loading**: Smaller payloads
-- **Consistent file information**: Always up-to-date metadata
-- **Better error handling**: Clear loading and error states
+- Fast message loading
+- Consistent file information
+- Clear loading and error states
 
 ## Implementation Details
 
 ### File Resolution Flow
-1. **Extract file reference** from attachment
-2. **Load Files AppTree** using space state
-3. **Get file vertex** and extract metadata
-4. **Load bytes from CAS** using FileStore
-5. **Convert to data URL** for preview
-6. **Cache result** for future use
+1. Extract `FileReference` from a message
+2. Load Files AppTree using space state
+3. Get file vertex and metadata
+4. Construct `sila://` URL with `type` and `name` query params
+5. Optionally cache
 
 ### Error Handling
-- **Missing space**: Graceful fallback with warning
-- **Missing tree**: Log warning and skip file
-- **Missing vertex**: Log warning and skip file
-- **Missing hash**: Log warning and skip file
-- **FileStore unavailable**: Show error state
-- **Network errors**: Retry with exponential backoff
-
+- Missing space/tree/vertex/hash: warn and skip
+- FileStore unavailable: show error state
 ### Caching Strategy
-- **Metadata cache**: File metadata cached per session
-- **Data URL cache**: Resolved data URLs cached with TTL
-- **Tree cache**: Files AppTree instances cached in space state
+- Metadata cache per session
+- Tree cache in space state
 
 ## Usage Examples
 
-### Creating Simple Attachments
-```typescript
-import { AttachmentMigration } from '@sila/client/utils/attachmentMigration';
-
-const simpleAttachment = AttachmentMigration.createSimpleAttachment(
-  'att1',
-  'image',
-  { tree: 'files-tree-id', vertex: 'file-vertex-id' },
-  'Screenshot of the dashboard'
-);
-```
-
-### Using FileReferencePreview
+### Using FilePreview
 ```svelte
-<script>
-  import FileReferencePreview from '@sila/client/comps/files/FileReferencePreview.svelte';
-  
-  const fileRef = { tree: 'files-tree-id', vertex: 'file-vertex-id' };
-</script>
-
-<FileReferencePreview 
-  fileRef={fileRef}
-  showGallery={true}
-  onGalleryOpen={() => openGallery()}
-/>
+<FilePreview fileRef={{ tree: 'files-tree-id', vertex: 'file-vertex-id' }} showGallery={true} />
 ```
 
 ### Migrating Existing Messages
@@ -165,9 +119,9 @@ if (AttachmentMigration.canMigrateMessage(message)) {
 - **Progressive loading**: Load low-res previews first
 
 ### Enhanced Features
-- **File search**: Search within file content
-- **File sharing**: Share files between spaces
-- **File versioning**: Track file changes over time
+- File search
+- File sharing
+- File versioning
 
 ## Testing
 
@@ -191,4 +145,4 @@ if (AttachmentMigration.canMigrateMessage(message)) {
 
 ## Conclusion
 
-The simplified file preview system provides a more efficient, maintainable, and user-friendly approach to handling file attachments in chat. By leveraging the existing space state and file infrastructure, it reduces complexity while improving performance and consistency.
+File previews are lightweight, consistent, and integrated with the gallery for a clean user experience.

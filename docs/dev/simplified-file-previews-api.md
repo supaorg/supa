@@ -1,8 +1,8 @@
-# Simplified File Previews API
+# File Previews API
 
 ## Overview
 
-The simplified file preview system uses `FileReference` objects that contain only `tree` and `vertex` IDs, which are resolved to `sila://` URLs for display.
+The file preview system uses `FileReference` objects that contain only `tree` and `vertex` IDs, which are resolved to `sila://` URLs for display.
 
 ## FileReference Format
 

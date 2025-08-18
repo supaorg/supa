@@ -1,6 +1,6 @@
 # File Preview System Comparison
 
-This document compares the current file preview system with the proposed simplified system.
+This document (legacy) compared two systems and is no longer applicable. Our previews are reference-based and resolved at render time.
 
 ## Current System
 
@@ -37,11 +37,11 @@ interface CurrentAttachment {
 - **Sync Issues**: Metadata can become inconsistent between file vertex and attachment
 - **Complex Logic**: Need to handle both transient data and file references
 
-## Proposed Simplified System
+## Current System (Reference-based)
 
 ### Attachment Structure
 ```typescript
-// Simplified attachment format - only essential data
+// Attachment format - only essential data
 interface SimpleAttachment {
   id: string;
   kind: 'image' | 'text' | 'video' | 'pdf' | 'file';
@@ -92,7 +92,7 @@ interface SimpleAttachment {
 ```
 **Size**: ~245KB (mostly base64 data)
 
-**Simplified System**:
+**Current**:
 ```json
 {
   "attachments": [
@@ -117,7 +117,7 @@ interface SimpleAttachment {
 - Base64 data URLs consume significant memory
 - Redundant metadata stored multiple times
 
-**Simplified System**:
+**Current**:
 - Only file references stored in memory
 - File metadata loaded on-demand and cached
 - Shared metadata across multiple references to same file
@@ -130,7 +130,7 @@ interface SimpleAttachment {
 - **Network**: Large payloads for messages with files
 - **Rendering**: Immediate preview (pro)
 
-**Simplified System**:
+**Current**:
 - **Message Loading**: Load minimal reference data
 - **Memory**: Low memory usage per message
 - **Network**: Minimal payloads
@@ -143,7 +143,7 @@ interface SimpleAttachment {
 - Complex fallback logic
 - Inconsistent error states
 
-**Simplified System**:
+**Current**:
 - Single resolution path
 - Clear loading and error states
 - Consistent error handling
@@ -201,7 +201,7 @@ interface SimpleAttachment {
 
 ## Conclusion
 
-The simplified file preview system provides significant benefits:
+The file preview system provides significant benefits:
 
 1. **99.9% payload size reduction** for messages with file attachments
 2. **Single source of truth** for file metadata
