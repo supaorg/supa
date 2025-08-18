@@ -28,7 +28,9 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 async function sha256(bytes: Uint8Array): Promise<string> {
-	const digest = await crypto.subtle.digest("SHA-256", bytes);
+	// Ensure we pass an ArrayBuffer-backed view compatible with WebCrypto
+	const view = new Uint8Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength);
+	const digest = await crypto.subtle.digest("SHA-256", view);
 	return bytesToHex(new Uint8Array(digest));
 }
 
