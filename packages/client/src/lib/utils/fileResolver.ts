@@ -42,16 +42,4 @@ export class ClientFileResolver {
     const fileResolver = new FileResolver(clientState.currentSpace);
     return await fileResolver.resolveFileReferences(fileRefs);
   }
-
-  /**
-   * Gets file metadata without generating URL (for lightweight operations)
-   */
-  static async getFileMetadata(fileRef: FileReference): Promise<Omit<ResolvedFileInfo, 'url'> | null> {
-    if (!clientState.currentSpace) {
-      return null;
-    }
-
-    const fileResolver = new FileResolver(clientState.currentSpace);
-    return await fileResolver.getFileMetadata(fileRef);
-  }
 }

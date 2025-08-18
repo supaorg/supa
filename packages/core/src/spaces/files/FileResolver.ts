@@ -107,54 +107,7 @@ export class FileResolver {
 		
 		return resolved;
 	}
-
-	/**
-	 * Gets file metadata without generating URL (for lightweight operations)
-	 */
-	async getFileMetadata(fileRef: FileReference): Promise<Omit<ResolvedFileInfo, 'url'> | null> {
-		try {
-			// Validate fileRef before proceeding
-			if (!fileRef || !fileRef.tree || !fileRef.vertex) {
-				console.warn('Invalid file reference:', fileRef);
-				return null;
-			}
-
-			const filesTree = await this.loadAppTree(fileRef.tree);
-			if (!filesTree) {
-				return null;
-			}
-
-			const fileVertex = filesTree.tree.getVertex(fileRef.vertex);
-			if (!fileVertex) {
-				return null;
-			}
-
-			const hash = fileVertex.getProperty('hash') as string;
-			const name = fileVertex.getProperty('name') as string;
-			const mimeType = fileVertex.getProperty('mimeType') as string;
-			const size = fileVertex.getProperty('size') as number;
-			const width = fileVertex.getProperty('width') as number;
-			const height = fileVertex.getProperty('height') as number;
-
-			if (!hash) {
-				return null;
-			}
-
-			return {
-				id: fileRef.vertex,
-				name: name || 'Unknown file',
-				mimeType,
-				size,
-				width,
-				height,
-				hash,
-			};
-		} catch (error) {
-			console.error('Failed to get file metadata:', error);
-			return null;
-		}
-	}
-
+  
 	/**
 	 * Resolves file references in attachments to data URLs
 	 * Used for UI rendering and AI consumption
