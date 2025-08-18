@@ -4,6 +4,7 @@ import { SpaceState } from './spaceState.svelte';
 import { isDevMode, spaceInspectorOpen } from './devMode';
 import { txtStore } from './txtStore';
 import { setupSwins } from './swinsLayout';
+import { setupGallery } from './galleryState.svelte';
 import type { SpacePointer } from "../spaces/SpacePointer";
 import { createPersistenceLayersForURI } from "../spaces/persistence/persistenceUtils";
 import { checkIfCanCreateSpaceAndReturnPath, checkIfPathHasValidStructureAndReturnActualRootPath, loadSpaceMetadataFromPath } from "../spaces/fileSystemSpaceUtils";
@@ -97,6 +98,9 @@ export class ClientState {
     spaceInspectorOpen
   };
   texts = txtStore;
+
+  // Gallery state for file previews
+  gallery = setupGallery();
 
   layout = {
     swins: setupSwins(),

@@ -2,10 +2,11 @@
   import { onMount } from 'svelte';
   import { X } from 'lucide-svelte';
   import { getFilePreviewConfig } from '@sila/client/utils/filePreview';
-  import { galleryState } from '../../state/galleryState.svelte';
+  import { clientState } from '../../state/clientState.svelte';
+  import { galleryState } from '@sila/client/state/galleryState.svelte';
 
-  let activeFile = $derived(galleryState.activeFile);
-  let isOpen = $derived(galleryState.isOpen);
+  let activeFile = $derived(clientState.gallery.activeFile);
+  let isOpen = $derived(clientState.gallery.isOpen);
 
   let previewConfig = $derived.by(() => {
     if (!activeFile?.mimeType) return null;
@@ -16,13 +17,13 @@
     if (!isOpen) return;
 
     if (event.key === 'Escape') {
-      galleryState.closeGallery();
+      clientState.gallery.close();
     }
   }
 
   function handleBackdropClick(event: Event) {
     if (event.target === event.currentTarget) {
-      galleryState.closeGallery();
+      clientState.gallery.close();
     }
   }
 
@@ -42,7 +43,7 @@
     <!-- Close button -->
     <button 
       class="absolute top-4 right-4 btn-icon bg-black/50 text-white hover:bg-black/70 z-10"
-      onclick={() => galleryState.closeGallery()}
+      onclick={() => clientState.gallery.close()}
     >
       <X size={20} />
     </button>
