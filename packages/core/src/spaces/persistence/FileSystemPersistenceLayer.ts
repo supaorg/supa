@@ -96,11 +96,8 @@ export class FileSystemPersistenceLayer extends ConnectedPersistenceLayer {
     if (opsToSave.length === 0) return;
 
     this.addOpsToSave(treeId, opsToSave);
-
-    // Start batched saving if not already started
-    if (!this.saveOpsTimer) {
-      this.saveOpsTimer = interval(() => this.saveOps(), this.saveOpsIntervalMs);
-    }
+    // Flush immediately to avoid background writes interfering with test cleanup
+    await this.saveOps();
   }
 
   async loadTreeOps(treeId: string): Promise<VertexOperation[]> {

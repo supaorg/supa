@@ -61,7 +61,7 @@
 ### Migration & compatibility
 - Default behavior remains unchanged: when no target is specified, uploads go to the Files AppTree.
 - When explicitly targeted to a chat tree, lazily create `files` if missing and save file vertices there.
-- Existing files and message references continue to work. Optional background task can organize or link existing entries into chat-local folders if desired; bytes remain deduped by CAS.
+- Existing files and message references continue to work. No reorganization/linking is performed automatically.
 
 ### Edge cases
 - Path traversal/illegal characters sanitized. Deep path creation guarded by `createParents`.

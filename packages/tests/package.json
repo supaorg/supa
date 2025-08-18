@@ -15,7 +15,8 @@
     "test:simplified-previews:svelte": "vitest run --config vitest.config.svelte.ts src/simplified-file-previews.svelte.test.ts"
   },
   "dependencies": {
-    "@sila/core": "*"
+    "@sila/core": "*",
+    "@sila/client": "*"
   },
   "devDependencies": {
     "vitest": "^2.1.1",

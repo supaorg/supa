@@ -13,8 +13,12 @@ export class FilesTreeData {
 	}
 
 	static ensureFolderPath(filesTree: AppTree, segments: string[]): Vertex {
-		const root = filesTree.tree.getVertexByPath("files");
-		if (!root) throw new Error("Files root not found");
+		let root = filesTree.tree.getVertexByPath("files");
+		if (!root) {
+			// Lazily create files root if missing for targeted trees
+			root = filesTree.tree.root!.newNamedChild("files") as Vertex;
+			root.setProperty("createdAt", Date.now());
+		}
 		let cur = root as Vertex;
 		for (const seg of segments) {
 			const found = cur.children.find((c) => c.getProperty("_n") === seg);

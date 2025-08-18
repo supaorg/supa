@@ -160,7 +160,8 @@ export class ChatAppData {
     role: "user" | "assistant" | "error",
     text: string,
     thinking?: string,
-    attachments?: Array<any>
+    attachments?: Array<any>,
+    fileTarget?: { treeId?: string; path?: string; createParents?: boolean }
   ): Promise<ThreadMessage> {
     const lastMsgVertex = this.getLastMsgParentVertex();
 
@@ -193,15 +194,8 @@ export class ChatAppData {
       // Try to persist using FileStore if available
       const store = this.space.getFileStore();
       if (store) {
-        // Use the default files tree for all attachments
-        const filesTree = await FilesTreeData.getOrCreateDefaultFilesTree(this.space);
-        const now = new Date();
-        const parentFolder = FilesTreeData.ensureFolderPath(filesTree, [
-          now.getUTCFullYear().toString(),
-          String(now.getUTCMonth() + 1).padStart(2, '0'),
-          String(now.getUTCDate()).padStart(2, '0'),
-          'chat'
-        ]);
+        // Resolve target tree and parent folder path
+        const { targetTree, parentFolder } = await this.resolveFileTarget(fileTarget);
 
         const refs: Array<any> = [];
         for (const a of attachments) {
@@ -209,7 +203,7 @@ export class ChatAppData {
             try {
               const put = await store.putDataUrl(a.dataUrl);
               const fileVertex = FilesTreeData.createOrLinkFile({
-                filesTree,
+                filesTree: targetTree,
                 parentFolder,
                 name: a.name || 'image',
                 hash: put.hash,
@@ -223,7 +217,7 @@ export class ChatAppData {
                 kind: 'image',
                 name: a.name,
                 alt: a.alt,
-                file: { tree: filesTree.getId(), vertex: fileVertex.id }
+                file: { tree: targetTree.getId(), vertex: fileVertex.id }
               });
             } catch (e) {
               // If persist fails, fall back to in-memory
@@ -236,7 +230,7 @@ export class ChatAppData {
               const put = await store.putBytes(textBytes, a.mimeType || 'text/plain');
               
               const fileVertex = FilesTreeData.createOrLinkFile({
-                filesTree,
+                filesTree: targetTree,
                 parentFolder,
                 name: a.name || 'text-file',
                 hash: put.hash,
@@ -251,7 +245,7 @@ export class ChatAppData {
                 kind: 'text',
                 name: a.name,
                 alt: a.alt || 'text file', // Use language as alt text
-                file: { tree: filesTree.getId(), vertex: fileVertex.id },
+                file: { tree: targetTree.getId(), vertex: fileVertex.id },
                 width: a.width, // Preserve lineCount as width
                 height: a.height // Preserve charCount as height
               });
@@ -293,6 +287,61 @@ export class ChatAppData {
       id: newMessageVertex.id,
       ...props,
     } as ThreadMessage;
+  }
+
+  /** Resolve target app tree and parent folder for file saves based on optional fileTarget. Defaults to Files AppTree. */
+  private async resolveFileTarget(fileTarget?: { treeId?: string; path?: string; createParents?: boolean }): Promise<{ targetTree: AppTree; parentFolder: Vertex } > {
+    // Default: Files AppTree with date/chat subfolder
+    if (!fileTarget || (!fileTarget.treeId && !fileTarget.path)) {
+      const filesTree = await FilesTreeData.getOrCreateDefaultFilesTree(this.space);
+      const now = new Date();
+      const parentFolder = FilesTreeData.ensureFolderPath(filesTree, [
+        now.getUTCFullYear().toString(),
+        String(now.getUTCMonth() + 1).padStart(2, '0'),
+        String(now.getUTCDate()).padStart(2, '0'),
+        'chat'
+      ]);
+      return { targetTree: filesTree, parentFolder };
+    }
+
+    // Targeted: load specified tree, ensure path (default to 'files')
+    const treeId = fileTarget.treeId ?? this.appTree.getId();
+    const targetTree = await this.space.loadAppTree(treeId) as AppTree;
+    if (!targetTree) {
+      throw new Error(`Target app tree not found: ${treeId}`);
+    }
+    const rawPath = (fileTarget.path && fileTarget.path.trim() !== '') ? fileTarget.path : 'files';
+    const segments = rawPath.split('/').filter(Boolean);
+    const parentFolder = this.ensureFolderPathInTree(targetTree, segments, fileTarget.createParents !== false);
+    return { targetTree, parentFolder };
+  }
+
+  /** Ensure a slash-separated path exists inside the given app tree, creating folders if allowed. Returns the final folder vertex. */
+  private ensureFolderPathInTree(appTree: AppTree, segments: string[], createParents: boolean): Vertex {
+    const root = appTree.tree.root!;
+    let current: Vertex | undefined;
+    // If first segment is 'files', ensure a named child for consistency
+    if (segments.length > 0 && segments[0] === 'files') {
+      current = appTree.tree.getVertexByPath('files') as Vertex | undefined;
+      if (!current) {
+        if (!createParents) throw new Error(`Path segment 'files' not found and createParents=false`);
+        current = root.newNamedChild('files');
+        current.setProperty('createdAt', Date.now());
+      }
+      segments = segments.slice(1);
+    } else {
+      current = root;
+    }
+    for (const seg of segments) {
+      const existing = current.children.find((c) => c.getProperty('_n') === seg);
+      if (existing) {
+        current = existing;
+      } else {
+        if (!createParents) throw new Error(`Path segment '${seg}' not found and createParents=false`);
+        current = appTree.tree.newVertex(current.id, { _n: seg, createdAt: Date.now() });
+      }
+    }
+    return current;
   }
 
   /** Create a new message directly under a specific parent message vertex */
