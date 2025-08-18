@@ -1,8 +1,8 @@
 ## Chat-Scoped Files Under CAS (files vertex inside chat trees)
 
 ### Executive summary
-- Store file bytes in CAS (unchanged). Reference them via file vertices that live under a `files` folder inside each chat tree, instead of a single global Files AppTree.
-- Internal API uploads target an explicit tree and folder (defaulting to a chat’s `files` vertex). This preserves CAS dedup and existing `sila://` resolution.
+- Store file bytes in CAS (unchanged). Reference them via file vertices; by default in the Files AppTree (current behavior), or optionally under a `files` folder inside a chat tree when explicitly targeted.
+- Internal API uploads can target an explicit `treeId + path` (slash-separated, name-based). If no target is provided, fall back to the default Files app. This preserves CAS dedup and existing `sila://` resolution.
 
 ### Current model (source of truth)
 - Bytes: Content-Addressed Storage (CAS), keyed by SHA-256 `hash` at `{spaceRoot}/space-v1/files/sha256/{prefix}/{rest}`.
@@ -27,12 +27,13 @@
    - Cross-tree references remain supported if needed (e.g., shared library), but default is chat-local.
 
 4. Upload target semantics (internal API)
-   - Target is explicit and tree-first, CAS-aware. Request includes:
-     - `treeId`: required when saving; typically the chat tree id.
-     - `folderVertexId` OR `path`: optional; defaults to the chat’s `files` vertex. `path` is slash-separated, created on demand.
+   - Targeting is explicit and path-based. Request includes:
+     - `treeId?`: optional; when provided, indicates the app tree root to target (e.g., the chat tree).
+     - `path?`: optional slash-separated, name-based path relative to `treeId` root; defaults to `files` when `treeId` is provided and `path` is omitted. Created on demand when `createParents=true`.
      - `createParents`: default true (creates `files` and subfolders lazily).
      - `conflict`: `"version" | "replace" | "fail"` (default `"version"`).
      - Bytes: either raw multipart bytes or higher-level processed data; server writes to CAS via FileStore and returns `hash`.
+   - If neither `treeId` nor `path` is provided, use the default Files AppTree (current behavior).
    - Response returns the created/linked file vertex: `{ treeId, vertexId, hash, name, mimeType, size }`.
 
 5. Behavior
@@ -48,7 +49,7 @@
 
 ### API shape (sketch)
 - Upload (internal): create bytes in CAS, then create/link a file vertex under the target folder.
-  - Input: `{ treeId, folderVertexId? | path?: string, name?: string, mimeType?: string, conflict?: 'version' | 'replace' | 'fail', createParents?: boolean }` + file bytes
+  - Input: `{ treeId?: string, path?: string, name?: string, mimeType?: string, conflict?: 'version' | 'replace' | 'fail', createParents?: boolean }` + file bytes
   - Output: `{ treeId, vertexId, hash, name, mimeType, size }`
 
 - List/browse (optional): list children under a folder (supports `path` resolution). Returns folder/file vertices.
@@ -58,12 +59,9 @@
 - UI: Chat view gets a Files tab bound to `chatTreeRoot/files`. Upload widgets default to this folder.
 
 ### Migration & compatibility
-- New uploads for chats target the chat’s `files` by default. Lazily create `files` if missing.
-- Existing files in the global Files AppTree remain valid. Messages that point there continue to work. Optional background task can clone/link metadata into chat-local folders if desired (bytes remain deduped by CAS).
-
-### Security & policy
-- Writes are permitted based on access to `treeId` and folder vertex. Inherit ACLs from the chat tree; subfolders may override if the model supports it.
-- Enforce size/mime limits during CAS write. Optional scanning prior to vertex finalization.
+- Default behavior remains unchanged: when no target is specified, uploads go to the Files AppTree.
+- When explicitly targeted to a chat tree, lazily create `files` if missing and save file vertices there.
+- Existing files and message references continue to work. Optional background task can organize or link existing entries into chat-local folders if desired; bytes remain deduped by CAS.
 
 ### Edge cases
 - Path traversal/illegal characters sanitized. Deep path creation guarded by `createParents`.
@@ -71,8 +69,9 @@
 - Broken references: if `hash` missing in CAS, UI renders error state.
 
 ### Acceptance criteria
-- Uploading a file with only `treeId` pointing to a chat tree creates `files` (if absent) and a file vertex under it; bytes exist in CAS; response includes `{ treeId, vertexId, hash }`.
-- Listing the chat’s `files` shows uploaded files.
+- Upload with no target stores file info in the default Files AppTree (current behavior preserved) and returns `{ treeId, vertexId, hash }`.
+- Upload targeted to a chat (`treeId` provided; optional `path` or default `files`) creates `files` (if absent) and a file vertex under it; bytes exist in CAS; response includes `{ treeId, vertexId, hash }`.
+- Listing the chat’s `files` shows uploaded files that were targeted to that chat.
 - Message attachments stored as `{ file: { tree, vertex } }` resolve to `sila://...` via file vertex `hash`.
 - Duplicate bytes dedupe at CAS-level across any trees.
 
