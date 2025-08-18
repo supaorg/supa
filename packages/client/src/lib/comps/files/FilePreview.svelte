@@ -1,14 +1,17 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { getFilePreviewConfig } from '@sila/client/utils/filePreview';
-  import { ClientFileResolver } from '../../utils/fileResolver';
-  import ImageFilePreview from './ImageFilePreview.svelte';
-  import VideoFilePreview from './VideoFilePreview.svelte';
-  import PdfFilePreview from './PdfFilePreview.svelte';
-  import TextFilePreview from './TextFilePreview.svelte';
-  import DownloadFilePreview from './DownloadFilePreview.svelte';
-  import type { FileReference, ResolvedFileInfo } from '../../utils/fileResolver';
-  
+  import { onMount } from "svelte";
+  import { getFilePreviewConfig } from "@sila/client/utils/filePreview";
+  import { ClientFileResolver } from "../../utils/fileResolver";
+  import ImageFilePreview from "./ImageFilePreview.svelte";
+  import VideoFilePreview from "./VideoFilePreview.svelte";
+  import PdfFilePreview from "./PdfFilePreview.svelte";
+  import TextFilePreview from "./TextFilePreview.svelte";
+  import DownloadFilePreview from "./DownloadFilePreview.svelte";
+  import type {
+    FileReference,
+    ResolvedFileInfo,
+  } from "../../utils/fileResolver";
+
   let {
     fileRef,
     showGallery = false,
@@ -22,49 +25,45 @@
   let resolvedFile: ResolvedFileInfo | null = $state(null);
   let isLoading = $state(true);
   let hasError = $state(false);
-  let errorMessage = $state('');
+  let errorMessage = $state("");
 
-  let previewConfig = $derived(
-    resolvedFile?.mimeType
-      ? getFilePreviewConfig(resolvedFile.mimeType)
-      : { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: [] }
-  );
+  let previewConfig = $derived(getFilePreviewConfig(resolvedFile?.mimeType));
 
   async function loadFile() {
     try {
       isLoading = true;
       hasError = false;
-      errorMessage = '';
-      
+      errorMessage = "";
+
       // Debug: log the fileRef to see what we're getting
-      console.log('FilePreview received fileRef:', fileRef);
-      
+      console.log("FilePreview received fileRef:", fileRef);
+
       // Validate fileRef before attempting to resolve
       if (!fileRef || !fileRef.tree || !fileRef.vertex) {
         hasError = true;
-        errorMessage = 'Invalid file reference';
-        console.warn('FilePreview: Invalid fileRef:', fileRef);
+        errorMessage = "Invalid file reference";
+        console.warn("FilePreview: Invalid fileRef:", fileRef);
         return;
       }
-      
+
       const fileInfo = await ClientFileResolver.resolveFileReference(fileRef);
       if (fileInfo) {
         resolvedFile = fileInfo;
-        console.log('FilePreview resolved file info:', {
+        console.log("FilePreview resolved file info:", {
           id: fileInfo.id,
           name: fileInfo.name,
           mimeType: fileInfo.mimeType,
           size: fileInfo.size,
           url: fileInfo.url,
-          hash: fileInfo.hash
+          hash: fileInfo.hash,
         });
       } else {
         hasError = true;
-        errorMessage = 'Failed to load file';
+        errorMessage = "Failed to load file";
       }
     } catch (error) {
       hasError = true;
-      errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      errorMessage = error instanceof Error ? error.message : "Unknown error";
     } finally {
       isLoading = false;
     }
@@ -83,27 +82,33 @@
 
 <div class="file-preview-wrapper" onclick={handleClick}>
   {#if isLoading}
-    <div class="flex items-center justify-center h-48 bg-surface-100-900 rounded animate-pulse">
+    <div
+      class="flex items-center justify-center h-48 bg-surface-100-900 rounded animate-pulse"
+    >
       <span class="text-surface-500-500-token">Loading...</span>
     </div>
   {:else if hasError}
-    <div class="flex items-center justify-center h-48 bg-surface-100-900 rounded text-red-500">
+    <div
+      class="flex items-center justify-center h-48 bg-surface-100-900 rounded text-red-500"
+    >
       <span>Failed to load file: {errorMessage}</span>
     </div>
   {:else if resolvedFile}
-    {#if previewConfig.previewType === 'image'}
+    {#if previewConfig.previewType === "image"}
       <ImageFilePreview fileInfo={resolvedFile} {showGallery} />
-    {:else if previewConfig.previewType === 'video'}
+    {:else if previewConfig.previewType === "video"}
       <VideoFilePreview fileInfo={resolvedFile} {showGallery} />
-    {:else if previewConfig.previewType === 'pdf'}
+    {:else if previewConfig.previewType === "pdf"}
       <PdfFilePreview fileInfo={resolvedFile} {showGallery} />
-    {:else if previewConfig.previewType === 'text' || previewConfig.previewType === 'code'}
+    {:else if previewConfig.previewType === "text" || previewConfig.previewType === "code"}
       <TextFilePreview fileInfo={resolvedFile} {showGallery} />
     {:else}
       <DownloadFilePreview fileInfo={resolvedFile} />
     {/if}
   {:else}
-    <div class="flex items-center justify-center h-48 bg-surface-100-900 rounded">
+    <div
+      class="flex items-center justify-center h-48 bg-surface-100-900 rounded"
+    >
       <span class="text-surface-500-500-token">No file data</span>
     </div>
   {/if}
