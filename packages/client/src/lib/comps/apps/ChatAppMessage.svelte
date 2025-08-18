@@ -302,14 +302,21 @@
             {#if attachments && attachments.length > 0}
               <div class="mt-2 flex flex-wrap gap-2">
                 {#each attachments as att (att.id)}
-                  <FilePreview 
-                    attachment={att} 
-                    showGallery={false}
-                    onGalleryOpen={() => {
-                      // TODO: Implement gallery opening
-                      console.log('Gallery opening for:', att.name);
-                    }}
-                  />
+                  {#if att.file && att.file.tree && att.file.vertex}
+                    <FilePreview 
+                      fileRef={att.file}
+                      showGallery={false}
+                      onGalleryOpen={() => {
+                        // TODO: Implement gallery opening
+                        console.log('Gallery opening for:', att.name);
+                      }}
+                    />
+                  {:else}
+                    <!-- Fallback for legacy attachments without file references -->
+                    <div class="p-2 border rounded text-sm text-surface-500-500-token">
+                      {att.name || 'Unknown file'}
+                    </div>
+                  {/if}
                 {/each}
               </div>
             {/if}

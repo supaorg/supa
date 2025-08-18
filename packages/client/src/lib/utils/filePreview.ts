@@ -70,13 +70,19 @@ export const FILE_PREVIEW_CONFIGS: Record<string, FilePreviewConfig> = {
   'application/x-rpm': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['rpm'] },
 };
 
-export function getFilePreviewConfig(mimeType: string): FilePreviewConfig {
-  return FILE_PREVIEW_CONFIGS[mimeType] || {
-    canPreview: false,
-    previewType: 'download',
-    gallerySupport: false,
-    supportedFormats: []
-  };
+export const defaultDownloadConfig: FilePreviewConfig = {
+  canPreview: false,
+  previewType: 'download',
+  gallerySupport: false,
+  supportedFormats: []
+};
+
+export function getFilePreviewConfig(mimeType?: string): FilePreviewConfig {
+  if (!mimeType) {
+    return defaultDownloadConfig;
+  }
+
+  return FILE_PREVIEW_CONFIGS[mimeType] || defaultDownloadConfig;
 }
 
 export function isPreviewableFile(mimeType: string): boolean {

@@ -15,3 +15,5 @@ export type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from
 export { FileSystemPersistenceLayer } from './spaces/persistence/FileSystemPersistenceLayer';
 export type { FileStore } from './spaces/files/FileStore';
 export { createFileStore } from './spaces/files/FileStore';
+export { FileResolver } from './spaces/files/FileResolver';
+export type { FileReference, ResolvedFileInfo } from './spaces/files/FileResolver';
