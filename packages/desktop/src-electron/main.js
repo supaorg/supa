@@ -46,7 +46,7 @@ app.whenReady().then(async () => {
   app.setName('Sila');
   
   // Setup custom file protocol
-  setupFileProtocol();
+  await setupFileProtocol();
 
   // Setup IPC handlers for space management
   setupSpaceManagementIPC();

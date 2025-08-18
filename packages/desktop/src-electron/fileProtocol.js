@@ -8,9 +8,9 @@ import { spaceManager } from './spaceManager.js';
  * Setup the custom 'sila' protocol for serving files from CAS
  * URL format: sila://spaces/{spaceId}/files/{hash}?type={mimeType}
  */
-export function setupFileProtocol() {
-  // Check if protocol is already registered
-  if (protocol.isProtocolRegistered('sila')) {
+export async function setupFileProtocol() {
+  // Check if protocol is already handled (modern API; replaces deprecated isProtocolRegistered)
+  if (await protocol.isProtocolHandled('sila')) {
     return;
   }
   
