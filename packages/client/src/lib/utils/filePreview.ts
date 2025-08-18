@@ -4,77 +4,81 @@ export interface FilePreviewConfig {
   gallerySupport: boolean;
   maxPreviewSize?: number; // in bytes
   supportedFormats: string[];
+  displayName: string; // User-friendly format name
+  icon: string; // Emoji or icon for the file type
 }
 
 export const FILE_PREVIEW_CONFIGS: Record<string, FilePreviewConfig> = {
   // Images - Full preview support
-  'image/jpeg': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['jpg', 'jpeg'] },
-  'image/png': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['png'] },
-  'image/gif': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['gif'] },
-  'image/webp': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['webp'] },
-  'image/svg+xml': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['svg'] },
-  'image/avif': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['avif'] },
+  'image/jpeg': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['jpg', 'jpeg'], displayName: 'JPEG', icon: '🖼️' },
+  'image/png': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['png'], displayName: 'PNG', icon: '🖼️' },
+  'image/gif': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['gif'], displayName: 'GIF', icon: '🖼️' },
+  'image/webp': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['webp'], displayName: 'WebP', icon: '🖼️' },
+  'image/svg+xml': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['svg'], displayName: 'SVG', icon: '🖼️' },
+  'image/avif': { canPreview: true, previewType: 'image', gallerySupport: true, supportedFormats: ['avif'], displayName: 'AVIF', icon: '🖼️' },
   
   // Videos - Preview with controls
-  'video/mp4': { canPreview: true, previewType: 'video', gallerySupport: true, supportedFormats: ['mp4'] },
-  'video/webm': { canPreview: true, previewType: 'video', gallerySupport: true, supportedFormats: ['webm'] },
-  'video/ogg': { canPreview: true, previewType: 'video', gallerySupport: true, supportedFormats: ['ogv'] },
-  'video/quicktime': { canPreview: true, previewType: 'video', gallerySupport: true, supportedFormats: ['mov'] },
+  'video/mp4': { canPreview: true, previewType: 'video', gallerySupport: true, supportedFormats: ['mp4'], displayName: 'MP4', icon: '🎥' },
+  'video/webm': { canPreview: true, previewType: 'video', gallerySupport: true, supportedFormats: ['webm'], displayName: 'WebM', icon: '🎥' },
+  'video/ogg': { canPreview: true, previewType: 'video', gallerySupport: true, supportedFormats: ['ogv'], displayName: 'OGG', icon: '🎥' },
+  'video/quicktime': { canPreview: true, previewType: 'video', gallerySupport: true, supportedFormats: ['mov'], displayName: 'MOV', icon: '🎥' },
   
   // Documents - Preview in iframe
-  'application/pdf': { canPreview: true, previewType: 'pdf', gallerySupport: true, supportedFormats: ['pdf'] },
+  'application/pdf': { canPreview: true, previewType: 'pdf', gallerySupport: true, supportedFormats: ['pdf'], displayName: 'PDF', icon: '📄' },
   
   // Text files - Preview with syntax highlighting
-  'text/plain': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['txt'] },
-  'text/markdown': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['md', 'markdown'] },
-  'text/html': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['html', 'htm'] },
-  'text/css': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['css'] },
-  'text/javascript': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['js'] },
-  'application/json': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['json'] },
-  'text/xml': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['xml'] },
-  'text/csv': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['csv'] },
+  'text/plain': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['txt'], displayName: 'Text', icon: '📄' },
+  'text/markdown': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['md', 'markdown'], displayName: 'Markdown', icon: '📝' },
+  'text/html': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['html', 'htm'], displayName: 'HTML', icon: '🌐' },
+  'text/css': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['css'], displayName: 'CSS', icon: '🎨' },
+  'text/javascript': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['js'], displayName: 'JavaScript', icon: '⚡' },
+  'application/json': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['json'], displayName: 'JSON', icon: '📋' },
+  'text/xml': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['xml'], displayName: 'XML', icon: '📋' },
+  'text/csv': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['csv'], displayName: 'CSV', icon: '📊' },
   
   // Code files - Preview with syntax highlighting
-  'application/x-python': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['py'] },
-  'text/x-java-source': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['java'] },
-  'text/x-c++src': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['cpp', 'cc'] },
-  'text/x-csrc': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['c'] },
-  'text/x-csharp': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['cs'] },
-  'text/x-php': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['php'] },
-  'text/x-ruby': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['rb'] },
-  'text/x-go': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['go'] },
-  'text/x-rust': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['rs'] },
-  'text/x-swift': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['swift'] },
-  'text/x-kotlin': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['kt'] },
-  'text/x-scala': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['scala'] },
-  'text/x-shellscript': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['sh', 'bash'] },
-  'text/x-msdos-batch': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['bat'] },
-  'application/x-powershell': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['ps1'] },
-  'text/x-yaml': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['yml', 'yaml'] },
-  'text/x-toml': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['toml'] },
-  'text/x-ini': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['ini', 'cfg', 'conf'] },
-  'text/x-log': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['log'] },
-  'text/tab-separated-values': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['tsv'] },
+  'application/x-python': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['py'], displayName: 'Python', icon: '🐍' },
+  'text/x-java-source': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['java'], displayName: 'Java', icon: '☕' },
+  'text/x-c++src': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['cpp', 'cc'], displayName: 'C++', icon: '⚙️' },
+  'text/x-csrc': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['c'], displayName: 'C', icon: '⚙️' },
+  'text/x-csharp': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['cs'], displayName: 'C#', icon: '🔷' },
+  'text/x-php': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['php'], displayName: 'PHP', icon: '🐘' },
+  'text/x-ruby': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['rb'], displayName: 'Ruby', icon: '💎' },
+  'text/x-go': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['go'], displayName: 'Go', icon: '🐹' },
+  'text/x-rust': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['rs'], displayName: 'Rust', icon: '🦀' },
+  'text/x-swift': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['swift'], displayName: 'Swift', icon: '🍎' },
+  'text/x-kotlin': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['kt'], displayName: 'Kotlin', icon: '🔶' },
+  'text/x-scala': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['scala'], displayName: 'Scala', icon: '🔶' },
+  'text/x-shellscript': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['sh', 'bash'], displayName: 'Shell', icon: '💻' },
+  'text/x-msdos-batch': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['bat'], displayName: 'Batch', icon: '💻' },
+  'application/x-powershell': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['ps1'], displayName: 'PowerShell', icon: '💻' },
+  'text/x-yaml': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['yml', 'yaml'], displayName: 'YAML', icon: '📋' },
+  'text/x-toml': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['toml'], displayName: 'TOML', icon: '📋' },
+  'text/x-ini': { canPreview: true, previewType: 'code', gallerySupport: true, supportedFormats: ['ini', 'cfg', 'conf'], displayName: 'INI', icon: '⚙️' },
+  'text/x-log': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['log'], displayName: 'Log', icon: '📋' },
+  'text/tab-separated-values': { canPreview: true, previewType: 'text', gallerySupport: true, supportedFormats: ['tsv'], displayName: 'TSV', icon: '📊' },
   
   // Non-previewable files - Download only
-  'application/zip': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['zip'] },
-  'application/x-rar-compressed': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['rar'] },
-  'application/x-7z-compressed': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['7z'] },
-  'application/x-tar': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['tar'] },
-  'application/x-gzip': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['gz'] },
-  'application/x-bzip2': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['bz2'] },
-  'application/x-executable': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['exe', 'app', 'bin'] },
-  'application/x-msdownload': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['exe', 'msi'] },
-  'application/x-dmg': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['dmg'] },
-  'application/x-deb': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['deb'] },
-  'application/x-rpm': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['rpm'] },
+  'application/zip': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['zip'], displayName: 'ZIP', icon: '📦' },
+  'application/x-rar-compressed': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['rar'], displayName: 'RAR', icon: '📦' },
+  'application/x-7z-compressed': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['7z'], displayName: '7-Zip', icon: '📦' },
+  'application/x-tar': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['tar'], displayName: 'TAR', icon: '📦' },
+  'application/x-gzip': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['gz'], displayName: 'GZIP', icon: '📦' },
+  'application/x-bzip2': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['bz2'], displayName: 'BZIP2', icon: '📦' },
+  'application/x-executable': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['exe', 'app', 'bin'], displayName: 'Executable', icon: '⚙️' },
+  'application/x-msdownload': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['exe', 'msi'], displayName: 'Windows Installer', icon: '⚙️' },
+  'application/x-dmg': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['dmg'], displayName: 'DMG', icon: '🍎' },
+  'application/x-deb': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['deb'], displayName: 'DEB', icon: '🐧' },
+  'application/x-rpm': { canPreview: false, previewType: 'download', gallerySupport: false, supportedFormats: ['rpm'], displayName: 'RPM', icon: '🐧' },
 };
 
 export const defaultDownloadConfig: FilePreviewConfig = {
   canPreview: false,
   previewType: 'download',
   gallerySupport: false,
-  supportedFormats: []
+  supportedFormats: [],
+  displayName: 'File',
+  icon: '📎'
 };
 
 export function getFilePreviewConfig(mimeType?: string): FilePreviewConfig {
