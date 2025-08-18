@@ -6,7 +6,7 @@ This should be enough to get started after cloning the repository:
 `npm install && npm run dev`
 
 ## Packages
-- **packages/core** is the core functionality shared with client.
+- **packages/core** is the core functionality shared with other packages.
 - **packages/client** is the client code with UI components written in Svelte.
 - **packages/desktop** is a Svelte /w Vite + Electron wrapper that is using the client package. We use it for desktop builds.
 - **packages/mobile** is a SvelteKit + Capacitor wrapper that is using the client package. We use it for mobile builds.
