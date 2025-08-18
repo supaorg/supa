@@ -3,7 +3,6 @@
   import { X } from 'lucide-svelte';
   import { getFilePreviewConfig } from '@sila/client/utils/filePreview';
   import { clientState } from '../../state/clientState.svelte';
-  import { galleryState } from '@sila/client/state/galleryState.svelte';
 
   let activeFile = $derived(clientState.gallery.activeFile);
   let isOpen = $derived(clientState.gallery.isOpen);
