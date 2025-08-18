@@ -2,64 +2,21 @@
 
 The client library for Sila - provides UI components and functionality for building Sila-based applications.
 
-## Installation
+No separate TypeScript build is required — the TS source is consumed by the app packages (e.g., `@sila/desktop`, `@sila/mobile`) and bundled as part of their builds.
 
-```bash
-npm install @sila/client
-```
+However, the CSS must be built with Tailwind:
+- Dev (watch): `npm -w packages/client run dev`
+- One‑off build: `npm -w packages/client run build`
+Output: `src/lib/compiled-style.css`.
 
 ## Usage
 
-### Basic Setup
-
-```js
-import { SilaApp } from '@sila/client';
-import '@sila/client/style.css'; // Required: Import the CSS
-```
-
-### CSS Import
-
-**Important**: You must import the CSS file for the components to display correctly:
-
-```js
-import '@sila/client/style.css';
-```
-
-This CSS file includes:
-- Tailwind CSS utilities
-- Skeleton UI framework styles and themes
-- KaTeX for math rendering (fonts and styles)
-- All necessary component styles
-
-### Components
+Just import `SilaApp` and use at the root component of the final front-end package.
 
 ```svelte
 <script>
   import { SilaApp } from '@sila/client';
-  import '@sila/client/style.css';
 </script>
 
 <SilaApp />
 ```
-
-## Development
-
-This package is built using:
-- SvelteKit
-- Tailwind CSS
-- Skeleton UI
-- TypeScript
-
-### Building
-
-```bash
-npm run build
-```
-
-This will:
-1. Build the Svelte package to `dist/`
-2. Compile and minify CSS to `dist/style.css`
-
-## License
-
-MIT 
