@@ -56,11 +56,13 @@ export function setupFileProtocol() {
       // Check for range requests (for streaming large files)
       const range = request.headers.get('range');
       if (range) {
-        return await handleRangeRequest(filePath, range, mimeType, downloadName);
+        // range is non-null inside this block; cast for TS-in-JS checker
+        return await handleRangeRequest(filePath, /** @type {string} */ (range), mimeType, downloadName);
       }
       
       // For small files or non-range requests, read the entire file
       const fileBuffer = await fs.readFile(filePath);
+      /** @type {Record<string, string>} */
       const headers = {};
       if (mimeType) headers['Content-Type'] = mimeType;
       if (downloadName) headers['Content-Disposition'] = `inline; filename*=UTF-8''${encodeURIComponent(downloadName)}`;
@@ -88,7 +90,8 @@ function makeBytesPath(spaceRoot, hash) {
  * Handle range requests for streaming large files
  * @param {string} filePath - Path to the file
  * @param {string} rangeHeader - Range header value (e.g., "bytes=0-1023")
- * @param {string} mimeType - MIME type of the file
+ * @param {string | null} mimeType - MIME type of the file
+ * @param {string | null} downloadName - Download name of the file
  * @returns {Promise<Response>} Streaming response
  */
 async function handleRangeRequest(filePath, rangeHeader, mimeType, downloadName) {
@@ -107,7 +110,7 @@ async function handleRangeRequest(filePath, rangeHeader, mimeType, downloadName)
     const fileSize = stat.size;
 
     // Validate range
-    if (start >= fileSize || (end && end >= fileSize) || start > end) {
+    if (start >= fileSize || (end != null && end >= fileSize) || (end != null && start > end)) {
       return new Response('Range not satisfiable', { 
         status: 416,
         headers: {
@@ -116,13 +119,14 @@ async function handleRangeRequest(filePath, rangeHeader, mimeType, downloadName)
       });
     }
 
-    const actualEnd = end || fileSize - 1;
+    const actualEnd = end != null ? end : (fileSize - 1);
     const contentLength = actualEnd - start + 1;
 
     // For now, read the range into memory (we'll optimize this later)
     const buffer = await fs.readFile(filePath);
     const rangeBuffer = buffer.slice(start, actualEnd + 1);
 
+    /** @type {Record<string, string>} */
     const headers = {
       'Content-Range': `bytes ${start}-${actualEnd}/${fileSize}`,
       'Accept-Ranges': 'bytes',
