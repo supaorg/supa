@@ -32,6 +32,7 @@ export function setupFileProtocol() {
       const spaceId = pathParts[0];
       const hash = pathParts[2];
       const mimeType = url.searchParams.get('type');
+      const downloadName = url.searchParams.get('name');
       
       // Validate hash format (64 character hex string)
       if (!/^[a-f0-9]{64}$/.test(hash)) {
@@ -55,12 +56,14 @@ export function setupFileProtocol() {
       // Check for range requests (for streaming large files)
       const range = request.headers.get('range');
       if (range) {
-        return await handleRangeRequest(filePath, range, mimeType);
+        return await handleRangeRequest(filePath, range, mimeType, downloadName);
       }
       
       // For small files or non-range requests, read the entire file
       const fileBuffer = await fs.readFile(filePath);
-      const headers = mimeType ? { 'Content-Type': mimeType } : undefined;
+      const headers = {};
+      if (mimeType) headers['Content-Type'] = mimeType;
+      if (downloadName) headers['Content-Disposition'] = `inline; filename*=UTF-8''${encodeURIComponent(downloadName)}`;
       
       return new Response(fileBuffer, { headers });
     } catch (error) {
@@ -88,7 +91,7 @@ function makeBytesPath(spaceRoot, hash) {
  * @param {string} mimeType - MIME type of the file
  * @returns {Promise<Response>} Streaming response
  */
-async function handleRangeRequest(filePath, rangeHeader, mimeType) {
+async function handleRangeRequest(filePath, rangeHeader, mimeType, downloadName) {
   try {
     // Parse range header: "bytes=0-1023"
     const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
@@ -120,16 +123,13 @@ async function handleRangeRequest(filePath, rangeHeader, mimeType) {
     const buffer = await fs.readFile(filePath);
     const rangeBuffer = buffer.slice(start, actualEnd + 1);
 
-    const headers = mimeType ? {
-      'Content-Range': `bytes ${start}-${actualEnd}/${fileSize}`,
-      'Accept-Ranges': 'bytes',
-      'Content-Length': contentLength.toString(),
-      'Content-Type': mimeType
-    } : {
+    const headers = {
       'Content-Range': `bytes ${start}-${actualEnd}/${fileSize}`,
       'Accept-Ranges': 'bytes',
       'Content-Length': contentLength.toString()
     };
+    if (mimeType) headers['Content-Type'] = mimeType;
+    if (downloadName) headers['Content-Disposition'] = `inline; filename*=UTF-8''${encodeURIComponent(downloadName)}`;
 
     return new Response(rangeBuffer, { 
       status: 206, // Partial Content

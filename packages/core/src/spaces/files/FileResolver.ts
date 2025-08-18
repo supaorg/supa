@@ -74,7 +74,15 @@ export class FileResolver {
 
 			// Generate sila:// URL instead of loading bytes
 			const spaceId = this.space.getId();
-			const url = `sila://spaces/${spaceId}/files/${hash}${mimeType ? `?type=${encodeURIComponent(mimeType)}` : ''}`;
+			const params: string[] = [];
+			if (mimeType) {
+				params.push(`type=${encodeURIComponent(mimeType)}`);
+			}
+			if (name) {
+				params.push(`name=${encodeURIComponent(name)}`);
+			}
+			const query = params.length > 0 ? `?${params.join('&')}` : '';
+			const url = `sila://spaces/${spaceId}/files/${hash}${query}`;
 
 			return {
 				id: fileRef.vertex,

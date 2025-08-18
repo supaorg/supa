@@ -178,9 +178,10 @@
       if (!fileVertex) return '';
       
       const hash = fileVertex.getProperty("hash") as string;
+      const name = fileVertex.getProperty("name") as string;
       if (!hash) return '';
 
-      const url = (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType || 'application/octet-stream');
+      const url = (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType || 'application/octet-stream', name);
       return url;
     } catch (error) {
       console.warn('Failed to generate file URL:', error);

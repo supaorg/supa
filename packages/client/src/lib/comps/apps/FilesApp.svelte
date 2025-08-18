@@ -97,13 +97,14 @@
   function getFileUrl(file: Vertex): string {
     const hash = file.getProperty("hash") as string;
     const mimeType = file.getProperty("mimeType") as string;
+    const name = file.getProperty("name") as string;
     
     // Get space ID from the space object, not the app tree
     const spaceId = (data as any).space.getId();
     
     // Use the electron file system API if available
     if ((window as any).electronFileSystem) {
-      return (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType);
+      return (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType, name);
     }
     
     // Fallback to data URL if electron API not available

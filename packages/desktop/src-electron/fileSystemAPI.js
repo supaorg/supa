@@ -13,9 +13,12 @@ export function setupFileSystemAPI() {
      * @param {string} mimeType - The MIME type (optional)
      * @returns {string} The file URL
      */
-    getFileUrl: (spaceId, hash, mimeType) => {
+    getFileUrl: (spaceId, hash, mimeType, name) => {
       const url = `sila://spaces/${spaceId}/files/${hash}`;
-      return mimeType ? `${url}?type=${encodeURIComponent(mimeType)}` : url;
+      const params = [];
+      if (mimeType) params.push(`type=${encodeURIComponent(mimeType)}`);
+      if (name) params.push(`name=${encodeURIComponent(name)}`);
+      return params.length ? `${url}?${params.join('&')}` : url;
     },
 
     /**
