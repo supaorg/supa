@@ -19,7 +19,7 @@
   import ChatAppMessageControls from "./ChatAppMessageControls.svelte";
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
   import FilePreview from "../files/FilePreview.svelte";
-  import { openGallery } from "../../state/galleryState.svelte";
+  import { galleryState } from "../../state/galleryState.svelte";
 
   let { vertex, data }: { vertex: Vertex; data: ChatAppData } = $props();
 
@@ -308,7 +308,7 @@
                       fileRef={att.file}
                       showGallery={true}
                       onGalleryOpen={(resolvedFile) => {
-                        openGallery(resolvedFile);
+                        galleryState.openGallery(resolvedFile);
                       }}
                     />
                   {:else}

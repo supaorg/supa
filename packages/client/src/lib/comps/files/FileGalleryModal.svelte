@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { X } from 'lucide-svelte';
   import { getFilePreviewConfig } from '@sila/client/utils/filePreview';
-  import { galleryState, closeGallery } from '../../state/galleryState.svelte';
+  import { galleryState } from '../../state/galleryState.svelte';
 
   let activeFile = $derived(galleryState.activeFile);
   let isOpen = $derived(galleryState.isOpen);
@@ -16,13 +16,13 @@
     if (!isOpen) return;
 
     if (event.key === 'Escape') {
-      closeGallery();
+      galleryState.closeGallery();
     }
   }
 
   function handleBackdropClick(event: Event) {
     if (event.target === event.currentTarget) {
-      closeGallery();
+      galleryState.closeGallery();
     }
   }
 
@@ -42,7 +42,7 @@
     <!-- Close button -->
     <button 
       class="absolute top-4 right-4 btn-icon bg-black/50 text-white hover:bg-black/70 z-10"
-      onclick={closeGallery}
+      onclick={() => galleryState.closeGallery()}
     >
       <X size={20} />
     </button>
@@ -69,8 +69,23 @@
           title={activeFile.name}
         />
       {:else if previewConfig.previewType === 'text' || previewConfig.previewType === 'code'}
-        <div class="bg-white text-black p-6 rounded max-w-4xl max-h-[80vh] overflow-auto">
-          <pre class="text-sm"><code>{activeFile.content || 'Content not available'}</code></pre>
+        <div class="bg-white text-black p-8 rounded text-center max-w-md">
+          <div class="text-6xl mb-4">{previewConfig.icon}</div>
+          <h3 class="text-xl font-medium mb-2">{activeFile.name}</h3>
+          <p class="text-gray-600 mb-4">
+            Text file preview not yet implemented
+          </p>
+          <button 
+            class="btn preset-filled-primary-500" 
+            onclick={() => {
+              const link = document.createElement('a');
+              link.href = activeFile.url;
+              link.download = activeFile.name;
+              link.click();
+            }}
+          >
+            Download File
+          </button>
         </div>
       {:else}
         <div class="bg-white text-black p-8 rounded text-center max-w-md">
