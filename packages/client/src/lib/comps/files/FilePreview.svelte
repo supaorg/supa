@@ -3,10 +3,7 @@
   import { getFilePreviewConfig } from "@sila/client/utils/filePreview";
   import { ClientFileResolver } from "../../utils/fileResolver";
   import ImageFilePreview from "./ImageFilePreview.svelte";
-  import VideoFilePreview from "./VideoFilePreview.svelte";
-  import PdfFilePreview from "./PdfFilePreview.svelte";
-  import TextFilePreview from "./TextFilePreview.svelte";
-  import DownloadFilePreview from "./DownloadFilePreview.svelte";
+  import RegularFilePreview from "./RegularFilePreview.svelte";
   import type {
     FileReference,
     ResolvedFileInfo,
@@ -113,14 +110,8 @@
   {:else if resolvedFile}
     {#if previewConfig.previewType === "image"}
       <ImageFilePreview fileInfo={resolvedFile} {showGallery} />
-    {:else if previewConfig.previewType === "video"}
-      <VideoFilePreview fileInfo={resolvedFile} {showGallery} />
-    {:else if previewConfig.previewType === "pdf"}
-      <PdfFilePreview fileInfo={resolvedFile} {showGallery} />
-    {:else if previewConfig.previewType === "text" || previewConfig.previewType === "code"}
-      <TextFilePreview fileInfo={resolvedFile} {showGallery} />
     {:else}
-      <DownloadFilePreview fileInfo={resolvedFile} />
+      <RegularFilePreview fileInfo={resolvedFile} {showGallery} />
     {/if}
   {:else}
     <div
