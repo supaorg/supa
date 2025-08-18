@@ -10,7 +10,7 @@ import { spaceManager } from './spaceManager.js';
  */
 export async function setupFileProtocol() {
   // Check if protocol is already handled (modern API; replaces deprecated isProtocolRegistered)
-  if (await protocol.isProtocolHandled('sila')) {
+  if (protocol.isProtocolHandled('sila')) {
     return;
   }
   
