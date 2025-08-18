@@ -50,6 +50,14 @@
       const fileInfo = await ClientFileResolver.resolveFileReference(fileRef);
       if (fileInfo) {
         resolvedFile = fileInfo;
+        console.log('FilePreview resolved file info:', {
+          id: fileInfo.id,
+          name: fileInfo.name,
+          mimeType: fileInfo.mimeType,
+          size: fileInfo.size,
+          url: fileInfo.url,
+          hash: fileInfo.hash
+        });
       } else {
         hasError = true;
         errorMessage = 'Failed to load file';
