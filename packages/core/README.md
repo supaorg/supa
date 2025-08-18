@@ -1,4 +1,4 @@
-# @sila/core
+# Sila Core
 
 Core TypeScript shared across Sila apps and services.
 

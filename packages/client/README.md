@@ -1,4 +1,4 @@
-# @sila/client
+# Sila Client - Svelte
 
 The client library for Sila - provides UI components and functionality for building Sila-based applications.
 

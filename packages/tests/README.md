@@ -1,4 +1,4 @@
-# @sila/tests
+# Sila Tests
 
 Vitest-based test suite for Sila core and desktop file persistence.
 
