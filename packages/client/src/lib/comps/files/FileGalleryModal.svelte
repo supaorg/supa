@@ -48,24 +48,24 @@
     </button>
 
     <!-- Content -->
-    <div class="relative max-w-full max-h-full p-4">
+    <div class="relative max-w-full max-h-full p-8">
       {#if previewConfig.previewType === 'image'}
         <img 
           src={activeFile.url} 
           alt={activeFile.name}
-          class="max-w-full max-h-full object-contain"
+          class="max-w-[calc(100vw-4rem)] max-h-[calc(100vh-4rem)] object-contain"
         />
       {:else if previewConfig.previewType === 'video'}
         <video 
           src={activeFile.url} 
           controls 
-          class="max-w-full max-h-full"
+          class="max-w-[calc(100vw-4rem)] max-h-[calc(100vh-4rem)]"
           autoplay
         />
       {:else if previewConfig.previewType === 'pdf'}
         <iframe 
           src={activeFile.url} 
-          class="w-[800px] h-[600px] border-0"
+          class="max-w-[calc(100vw-4rem)] max-h-[calc(100vh-4rem)] border-0"
           title={activeFile.name}
         />
       {:else if previewConfig.previewType === 'text' || previewConfig.previewType === 'code'}
