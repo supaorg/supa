@@ -90,7 +90,7 @@
 </script>
 
 <div 
-  class="file-preview-wrapper" 
+  class="file-preview-wrapper cursor-pointer" 
   onclick={handleClick}
   onkeydown={handleKeydown}
   {...(showGallery && previewConfig.gallerySupport ? { tabindex: 0, role: "button" } : {})}

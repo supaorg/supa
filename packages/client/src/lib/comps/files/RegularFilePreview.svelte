@@ -16,7 +16,7 @@
   });
 </script>
 
-<div class="regular-file-preview p-3 border rounded-lg bg-surface-50-950 hover:bg-surface-100-900 transition-colors">
+<div class="regular-file-preview p-3 border rounded-lg bg-surface-50-950 transition-colors">
   <div class="flex items-center gap-3">
     <div class="text-2xl">{previewConfig.icon}</div>
     <div class="flex-1 min-w-0">

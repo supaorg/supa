@@ -305,7 +305,7 @@
                   {#if att.file && att.file.tree && att.file.vertex}
                     <FilePreview 
                       fileRef={att.file}
-                      showGallery={false}
+                      showGallery={true}
                       onGalleryOpen={() => {
                         // TODO: Implement gallery opening
                         console.log('Gallery opening for:', att.name);
