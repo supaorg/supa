@@ -16,7 +16,7 @@
   }: {
     fileRef: FileReference;
     showGallery?: boolean;
-    onGalleryOpen: () => void;
+    onGalleryOpen?: (resolvedFile: ResolvedFileInfo) => void;
   } = $props();
 
   let resolvedFile: ResolvedFileInfo | null = $state(null);
@@ -70,16 +70,16 @@
   }
 
   function handleClick() {
-    if (showGallery && previewConfig.gallerySupport) {
-      onGalleryOpen();
+    if (showGallery && previewConfig.gallerySupport && resolvedFile && onGalleryOpen) {
+      onGalleryOpen(resolvedFile);
     }
   }
 
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      if (showGallery && previewConfig.gallerySupport) {
-        onGalleryOpen();
+      if (showGallery && previewConfig.gallerySupport && resolvedFile && onGalleryOpen) {
+        onGalleryOpen(resolvedFile);
       }
     }
   }
