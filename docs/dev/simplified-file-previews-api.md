@@ -33,7 +33,7 @@ import { ClientFileResolver } from '@sila/client/lib/utils/fileResolver';
 // Get metadata and sila:// URL
 const fileInfo = await ClientFileResolver.resolveFileReference(fileRef);
 if (fileInfo) {
-  console.log(fileInfo.url); // sila://spaces/{spaceId}/files/{hash}?type={mimeType}
+  console.log(fileInfo.url); // sila://spaces/{spaceId}/files/{hash}?type={mimeType}&name={fileName}
   console.log(fileInfo.name, fileInfo.mimeType, fileInfo.size);
 }
 
@@ -62,12 +62,13 @@ const metadata = await ClientFileResolver.getFileMetadata(fileRef);
 
 Files are served via the `sila://` protocol:
 ```
-sila://spaces/{spaceId}/files/{hash}?type={mimeType}
+sila://spaces/{spaceId}/files/{hash}?type={mimeType}&name={fileName}
 ```
 
 - `spaceId`: Current workspace ID
 - `hash`: SHA256 hash of file content
 - `mimeType`: Optional MIME type for proper content-type headers
+- `name`: Optional original filename used when downloading or saving from viewer
 
 ## Benefits
 

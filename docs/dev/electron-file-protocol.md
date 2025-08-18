@@ -15,17 +15,18 @@ The custom protocol allows Sila to serve files (images, PDFs, videos, etc.) dire
 
 ### URL Format
 ```
-sila://spaces/{spaceId}/files/{hash}?type={mimeType}
+sila://spaces/{spaceId}/files/{hash}?type={mimeType}&name={fileName}
 ```
 
 **Components:**
 - `spaceId`: Unique identifier for the workspace
 - `hash`: SHA256 hash of the file content
 - `mimeType`: Optional MIME type for proper content-type headers
+- `name`: Optional original filename used to hint downloads (set via `Content-Disposition`)
 
 **Example:**
 ```
-sila://spaces/f1ba226099084e4db17d1d3c27dcfc2a/files/c8670ca7ac518d8350206e897e61488210d3dcf963828ea8b90d23d3f8e04d08?type=image%2Fjpeg
+sila://spaces/f1ba226099084e4db17d1d3c27dcfc2a/files/c8670ca7ac518d8350206e897e61488210d3dcf963828ea8b90d23d3f8e04d08?type=image%2Fjpeg&name=photo.jpg
 ```
 
 ### File Path Resolution
@@ -46,8 +47,8 @@ Files are resolved using the CAS structure:
 **File:** `packages/desktop/src-electron/main.js`
 
 ```javascript
-// Setup custom file protocol
-setupFileProtocol();
+// Setup custom file protocol (await modern async setup)
+await setupFileProtocol();
 
 // Setup IPC handlers for space management
 setupSpaceManagementIPC();
@@ -57,7 +58,7 @@ setupSpaceManagementIPC();
 
 **File:** `packages/desktop/src-electron/fileProtocol.js`
 
-The protocol handler uses Electron's modern `protocol.handle()` API:
+The protocol handler uses Electron's modern `protocol.handle()` API, and the modern `protocol.isProtocolHandled()` check (replacing deprecated `isProtocolRegistered`):
 
 ```javascript
 protocol.handle('sila', async (request) => {
@@ -119,9 +120,10 @@ function getFileUrl(file: Vertex): string {
   const spaceId = (data as any).space.getId();
   const hash = file.getProperty("hash") as string;
   const mimeType = file.getProperty("mimeType") as string;
+  const name = file.getProperty("name") as string;
   
   if ((window as any).electronFileSystem) {
-    return (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType);
+    return (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType, name);
   }
   return "";
 }
@@ -131,17 +133,17 @@ function getFileUrl(file: Vertex): string {
 
 ### Images
 ```html
-<img src="sila://spaces/space-123/files/hash?type=image/jpeg" alt="Image" />
+<img src="sila://spaces/space-123/files/hash?type=image/jpeg&name=photo.jpg" alt="Image" />
 ```
 
 ### Videos
 ```html
-<video src="sila://spaces/space-123/files/hash?type=video/mp4" controls />
+<video src="sila://spaces/space-123/files/hash?type=video/mp4&name=clip.mp4" controls></video>
 ```
 
 ### PDFs
 ```html
-<iframe src="sila://spaces/space-123/files/hash?type=application/pdf" />
+<iframe src="sila://spaces/space-123/files/hash?type=application/pdf&name=document.pdf"></iframe>
 ```
 
 ## Error Handling
