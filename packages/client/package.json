@@ -12,7 +12,8 @@
   },
   "scripts": {
     "dev": "tailwindcss -i ./src/app.css -o ./src/lib/compiled-style.css --watch",
-    "build": "tailwindcss -i ./src/app.css -o ./src/lib/compiled-style.css"
+    "build": "tailwindcss -i ./src/app.css -o ./src/lib/compiled-style.css",
+    "check": "svelte-check"
   },
   "dependencies": {
     "@floating-ui/dom": "1.6.11",

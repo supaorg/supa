@@ -70,8 +70,7 @@
     "build:publish-draft": "npm run build && electron-builder --publish=draft",
     "preview": "vite preview",
     "start": "electron .",
-    "check": "svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch"
+    "check": "svelte-check"
   },
   "dependencies": {
     "@sila/client": "*",

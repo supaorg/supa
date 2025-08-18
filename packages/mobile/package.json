@@ -7,7 +7,8 @@
     "prepare": "svelte-kit sync",
     "build": "npm run build:client && npm run build:vite && npx cap sync",
     "build:vite": "vite build",
-    "build:client": "npm run build -w @sila/client"
+    "build:client": "npm run build -w @sila/client",
+    "check": "svelte-check"
   },
   "dependencies": {
     "@sila/client": "*",
