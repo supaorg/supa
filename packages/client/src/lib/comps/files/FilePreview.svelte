@@ -27,7 +27,10 @@
   let hasError = $state(false);
   let errorMessage = $state("");
 
-  let previewConfig = $derived(getFilePreviewConfig(resolvedFile?.mimeType || undefined));
+  let previewConfig = $derived.by(() => {
+    const mimeType = resolvedFile?.mimeType;
+    return getFilePreviewConfig(mimeType);
+  });
 
   async function loadFile() {
     try {
