@@ -5,8 +5,15 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "scripts": {
+    "check": "tsc -p tsconfig.json --noEmit",
+    "watch": "tsc -p tsconfig.json --noEmit --watch"
+  },
   "dependencies": {
     "aiwrapper": "^2.0.0-alpha.1",
     "reptree": "^0.2.2"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3"
   }
 }
