@@ -75,12 +75,26 @@
     }
   }
 
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (showGallery && previewConfig.gallerySupport) {
+        onGalleryOpen();
+      }
+    }
+  }
+
   onMount(() => {
     loadFile();
   });
 </script>
 
-<div class="file-preview-wrapper" onclick={handleClick}>
+<div 
+  class="file-preview-wrapper" 
+  onclick={handleClick}
+  onkeydown={handleKeydown}
+  {...(showGallery && previewConfig.gallerySupport ? { tabindex: 0, role: "button" } : {})}
+>
   {#if isLoading}
     <div
       class="flex items-center justify-center h-48 bg-surface-100-900 rounded animate-pulse"
