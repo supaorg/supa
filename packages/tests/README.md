@@ -7,15 +7,56 @@ Vitest-based test suite for Sila core and desktop file persistence.
 From the repo root:
 
 - Install deps: `npm install`
-- Run tests: `npm test`
+- Run all tests: `npm test`
 - Watch mode (tests pkg only): `npm -w packages/tests run test:watch`
+
+### Running Tests by Category
+
+You can now run tests by category using the following commands:
+
+- **Spaces**: `npm run test:spaces` - Space creation, persistence, and secrets
+- **Files**: `npm run test:files` - File storage, CAS, HEIC conversion, and file operations
+- **Chat**: `npm run test:chat` - Chat app trees, messaging, and file attachments
+- **Previews**: `npm run test:previews` - File preview system and simplified attachments
+- **AI**: `npm run test:ai` - AI integration and image processing
+
+### Test Organization
+
+Tests are organized into categories with descriptive prefixes:
+
+```
+packages/tests/src/
+├── spaces/
+│   ├── spaces-space.test.ts
+│   └── spaces-secrets.test.ts
+├── files/
+│   ├── files-files.test.ts
+│   ├── files-real.test.ts
+│   ├── files-store-integration.test.ts
+│   └── files-heic-conversion.test.ts
+├── chat/
+│   ├── chat-app-tree.test.ts
+│   ├── chat-files-targeting.test.ts
+│   ├── chat-text-file-attachments.test.ts
+│   ├── chat-text-file-attachments-integration.test.ts
+│   └── chat-text-file-ai-integration.test.ts
+├── previews/
+│   ├── previews-core.test.ts
+│   └── previews-svelte.test.ts
+├── ai/
+│   └── ai-image-bug.test.ts
+└── setup/
+    ├── setup-browser.ts
+    ├── setup-svelte.ts
+    └── setup-node-file-system.ts
+```
 
 If your environment blocks postinstall scripts, you can install without them and still run tests:
 
 - `npm install --ignore-scripts`
 - `npm -w packages/tests run test`
 
-## What’s covered
+## What's covered
 
 - Space creation and FileSystem persistence (ops written to jsonl, structure files)
 - Secrets encryption/decryption roundtrip
@@ -38,4 +79,5 @@ Notes:
 ## Tips
 
 - Run `npm -w packages/tests run test:watch` during development
+- Use category-specific commands to focus on specific areas: `npm run test:spaces`
 - If a new asset is very large, prefer a small thumbnail to keep the repo lean

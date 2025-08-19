@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { Space, FileSystemPersistenceLayer, SpaceManager } from '@sila/core';
-import { NodeFileSystem } from './node-file-system';
+import { NodeFileSystem } from '../setup/setup-node-file-system';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';

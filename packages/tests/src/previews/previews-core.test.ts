@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData, FileResolver } from '@sila/core';
-import { NodeFileSystem } from './node-file-system';
+import { NodeFileSystem } from '../setup/setup-node-file-system';
 import type { FileReference } from '@sila/core/spaces/files/FileResolver';
 
 // Simple attachment types for testing

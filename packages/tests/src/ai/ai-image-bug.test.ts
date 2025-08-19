@@ -3,7 +3,7 @@ import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Space, SpaceManager, FileSystemPersistenceLayer, ChatAppData, Backend } from '@sila/core';
-import { NodeFileSystem } from './node-file-system';
+import { NodeFileSystem } from '../setup/setup-node-file-system';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -85,7 +85,7 @@ describe('AI Image Bug Reproduction', () => {
     await wait(1000);
 
     // Read the cat image
-    const catImagePath = path.join(__dirname, '..', 'assets', 'to-send', 'cat.jpg');
+    const catImagePath = path.join(__dirname, '..', '..', 'assets', 'to-send', 'cat.jpg');
     const catImageBuffer = await readFile(catImagePath);
     const catImageBase64 = catImageBuffer.toString('base64');
     const catImageDataUrl = `data:image/jpeg;base64,${catImageBase64}`;
@@ -207,7 +207,7 @@ describe('AI Image Bug Reproduction', () => {
     await wait(1000);
 
     // Read the cat image
-    const catImagePath = path.join(__dirname, '..', 'assets', 'to-send', 'cat.jpg');
+    const catImagePath = path.join(__dirname, '..', '..', 'assets', 'to-send', 'cat.jpg');
     const catImageBuffer = await readFile(catImagePath);
     const catImageBase64 = catImageBuffer.toString('base64');
     const catImageDataUrl = `data:image/jpeg;base64,${catImageBase64}`;

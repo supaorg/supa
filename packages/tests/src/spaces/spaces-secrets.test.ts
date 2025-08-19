@@ -3,7 +3,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtemp, rm, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { NodeFileSystem } from './node-file-system';
+import { NodeFileSystem } from '../setup/setup-node-file-system';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

@@ -3,7 +3,7 @@ import { mkdtemp, rm, readFile, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData } from '@sila/core';
-import { NodeFileSystem } from './node-file-system';
+import { NodeFileSystem } from '../setup/setup-node-file-system';
 import { NodeHeicConverter } from '@sila/client/utils/heicConverter';
 
 // Node.js compatible versions of the utility functions for testing
@@ -114,7 +114,7 @@ describe('HEIC Conversion Pipeline', () => {
     expect(fileStore).toBeTruthy();
 
     // Read the test HEIC file
-    const heicFilePath = path.join(__dirname, '../assets/to-send/from-iphone.heic');
+    const heicFilePath = path.join(__dirname, '../../assets/to-send/from-iphone.heic');
     const heicBuffer = await readFile(heicFilePath);
     
     // Create a File-like object for testing
@@ -204,7 +204,7 @@ describe('HEIC Conversion Pipeline', () => {
     });
 
     // Read the test HEIC file
-    const heicFilePath = path.join(__dirname, '../assets/to-send/from-iphone.heic');
+    const heicFilePath = path.join(__dirname, '../../assets/to-send/from-iphone.heic');
     const heicBuffer = await readFile(heicFilePath);
     
     // Create two identical HEIC files
