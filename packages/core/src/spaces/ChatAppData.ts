@@ -206,12 +206,8 @@ export class ChatAppData {
               const fileVertex = FilesTreeData.createOrLinkFile({
                 filesTree: targetTree,
                 parentFolder,
-                name: a.name || 'image',
                 hash: put.hash,
-                mimeType: a.mimeType,
-                size: a.size,
-                width: a.width,
-                height: a.height
+                attachment: a,
               });
               refs.push({
                 id: a.id,
@@ -233,12 +229,8 @@ export class ChatAppData {
               const fileVertex = FilesTreeData.createOrLinkFile({
                 filesTree: targetTree,
                 parentFolder,
-                name: a.name || 'text-file',
                 hash: put.hash,
-                mimeType: a.mimeType,
-                size: a.size,
-                width: a.width, // Use lineCount as width for consistency
-                height: a.height // Use charCount as height for consistency
+                attachment: a,
               });
               
               refs.push({

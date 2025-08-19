@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { FilesAppData } from "@sila/core";
+  import type { AttachmentPreview } from "@sila/core";
   import type { Vertex } from "@sila/core";
   import { Folder, File as FileIcon, Upload, Plus } from "lucide-svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
@@ -155,16 +156,14 @@
           // Step 4: Upload to CAS (deduplication happens here)
           const put = await store.putDataUrl(dataUrl);
           
-          // Step 5: Get image dimensions if it's an image
+          // Step 5: Build an AttachmentPreview for simplified API usage
+          let originalDimensions: string | undefined;
           let width: number | undefined;
           let height: number | undefined;
-          let originalDimensions: string | undefined;
           if (optimizedFile.type.startsWith('image/')) {
             const dims = await getImageDimensions(dataUrl);
             width = dims?.width;
             height = dims?.height;
-            
-            // If the file was resized, get original dimensions
             if (processedFile !== file || optimizedFile !== processedFile) {
               const originalDims = await getImageDimensions(await toDataUrl(file));
               if (originalDims) {
@@ -172,18 +171,25 @@
               }
             }
           }
-          
-          // Step 6: Create vertex with converted filename and optimized data
+
+          const preview: AttachmentPreview = {
+            id: crypto.randomUUID(),
+            kind: 'image',
+            name: optimizedFile.name,
+            mimeType: optimizedFile.type,
+            size: optimizedFile.size,
+            dataUrl,
+            width,
+            height,
+          };
+
+          // Step 6: Create/link file using the simplified API with attachment
           const { FilesTreeData } = await import("@sila/core");
           FilesTreeData.createOrLinkFile({
             filesTree,
             parentFolder: currentFolder,
-            name: optimizedFile.name, // Use converted filename
-            hash: put.hash,  // Hash of optimized data
-            mimeType: optimizedFile.type, // Optimized MIME type
-            size: optimizedFile.size,
-            width,
-            height,
+            hash: put.hash,
+            attachment: preview,
             originalFormat: file.type !== optimizedFile.type ? file.type : undefined,
             conversionQuality: file.type !== optimizedFile.type ? 0.85 : undefined,
             originalDimensions,
