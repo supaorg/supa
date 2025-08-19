@@ -133,6 +133,17 @@ export class FileResolver {
 		const fileStore = this.space.getFileStore();
 
 		for (const attachment of attachments) {
+			// New: bare FileReference persisted on message
+			if (attachment && typeof attachment === 'object' && attachment.tree && attachment.vertex) {
+				try {
+					const out = await this.resolveFileReferenceToDataUrl(attachment as FileReference, fileStore);
+					if (out) resolved.push(out);
+				} catch (error) {
+					console.warn('Failed to resolve bare file reference:', error);
+				}
+				continue;
+			}
+
 			// If already has dataUrl, use it (transient data)
 			if (attachment.dataUrl) {
 				resolved.push({
@@ -231,9 +242,37 @@ export class FileResolver {
 
 		return {
 			id: originalAttachment.id,
-			kind: originalAttachment.kind,
+			kind: originalAttachment.kind ?? (mimeType?.startsWith('text/') ? 'text' : (mimeType?.startsWith('image/') ? 'image' : 'file')),
 			name: originalAttachment.name || fileVertex.getProperty("name"),
 			alt: originalAttachment.alt,
+			dataUrl,
+			mimeType,
+			size,
+			width,
+			height,
+		};
+	}
+
+	private async resolveFileReferenceToDataUrl(fileRef: FileReference, fileStore: any): Promise<ResolvedAttachment | null> {
+		const filesTree = await this.loadAppTree(fileRef.tree);
+		if (!filesTree) return null;
+		const fileVertex = filesTree.tree.getVertex(fileRef.vertex);
+		if (!fileVertex) return null;
+		const hash = fileVertex.getProperty('hash') as string;
+		if (!hash) return null;
+		if (!fileStore) throw new Error('FileStore not available for resolving file references');
+		const bytes = await fileStore.getBytes(hash);
+		const mimeType = fileVertex.getProperty('mimeType') as string;
+		const size = fileVertex.getProperty('size') as number;
+		const width = fileVertex.getProperty('width') as number;
+		const height = fileVertex.getProperty('height') as number;
+		const base64 = typeof Buffer !== 'undefined' ? Buffer.from(bytes).toString('base64') : btoa(String.fromCharCode(...bytes));
+		const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
+		return {
+			id: fileRef.vertex,
+			kind: mimeType?.startsWith('text/') ? 'text' : (mimeType?.startsWith('image/') ? 'image' : 'file'),
+			name: fileVertex.getProperty('name') as string,
+			alt: undefined,
 			dataUrl,
 			mimeType,
 			size,

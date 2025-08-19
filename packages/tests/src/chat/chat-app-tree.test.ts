@@ -97,7 +97,7 @@ describe('Chat app tree creation and persistence', () => {
     // The saved message should have attachments with file refs (tree+vertex)
     const attachments = (chatTree.tree.getVertex(msg.id) as any).getProperty('attachments');
     expect(Array.isArray(attachments)).toBe(true);
-    expect(attachments[0]?.file?.tree).toBeTypeOf('string');
-    expect(attachments[0]?.file?.vertex).toBeTypeOf('string');
+    expect(attachments[0]?.tree).toBeTypeOf('string');
+    expect(attachments[0]?.vertex).toBeTypeOf('string');
   });
 });

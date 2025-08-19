@@ -47,7 +47,7 @@ describe('Chat file targeting (per-chat files path under CAS)', () => {
 
     const atts = (message as any).attachments;
     expect(atts).toHaveLength(1);
-    const ref = atts[0].file;
+    const ref = atts[0];
     expect(ref.tree).toBe(chatTree.getId());
 
     // Verify vertex exists under chat tree 'files'
@@ -80,7 +80,7 @@ describe('Chat file targeting (per-chat files path under CAS)', () => {
 
     const atts = (message as any).attachments;
     expect(atts).toHaveLength(1);
-    const ref = atts[0].file;
+    const ref = atts[0];
     expect(ref.tree).toBe(chatTree.getId());
 
     // Verify nested folders exist and contain the file vertex

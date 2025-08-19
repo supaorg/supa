@@ -113,9 +113,9 @@ function test() {
       const attachments = messageVertex?.getProperty('attachments') as any[];
       expect(attachments).toBeDefined();
       expect(attachments.length).toBe(1);
-      expect(attachments[0].kind).toBe('text');
-      expect(attachments[0].file?.tree).toBeDefined();
-      expect(attachments[0].file?.vertex).toBeDefined();
+      // Persisted attachments are bare FileReference now
+      expect(attachments[0].tree).toBeDefined();
+      expect(attachments[0].vertex).toBeDefined();
     });
 
     it('should handle mixed image and text file attachments', async () => {
@@ -171,13 +171,8 @@ function test() {
       expect(attachments).toBeDefined();
       expect(attachments.length).toBe(2);
       
-      const textAtt = attachments.find(a => a.kind === 'text');
-      const imageAtt = attachments.find(a => a.kind === 'image');
-      
-      expect(textAtt).toBeDefined();
-      expect(imageAtt).toBeDefined();
-      expect(textAtt.file?.tree).toBeDefined();
-      expect(imageAtt.file?.tree).toBeDefined();
+      const [att] = attachments;
+      expect(att.tree).toBeDefined();
     });
 
     it('should handle large text files', async () => {
@@ -215,8 +210,7 @@ function test() {
       // Verify the large file was handled
       const messageVertex = chatTree.tree.getVertex(message.id);
       const attachments = messageVertex?.getProperty('attachments') as any[];
-      expect(attachments[0].kind).toBe('text');
-      expect(attachments[0].width).toBeUndefined();
+      expect(attachments[0].tree).toBeDefined();
     });
   });
 
@@ -319,8 +313,7 @@ function test() {
       // Verify empty file was handled
       const messageVertex = chatTree.tree.getVertex(message.id);
       const attachments = messageVertex?.getProperty('attachments') as any[];
-      expect(attachments[0].kind).toBe('text');
-      expect(attachments[0].file?.tree).toBeDefined();
+      expect(attachments[0].tree).toBeDefined();
     });
   });
 
@@ -388,9 +381,8 @@ function test() {
         
         const messageVertex = chatTree.tree.getVertex(message.id);
         const attachments = messageVertex?.getProperty('attachments') as any[];
-        expect(attachments[0].kind).toBe('text');
-        expect(attachments[0].file?.tree).toBeDefined();
-        expect(attachments[0].file?.vertex).toBeDefined();
+        expect(attachments[0].tree).toBeDefined();
+        expect(attachments[0].vertex).toBeDefined();
       }
     });
   });

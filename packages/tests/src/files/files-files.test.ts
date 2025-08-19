@@ -213,15 +213,12 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(messageAttachments).toHaveLength(1);
 		
 		const attachment = messageAttachments[0];
-		expect(attachment.id).toBe('att1');
-		expect(attachment.kind).toBe('image');
-		expect(attachment.file).toBeDefined();
-		expect(attachment.file.tree).toBeDefined();
-		expect(attachment.file.vertex).toBeDefined();
-		expect(attachment.dataUrl).toBeUndefined();
+		// Now persisted as bare FileReference
+		expect(attachment.tree).toBeDefined();
+		expect(attachment.vertex).toBeDefined();
 
 		// Verify that the file reference points to a valid file vertex
-		const targetTree = await space.loadAppTree(attachment.file.tree);
+		const targetTree = await space.loadAppTree(attachment.tree);
 		expect(targetTree).toBeDefined();
 
 		// And that resolving attachments returns a usable dataUrl for immediate consumption
@@ -325,8 +322,8 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(message2Attachments).toHaveLength(1);
 		
 		// Both should reference the same app tree (the chat tree)
-		const treeId1 = message1Attachments[0].file.tree;
-		const treeId2 = message2Attachments[0].file.tree;
+		const treeId1 = message1Attachments[0].tree;
+		const treeId2 = message2Attachments[0].tree;
 		
 		expect(treeId1).toBe(treeId2);
 		

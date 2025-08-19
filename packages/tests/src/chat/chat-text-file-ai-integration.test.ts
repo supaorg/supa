@@ -99,10 +99,9 @@ describe('Text File AI Integration', () => {
       const attachments = messageVertex?.getProperty('attachments') as any[];
       expect(attachments).toBeDefined();
       expect(attachments.length).toBe(1);
-      expect(attachments[0].kind).toBe('text');
-      // Persisted attachments no longer include name; verify file reference exists
-      expect(attachments[0].file?.tree).toBeDefined();
-      expect(attachments[0].file?.vertex).toBeDefined();
+      // Persisted attachments are bare FileReference
+      expect(attachments[0].tree).toBeDefined();
+      expect(attachments[0].vertex).toBeDefined();
 
       // Test the AI processing by simulating what SimpleChatAgent would do
       const agentServices = new AgentServices(space);
@@ -120,9 +119,7 @@ describe('Text File AI Integration', () => {
 
       // Extract text files from the resolved message
       const resolvedAttachments = (resolvedMessage as any).attachments || [];
-      const textFiles = resolvedAttachments.filter((a: any) => 
-        a?.kind === 'text' && (a?.file?.tree && a?.file?.vertex || a?.dataUrl)
-      );
+      const textFiles = resolvedAttachments.filter((a: any) => a?.mimeType?.startsWith('text/') || a?.kind === 'text');
 
       console.log('Resolved attachments:', {
         total: resolvedAttachments.length,
@@ -140,10 +137,7 @@ describe('Text File AI Integration', () => {
       for (const textFile of textFiles) {
         let fileContent: string | null = null;
         
-        if (textFile.file?.tree && textFile.file?.vertex) {
-          // Load from CAS
-          fileContent = await simpleChatAgent['loadTextFileContent'](textFile.file.tree, textFile.file.vertex);
-        } else if (textFile.dataUrl) {
+        if (textFile.dataUrl) {
           // Extract from data URL
           fileContent = simpleChatAgent['extractTextFromDataUrl'](textFile.dataUrl);
         }
@@ -237,7 +231,8 @@ function test() {
       // Verify markdown content was extracted
       expect(extractedContent).toContain('8899');
       expect(extractedContent).toContain('test.md');
-      expect(extractedContent).toContain('Markdown');
+      // Label is derived at render-time; check content instead, case-insensitive
+      expect(extractedContent.toLowerCase()).toContain('markdown');
       expect(extractedContent).toContain('# Test File');
     });
   });

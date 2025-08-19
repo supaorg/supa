@@ -4,7 +4,8 @@ import type { VertexPropertyType } from "reptree";
 import type { ThreadMessage } from "../models";
 import { AppTree } from "./AppTree";
 import { FilesTreeData } from "./files";
-import type { AttachmentPreview, MessageAttachmentRef } from "./files";
+import type { AttachmentPreview } from "./files";
+import type { FileReference } from "./files/FileResolver";
 import { FileResolver } from "./files/FileResolver";
 
 export class ChatAppData {
@@ -198,7 +199,7 @@ export class ChatAppData {
         // Resolve target tree and parent folder path
         const { targetTree, parentFolder } = await this.resolveFileTarget(fileTarget);
 
-        const refs: Array<MessageAttachmentRef> = [];
+        const refs: Array<FileReference> = [];
         for (const a of attachments) {
           if (a?.kind === 'image' && typeof a?.dataUrl === 'string') {
             const put = await store.putDataUrl(a.dataUrl);
@@ -208,12 +209,7 @@ export class ChatAppData {
               hash: put.hash,
               attachment: a,
             });
-            refs.push({
-              id: a.id,
-              kind: 'image',
-              alt: a.alt,
-              file: { tree: targetTree.getId(), vertex: fileVertex.id }
-            });
+            refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
           } else if (a?.kind === 'text' && typeof a?.content === 'string') {
             // Store text content in CAS (same as images)
             const textBytes = new TextEncoder().encode(a.content);
@@ -226,12 +222,7 @@ export class ChatAppData {
               attachment: a,
             });
             
-            refs.push({
-              id: a.id,
-              kind: 'text',
-              alt: a.alt || 'text file',
-              file: { tree: targetTree.getId(), vertex: fileVertex.id }
-            });
+            refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
           } else {
             throw new Error(`Unsupported attachment or missing content for kind '${a?.kind}'`);
           }
