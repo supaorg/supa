@@ -3,6 +3,7 @@ import { AppTree } from "../AppTree";
 import type { Space } from "../Space";
 import { FilesAppData } from "./FilesAppData";
 import type { AttachmentPreview } from "./AttachmentPreview";
+import type { FileInfo } from "./FileInfo";
 
 export class FilesTreeData {
 	static createNewFilesTree(space: Space): AppTree {
@@ -76,5 +77,18 @@ export class FilesTreeData {
 			originalFilename,
 			createdAt: Date.now(),
 		});
+	}
+
+	/** Returns normalized file info from a file vertex */
+	static getFileInfo(fileVertex: Vertex): FileInfo {
+		return {
+			id: fileVertex.id,
+			name: (fileVertex.getProperty('name') as string) ?? '',
+			hash: (fileVertex.getProperty('hash') as string) ?? '',
+			mimeType: fileVertex.getProperty('mimeType') as string,
+			size: fileVertex.getProperty('size') as number,
+			width: fileVertex.getProperty('width') as number,
+			height: fileVertex.getProperty('height') as number,
+		};
 	}
 }

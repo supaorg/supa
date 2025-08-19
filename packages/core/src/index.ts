@@ -12,6 +12,7 @@ export * from './tools';
 export * from './agents';
 export * from './spaces';
 export type { AttachmentPreview, AttachmentKind } from './spaces/files/AttachmentPreview';
+export type { FileInfo } from './spaces/files/FileInfo';
 export type { AppFileSystem, FileEntry, FileHandle, WatchEvent, UnwatchFn } from './appFs';
 export { FileSystemPersistenceLayer } from './spaces/persistence/FileSystemPersistenceLayer';
 export type { FileStore } from './spaces/files/FileStore';
