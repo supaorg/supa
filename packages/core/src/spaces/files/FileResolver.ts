@@ -30,6 +30,10 @@ export interface ResolvedFileInfo {
 	hash: string;
 }
 
+export interface ResolvedFileInfoWithKind extends ResolvedFileInfo {
+	kind: string;
+}
+
 export class FileResolver {
 	constructor(private space: Space) {}
 

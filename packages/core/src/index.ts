@@ -18,4 +18,4 @@ export { FileSystemPersistenceLayer } from './spaces/persistence/FileSystemPersi
 export type { FileStore } from './spaces/files/FileStore';
 export { createFileStore } from './spaces/files/FileStore';
 export { FileResolver } from './spaces/files/FileResolver';
-export type { FileReference, ResolvedFileInfo } from './spaces/files/FileResolver';
+export type { FileReference, ResolvedFileInfo, ResolvedFileInfoWithKind } from './spaces/files/FileResolver';

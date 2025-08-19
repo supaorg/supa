@@ -14,6 +14,8 @@ export interface MessageAttachmentRef {
 }
 
 // The message attachments array can contain either persisted refs or transient previews in error cases
-export type MessageAttachmentEntry = MessageAttachmentRef | AttachmentPreview;
+export type MessageAttachment = MessageAttachmentRef | AttachmentPreview;
+// Backward-compat alias; prefer MessageAttachment going forward
+export type MessageAttachmentEntry = MessageAttachment;
 
 
