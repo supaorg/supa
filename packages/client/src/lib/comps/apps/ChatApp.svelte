@@ -6,6 +6,7 @@
   import { ChatAppData } from "@sila/core";
   import type { Vertex } from "@sila/core";
   import type { ThreadMessage } from "@sila/core";
+  import type { AttachmentPreview } from "@sila/core";
   import type { MessageFormStatus } from "../forms/messageFormStatus";
 
   let { data }: { data: ChatAppData } = $props();
@@ -120,19 +121,7 @@
     }
   }
 
-  type AttachmentPreview = {
-    id: string;
-    kind: 'image' | 'text' | 'file';
-    name: string;
-    mimeType: string;
-    size: number;
-    dataUrl?: string; // For images (transient)
-    content?: string; // For text files (transient, only during upload)
-    metadata?: any; // For text files (transient, only during upload)
-    width?: number; // For images, or lineCount for text files
-    height?: number; // For images, or charCount for text files
-    alt?: string; // For accessibility, language for text files
-  };
+  // Using shared AttachmentPreview from core
 
   async function sendMsg(query: string, attachments?: AttachmentPreview[]) {
     // Wait for the message to be created and attachments to be saved

@@ -1,19 +1,26 @@
-## Files in Spaces (Phase 1)
+# Files in Spaces
 
-This document outlines how Sila persists binary files (images and other assets) inside a workspace and how applications reference them. Phase 1 covers desktop (Electron/Node) using the File System; web/IDB persistence for blobs is out of scope.
+This document describes how Sila handles file storage, organization, and serving across the application. Files are stored using Content-Addressed Storage (CAS) and referenced through a logical file system structure.
 
-### Goals
-- Durable content-addressed storage (CAS) for binary assets per workspace
-- Logical file browsing and metadata via a dedicated Files AppTree
-- App messages reference files by ID; blobs are never embedded in CRDT ops
+## Overview
 
-### On-disk layout
-All bytes live under the workspace path used by `FileSystemPersistenceLayer`:
+Sila's file system provides:
+- **Content-Addressed Storage (CAS)**: Files stored by SHA-256 hash for deduplication
+- **Logical Organization**: Files organized in a Files AppTree with folders and metadata
+- **Reference-Based Access**: Messages reference files by tree/vertex IDs, not embedded content
+- **Direct File Serving**: Files served via custom `sila://` protocol
+- **AI Integration**: File content automatically included in AI conversations
+
+## Architecture
+
+### Content-Addressed Storage (CAS)
+
+Files are stored on disk using their SHA-256 hash as the address:
 
 ```
 <spaceRoot>/
   space-v1/
-    ops/                 # CRDT ops (jsonl, existing)
+    ops/                 # CRDT ops (jsonl)
     files/
       sha256/
         ab/
@@ -22,122 +29,371 @@ All bytes live under the workspace path used by `FileSystemPersistenceLayer`:
     space.json           # metadata with space id
 ```
 
-- Files are addressed directly by their SHA-256 hash.
-- The path is derived as `space-v1/files/sha256/<hash[0..1]>/<hash[2..]>`.
-- The CAS is deduplicated by construction; identical bytes map to the same path.
+- **Path Structure**: `space-v1/files/sha256/<hash[0..1]>/<hash[2..]>`
+- **Deduplication**: Identical files map to the same path automatically
+- **Hash Collision**: SHA-256 provides excellent collision resistance for practical use
 
-### Files AppTree (logical structure and metadata)
-A dedicated app tree holds folders and files as vertices; this is a browsable logical view while the bytes remain in CAS on disk.
+### Files AppTree (Logical Organization)
 
-- Folder vertex properties:
-  - `_n: "folder"`, `name: string`, `createdAt: number`
-- File vertex properties:
-  - `_n: "file"`, `name: string`
-  - `hash: "<hex>"`
-  - Optional: `mimeType`, `size`, `width`, `height`, `alt`, `tags[]`, `createdAt`
-  - Conversion metadata: `originalFormat`, `conversionQuality`, `originalDimensions`, `originalFilename`
+A dedicated app tree provides a browsable logical view of files:
 
-Helper APIs in `@sila/core`:
-- `FilesTreeData.createNewFilesTree(space)` → creates an app tree and marks root with `appId: 'files'` and `name: 'Files'` and `files` folder
-- `FilesTreeData.getOrCreateDefaultFilesTree(space)` → gets existing files tree or creates a new one (reused for all attachments)
-- `FilesTreeData.ensureFolderPath(filesTree, [segments])` → creates/returns nested folders
-- `FilesTreeData.createOrLinkFile({...})` → creates a file vertex with metadata or returns existing
+```typescript
+// Folder vertex properties
+{
+  _n: "folder",
+  name: string,
+  createdAt: number
+}
 
-### FileStore API (desktop)
-Provided by `@sila/core` under `spaces/files`:
+// File vertex properties  
+{
+  _n: "file",
+  name: string,
+  hash: string,           // SHA-256 hash
+  mimeType?: string,
+  size?: number,
+  width?: number,         // For images
+  height?: number,        // For images
+  alt?: string,           // Accessibility text
+  tags?: string[],
+  createdAt: number,
+  
+  // Conversion metadata (for processed files)
+  originalFormat?: string,
+  conversionQuality?: number,
+  originalDimensions?: string,
+  originalFilename?: string
+}
+```
 
-```ts
-export interface FileStore {
+### File References
+
+Messages store lightweight references to files:
+
+```typescript
+interface FileReference {
+  tree: string;    // Files AppTree ID
+  vertex: string;  // File vertex ID within the tree
+}
+
+// Attachment structure
+{
+  id: string;
+  kind: 'image' | 'text' | 'video' | 'pdf' | 'file';
+  file: FileReference;
+  alt?: string;    // Optional accessibility text
+}
+```
+
+## File Processing Pipeline
+
+### Image Processing
+
+1. **HEIC Conversion**: iPhone HEIC files automatically converted to JPEG
+2. **Size Optimization**: Images larger than 2048x2048 pixels are resized
+3. **Quality Optimization**: JPEG quality set to 85% for good size/quality balance
+4. **Metadata Preservation**: Original format, dimensions, and filename tracked
+
+### Text File Processing
+
+1. **Content-Based Detection**: Files validated as text using content analysis
+2. **Binary Signature Detection**: Common binary formats (JPEG, PNG, ZIP) rejected
+3. **Language Detection**: Programming language identified from file extension
+4. **Metadata Extraction**: Line count, character count, word count calculated
+
+### Supported File Types
+
+**Images**: JPEG, PNG, GIF, WebP, SVG, AVIF, HEIC (converted to JPEG)
+
+**Text Files**: 
+- Plain text: `.txt`, `.log`, `.csv`
+- Markup: `.md`, `.html`, `.css`
+- Code: `.js`, `.ts`, `.py`, `.java`, `.c`, `.cpp`, `.cs`, `.php`, `.rb`, `.go`, `.rs`, `.swift`, `.kt`, `.scala`
+- Data: `.json`, `.xml`, `.yaml`, `.toml`, `.ini`
+- Scripts: `.sh`, `.bash`, `.bat`, `.ps1`
+
+**Other**: PDF, video files (MP4, WebM, OGG), audio files
+
+## File Storage and Retrieval
+
+### FileStore API
+
+```typescript
+interface FileStore {
   putDataUrl(dataUrl: string): Promise<{ hash: string; mimeType?: string; size: number }>;
   putBytes(bytes: Uint8Array, mimeType?: string): Promise<{ hash: string; size: number }>;
   exists(hash: string): Promise<boolean>;
   getBytes(hash: string): Promise<Uint8Array>;
   getDataUrl(hash: string): Promise<string>;
-  delete(hash: string): Promise<void>; // no-op in Phase 1
+  delete(hash: string): Promise<void>; // No-op in current implementation
 }
 ```
 
+### FilesTreeData API
 
+```typescript
+// Create new Files AppTree
+FilesTreeData.createNewFilesTree(space)
 
-Create a FileStore instance when a desktop file system is available:
+// Get or create default Files AppTree
+FilesTreeData.getOrCreateDefaultFilesTree(space)
 
-```ts
-const fileStore = createFileStore({
-  getSpaceRootPath: () => spaceRootPath,
-  getFs: () => appFileSystem
-});
+// Ensure folder path exists
+FilesTreeData.ensureFolderPath(filesTree, ['YYYY', 'MM', 'DD'])
+
+// Create or link file vertex
+FilesTreeData.createOrLinkFile({
+  filesTree,
+  parentFolder,
+  name,
+  hash,
+  mimeType,
+  size,
+  width,
+  height,
+  // ... conversion metadata
+})
 ```
 
-Internals:
-- Computes SHA-256 over bytes to form hash
-- Derives CAS path; writes only if it does not exist
-- `getDataUrl` returns a `data:application/octet-stream;base64,...` for previews; callers may override MIME when known
+## File Serving
 
-### File Conversion Pipeline
-Sila automatically processes uploaded files to ensure optimal compatibility and performance:
+### Custom Protocol
 
-**HEIC to JPEG Conversion:**
-- HEIC files from iPhones are automatically converted to JPEG format
-- Original filename is preserved with `.jpg` extension (e.g., `IMG_1234.HEIC` → `IMG_1234.jpg`)
-- Conversion metadata is stored: `originalFormat`, `conversionQuality`, `originalFilename`
+Files are served via the `sila://` protocol:
 
-**Image Size Optimization:**
-- Images larger than 2048x2048 pixels are automatically resized
-- Aspect ratio is maintained during resizing
-- Original dimensions are tracked in `originalDimensions` metadata
-- Quality is optimized to 85% JPEG for good file size vs quality balance
+```
+sila://spaces/{spaceId}/files/{hash}?type={mimeType}&name={fileName}
+```
 
-**Extensibility:**
-- The conversion pipeline uses a pluggable architecture via `HeicConverter` interface
-- Browser environment uses `heic2any` library for actual conversion
-- Node.js environment uses mock converter for testing
-- Additional format conversions (WebP, AVIF) can be easily added
+**Components:**
+- `spaceId`: Workspace identifier
+- `hash`: SHA-256 hash of file content
+- `mimeType`: Content type for proper headers
+- `name`: Original filename for downloads
 
-### Read/Write flows
-- Write:
-  - UI obtains data URLs or bytes
-  - **File processing**: HEIC conversion and image optimization applied
-  - `fileStore.putDataUrl(...)` or `fileStore.putBytes(...)` → returns `hash`
-  - Ensure `files/YYYY/MM/DD` folder exists in Files AppTree
-  - Create a `file` vertex with `hash` and metadata (including conversion info)
-  - Attach JSON references from messages to the file vertex if needed
-- Read:
-  - Resolve message file reference to the file vertex
-  - Read `hash` and load bytes or data URL from CAS via `FileStore`
+### Electron Implementation
 
-### Integration: Chat attachments (Phase 1)
-See also: `docs/dev/proposals/attach-files.md`.
+The protocol handler in Electron:
+1. Validates the URL format and hash
+2. Resolves the file path from CAS structure
+3. Serves the file with proper content-type headers
+4. Supports range requests for large files
+5. Handles download requests with Content-Disposition
 
-- When a user message carries image attachments (data URLs), the backend persists them to CAS if a desktop `FileStore` is available.
-- A Files AppTree is ensured (created on demand) and a date-based folder path is used: `files/YYYY/MM/DD/chat`.
-- For each image, a `file` vertex is created with metadata and `hash = <hex>`.
-- The chat message `attachments` property is stored as JSON references of the form:
-  - `{ id, kind: 'image', name?, alt?, file: { tree: <filesTreeId>, vertex: <fileVertexId> } }`.
-- For immediate UI preview, transient `attachmentsDataUrl` is set on the message and ignored by persistence.
-- If persistence is not available or fails, attachments remain transient in-memory as before.
+## File Resolution
 
-### Obtaining a FileStore in core
-- `SpaceManager` wires the `FileSystemPersistenceLayer` to a `Space` by setting a provider so `space.getFileStore()` returns a valid `FileStore` on desktop.
-- Apps can call `space.getFileStore()` and use `FilesTreeData` to organize metadata under the Files AppTree.
+### Client-Side Resolution
 
-### Persistence and CRDT
-- Only metadata and references are stored as CRDT vertex operations under app trees
-- Binary bytes are not part of ops; they are stored in the workspace CAS folder
-- `FileSystemPersistenceLayer` filters transient properties and batches ops to disk
+```typescript
+// Resolve file reference to metadata and URL
+const fileInfo = await ClientFileResolver.resolveFileReference(fileRef);
 
-### Platform notes
-- Desktop: `AppFileSystem` now supports `readBinaryFile(path)`. Electron and Node bindings implement it.
-- Web: IndexedDB persistence for blobs is out of scope for Phase 1; UI may keep attachments in-memory.
+// Result includes:
+{
+  id: string,
+  name: string,
+  mimeType?: string,
+  size?: number,
+  width?: number,
+  height?: number,
+  url: string,        // sila:// URL
+  hash: string
+}
+```
 
-### Garbage collection (future)
-- Phase 1 does not delete blobs. Future maintenance can scan live `hash`es and reclaim unreferenced files.
+### Server-Side Resolution
 
-### Hash Collision Considerations
+For AI processing, files are resolved to data URLs:
 
-SHA-256 produces 256-bit (32-byte) hashes, giving 2^256 possible values. The probability of collision is extremely low:
+```typescript
+// Resolve attachments for AI consumption
+const resolvedAttachments = await fileResolver.resolveAttachments(attachments);
 
-- **Birthday paradox**: With 2^128 files, collision probability is ~50%
-- **Realistic usage**: Even with millions of files, collision probability is negligible
-- **Cryptographic strength**: SHA-256 is designed to be collision-resistant
+// Result includes data URLs for AI models
+{
+  id: string,
+  kind: string,
+  name?: string,
+  alt?: string,
+  dataUrl: string,    // Base64 encoded data
+  mimeType?: string,
+  size?: number,
+  width?: number,
+  height?: number
+}
+```
 
-**Recommendation**: SHA-256 provides excellent collision resistance for all practical purposes. The system can always be upgraded to support other hash algorithms in the future if needed.
+## AI Integration
+
+### Vision-Capable Models
+
+For models that support vision (OpenAI, Anthropic, Google, etc.):
+
+1. **Images**: Sent as base64-encoded image parts
+2. **Text Files**: Content extracted and sent as text parts
+3. **Mixed Content**: Both images and text files in single message
+
+### Text-Only Models
+
+For models without vision capabilities:
+
+1. **Images**: Descriptive text added (e.g., "[User attached 2 image(s): photo1.jpg, photo2.png]")
+2. **Text Files**: Content extracted and appended to message text with file headers
+3. **File Metadata**: Language, line count, and other metadata included
+
+### Text File Content Loading
+
+Text file content is loaded from CAS when needed:
+
+```typescript
+// Load text content from CAS
+const fileContent = await loadTextFileContent(treeId, vertexId);
+
+// Extract text from data URL (fallback)
+const textContent = extractTextFromDataUrl(dataUrl);
+```
+
+## File Preview System
+
+### Components
+
+- **FilePreview.svelte**: Main component that resolves file references
+- **ImageFilePreview.svelte**: Renders image previews with hover effects
+- **RegularFilePreview.svelte**: Renders file tiles with icons and metadata
+- **FileGalleryModal.svelte**: Full-screen file viewer with navigation
+
+### Preview Types
+
+```typescript
+interface FilePreviewConfig {
+  canPreview: boolean;
+  previewType: 'image' | 'video' | 'pdf' | 'text' | 'file';
+  gallerySupport: boolean;
+  supportedFormats: string[];
+  displayName: string;
+  icon: string;
+}
+```
+
+### Gallery System
+
+- **Single File View**: Current implementation focuses on single file viewing
+- **Navigation**: Future support for multiple files with next/previous
+- **Download**: Files can be downloaded from gallery view
+- **Keyboard Support**: ESC to close, arrow keys for navigation (future)
+
+## Data Flow
+
+### File Upload
+
+1. **File Selection**: User selects files in message form
+2. **Processing**: Files go through conversion pipeline (HEIC, optimization)
+3. **CAS Storage**: Processed files stored in CAS via FileStore
+4. **Metadata Creation**: File vertices created in Files AppTree
+5. **Reference Creation**: Message attachments reference file vertices
+6. **Transient Data**: Data URLs stored temporarily for immediate preview
+
+### File Display
+
+1. **Reference Resolution**: FilePreview resolves tree/vertex to metadata
+2. **URL Generation**: `sila://` URL generated for file access
+3. **Preview Rendering**: Appropriate preview component renders file
+4. **Gallery Integration**: Click opens file in gallery modal
+
+### AI Processing
+
+1. **Attachment Resolution**: FileResolver loads file content from CAS
+2. **Content Extraction**: Text files decoded, images converted to base64
+3. **Message Construction**: Content added to AI message in appropriate format
+4. **Model Dispatch**: Message sent to AI model with file content
+
+## Platform Support
+
+### Desktop (Electron)
+
+- **Full CAS Support**: Complete file storage and retrieval
+- **Custom Protocol**: `sila://` protocol for file serving
+- **File System Access**: Direct access to workspace directories
+- **Native Dialogs**: File picker and save dialogs
+
+### Web (Future)
+
+- **IndexedDB Storage**: Blob storage for web environments
+- **Data URL Fallback**: Files served as data URLs
+- **Limited Features**: Some features may be restricted
+
+### Mobile (Capacitor)
+
+- **File System Access**: Native file system integration
+- **Camera Integration**: Direct photo capture
+- **Share Support**: Native sharing capabilities
+
+## Performance Considerations
+
+### Memory Management
+
+- **Lazy Loading**: File metadata loaded only when needed
+- **Caching**: Resolved file info cached in client state
+- **Streaming**: Large files served via streaming (range requests)
+
+### Network Optimization
+
+- **Reference-Based**: Only file references sent in messages
+- **Deduplication**: Identical files stored once
+- **Compression**: Images optimized for size/quality balance
+
+### Storage Efficiency
+
+- **Content Addressing**: Automatic deduplication by hash
+- **Metadata Separation**: File metadata separate from content
+- **Garbage Collection**: Future support for unreferenced file cleanup
+
+## Security
+
+### File Validation
+
+- **Content-Based Detection**: Files validated by content, not just extension
+- **Binary Signature Checking**: Common binary formats detected and rejected
+- **Size Limits**: Large files may be truncated or rejected
+
+### Access Control
+
+- **Space Isolation**: Files isolated by workspace
+- **Hash Validation**: File integrity verified by SHA-256
+- **Protocol Security**: Custom protocol validates all requests
+
+## Future Enhancements
+
+### Planned Features
+
+- **File Search**: Search within file content and metadata
+- **File Sharing**: Share files between workspaces
+- **Version Control**: File versioning and history
+- **Advanced Gallery**: Multi-file navigation and zoom controls
+- **Thumbnail Generation**: Automatic thumbnail creation for images
+
+### Performance Improvements
+
+- **Background Processing**: File processing in background threads
+- **Progressive Loading**: Low-res previews before full resolution
+- **Smart Caching**: Intelligent cache invalidation and prefetching
+
+## Testing
+
+### Test Coverage
+
+- **Unit Tests**: File processing functions, content detection
+- **Integration Tests**: Complete workflow from upload to AI processing
+- **Performance Tests**: Memory usage, loading times, file size limits
+- **Edge Cases**: Binary files with text extensions, empty files, large files
+
+### Test Assets
+
+Test files stored in `packages/tests/assets/`:
+- **Images**: Various formats for testing image processing
+- **Text Files**: Different languages and formats
+- **Binary Files**: For testing rejection logic
+
+## Conclusion
+
+Sila's file system provides a robust, scalable foundation for file handling across the application. The combination of CAS storage, logical organization, and reference-based access ensures efficient file management while maintaining excellent user experience and AI integration capabilities.

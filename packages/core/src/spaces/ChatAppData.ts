@@ -4,6 +4,7 @@ import type { VertexPropertyType } from "reptree";
 import type { ThreadMessage } from "../models";
 import { AppTree } from "./AppTree";
 import { FilesTreeData } from "./files";
+import type { AttachmentPreview } from "./files";
 import { FileResolver } from "./files/FileResolver";
 
 export class ChatAppData {
@@ -160,7 +161,7 @@ export class ChatAppData {
     role: "user" | "assistant" | "error",
     text: string,
     thinking?: string,
-    attachments?: Array<any>,
+    attachments?: Array<AttachmentPreview>,
     fileTarget?: { treeId?: string; path?: string; createParents?: boolean }
   ): Promise<ThreadMessage> {
     const lastMsgVertex = this.getLastMsgParentVertex();
@@ -278,7 +279,7 @@ export class ChatAppData {
         this.appTree.tree.setVertexProperty(newMessageVertex.id, "attachments", refsWithDataUrls);
       } else {
         // No store: keep in-memory only
-        this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachments", attachments);
+        this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachments", attachments as unknown as VertexPropertyType);
       }
     }
 
@@ -326,16 +327,20 @@ export class ChatAppData {
     } else {
       current = root;
     }
+    if (!current) {
+      throw new Error("Unexpected undefined current folder while ensuring path");
+    }
     for (const seg of segments) {
-      const existing = current.children.find((c) => c.getProperty('_n') === seg);
+      const children: Vertex[] = current!.children;
+      const existing: Vertex | undefined = children.find((c: Vertex) => c.getProperty('_n') === seg);
       if (existing) {
         current = existing;
       } else {
         if (!createParents) throw new Error(`Path segment '${seg}' not found and createParents=false`);
-        current = appTree.tree.newVertex(current.id, { _n: seg, createdAt: Date.now() });
+        current = appTree.tree.newVertex(current!.id, { _n: seg, createdAt: Date.now() });
       }
     }
-    return current;
+    return current!;
   }
 
   /** Create a new message directly under a specific parent message vertex */

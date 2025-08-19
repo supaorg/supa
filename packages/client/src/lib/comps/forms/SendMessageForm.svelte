@@ -8,24 +8,13 @@
   import { txtStore } from "@sila/client/state/txtStore";
   import { clientState } from "@sila/client/state/clientState.svelte";
   import type { ChatAppData } from "@sila/core";
+  import type { AttachmentPreview } from "@sila/core";
   import { processFileForUpload, optimizeImageSize, toDataUrl, getImageDimensions, processTextFileForUpload, optimizeTextFile, readFileAsText, extractTextFileMetadata, type TextFileMetadata } from "@sila/client/utils/fileProcessing";
 
   const TEXTAREA_BASE_HEIGHT = 40; // px
   const TEXTAREA_LINE_HEIGHT = 1.5; // normal line height
 
-  export type AttachmentPreview = {
-    id: string;
-    kind: 'image' | 'text' | 'file';
-    name: string;
-    mimeType: string;
-    size: number;
-    dataUrl?: string; // For images (transient)
-    content?: string; // For text files (transient, only during upload)
-    metadata?: TextFileMetadata; // For text files (transient, only during upload)
-    width?: number; // For images, or lineCount for text files
-    height?: number; // For images, or charCount for text files
-    alt?: string; // For accessibility, language for text files
-  };
+  // Using shared AttachmentPreview type from core
 
   interface SendMessageFormProps {
     onSend: (msg: string, attachments?: AttachmentPreview[]) => void;
