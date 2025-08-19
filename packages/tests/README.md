@@ -24,32 +24,12 @@ You can now run tests by category using the following commands:
 
 Tests are organized into categories with descriptive prefixes:
 
-```
-packages/tests/src/
-├── spaces/
-│   ├── spaces-space.test.ts
-│   └── spaces-secrets.test.ts
-├── files/
-│   ├── files-files.test.ts
-│   ├── files-real.test.ts
-│   ├── files-store-integration.test.ts
-│   └── files-heic-conversion.test.ts
-├── chat/
-│   ├── chat-app-tree.test.ts
-│   ├── chat-files-targeting.test.ts
-│   ├── chat-text-file-attachments.test.ts
-│   ├── chat-text-file-attachments-integration.test.ts
-│   └── chat-text-file-ai-integration.test.ts
-├── previews/
-│   ├── previews-core.test.ts
-│   └── previews-svelte.test.ts
-├── ai/
-│   └── ai-image.test.ts
-└── setup/
-    ├── setup-browser.ts
-    ├── setup-svelte.ts
-    └── setup-node-file-system.ts
-```
+- **spaces/** - Space creation, persistence, and secrets management
+- **files/** - File storage, CAS, HEIC conversion, and file operations  
+- **chat/** - Chat app trees, messaging, and file attachments
+- **previews/** - File preview system and simplified attachments
+- **ai/** - AI integration and image processing
+- **setup/** - Test setup and configuration files
 
 If your environment blocks postinstall scripts, you can install without them and still run tests:
 
