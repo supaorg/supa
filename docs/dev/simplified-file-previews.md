@@ -95,15 +95,13 @@ sila://spaces/{spaceId}/files/{hash}?type={mimeType}&name={fileName}
 <FilePreview fileRef={{ tree: 'files-tree-id', vertex: 'file-vertex-id' }} showGallery={true} />
 ```
 
-### Migrating Existing Messages
+### Using File References
 ```typescript
-import { AttachmentMigration } from '@sila/client/utils/attachmentMigration';
-
-// Check if message can be migrated
-if (AttachmentMigration.canMigrateMessage(message)) {
-  const migratedMessage = AttachmentMigration.migrateMessage(message);
-  // Use migratedMessage with new components
-}
+// Extract file references from a message
+const attachments = message?.attachments || [];
+const fileRefs = attachments
+  .filter(att => att?.file?.tree && att?.file?.vertex)
+  .map(att => att.file);
 ```
 
 ## Future Enhancements

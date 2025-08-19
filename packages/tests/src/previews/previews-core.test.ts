@@ -14,20 +14,6 @@ interface SimpleAttachment {
   alt?: string;
 }
 
-interface LegacyAttachment {
-  id: string;
-  kind: string;
-  name?: string;
-  alt?: string;
-  	url?: string;
-  mimeType?: string;
-  size?: number;
-  width?: number;
-  height?: number;
-  file?: FileReference;
-  content?: string;
-}
-
 // Utility functions for testing
 class FilePreviewUtils {
   static extractFileReferences(message: any): FileReference[] {

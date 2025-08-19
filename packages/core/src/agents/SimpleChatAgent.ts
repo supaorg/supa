@@ -27,6 +27,7 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
       "\n\n" +
       "Current date and time " + new Date().toLocaleString();
 
+    // @TODO: make it clear for the LLM.
     // Add meta info to the system prompt to give the assistant context
     if (resolvedModel) {
       systemPrompt += `\n\n[Meta] Model: ${resolvedModel.provider}/${resolvedModel.model}`;
@@ -42,8 +43,7 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
     }
     */
 
-    // @TODO: add meta data to messages with the current date, model, config name, etc
-
+    // @TODO: use Lang.models capabilities to check if the model supports vision (can see)
     const supportsVision = (() => {
       if (!resolvedModel) return false;
       const p = resolvedModel.provider;
