@@ -341,7 +341,7 @@
         <div class="flex items-center justify-between p-2 text-sm">
           <div class="flex items-center gap-2">
             {#if attachEnabled}
-              <ContextMenu open={attachmentsMenuOpen} onOpenChange={(e) => attachmentsMenuOpen = e.open} placement="top" maxWidth="280px">
+              <ContextMenu open={attachmentsMenuOpen} onOpenChange={(e: { open: boolean }) => attachmentsMenuOpen = e.open} placement="top" maxWidth="280px">
                 {#snippet trigger()}
                   <button 
                     class="flex items-center justify-center h-9 w-9 rounded-container transition-colors preset-outlined-surface-200-800" 
