@@ -126,21 +126,15 @@ export default class ChatAppBackend {
         messages.slice(0, -1) :
         messages;
 
-      // Resolve file references in messages before sending to AI
-      const resolvedMessages = await Promise.all(
-        messagesToUse.map(async (m) => {
-          const resolvedMessage = await this.data.resolveMessageAttachments(m);
-          return {
-            role: resolvedMessage.role,
-            text: resolvedMessage.text,
-            attachments: (resolvedMessage as any).attachments,
-          };
-        })
-      );
-
+      // Pass through raw attachments (FileReference[]) and let the agent resolve as needed
       const messagesForLang = [
         { role: "system", text: config.instructions },
-        ...resolvedMessages
+        ...messagesToUse.map((m) => ({
+          id: (m as any).id,
+          role: m.role,
+          text: m.text,
+          attachments: (m as any).attachments,
+        }))
       ];
 
       let modelSaved = false;
@@ -155,6 +149,7 @@ export default class ChatAppBackend {
           if (info) {
             this.appTree.tree.setVertexProperty(messageToUse.id, "modelProvider", info.provider);
             this.appTree.tree.setVertexProperty(messageToUse.id, "modelId", info.model);
+            // @TODO: huh, do we need this? I don't think so.
             // Freeze the values so they don’t change if config changes later
             this.appTree.tree.setVertexProperty(messageToUse.id, "modelProviderFinal", info.provider);
             this.appTree.tree.setVertexProperty(messageToUse.id, "modelIdFinal", info.model);
@@ -205,6 +200,32 @@ export default class ChatAppBackend {
     catch (error) {
       console.error("Error while updating title", error);
     }
+  }
+
+  /**
+   * Briefly retries reading attachments from the message vertex to avoid a race
+   * where the backend reacts before ChatAppData has finished persisting attachments.
+   */
+  private async readAttachmentsWithRetry(messageId?: string, fallback?: any): Promise<any> {
+    const maxAttempts = 6; // ~150ms total
+    const delayMs = 25;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      if (messageId) {
+        const v = this.appTree.tree.getVertex(messageId);
+        const atts = v?.getProperty('attachments') as any;
+        if (Array.isArray(atts) && atts.length > 0) return atts;
+      }
+      // if fallback already has attachments, use it immediately
+      if (Array.isArray(fallback) && fallback.length > 0) return fallback;
+      await new Promise((res) => setTimeout(res, delayMs));
+    }
+    // Final read
+    if (messageId) {
+      const v = this.appTree.tree.getVertex(messageId);
+      const atts = v?.getProperty('attachments') as any;
+      if (Array.isArray(atts) && atts.length > 0) return atts;
+    }
+    return fallback;
   }
 
   // Generate a new assistant reply as a sibling branch for the specified assistant message

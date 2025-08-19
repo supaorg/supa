@@ -12,8 +12,13 @@ export function extractFileReferences(message: any): FileReference[] {
   }
 
   return message.attachments
-    .filter((att: any) => att && att.file && att.file.tree && att.file.vertex)
-    .map((att: any) => att.file as FileReference);
+    .flatMap((att: any) => {
+      // Bare FileReference persisted on message
+      if (att && att.tree && att.vertex) return [att as FileReference];
+      // Legacy/object-wrapped reference
+      if (att && att.file && att.file.tree && att.file.vertex) return [att.file as FileReference];
+      return [];
+    });
 }
 
 export class ClientFileResolver {

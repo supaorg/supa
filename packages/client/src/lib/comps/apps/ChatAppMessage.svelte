@@ -128,6 +128,11 @@
     const processAttachments = async () => {
       const processedAttachments = await Promise.all(
         messageAttachments.map(async (att: any) => {
+          // Bare FileReference persisted on message
+          if (att && att.tree && att.vertex) {
+            const fileUrl = await getFileUrl(att.tree, att.vertex);
+            return { file: att, fileUrl };
+          }
           // If already has dataUrl (transient data), convert to sila:// URL
           if (att.dataUrl && att.dataUrl.startsWith('data:')) {
             // For transient data, we need to get the file hash from the file reference
@@ -302,7 +307,7 @@
             {@html replaceNewlinesWithHtmlBrs(message.text || "")}
             {#if attachments && attachments.length > 0}
               <div class="mt-2 flex flex-wrap gap-2">
-                {#each attachments as att (att.id)}
+                {#each attachments as att (att.file?.vertex || att.vertex || att.id)}
                   {#if att.file && att.file.tree && att.file.vertex}
                     <FilePreview 
                       fileRef={att.file}

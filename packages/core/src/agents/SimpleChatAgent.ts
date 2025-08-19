@@ -1,4 +1,5 @@
 import type { LangChatMessage, LangContentPart } from "aiwrapper";
+import { FileResolver } from "../spaces/files/FileResolver";
 import { AppConfig, ThreadMessage } from "../models";
 import { Agent, AgentInput, AgentOutput } from "./Agent";
 
@@ -43,13 +44,9 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
     }
     */
 
-    // @TODO: use Lang.models capabilities to check if the model supports vision (can see)
-    const supportsVision = (() => {
-      if (!resolvedModel) return false;
-      const p = resolvedModel.provider;
-      // Simple allowlist for Phase 1; will switch to Lang.models capabilities later
-      return p === "openai" || p === "openrouter" || p === "google" || p === "xai" || p === "anthropic";
-    })();
+    // TODO: Check Lang.models using the model id and, if in our DB, verify vision capability.
+    // For now, send images to every model to keep behavior consistent across providers.
+    const supportsVision = true;
 
     function parseDataUrl(dataUrl: string): { base64: string; mimeType?: string } {
       try {
@@ -80,8 +77,10 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
         }
 
         const attachments = (m as any).attachments as Array<any>;
-        const images = attachments.filter(a => a?.kind === 'image' && typeof a?.dataUrl === 'string' && a.dataUrl.trim() !== '');
-        const textFiles = attachments.filter(a => a?.kind === 'text' && (a?.file?.tree && a?.file?.vertex || a?.dataUrl || a?.content));
+        const resolver = new FileResolver(this.services.space);
+        const resolved = await resolver.resolveAttachments(attachments);
+        const images = resolved.filter(a => a?.kind === 'image' && typeof a?.dataUrl === 'string' && a.dataUrl.trim() !== '');
+        const textFiles = resolved.filter(a => a?.kind === 'text' && typeof a?.dataUrl === 'string' && a.dataUrl.trim() !== '');
         
         console.log('Processing message with attachments:', {
           totalAttachments: attachments.length,
@@ -89,7 +88,6 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
           textFiles: textFiles.length,
           textFileDetails: textFiles.map(tf => ({
             name: tf.name,
-            hasFileRef: !!(tf.file?.tree && tf.file?.vertex),
             hasDataUrl: !!tf.dataUrl,
             dataUrlPreview: tf.dataUrl ? tf.dataUrl.substring(0, 50) + '...' : null
           }))
@@ -104,19 +102,11 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
             parts.push({ type: 'text', text: m.text });
           }
           
-          // Add text file contents (need to load from CAS or data URL)
+          // Add text file contents (resolved provides dataUrl)
           for (const textFile of textFiles) {
             let fileContent: string | null = null;
-            
-            if (textFile.file?.tree && textFile.file?.vertex) {
-              // Load from CAS
-              console.log('Loading text file from CAS:', textFile.name);
-              fileContent = await this.loadTextFileContent(textFile.file.tree, textFile.file.vertex);
-            } else if (textFile.dataUrl) {
-              // Extract from data URL
-              console.log('Extracting text file from data URL:', textFile.name);
-              fileContent = this.extractTextFromDataUrl(textFile.dataUrl);
-            }
+            console.log('Extracting text file from resolved data URL:', textFile.name);
+            fileContent = this.extractTextFromDataUrl(textFile.dataUrl);
             
             console.log('Text file content extracted:', {
               name: textFile.name,
@@ -125,7 +115,7 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
             });
             
             if (fileContent) {
-              const fileHeader = `\n\n--- File: ${textFile.name} (${textFile.alt || 'text'}) ---\n`;
+              const fileHeader = `\n\n--- File: ${textFile.name} ---\n`;
               parts.push({ type: 'text', text: fileHeader + fileContent });
             }
           }
@@ -142,19 +132,11 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
         // Handle non-vision models or text-only attachments
         let content = m.text || "";
         
-        // Add text file contents (need to load from CAS or data URL)
+        // Add text file contents (resolved provides dataUrl)
         for (const textFile of textFiles) {
           let fileContent: string | null = null;
-          
-          if (textFile.file?.tree && textFile.file?.vertex) {
-            // Load from CAS
-            console.log('Loading text file from CAS (non-vision):', textFile.name);
-            fileContent = await this.loadTextFileContent(textFile.file.tree, textFile.file.vertex);
-          } else if (textFile.dataUrl) {
-            // Extract from data URL
-            console.log('Extracting text file from data URL (non-vision):', textFile.name);
-            fileContent = this.extractTextFromDataUrl(textFile.dataUrl);
-          }
+          console.log('Extracting text file from resolved data URL (non-vision):', textFile.name);
+          fileContent = this.extractTextFromDataUrl(textFile.dataUrl);
           
           console.log('Text file content extracted (non-vision):', {
             name: textFile.name,
@@ -163,7 +145,7 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
           });
           
           if (fileContent) {
-            const fileHeader = `\n\n--- File: ${textFile.name} (${textFile.alt || 'text'}, ${textFile.width || 'unknown'} lines) ---\n`;
+            const fileHeader = `\n\n--- File: ${textFile.name} ---\n`;
             content += fileHeader + fileContent;
           }
         }

@@ -190,56 +190,45 @@ export class ChatAppData {
       properties.thinking = thinking;
     }
 
-    const newMessageVertex = this.appTree.tree.newVertex(lastMsgVertex.id, properties);
-
+    // If there are attachments, persist to CAS and build refs BEFORE creating the message
     if (attachments && attachments.length > 0) {
-      // Try to persist using FileStore if available
       const store = this.space.getFileStore();
-      if (store) {
-        // Resolve target tree and parent folder path
-        const { targetTree, parentFolder } = await this.resolveFileTarget(fileTarget);
-
-        const refs: Array<FileReference> = [];
-        for (const a of attachments) {
-          if (a?.kind === 'image' && typeof a?.dataUrl === 'string') {
-            const put = await store.putDataUrl(a.dataUrl);
-            const fileVertex = FilesTreeData.createOrLinkFile({
-              filesTree: targetTree,
-              parentFolder,
-              hash: put.hash,
-              attachment: a,
-            });
-            refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
-          } else if (a?.kind === 'text' && typeof a?.content === 'string') {
-            // Store text content in CAS (same as images)
-            const textBytes = new TextEncoder().encode(a.content);
-            const put = await store.putBytes(textBytes, a.mimeType || 'text/plain');
-            
-            const fileVertex = FilesTreeData.createOrLinkFile({
-              filesTree: targetTree,
-              parentFolder,
-              hash: put.hash,
-              attachment: a,
-            });
-            
-            refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
-          } else {
-            throw new Error(`Unsupported attachment or missing content for kind '${a?.kind}'`);
-          }
-        }
-        // Persist only refs
-        this.appTree.tree.setVertexProperty(newMessageVertex.id, "attachments", refs as unknown as VertexPropertyType);
-      } else {
-        // No FileStore available when attachments are provided
+      if (!store) {
         throw new Error("FileStore is required to save attachments");
       }
+      const { targetTree, parentFolder } = await this.resolveFileTarget(fileTarget);
+      const refs: Array<FileReference> = [];
+      for (const a of attachments) {
+        if (a?.kind === 'image' && typeof a?.dataUrl === 'string') {
+          const put = await store.putDataUrl(a.dataUrl);
+          const fileVertex = FilesTreeData.createOrLinkFile({
+            filesTree: targetTree,
+            parentFolder,
+            hash: put.hash,
+            attachment: a,
+          });
+          refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
+        } else if (a?.kind === 'text' && typeof a?.content === 'string') {
+          const textBytes = new TextEncoder().encode(a.content);
+          const put = await store.putBytes(textBytes, a.mimeType || 'text/plain');
+          const fileVertex = FilesTreeData.createOrLinkFile({
+            filesTree: targetTree,
+            parentFolder,
+            hash: put.hash,
+            attachment: a,
+          });
+          refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
+        } else {
+          throw new Error(`Unsupported attachment or missing content for kind '${a?.kind}'`);
+        }
+      }
+      // Attach refs atomically on creation
+      (properties as any).attachments = refs as unknown as VertexPropertyType;
     }
 
+    const newMessageVertex = this.appTree.tree.newVertex(lastMsgVertex.id, properties);
     const props = newMessageVertex.getProperties();
-    return {
-      id: newMessageVertex.id,
-      ...props,
-    } as ThreadMessage;
+    return { id: newMessageVertex.id, ...props } as ThreadMessage;
   }
 
   /** Resolve target app tree and parent folder for file saves based on optional fileTarget. Defaults to this chat tree under 'files'. */

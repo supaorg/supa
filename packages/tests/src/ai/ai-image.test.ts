@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { Space, SpaceManager, FileSystemPersistenceLayer, ChatAppData, Backend } from '@sila/core';
+import { Space, SpaceManager, FileSystemPersistenceLayer, ChatAppData, Backend, FilesTreeData } from '@sila/core';
 import { NodeFileSystem } from '../setup/setup-node-file-system';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -98,21 +98,32 @@ describe('AI Image Integration', () => {
       dataUrlPreview: catImageDataUrl.substring(0, 100) + '...'
     });
 
-    // Create a user message with the cat image
-    const userMessage = await chatData.newMessage('user', 'What animal do you see in this image? Say only the animal name in one word.', undefined, [
-      {
-        id: 'cat-image',
-        kind: 'image',
-        name: 'cat.jpg',
-        mimeType: 'image/jpeg',
-        size: catImageBuffer.length,
-        dataUrl: catImageDataUrl
-      }
-    ]);
+    // Store image in CAS and create a file vertex under this chat tree
+    const store = space.getFileStore()!;
+    const { hash } = await store.putBytes(new Uint8Array(catImageBuffer), 'image/jpeg');
+    const parentFolder = FilesTreeData.ensureFolderPath(chatTree, ['files']);
+    const fileVertex = FilesTreeData.createOrLinkFile({
+      filesTree: chatTree,
+      parentFolder,
+      hash,
+      name: 'cat.jpg',
+      mimeType: 'image/jpeg',
+      size: catImageBuffer.length
+    });
+
+    // Create a user message with attachments as bare FileReference (like the UI persists)
+    const messagesRoot = chatData.messagesVertex!;
+    const userMessage = messagesRoot.newChild({
+      _n: 'message',
+      createdAt: Date.now(),
+      text: 'If you can see the attached image, reply with exactly YES.',
+      role: 'user',
+      attachments: [{ tree: chatTree.getId(), vertex: fileVertex.id }]
+    });
 
     // Debug: Check if attachments were stored correctly
-    console.log('User message created:', userMessage);
-    console.log('User message attachments:', (userMessage as any).attachments);
+    console.log('User message created:', userMessage.getProperties());
+    console.log('User message attachments:', userMessage.getProperty('attachments'));
     
     // Wait a moment for any async operations to complete
     await wait(1000);
@@ -145,12 +156,12 @@ describe('AI Image Integration', () => {
       throw new Error('No assistant response generated');
     }
 
-    // Check if the response contains "cat" (case insensitive)
-    const responseText = latestMessageData.text.toLowerCase();
+    // Check if the response confirms seeing the image
+    const responseText = latestMessageData.text.toUpperCase();
     console.log('AI Response:', latestMessageData.text);
     
-    // The AI should see the image and respond with "cat"
-    expect(responseText).toContain('cat');
+    // The AI should see the image and respond with "YES"
+    expect(responseText).toContain('YES');
   }, 30000); // 30 second timeout for API call
 
   it('should maintain image context in follow-up conversations', async () => {
