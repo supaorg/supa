@@ -208,22 +208,26 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		// Create a message with attachments
 		const message = await chatData.newMessage('user', 'Here is an image', undefined, attachments);
 
-		// Check that the message has attachments with both file reference and dataUrl
+		// Check that the message persists only file references (no dataUrl)
 		const messageAttachments = (message as any).attachments;
 		expect(messageAttachments).toHaveLength(1);
 		
 		const attachment = messageAttachments[0];
 		expect(attachment.id).toBe('att1');
 		expect(attachment.kind).toBe('image');
-		expect(attachment.name).toBe('test.png');
-		expect(attachment.dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
 		expect(attachment.file).toBeDefined();
 		expect(attachment.file.tree).toBeDefined();
 		expect(attachment.file.vertex).toBeDefined();
+		expect(attachment.dataUrl).toBeUndefined();
 
 		// Verify that the file reference points to a valid file vertex
 		const targetTree = await space.loadAppTree(attachment.file.tree);
 		expect(targetTree).toBeDefined();
+
+		// And that resolving attachments returns a usable dataUrl for immediate consumption
+		const resolvedMsg = await chatData.resolveMessageAttachments(message as any);
+		const resolvedAttachment = (resolvedMsg as any).attachments[0];
+		expect(resolvedAttachment.dataUrl).toBe(attachments[0].dataUrl);
 	});
 
 	it('creates files app tree with correct appId and name', async () => {

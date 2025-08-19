@@ -4,7 +4,7 @@ import type { VertexPropertyType } from "reptree";
 import type { ThreadMessage } from "../models";
 import { AppTree } from "./AppTree";
 import { FilesTreeData } from "./files";
-import type { AttachmentPreview } from "./files";
+import type { AttachmentPreview, MessageAttachmentEntry, MessageAttachmentRef } from "./files";
 import { FileResolver } from "./files/FileResolver";
 
 export class ChatAppData {
@@ -198,7 +198,7 @@ export class ChatAppData {
         // Resolve target tree and parent folder path
         const { targetTree, parentFolder } = await this.resolveFileTarget(fileTarget);
 
-        const refs: Array<any> = [];
+        const refs: Array<MessageAttachmentEntry> = [];
         for (const a of attachments) {
           if (a?.kind === 'image' && typeof a?.dataUrl === 'string') {
             try {
@@ -215,7 +215,7 @@ export class ChatAppData {
                 name: a.name,
                 alt: a.alt,
                 file: { tree: targetTree.getId(), vertex: fileVertex.id }
-              });
+              } as MessageAttachmentRef);
             } catch (e) {
               // If persist fails, fall back to in-memory
               refs.push(a);
@@ -241,7 +241,7 @@ export class ChatAppData {
                 file: { tree: targetTree.getId(), vertex: fileVertex.id },
                 width: a.width, // Preserve lineCount as width
                 height: a.height // Preserve charCount as height
-              });
+              } as MessageAttachmentRef);
             } catch (e) {
               // If persist fails, fall back to in-memory with transient content
               refs.push({
@@ -254,21 +254,12 @@ export class ChatAppData {
           }
         }
         // Persist references with transient dataUrls for immediate preview
-        const refsWithDataUrls = refs.map((ref, index) => {
-          if (ref.file && attachments[index]?.dataUrl) {
-            // Include transient dataUrl and other properties for immediate preview
-            return { 
-              ...ref, 
-              dataUrl: attachments[index].dataUrl,
-              mimeType: attachments[index].mimeType,
-              size: attachments[index].size,
-              width: attachments[index].width,
-              height: attachments[index].height
-            };
-          }
-          return ref;
-        });
-        this.appTree.tree.setVertexProperty(newMessageVertex.id, "attachments", refsWithDataUrls);
+        // Persist only refs; add transient preview separately for immediate UI use
+        this.appTree.tree.setVertexProperty(newMessageVertex.id, "attachments", refs as unknown as VertexPropertyType);
+        const transientPreviews = attachments.filter(a => !!a.dataUrl);
+        if (transientPreviews.length > 0) {
+          this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachmentsPreview", transientPreviews as unknown as VertexPropertyType);
+        }
       } else {
         // No store: keep in-memory only
         this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachments", attachments as unknown as VertexPropertyType);
