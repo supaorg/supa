@@ -27,11 +27,11 @@ Pain points:
 - UI (pre-save): `AttachmentPreview`
   - id, kind ('image'|'text'|'file'), name, mimeType, size, width, height
   - dataUrl? (image), content? (text), alt?
-- Persisted on message: `MessageAttachmentRef`
-  - id, kind, file: FileReference, alt?
-  - No name/mime/size/dims/dataUrl
-- Resolved for consumption/display: `ResolvedFileInfoWithKind`
-  - Reuse `ResolvedFileInfo` and add `id` and `kind` for context
+- Persisted on message: `FileReference`
+  - `{ tree, vertex }` only
+  - No id/kind/name/mime/size/dims/alt/dataUrl
+- Resolved for consumption/display: `ResolvedFileInfo`
+  - Derive any UI grouping ("kind") from `mimeType` (e.g., `image/*` → image, `text/*` → text)
 
 Additional rule:
 - No fallbacks: if persistence fails or no `FileStore` is present, creation fails. UI must ensure storage is available.
@@ -49,11 +49,11 @@ Status: Implemented
 ## Next steps (proposed)
 1. Resolver-first consumption (reasoning):
    - Why: Persisted refs are minimal; consumers need authoritative metadata (name/mime/size/dims) and bytes from the file vertex. Centralizing this in the resolver removes duplication and drift.
-   - What: Replace `ResolvedAttachment` usages with `ResolvedFileInfoWithKind` = `ResolvedFileInfo & { id, kind }`.
-   - How: Update `FileResolver.resolveAttachments` to return `ResolvedFileInfoWithKind[]`. Migrate `SimpleChatAgent` and UI call sites to rely on resolver output exclusively.
+   - What: Use `ResolvedFileInfo` as the output; do not rely on fields on attachments. If needed, derive a `kind` in UI from `mimeType`.
+   - How: Ensure `FileResolver.resolveAttachments` returns `ResolvedFileInfo[]`. Migrate `SimpleChatAgent` and UI to rely on resolver output exclusively.
 2. Standardize union naming (reasoning):
    - Why: One name reduces cognitive load and import churn. `Entry` was ambiguous.
-   - What: Use `MessageAttachment` everywhere; keep `MessageAttachmentEntry` as a compatibility alias temporarily.
+   - What: Persisted attachments are `FileReference[]`. Keep `MessageAttachment` only as a temporary alias if needed during migration.
 3. Resolver-only metadata (reasoning):
    - Why: Avoid stale metadata on attachments and ensure single source of truth.
    - What: UI/agent resolve refs before rendering/processing. Never read name/mime/size/dims from the attachment object.
@@ -80,6 +80,5 @@ Status: Implemented
 
 ## Appendix: quick reference (target)
 - `AttachmentPreview` (UI only)
-- `MessageAttachmentRef` (persisted)
-- `MessageAttachment` = `MessageAttachmentRef | AttachmentPreview` (alias)
-- `ResolvedFileInfoWithKind` (display/agent)
+- `FileReference[]` on messages (persisted)
+- `ResolvedFileInfo[]` from resolver for UI/agent
