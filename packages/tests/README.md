@@ -44,7 +44,7 @@ packages/tests/src/
 │   ├── previews-core.test.ts
 │   └── previews-svelte.test.ts
 ├── ai/
-│   └── ai-image-bug.test.ts
+│   └── ai-image.test.ts
 └── setup/
     ├── setup-browser.ts
     ├── setup-svelte.ts

@@ -14,7 +14,7 @@
     "test:files": "vitest run src/files/files-*.test.ts",
     "test:chat": "vitest run src/chat/chat-*.test.ts",
     "test:previews": "vitest run src/previews/previews-*.test.ts",
-    "test:ai": "vitest run src/ai/ai-*.test.ts",
+    "test:ai": "vitest run src/ai/ai-image.test.ts",
     "test:simplified-previews": "vitest run src/previews/previews-*.test.ts",
     "test:simplified-previews:node": "vitest run --config vitest.config.ts src/previews/previews-core.test.ts",
     "test:simplified-previews:svelte": "vitest run --config vitest.config.svelte.ts src/previews/previews-svelte.test.ts"

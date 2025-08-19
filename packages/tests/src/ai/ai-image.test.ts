@@ -7,7 +7,7 @@ import { NodeFileSystem } from '../setup/setup-node-file-system';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe('AI Image Bug Reproduction', () => {
+describe('AI Image Integration', () => {
   let tempDir: string;
   let openaiApiKey: string | undefined;
 
@@ -31,7 +31,7 @@ describe('AI Image Bug Reproduction', () => {
     }
   });
 
-  it('reproduces bug: first AI response should see image in attachments', async () => {
+  it('should process image attachments in AI responses', async () => {
     // Skip test if no OpenAI API key is available
     if (!openaiApiKey || openaiApiKey === 'your_openai_api_key_here') {
       console.log('Skipping test: No valid OpenAI API key available');
@@ -149,11 +149,11 @@ describe('AI Image Bug Reproduction', () => {
     const responseText = latestMessageData.text.toLowerCase();
     console.log('AI Response:', latestMessageData.text);
     
-    // The bug: first response should see the image and say "cat"
+    // The AI should see the image and respond with "cat"
     expect(responseText).toContain('cat');
   }, 30000); // 30 second timeout for API call
 
-  it('verifies bug: follow-up question should see the image', async () => {
+  it('should maintain image context in follow-up conversations', async () => {
     // Skip test if no OpenAI API key is available
     if (!openaiApiKey || openaiApiKey === 'your_openai_api_key_here') {
       console.log('Skipping test: No valid OpenAI API key available');
@@ -294,8 +294,7 @@ describe('AI Image Bug Reproduction', () => {
     console.log(`First response sees cat: ${firstSeesCat}`);
     console.log(`Follow-up response sees cat: ${followUpSeesCat}`);
     
-    // This test documents the bug: the first response might not see the image
-    // but the follow-up question should be able to reference the image
+    // The AI should maintain context of the image across the conversation
     expect(firstSeesCat || followUpSeesCat).toBe(true);
   }, 60000); // 60 second timeout for API calls
 
