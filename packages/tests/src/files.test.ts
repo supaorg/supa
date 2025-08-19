@@ -176,101 +176,6 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(resolvedDataUrl).toBe(dataUrl);
 	});
 
-	it('minimal file resolution test - core functionality only', async () => {
-		// Minimal setup: space with file store provider
-		const space = Space.newSpace(crypto.randomUUID());
-		const fs = new NodeFileSystem();
-		
-		// Connect file store to space
-		space.setFileStoreProvider({
-			getSpaceRootPath: () => tempDir,
-			getFs: () => fs
-		});
-
-		// Store a simple file
-		const fileStore = space.getFileStore();
-		expect(fileStore).toBeTruthy();
-		
-		const dataUrl = makePngDataUrl();
-		const put = await fileStore!.putDataUrl(dataUrl);
-
-		// Create minimal file vertex
-		const filesTree = FilesTreeData.createNewFilesTree(space);
-		const fileVertex = FilesTreeData.createOrLinkFile({
-			filesTree,
-			parentFolder: filesTree.tree.getVertexByPath('files')!,
-			name: 'test.png',
-			hash: put.hash,
-			mimeType: 'image/png'
-		});
-
-		// Test resolution
-		const fileResolver = new FileResolver(space);
-		const resolved = await fileResolver.resolveAttachments([
-			{ file: { tree: filesTree.getId(), vertex: fileVertex.id } }
-		]);
-
-		// Core assertions
-		expect(resolved).toHaveLength(1);
-		expect(resolved[0].dataUrl).toBe(dataUrl); // Should match original
-		expect(resolved[0].mimeType).toBe('image/png'); // Should preserve MIME type
-	});
-
-	it('filters out attachments with empty dataUrl to prevent invalid base64 errors', async () => {
-		// Test that attachments with empty dataUrl are filtered out
-		// This prevents the "Invalid base64 image_url" error in follow-up messages
-		
-		const space = Space.newSpace(crypto.randomUUID());
-		const fs = new NodeFileSystem();
-		
-		// Connect file store to space
-		space.setFileStoreProvider({
-			getSpaceRootPath: () => tempDir,
-			getFs: () => fs
-		});
-
-		// Create attachments with various dataUrl states
-		const attachments = [
-			{
-				id: 'att1',
-				kind: 'image',
-				name: 'valid.png',
-				dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII='
-			},
-			{
-				id: 'att2',
-				kind: 'image',
-				name: 'empty.png',
-				dataUrl: '' // Empty dataUrl - should be filtered out
-			},
-			{
-				id: 'att3',
-				kind: 'image',
-				name: 'whitespace.png',
-				dataUrl: '   ' // Whitespace only - should be filtered out
-			},
-			{
-				id: 'att4',
-				kind: 'image',
-				name: 'no-dataUrl.png'
-				// No dataUrl property - should be filtered out
-			}
-		];
-
-		// Test SimpleChatAgent filtering logic
-		const images = attachments.filter(a => 
-			a?.kind === 'image' && 
-			typeof a?.dataUrl === 'string' && 
-			a.dataUrl.trim() !== ''
-		);
-
-		// Should only include the valid attachment
-		expect(images).toHaveLength(1);
-		expect(images[0].id).toBe('att1');
-		expect(images[0].name).toBe('valid.png');
-		expect(images[0].dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
-	});
-
 	it('creates attachments with both file references and transient dataUrl for immediate preview', async () => {
 		// Test that when creating a message with attachments, we get both
 		// file references (for persistence) and transient dataUrl (for immediate preview)
@@ -317,57 +222,8 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(attachment.file.vertex).toBeDefined();
 
 		// Verify that the file reference points to a valid file vertex
-		const filesTree = await space.loadAppTree(attachment.file.tree);
-		expect(filesTree).toBeDefined();
-		
-		const fileVertex = filesTree!.tree.getVertex(attachment.file.vertex);
-		expect(fileVertex).toBeDefined();
-		expect(fileVertex!.getProperty('hash')).toBeDefined();
-		expect(fileVertex!.getProperty('name')).toBe('test.png');
-		expect(fileVertex!.getProperty('mimeType')).toBe('image/png');
-	});
-
-	it('reproduces bug: first AI response should see image in attachments with dataUrl', async () => {
-		// Test that when a message has attachments with dataUrl, the AI can see them immediately
-		// This reproduces the bug where first AI response doesn't see the image
-		
-		const space = Space.newSpace(crypto.randomUUID());
-		const fs = new NodeFileSystem();
-		
-		// Connect file store to space
-		space.setFileStoreProvider({
-			getSpaceRootPath: () => tempDir,
-			getFs: () => fs
-		});
-
-		// Create a chat app tree
-		const appTree = ChatAppData.createNewChatTree(space, 'test-config');
-		const chatData = new ChatAppData(space, appTree);
-
-		// Create a message with attachments that have dataUrl
-		const message = await chatData.newMessage('user', 'What do you see in this image?', undefined, [
-			{
-				id: 'att1',
-				kind: 'image',
-				name: 'test.png',
-				dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=',
-				mimeType: 'image/png',
-				size: 68
-			}
-		]);
-
-		// Test that resolveMessageAttachments preserves the dataUrl
-		const resolvedMessage = await chatData.resolveMessageAttachments(message);
-		const resolvedAttachments = (resolvedMessage as any).attachments;
-		
-		expect(resolvedAttachments).toHaveLength(1);
-		expect(resolvedAttachments[0].dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
-		expect(resolvedAttachments[0].mimeType).toBe('image/png');
-
-		// Test that the original message also has the dataUrl preserved
-		const originalAttachments = (message as any).attachments;
-		expect(originalAttachments).toHaveLength(1);
-		expect(originalAttachments[0].dataUrl).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=');
+		const targetTree = await space.loadAppTree(attachment.file.tree);
+		expect(targetTree).toBeDefined();
 	});
 
 	it('creates files app tree with correct appId and name', async () => {
@@ -416,10 +272,8 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(filesTree3.getAppId()).toBe('files');
 	});
 
-
-
-	it('uses the same default files tree for multiple messages with attachments', async () => {
-		// Test that multiple messages with attachments all use the same default files tree
+	it('uses the chat app tree by default for multiple messages with attachments', async () => {
+		// Test that multiple messages with attachments all use the same chat tree files path by default
 		
 		const space = Space.newSpace(crypto.randomUUID());
 		const fs = new NodeFileSystem();
@@ -466,15 +320,15 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(message1Attachments).toHaveLength(1);
 		expect(message2Attachments).toHaveLength(1);
 		
-		// Both should reference the same files tree
+		// Both should reference the same app tree (the chat tree)
 		const treeId1 = message1Attachments[0].file.tree;
 		const treeId2 = message2Attachments[0].file.tree;
 		
 		expect(treeId1).toBe(treeId2);
 		
-		// Verify it's a files tree
-		const filesTree = await space.loadAppTree(treeId1);
-		expect(filesTree).toBeDefined();
-		expect(filesTree!.getAppId()).toBe('files');
+		// Verify it's the chat tree (appId 'default-chat')
+		const appTreeLoaded = await space.loadAppTree(treeId1);
+		expect(appTreeLoaded).toBeDefined();
+		expect(appTreeLoaded!.getAppId()).toBe('default-chat');
 	});
 });

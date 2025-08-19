@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
 import { mkdtemp, rm, readFile, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -65,12 +65,29 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe('HEIC Conversion Pipeline', () => {
   let tempDir: string;
+  let manager: SpaceManager;
 
   beforeAll(async () => {
     tempDir = await mkdtemp(path.join(tmpdir(), 'sila-heic-test-'));
+    manager = new SpaceManager();
+  });
+
+  afterEach(async () => {
+    // Ensure all spaces are closed to disconnect file watchers before cleanup
+    const active = manager.getActiveSpaces();
+    for (const s of active) {
+      await manager.closeSpace(s.getId());
+    }
   });
 
   afterAll(async () => {
+    // Ensure watchers are stopped and layers disconnected
+    const active = manager.getActiveSpaces();
+    for (const s of active) {
+      await manager.closeSpace(s.getId());
+    }
+    // Give filesystem a brief moment to release handles
+    await wait(300);
     if (tempDir) {
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -84,7 +101,6 @@ describe('HEIC Conversion Pipeline', () => {
     space.name = 'HEIC Test Space';
 
     const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
-    const manager = new SpaceManager();
     await manager.addNewSpace(space, [layer]);
 
     // Give time to ensure base structure is on disk
@@ -178,7 +194,6 @@ describe('HEIC Conversion Pipeline', () => {
     space.name = 'HEIC Deduplication Test Space';
 
     const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
-    const manager = new SpaceManager();
     await manager.addNewSpace(space, [layer]);
 
     await wait(600);
@@ -260,7 +275,6 @@ describe('HEIC Conversion Pipeline', () => {
     space.name = 'Non-HEIC Test Space';
 
     const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
-    const manager = new SpaceManager();
     await manager.addNewSpace(space, [layer]);
 
     await wait(600);
@@ -315,7 +329,6 @@ describe('HEIC Conversion Pipeline', () => {
     space.name = 'Image Resizing Test Space';
 
     const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
-    const manager = new SpaceManager();
     await manager.addNewSpace(space, [layer]);
 
     await wait(600);
