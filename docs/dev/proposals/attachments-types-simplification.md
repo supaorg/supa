@@ -34,7 +34,8 @@ Pain points:
   - Reuse `ResolvedFileInfo` and add `id` and `kind` for context
 
 Additional rule:
-- If immediate image preview is needed right after save, attach a transient property `attachmentsPreview: AttachmentPreview[]` on the message vertex. Do not persist it.
+- No fallbacks: if persistence fails or no `FileStore` is present, creation fails. UI must ensure storage is available.
+- Do not write transient previews into the message. `dataUrl` exists only in `AttachmentPreview` pre-save and in resolved data returned by the resolver.
 
 ## Scope approved to implement now
 - Remove duplicated fields from `MessageAttachmentRef` (name/mime/size/width/height, dataUrl)
@@ -42,21 +43,23 @@ Additional rule:
 - Keep transient previews in `attachmentsPreview` only
 
 Status: Implemented
-- Core: `MessageAttachmentRef` established, `ChatAppData` persists only refs and writes transient `attachmentsPreview` (not persisted)
-- Tests: Updated to assert refs-only persistence and to resolve `dataUrl` via resolver when needed
+- Core: `MessageAttachmentRef` established; `ChatAppData` persists only refs and requires `FileStore` (no preview/transient writes)
+- Tests: Updated to assert refs-only persistence and resolver-based data access
 
 ## Next steps (proposed)
-1. Replace `ResolvedAttachment` usages with `ResolvedFileInfo` + `id` + `kind`
-   - Introduce a small helper type in core (e.g., `ResolvedFileInfoWithKind`)
-   - Update `FileResolver.resolveAttachments` to return that shape
-   - Update `SimpleChatAgent` and UI call sites
-2. Standardize union naming
-   - Rename `MessageAttachmentEntry` → `MessageAttachment` (alias)
-   - Use it everywhere a message may carry either a persisted ref or (rarely) a transient preview
-3. Lean on `FilesTreeData.getFileInfo`/`FileResolver` instead of reading metadata from attachments
-   - UI components should fetch metadata (name/mime/size/dims) via resolver or file vertex when rendering
-4. Optional: unify IDs
-   - After persistence, consider using file vertex id as the attachment id to simplify mapping
+1. Resolver-first consumption (reasoning):
+   - Why: Persisted refs are minimal; consumers need authoritative metadata (name/mime/size/dims) and bytes from the file vertex. Centralizing this in the resolver removes duplication and drift.
+   - What: Replace `ResolvedAttachment` usages with `ResolvedFileInfoWithKind` = `ResolvedFileInfo & { id, kind }`.
+   - How: Update `FileResolver.resolveAttachments` to return `ResolvedFileInfoWithKind[]`. Migrate `SimpleChatAgent` and UI call sites to rely on resolver output exclusively.
+2. Standardize union naming (reasoning):
+   - Why: One name reduces cognitive load and import churn. `Entry` was ambiguous.
+   - What: Use `MessageAttachment` everywhere; keep `MessageAttachmentEntry` as a compatibility alias temporarily.
+3. Resolver-only metadata (reasoning):
+   - Why: Avoid stale metadata on attachments and ensure single source of truth.
+   - What: UI/agent resolve refs before rendering/processing. Never read name/mime/size/dims from the attachment object.
+4. Optional: unify IDs (reasoning):
+   - Why: Simplifies joins between refs, resolved info, and UI elements.
+   - What: Post-save, consider adopting the file vertex id as the attachment id (with a migration adapter to keep backward compatibility).
 
 ## Migration strategy
 - Step 1 (done): persist-only refs; add transient previews; update tests
