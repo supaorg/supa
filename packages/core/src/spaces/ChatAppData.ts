@@ -4,7 +4,7 @@ import type { VertexPropertyType } from "reptree";
 import type { ThreadMessage } from "../models";
 import { AppTree } from "./AppTree";
 import { FilesTreeData } from "./files";
-import type { AttachmentPreview, MessageAttachmentEntry, MessageAttachmentRef } from "./files";
+import type { AttachmentPreview, MessageAttachmentRef } from "./files";
 import { FileResolver } from "./files/FileResolver";
 
 export class ChatAppData {
@@ -198,71 +198,49 @@ export class ChatAppData {
         // Resolve target tree and parent folder path
         const { targetTree, parentFolder } = await this.resolveFileTarget(fileTarget);
 
-        const refs: Array<MessageAttachmentEntry> = [];
+        const refs: Array<MessageAttachmentRef> = [];
         for (const a of attachments) {
           if (a?.kind === 'image' && typeof a?.dataUrl === 'string') {
-            try {
-              const put = await store.putDataUrl(a.dataUrl);
-              const fileVertex = FilesTreeData.createOrLinkFile({
-                filesTree: targetTree,
-                parentFolder,
-                hash: put.hash,
-                attachment: a,
-              });
-              refs.push({
-                id: a.id,
-                kind: 'image',
-                name: a.name,
-                alt: a.alt,
-                file: { tree: targetTree.getId(), vertex: fileVertex.id }
-              } as MessageAttachmentRef);
-            } catch (e) {
-              // If persist fails, fall back to in-memory
-              refs.push(a);
-            }
+            const put = await store.putDataUrl(a.dataUrl);
+            const fileVertex = FilesTreeData.createOrLinkFile({
+              filesTree: targetTree,
+              parentFolder,
+              hash: put.hash,
+              attachment: a,
+            });
+            refs.push({
+              id: a.id,
+              kind: 'image',
+              alt: a.alt,
+              file: { tree: targetTree.getId(), vertex: fileVertex.id }
+            });
           } else if (a?.kind === 'text' && typeof a?.content === 'string') {
-            try {
-              // Store text content in CAS (same as images)
-              const textBytes = new TextEncoder().encode(a.content);
-              const put = await store.putBytes(textBytes, a.mimeType || 'text/plain');
-              
-              const fileVertex = FilesTreeData.createOrLinkFile({
-                filesTree: targetTree,
-                parentFolder,
-                hash: put.hash,
-                attachment: a,
-              });
-              
-              refs.push({
-                id: a.id,
-                kind: 'text',
-                name: a.name,
-                alt: a.alt || 'text file', // Use language as alt text
-                file: { tree: targetTree.getId(), vertex: fileVertex.id },
-                width: a.width, // Preserve lineCount as width
-                height: a.height // Preserve charCount as height
-              } as MessageAttachmentRef);
-            } catch (e) {
-              // If persist fails, fall back to in-memory with transient content
-              refs.push({
-                ...a,
-                content: a.content // Keep content only for transient fallback
-              });
-            }
+            // Store text content in CAS (same as images)
+            const textBytes = new TextEncoder().encode(a.content);
+            const put = await store.putBytes(textBytes, a.mimeType || 'text/plain');
+            
+            const fileVertex = FilesTreeData.createOrLinkFile({
+              filesTree: targetTree,
+              parentFolder,
+              hash: put.hash,
+              attachment: a,
+            });
+            
+            refs.push({
+              id: a.id,
+              kind: 'text',
+              alt: a.alt || 'text file',
+              file: { tree: targetTree.getId(), vertex: fileVertex.id }
+            });
           } else {
-            refs.push(a);
+            throw new Error(`Unsupported attachment or missing content for kind '${a?.kind}'`);
           }
         }
-        // Persist references with transient dataUrls for immediate preview
-        // Persist only refs; add transient preview separately for immediate UI use
+        // Persist only refs
         this.appTree.tree.setVertexProperty(newMessageVertex.id, "attachments", refs as unknown as VertexPropertyType);
-        const transientPreviews = attachments.filter(a => !!a.dataUrl);
-        if (transientPreviews.length > 0) {
-          this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachmentsPreview", transientPreviews as unknown as VertexPropertyType);
-        }
       } else {
-        // No store: keep in-memory only
-        this.appTree.tree.setTransientVertexProperty(newMessageVertex.id, "attachments", attachments as unknown as VertexPropertyType);
+        // No FileStore available when attachments are provided
+        throw new Error("FileStore is required to save attachments");
       }
     }
 

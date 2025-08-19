@@ -100,7 +100,9 @@ describe('Text File AI Integration', () => {
       expect(attachments).toBeDefined();
       expect(attachments.length).toBe(1);
       expect(attachments[0].kind).toBe('text');
-      expect(attachments[0].name).toBe('test-number.txt');
+      // Persisted attachments no longer include name; verify file reference exists
+      expect(attachments[0].file?.tree).toBeDefined();
+      expect(attachments[0].file?.vertex).toBeDefined();
 
       // Test the AI processing by simulating what SimpleChatAgent would do
       const agentServices = new AgentServices(space);

@@ -114,8 +114,8 @@ function test() {
       expect(attachments).toBeDefined();
       expect(attachments.length).toBe(1);
       expect(attachments[0].kind).toBe('text');
-      expect(attachments[0].name).toBe('test.md');
-      expect(attachments[0].file).toBeDefined();
+      expect(attachments[0].file?.tree).toBeDefined();
+      expect(attachments[0].file?.vertex).toBeDefined();
     });
 
     it('should handle mixed image and text file attachments', async () => {
@@ -176,8 +176,8 @@ function test() {
       
       expect(textAtt).toBeDefined();
       expect(imageAtt).toBeDefined();
-      expect(textAtt.name).toBe('hello.txt');
-      expect(imageAtt.name).toBe('test.png');
+      expect(textAtt.file?.tree).toBeDefined();
+      expect(imageAtt.file?.tree).toBeDefined();
     });
 
     it('should handle large text files', async () => {
@@ -216,7 +216,7 @@ function test() {
       const messageVertex = chatTree.tree.getVertex(message.id);
       const attachments = messageVertex?.getProperty('attachments') as any[];
       expect(attachments[0].kind).toBe('text');
-      expect(attachments[0].width).toBe(1000); // lineCount
+      expect(attachments[0].width).toBeUndefined();
     });
   });
 
@@ -284,10 +284,8 @@ function test() {
         alt: 'Plain Text'
       };
 
-      // Should not throw, but fall back to in-memory storage
-      const message = await chatData.newMessage('user', 'Test message', undefined, [attachment]);
-
-      expect(message).toBeDefined();
+      // Now throws: FileStore is required
+      await expect(chatData.newMessage('user', 'Test message', undefined, [attachment])).rejects.toThrow();
 
       // Restore original method
       space.getFileStore = originalGetFileStore;
@@ -322,7 +320,7 @@ function test() {
       const messageVertex = chatTree.tree.getVertex(message.id);
       const attachments = messageVertex?.getProperty('attachments') as any[];
       expect(attachments[0].kind).toBe('text');
-      expect(attachments[0].name).toBe('test.txt');
+      expect(attachments[0].file?.tree).toBeDefined();
     });
   });
 
@@ -391,8 +389,8 @@ function test() {
         const messageVertex = chatTree.tree.getVertex(message.id);
         const attachments = messageVertex?.getProperty('attachments') as any[];
         expect(attachments[0].kind).toBe('text');
-        expect(attachments[0].name).toBe(testCase.name);
-        expect(attachments[0].alt).toBe(testCase.expectedLang);
+        expect(attachments[0].file?.tree).toBeDefined();
+        expect(attachments[0].file?.vertex).toBeDefined();
       }
     });
   });
