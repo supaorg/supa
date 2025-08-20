@@ -34,6 +34,65 @@ export class FilesTreeData {
 		return cur;
 	}
 
+	static createOrLinkFileFromInfo(params: {
+		filesTree: AppTree;
+		parentFolder: Vertex;
+		fileInfo: Partial<FileInfo>;
+	}): Vertex {
+		const { filesTree, parentFolder, fileInfo } = params;
+		
+		const name = fileInfo.name ?? "file";
+		const hash = fileInfo.hash ?? "";
+		const mimeType = fileInfo.mimeType;
+		const size = fileInfo.size;
+		const width = fileInfo.width;
+		const height = fileInfo.height;
+
+		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
+		if (existing) return existing;
+		
+		return filesTree.tree.newVertex(parentFolder.id, {
+			_n: "file",
+			name,
+			hash,
+			mimeType,
+			size,
+			width,
+			height,
+			createdAt: Date.now(),
+		});
+	}
+
+	static createOrLinkFileFromAttachment(params: {
+		filesTree: AppTree;
+		parentFolder: Vertex;
+		attachment: AttachmentPreview;
+		hash: string; // Hash is required for attachments
+	}): Vertex {
+		const { filesTree, parentFolder, attachment, hash } = params;
+		
+		const name = attachment.name ?? "file";
+		const mimeType = attachment.mimeType;
+		const size = attachment.size;
+		const width = attachment.width;
+		const height = attachment.height;
+
+		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
+		if (existing) return existing;
+		
+		return filesTree.tree.newVertex(parentFolder.id, {
+			_n: "file",
+			name,
+			hash,
+			mimeType,
+			size,
+			width,
+			height,
+			createdAt: Date.now(),
+		});
+	}
+
+	/** @deprecated Use createOrLinkFileFromInfo or createOrLinkFileFromAttachment instead */
 	static createOrLinkFile(params: {
 		filesTree: AppTree;
 		parentFolder: Vertex;

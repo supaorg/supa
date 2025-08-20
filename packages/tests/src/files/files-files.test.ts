@@ -83,7 +83,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 			(String(now.getUTCMonth() + 1)).padStart(2, '0'),
 			(String(now.getUTCDate())).padStart(2, '0')
 		]);
-		const fileVertex = FilesTreeData.createOrLinkFile({
+		const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
 			filesTree,
 			parentFolder: folder,
 			fileInfo: {
@@ -136,7 +136,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		// Create a files app tree and file vertex
 		const filesTree = FilesTreeData.createNewFilesTree(space);
 		const folder = FilesTreeData.ensureFolderPath(filesTree, ['test']);
-		const fileVertex = FilesTreeData.createOrLinkFile({
+		const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
 			filesTree,
 			parentFolder: folder,
 			fileInfo: {

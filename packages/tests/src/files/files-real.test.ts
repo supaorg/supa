@@ -105,7 +105,7 @@ describe('Local assets persisted in workspace CAS', () => {
 
       // Create file vertex
       const name = f.name.replace(/\.b64$/i, '');
-      const fileVertex = FilesTreeData.createOrLinkFile({
+      const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
         filesTree,
         parentFolder: folder,
         fileInfo: {

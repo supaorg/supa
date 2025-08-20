@@ -199,21 +199,21 @@ export class ChatAppData {
       for (const att of attachments) {
         if (att?.kind === 'image' && typeof att?.dataUrl === 'string') {
           const put = await store.putDataUrl(att.dataUrl);
-          const fileVertex = FilesTreeData.createOrLinkFile({
+          const fileVertex = FilesTreeData.createOrLinkFileFromAttachment({
             filesTree: targetTree,
             parentFolder,
-            fileInfo: { hash: put.hash },
             attachment: att,
+            hash: put.hash,
           });
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
         } else if (att?.kind === 'text' && typeof att?.content === 'string') {
           const textBytes = new TextEncoder().encode(att.content);
           const put = await store.putBytes(textBytes);
-          const fileVertex = FilesTreeData.createOrLinkFile({
+          const fileVertex = FilesTreeData.createOrLinkFileFromAttachment({
             filesTree: targetTree,
             parentFolder,
-            fileInfo: { hash: put.hash },
             attachment: att,
+            hash: put.hash,
           });
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
         } else {

@@ -150,7 +150,7 @@ describe('HEIC Conversion Pipeline', () => {
     const filesTree = FilesTreeData.createNewFilesTree(space);
     const folder = FilesTreeData.ensureFolderPath(filesTree, ['heic-test']);
     
-    const fileVertex = FilesTreeData.createOrLinkFile({
+    const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
       filesTree,
       parentFolder: folder,
       fileInfo: {
@@ -236,7 +236,7 @@ describe('HEIC Conversion Pipeline', () => {
     const folder = FilesTreeData.ensureFolderPath(filesTree, ['dedup-test']);
     
     // Create two file vertices with different names but same hash
-    const fileVertex1 = FilesTreeData.createOrLinkFile({
+    const fileVertex1 = FilesTreeData.createOrLinkFileFromInfo({
       filesTree,
       parentFolder: folder,
       fileInfo: {
@@ -247,7 +247,7 @@ describe('HEIC Conversion Pipeline', () => {
       }
     });
 
-    const fileVertex2 = FilesTreeData.createOrLinkFile({
+    const fileVertex2 = FilesTreeData.createOrLinkFileFromInfo({
       filesTree,
       parentFolder: folder,
       fileInfo: {
@@ -303,7 +303,7 @@ describe('HEIC Conversion Pipeline', () => {
     const filesTree = FilesTreeData.createNewFilesTree(space);
     const folder = FilesTreeData.ensureFolderPath(filesTree, ['png-test']);
     
-    const fileVertex = FilesTreeData.createOrLinkFile({
+    const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
       filesTree,
       parentFolder: folder,
       fileInfo: {
@@ -367,7 +367,7 @@ describe('HEIC Conversion Pipeline', () => {
       const filesTree = FilesTreeData.createNewFilesTree(space);
       const folder = FilesTreeData.ensureFolderPath(filesTree, ['resize-test']);
       
-      const fileVertex = FilesTreeData.createOrLinkFile({
+      const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
         filesTree,
         parentFolder: folder,
         fileInfo: {

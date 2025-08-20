@@ -141,7 +141,7 @@ describe('Simplified File Previews (Svelte)', () => {
     const put = await fileStore!.putBytes(testImageBytes, 'image/png');
 
     // Create file vertex using the proper API
-    fileVertex = FilesTreeData.createOrLinkFile({
+    fileVertex = FilesTreeData.createOrLinkFileFromInfo({
       filesTree,
       parentFolder: filesTree.tree.getVertexByPath('files')!,
       fileInfo: {
