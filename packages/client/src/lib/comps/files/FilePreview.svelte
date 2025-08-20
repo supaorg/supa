@@ -19,6 +19,7 @@
     onGalleryOpen?: (resolvedFile: ResolvedFileInfo) => void;
   } = $props();
 
+  // @TODO: try to derive from fileRef
   let resolvedFile: ResolvedFileInfo | null = $state(null);
   let isLoading = $state(true);
   let hasError = $state(false);

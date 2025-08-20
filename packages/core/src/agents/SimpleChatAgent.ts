@@ -1,5 +1,5 @@
 import type { LangChatMessage, LangContentPart } from "aiwrapper";
-import { FileResolver } from "../spaces/files/FileResolver";
+import { FileReference, FileResolver } from "../spaces/files/FileResolver";
 import { AppConfig, ThreadMessage } from "../models";
 import { Agent, AgentInput, AgentOutput } from "./Agent";
 
@@ -76,24 +76,13 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
           } as LangChatMessage;
         }
 
-        const attachments = (m as any).attachments as Array<any>;
+        const attachments = (m as any).attachments as Array<FileReference>;
         const resolver = new FileResolver(this.services.space);
         const resolved = await resolver.resolveAttachments(attachments);
-        const images = resolved.filter(a => a?.kind === 'image' && typeof a?.dataUrl === 'string' && a.dataUrl.trim() !== '');
-        const textFiles = resolved.filter(a => a?.kind === 'text' && typeof a?.dataUrl === 'string' && a.dataUrl.trim() !== '');
-        
-        console.log('Processing message with attachments:', {
-          totalAttachments: attachments.length,
-          images: images.length,
-          textFiles: textFiles.length,
-          textFileDetails: textFiles.map(tf => ({
-            name: tf.name,
-            hasDataUrl: !!tf.dataUrl,
-            dataUrlPreview: tf.dataUrl ? tf.dataUrl.substring(0, 50) + '...' : null
-          }))
-        });
+        const images = resolved.filter(a => a?.kind === 'image');
+        const textFiles = resolved.filter(a => a?.kind === 'text');
 
-        // Handle vision-capable models with images
+        // Build content parts for vision-capable models with images
         if (supportsVision && images.length > 0) {
           const parts: LangContentPart[] = [];
           
@@ -102,18 +91,9 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
             parts.push({ type: 'text', text: m.text });
           }
           
-          // Add text file contents (resolved provides dataUrl)
+          // Add text file contents
           for (const textFile of textFiles) {
-            let fileContent: string | null = null;
-            console.log('Extracting text file from resolved data URL:', textFile.name);
-            fileContent = this.extractTextFromDataUrl(textFile.dataUrl);
-            
-            console.log('Text file content extracted:', {
-              name: textFile.name,
-              contentLength: fileContent?.length || 0,
-              contentPreview: fileContent ? fileContent.substring(0, 100) + '...' : null
-            });
-            
+            const fileContent = this.extractTextFromDataUrl(textFile.dataUrl);
             if (fileContent) {
               const fileHeader = `\n\n--- File: ${textFile.name} ---\n`;
               parts.push({ type: 'text', text: fileHeader + fileContent });
@@ -129,21 +109,12 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
           return { role: normalizedRole as "assistant" | "user", content: parts } as LangChatMessage;
         }
 
-        // Handle non-vision models or text-only attachments
+        // Handle text-only content (no images or non-vision models)
         let content = m.text || "";
         
-        // Add text file contents (resolved provides dataUrl)
+        // Add text file contents
         for (const textFile of textFiles) {
-          let fileContent: string | null = null;
-          console.log('Extracting text file from resolved data URL (non-vision):', textFile.name);
-          fileContent = this.extractTextFromDataUrl(textFile.dataUrl);
-          
-          console.log('Text file content extracted (non-vision):', {
-            name: textFile.name,
-            contentLength: fileContent?.length || 0,
-            contentPreview: fileContent ? fileContent.substring(0, 100) + '...' : null
-          });
-          
+          const fileContent = this.extractTextFromDataUrl(textFile.dataUrl);
           if (fileContent) {
             const fileHeader = `\n\n--- File: ${textFile.name} ---\n`;
             content += fileHeader + fileContent;

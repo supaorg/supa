@@ -94,7 +94,7 @@ export class ChatAppData {
    * Used for UI rendering and AI consumption
    */
   async resolveMessageAttachments(message: ThreadMessage): Promise<ThreadMessage> {
-    const attachments = (message as any).attachments;
+    const attachments = (message as any).attachments as Array<FileReference>;
     if (!attachments || attachments.length === 0) {
       console.log('No attachments to resolve for message:', message.id);
       return message;

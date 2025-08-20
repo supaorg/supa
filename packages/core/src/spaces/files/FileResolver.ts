@@ -124,7 +124,7 @@ export class FileResolver {
 	 * Resolves file references in attachments to data URLs
 	 * Used for UI rendering and AI consumption
 	 */
-	async resolveAttachments(attachments: Array<any>): Promise<ResolvedAttachment[]> {
+	async resolveAttachments(attachments: Array<FileReference>): Promise<ResolvedAttachment[]> {
 		if (!attachments || attachments.length === 0) {
 			return [];
 		}
@@ -133,38 +133,11 @@ export class FileResolver {
 		const fileStore = this.space.getFileStore();
 
 		for (const attachment of attachments) {
-			// New: bare FileReference persisted on message
-			if (attachment && typeof attachment === 'object' && attachment.tree && attachment.vertex) {
-				try {
-					const out = await this.resolveFileReferenceToDataUrl(attachment as FileReference, fileStore);
-					if (out) resolved.push(out);
-				} catch (error) {
-					console.warn('Failed to resolve bare file reference:', error);
-				}
-				continue;
-			}
-
-			// If already has dataUrl, use it (transient data)
-			if (attachment.dataUrl) {
-				resolved.push({
-					id: attachment.id,
-					kind: attachment.kind,
-					name: attachment.name,
-					alt: attachment.alt,
-					dataUrl: attachment.dataUrl,
-					mimeType: attachment.mimeType,
-					size: attachment.size,
-					width: attachment.width,
-					height: attachment.height,
-				});
-				continue;
-			}
-
 			// If has file reference, resolve it
-			if (attachment.file?.tree && attachment.file?.vertex) {
+			if (attachment?.tree && attachment?.vertex) {
 				try {
 					const resolvedAttachment = await this.resolveFileReferenceForAttachment(
-						attachment.file as FileReference,
+						attachment as FileReference,
 						attachment,
 						fileStore
 					);
@@ -178,19 +151,6 @@ export class FileResolver {
 				}
 				continue;
 			}
-
-			// Fallback: just pass through the attachment
-			resolved.push({
-				id: attachment.id,
-				kind: attachment.kind,
-				name: attachment.name,
-				alt: attachment.alt,
-				dataUrl: attachment.dataUrl || "",
-				mimeType: attachment.mimeType,
-				size: attachment.size,
-				width: attachment.width,
-				height: attachment.height,
-			});
 		}
 
 		return resolved;
@@ -237,7 +197,14 @@ export class FileResolver {
 		const height = fileVertex.getProperty("height") as number;
 
 		// Convert bytes to data URL with proper MIME type
-		const base64 = typeof Buffer !== "undefined" ? Buffer.from(bytes).toString("base64") : btoa(String.fromCharCode(...bytes));
+		let base64: string;
+		if (typeof Buffer !== "undefined") {
+			base64 = Buffer.from(bytes).toString("base64");
+		} else {
+			// Browser environment - convert Uint8Array to base64 safely
+			const binaryString = Array.from(bytes, (byte: number) => String.fromCharCode(byte)).join('');
+			base64 = btoa(binaryString);
+		}
 		const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
 
 		return {
@@ -266,7 +233,14 @@ export class FileResolver {
 		const size = fileVertex.getProperty('size') as number;
 		const width = fileVertex.getProperty('width') as number;
 		const height = fileVertex.getProperty('height') as number;
-		const base64 = typeof Buffer !== 'undefined' ? Buffer.from(bytes).toString('base64') : btoa(String.fromCharCode(...bytes));
+		let base64: string;
+		if (typeof Buffer !== 'undefined') {
+			base64 = Buffer.from(bytes).toString('base64');
+		} else {
+			// Browser environment - convert Uint8Array to base64 safely
+			const binaryString = Array.from(bytes, (byte: number) => String.fromCharCode(byte)).join('');
+			base64 = btoa(binaryString);
+		}
 		const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
 		return {
 			id: fileRef.vertex,
