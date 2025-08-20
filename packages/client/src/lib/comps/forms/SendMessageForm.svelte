@@ -485,8 +485,9 @@
       }
     }
 
-    // Prevent default paste behavior if we processed any files or images
-    if (hasProcessedContent) {
+    // Prevent default paste behavior if we detected any files or images
+    // This prevents filenames from being added to the textarea
+    if (files.length > 0 || imageTypes.length > 0) {
       e.preventDefault();
     }
   }
