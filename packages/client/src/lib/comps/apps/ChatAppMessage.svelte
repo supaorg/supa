@@ -5,11 +5,10 @@
     ChevronDown,
     ChevronRight,
   } from "lucide-svelte";
-  import type { ThreadMessage } from "@sila/core";
+  import type { FileReference, ThreadMessage } from "@sila/core";
   import type { ChatAppData } from "@sila/core";
   import type { Vertex } from "@sila/core";
   import { onMount } from "svelte";
-  import { timeout } from "@sila/core";
   import Markdown from "../markdown/Markdown.svelte";
   import { clientState } from "@sila/client/state/clientState.svelte";
   import FloatingPopover from "@sila/client/comps/ui/FloatingPopover.svelte";
@@ -20,6 +19,7 @@
   import ChatAppMessageEditForm from "./ChatAppMessageEditForm.svelte";
   import FilePreview from "../files/FilePreview.svelte";
 
+  // @TODO: try to use reactives ThreadMessage that will wrap the vertex data under the hood
   let { vertex, data }: { vertex: Vertex; data: ChatAppData } = $props();
 
   let message: ThreadMessage = $state(vertex.getAsTypedObject<ThreadMessage>());
@@ -30,25 +30,32 @@
   let hasThinking = $derived(
     !!message?.thinking &&
       typeof message.thinking === "string" &&
-      message.thinking.trim().length > 0,
+      message.thinking.trim().length > 0
   );
-  let attachments = $state<Array<any> | undefined>(undefined);
+  let attachments = $state<Array<{ file: FileReference }> | undefined>(
+    undefined
+  );
   let isAIGenerating = $derived(
-    !!message?.inProgress && message?.role === "assistant",
+    !!message?.inProgress && message?.role === "assistant"
   );
   let isEditing = $state(false);
   let editText = $state("");
-
-
 
   let hoverDepth = $state(0);
   let showEditAndCopyControls = $state(false);
   let hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  function getModelDisplayForMessage(): { provider: string; model: string } | null {
+  function getModelDisplayForMessage(): {
+    provider: string;
+    model: string;
+  } | null {
     // Only use values stored on the message. If not available, return null (do not show anything)
-    const provider = (message as any)?.modelProviderFinal || (message as any)?.modelProvider || null;
-    const model = (message as any)?.modelIdFinal || (message as any)?.modelId || null;
+    const provider =
+      (message as any)?.modelProviderFinal ||
+      (message as any)?.modelProvider ||
+      null;
+    const model =
+      (message as any)?.modelIdFinal || (message as any)?.modelId || null;
     if (provider && model) return { provider, model };
     return null;
   }
@@ -61,7 +68,10 @@
 
   function beginHover() {
     hoverDepth += 1;
-    if (hideControlsTimeout) { clearTimeout(hideControlsTimeout); hideControlsTimeout = null; }
+    if (hideControlsTimeout) {
+      clearTimeout(hideControlsTimeout);
+      hideControlsTimeout = null;
+    }
     showEditAndCopyControls = true;
   }
 
@@ -116,7 +126,7 @@
     }
   });
 
-  // Resolve file references in attachments and convert to sila:// URLs
+  // Extract file references from message attachments
   $effect(() => {
     const messageAttachments = (message as any)?.attachments;
     if (!messageAttachments || messageAttachments.length === 0) {
@@ -124,77 +134,20 @@
       return;
     }
 
-    // Process attachments to use sila:// protocol
-    const processAttachments = async () => {
-      const processedAttachments = await Promise.all(
-        messageAttachments.map(async (att: any) => {
-          // Bare FileReference persisted on message
-          if (att && att.tree && att.vertex) {
-            const fileUrl = await getFileUrl(att.tree, att.vertex);
-            return { file: att, fileUrl };
-          }
-          // If already has dataUrl (transient data), convert to sila:// URL
-          if (att.dataUrl && att.dataUrl.startsWith('data:')) {
-            // For transient data, we need to get the file hash from the file reference
-            if (att.file?.tree && att.file?.vertex) {
-              const fileUrl = await getFileUrl(att.file.tree, att.file.vertex, att.mimeType);
-              return { ...att, fileUrl };
-            }
-            // If no file reference, keep the dataUrl as fallback
-            return att;
-          }
-
-          // If has file reference, generate sila:// URL
-          if (att.file?.tree && att.file?.vertex) {
-            const fileUrl = await getFileUrl(att.file.tree, att.file.vertex, att.mimeType);
-            return { ...att, fileUrl };
-          }
-
-          // Fallback: keep original attachment
-          return att;
-        })
-      );
-
-      attachments = processedAttachments;
-    };
-
-    processAttachments().catch((error) => {
-      console.warn('Failed to process attachments:', error);
-      attachments = messageAttachments; // Fallback to original
+    // Extract file references from attachments
+    attachments = messageAttachments.map((att: any) => {
+      // Bare FileReference persisted on message
+      if (att && att.tree && att.vertex) {
+        return { file: att };
+      }
+      // If has file reference, use it
+      if (att.file?.tree && att.file?.vertex) {
+        return att;
+      }
+      // Fallback: keep original attachment
+      return att;
     });
   });
-
-
-
-  // Helper function to generate sila:// URLs
-  async function getFileUrl(treeId: string, vertexId: string, mimeType?: string): Promise<string> {
-    if (!(window as any).electronFileSystem) {
-      return ''; // Fallback for non-Electron environments
-    }
-
-    try {
-      const spaceId = (data as any).space.getId();
-      
-      // Load the app tree and get the file vertex to access its hash
-      const appTree = await (data as any).space.loadAppTree(treeId);
-      if (!appTree) return '';
-      
-      const fileVertex = appTree.tree.getVertex(vertexId);
-      if (!fileVertex) return '';
-      
-      const hash = fileVertex.getProperty("hash") as string;
-      const name = fileVertex.getProperty("name") as string;
-      if (!hash) return '';
-
-      const url = (window as any).electronFileSystem.getFileUrl(spaceId, hash, mimeType || 'application/octet-stream', name);
-      return url;
-    } catch (error) {
-      console.warn('Failed to generate file URL:', error);
-      return '';
-    }
-  }
-
-
 
   onMount(() => {
     const unobserve = data.observeMessage(vertex.id, (msg) => {
@@ -263,7 +216,11 @@
       </div>
     </div>
   {/if}
-  <div class="min-w-0 max-w-[85%]" class:ml-auto={message.role === "user"} class:w-full={isEditing}>
+  <div
+    class="min-w-0 max-w-[85%]"
+    class:ml-auto={message.role === "user"}
+    class:w-full={isEditing}
+  >
     {#if message.role !== "user"}
       <div class="flex items-center justify-between gap-2 mt-2">
         <div class="flex items-center gap-2">
@@ -271,10 +228,15 @@
             <div class="relative">
               <FloatingPopover placement="right">
                 {#snippet trigger()}
-                  <span class="font-bold cursor-default hover:opacity-90">{configName || "AI"}</span>
+                  <span class="font-bold cursor-default hover:opacity-90"
+                    >{configName || "AI"}</span
+                  >
                 {/snippet}
                 {#snippet content()}
-                  <ChatAssistantInfo configId={(vertex.getProperty("configId") as string) || data.getMessageProperty(message.id, "configId")} />
+                  <ChatAssistantInfo
+                    configId={(vertex.getProperty("configId") as string) ||
+                      data.getMessageProperty(message.id, "configId")}
+                  />
                 {/snippet}
               </FloatingPopover>
             </div>
@@ -289,12 +251,12 @@
         {#if isEditing}
           <div class="block w-full">
             <ChatAppMessageEditForm
-            initialValue={editText}
-            onSave={(text) => {
-              data.editMessage(vertex.id, text);
-              isEditing = false;
-            }}
-            onCancel={() => (isEditing = false)}
+              initialValue={editText}
+              onSave={(text) => {
+                data.editMessage(vertex.id, text);
+                isEditing = false;
+              }}
+              onCancel={() => (isEditing = false)}
             />
           </div>
         {:else}
@@ -307,31 +269,29 @@
             {@html replaceNewlinesWithHtmlBrs(message.text || "")}
             {#if attachments && attachments.length > 0}
               <div class="mt-2 flex flex-wrap gap-2">
-                {#each attachments as att (att.file?.vertex || att.vertex || att.id)}
-                  {#if att.file && att.file.tree && att.file.vertex}
-                    <FilePreview 
-                      fileRef={att.file}
-                      showGallery={true}
-                      onGalleryOpen={(resolvedFile) => {
-                        clientState.gallery.open(resolvedFile);
-                      }}
-                    />
-                  {:else}
-                    <!-- Fallback for legacy attachments without file references -->
-                    <div class="p-2 border rounded text-sm text-surface-500-500-token">
-                      {att.name || 'Unknown file'}
-                    </div>
-                  {/if}
+                {#each attachments as att}
+                  <FilePreview
+                    fileRef={att.file}
+                    showGallery={true}
+                    onGalleryOpen={(resolvedFile) => {
+                      clientState.gallery.open(resolvedFile);
+                    }}
+                  />
                 {/each}
               </div>
             {/if}
           </div>
           <!-- Reserved toolbar row for user messages to avoid overlap/jump -->
-            <div class="mt-1 h-6 flex items-center justify-end" role="presentation"
-               onpointerenter={beginHover}
-               onpointerleave={endHover}
+          <div
+            class="mt-1 h-6 flex items-center justify-end"
+            role="presentation"
+            onpointerenter={beginHover}
+            onpointerleave={endHover}
           >
-            <div class:invisible={!showEditAndCopyControls} class:pointer-events-none={!showEditAndCopyControls}>
+            <div
+              class:invisible={!showEditAndCopyControls}
+              class:pointer-events-none={!showEditAndCopyControls}
+            >
               <ChatAppMessageControls
                 {showEditAndCopyControls}
                 onCopyMessage={() => copyMessage()}
@@ -344,94 +304,121 @@
             </div>
           </div>
         {/if}
-      {:else}
-        {#if isEditing}
-          <div class="block w-full">
-            <ChatAppMessageEditForm
+      {:else if isEditing}
+        <div class="block w-full">
+          <ChatAppMessageEditForm
             initialValue={editText}
             onSave={(text) => {
               data.editMessage(vertex.id, text);
               isEditing = false;
             }}
             onCancel={() => (isEditing = false)}
-            />
-          </div>
-        {:else}
+          />
+        </div>
+      {:else}
+        <div
+          class="relative rounded-lg chat-message group"
+          role="region"
+          onpointerenter={beginHover}
+          onpointerleave={endHover}
+        >
+          {#if hasThinking}
+            <div class="mb-3">
+              <button
+                class="flex items-center gap-1 text-surface-500-500-token hover:text-surface-700-300-token group"
+                onclick={() => (isThinkingExpanded = !isThinkingExpanded)}
+              >
+                <span class="opacity-70 group-hover:opacity-100">
+                  {#if isAIGenerating}
+                    <span class="animate-pulse">Thinking...</span>
+                  {:else}
+                    Thoughts
+                  {/if}
+                </span>
+                {#if isThinkingExpanded}
+                  <ChevronDown
+                    size={12}
+                    class="opacity-70 group-hover:opacity-100"
+                  />
+                {:else}
+                  <ChevronRight
+                    size={12}
+                    class="opacity-70 group-hover:opacity-100"
+                  />
+                {/if}
+              </button>
+              {#if isThinkingExpanded}
+                <div
+                  class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50"
+                >
+                  <Markdown source={message.thinking || ""} />
+                </div>
+              {/if}
+            </div>
+          {/if}
+          <Markdown source={message.text ? message.text : ""} />
+          <!-- Reserved toolbar row for assistant messages to avoid overlap/jump -->
           <div
-            class="relative rounded-lg chat-message group"
-            role="region"
+            class="mt-1 h-6 flex items-center justify-start gap-2"
+            role="presentation"
             onpointerenter={beginHover}
             onpointerleave={endHover}
           >
-            {#if hasThinking}
-              <div class="mb-3">
-                <button
-                  class="flex items-center gap-1 text-surface-500-500-token hover:text-surface-700-300-token group"
-                  onclick={() => (isThinkingExpanded = !isThinkingExpanded)}
-                >
-                  <span class="opacity-70 group-hover:opacity-100">
-                    {#if isAIGenerating}
-                      <span class="animate-pulse">Thinking...</span>
-                    {:else}
-                      Thoughts
-                    {/if}
-                  </span>
-                  {#if isThinkingExpanded}
-                    <ChevronDown size={12} class="opacity-70 group-hover:opacity-100" />
-                  {:else}
-                    <ChevronRight size={12} class="opacity-70 group-hover:opacity-100" />
-                  {/if}
-                </button>
-                {#if isThinkingExpanded}
-                  <div class="pt-1.5 pb-1 pl-3 pr-0.5 mt-0.5 mb-2 max-h-[300px] overflow-y-auto text-sm opacity-75 border-l-[3px] border-surface-300-600-token/50">
-                    <Markdown source={message.thinking || ""} />
-                  </div>
-                {/if}
-              </div>
+            {#if showEditAndCopyControls}
+              <FloatingPopover
+                placement="top"
+                openDelay={200}
+                closeDelay={150}
+                interactive={true}
+                onContentEnter={beginHover}
+                onContentLeave={endHover}
+                onOpenChange={forceKeepControls}
+              >
+                {#snippet trigger()}
+                  <button
+                    class="inline-flex items-center justify-center p-1 transition opacity-70 hover:opacity-100"
+                    aria-label="Message info"
+                  >
+                    <Info size={14} />
+                  </button>
+                {/snippet}
+                {#snippet content()}
+                  <ChatAppMessageInfo
+                    {message}
+                    assistantName={configName ||
+                      data.getMessageProperty(message.id, "configName") ||
+                      "AI"}
+                  />
+                {/snippet}
+              </FloatingPopover>
             {/if}
-            <Markdown source={message.text ? message.text : ""} />
-            <!-- Reserved toolbar row for assistant messages to avoid overlap/jump -->
-            <div class="mt-1 h-6 flex items-center justify-start gap-2" role="presentation"
-                 onpointerenter={beginHover}
-                 onpointerleave={endHover}
+            <div
+              class:invisible={!showEditAndCopyControls}
+              class:pointer-events-none={!showEditAndCopyControls}
             >
-              {#if showEditAndCopyControls}
-                <FloatingPopover placement="top" openDelay={200} closeDelay={150} interactive={true}
-                  onContentEnter={beginHover}
-                  onContentLeave={endHover}
-                  onOpenChange={forceKeepControls}
-                >
-                  {#snippet trigger()}
-                    <button class="inline-flex items-center justify-center p-1 transition opacity-70 hover:opacity-100" aria-label="Message info">
-                      <Info size={14} />
-                    </button>
-                  {/snippet}
-                  {#snippet content()}
-                    <ChatAppMessageInfo message={message} assistantName={configName || data.getMessageProperty(message.id, "configName") || "AI"} />
-                  {/snippet}
-                </FloatingPopover>
-              {/if}
-              <div class:invisible={!showEditAndCopyControls} class:pointer-events-none={!showEditAndCopyControls}>
-                <ChatAppMessageControls
-                  {showEditAndCopyControls}
-                  onCopyMessage={() => copyMessage()}
-                  onEditMessage={() => (isEditing = true)}
-                  onRerun={rerunInNewBranch}
-                  {prevBranch}
-                  {nextBranch}
-                  {branchIndex}
-                  branchesNumber={vertex.parent?.children.length || 0}
-                />
-              </div>
+              <ChatAppMessageControls
+                {showEditAndCopyControls}
+                onCopyMessage={() => copyMessage()}
+                onEditMessage={() => (isEditing = true)}
+                onRerun={rerunInNewBranch}
+                {prevBranch}
+                {nextBranch}
+                {branchIndex}
+                branchesNumber={vertex.parent?.children.length || 0}
+              />
             </div>
           </div>
-        {/if}
+        </div>
       {/if}
 
       {#if canRetry}
         <div class="flex gap-2">
-          <button class="btn preset-filled-surface-500" onclick={retry}>Retry</button>
-          <button class="btn preset-outline" onclick={rerunInNewBranch}>Re-run (new branch)</button>
+          <button class="btn preset-filled-surface-500" onclick={retry}
+            >Retry</button
+          >
+          <button class="btn preset-outline" onclick={rerunInNewBranch}
+            >Re-run (new branch)</button
+          >
         </div>
       {/if}
     </div>
