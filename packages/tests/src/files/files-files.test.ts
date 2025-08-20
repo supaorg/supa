@@ -86,10 +86,12 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		const fileVertex = FilesTreeData.createOrLinkFile({
 			filesTree,
 			parentFolder: folder,
-			name: 'pixel.png',
-			hash: put.hash,
-			mimeType: 'image/png',
-			size: raw.byteLength
+			fileInfo: {
+				name: 'pixel.png',
+				hash: put.hash,
+				mimeType: 'image/png',
+				size: raw.byteLength
+			}
 		});
 		expect(fileVertex.getProperty('hash')).toBe(put.hash);
 
@@ -137,10 +139,12 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		const fileVertex = FilesTreeData.createOrLinkFile({
 			filesTree,
 			parentFolder: folder,
-			name: 'test.png',
-			hash: put.hash,
-			mimeType: 'image/png',
-			size: 68
+			fileInfo: {
+				name: 'test.png',
+				hash: put.hash,
+				mimeType: 'image/png',
+				size: 68
+			}
 		});
 
 		// Create a message with file reference (no dataUrl)

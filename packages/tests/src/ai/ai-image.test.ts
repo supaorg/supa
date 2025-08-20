@@ -105,10 +105,12 @@ describe('AI Image Integration', () => {
     const fileVertex = FilesTreeData.createOrLinkFile({
       filesTree: chatTree,
       parentFolder,
-      hash,
-      name: 'cat.jpg',
-      mimeType: 'image/jpeg',
-      size: catImageBuffer.length
+      fileInfo: {
+        hash,
+        name: 'cat.jpg',
+        mimeType: 'image/jpeg',
+        size: catImageBuffer.length
+      }
     });
 
     // Create a user message with files as bare FileReference (like the UI persists)

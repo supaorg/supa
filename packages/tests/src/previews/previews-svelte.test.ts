@@ -144,12 +144,14 @@ describe('Simplified File Previews (Svelte)', () => {
     fileVertex = FilesTreeData.createOrLinkFile({
       filesTree,
       parentFolder: filesTree.tree.getVertexByPath('files')!,
-      name: 'test-image.png',
-      hash: put.hash,
-      mimeType: 'image/png',
-      size: put.size,
-      width: 800,
-      height: 600,
+      fileInfo: {
+        name: 'test-image.png',
+        hash: put.hash,
+        mimeType: 'image/png',
+        size: put.size,
+        width: 800,
+        height: 600,
+      }
     });
 
     fileRef = {

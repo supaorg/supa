@@ -153,23 +153,18 @@ describe('HEIC Conversion Pipeline', () => {
     const fileVertex = FilesTreeData.createOrLinkFile({
       filesTree,
       parentFolder: folder,
-      name: processedFile.name, // Use the converted filename
-      hash: put.hash,
-      mimeType: optimizedFile.type,
-      size: optimizedFile.size,
-      width: dimensions!.width,
-      height: dimensions!.height,
-      originalFormat: 'image/heic',
-      conversionQuality: 0.85,
-      originalDimensions: undefined, // Would be set if resized
-      originalFilename: heicFile.name // Store original filename
+      fileInfo: {
+        name: processedFile.name, // Use the converted filename
+        hash: put.hash,
+        mimeType: optimizedFile.type,
+        size: optimizedFile.size,
+        width: dimensions!.width,
+        height: dimensions!.height,
+      }
     });
 
     expect(fileVertex.getProperty('hash')).toBe(put.hash);
     expect(fileVertex.getProperty('mimeType')).toBe('image/jpeg');
-    expect(fileVertex.getProperty('originalFormat')).toBe('image/heic');
-    expect(fileVertex.getProperty('conversionQuality')).toBe(0.85);
-    expect(fileVertex.getProperty('originalFilename')).toBe('from-iphone.heic');
 
     // Allow ops to be flushed
     await wait(1200);
@@ -244,23 +239,23 @@ describe('HEIC Conversion Pipeline', () => {
     const fileVertex1 = FilesTreeData.createOrLinkFile({
       filesTree,
       parentFolder: folder,
-      name: processedFile1.name, // Use converted filename
-      hash: put1.hash,
-      mimeType: processedFile1.type,
-      size: processedFile1.size,
-      originalFormat: 'image/heic',
-      originalFilename: heicFile1.name
+      fileInfo: {
+        name: processedFile1.name, // Use converted filename
+        hash: put1.hash,
+        mimeType: processedFile1.type,
+        size: processedFile1.size,
+      }
     });
 
     const fileVertex2 = FilesTreeData.createOrLinkFile({
       filesTree,
       parentFolder: folder,
-      name: processedFile2.name, // Use converted filename
-      hash: put2.hash,
-      mimeType: processedFile2.type,
-      size: processedFile2.size,
-      originalFormat: 'image/heic',
-      originalFilename: heicFile2.name
+      fileInfo: {
+        name: processedFile2.name, // Use converted filename
+        hash: put2.hash,
+        mimeType: processedFile2.type,
+        size: processedFile2.size,
+      }
     });
 
     // Should be the same vertex due to deduplication
@@ -311,14 +306,15 @@ describe('HEIC Conversion Pipeline', () => {
     const fileVertex = FilesTreeData.createOrLinkFile({
       filesTree,
       parentFolder: folder,
-      name: pngFile.name,
-      hash: put.hash,
-      mimeType: processedFile.type,
-      size: processedFile.size
+      fileInfo: {
+        name: pngFile.name,
+        hash: put.hash,
+        mimeType: processedFile.type,
+        size: processedFile.size
+      }
     });
 
     expect(fileVertex.getProperty('mimeType')).toBe('image/png');
-    expect(fileVertex.getProperty('originalFormat')).toBeUndefined(); // No conversion
   });
 
   it('should resize large images and track original dimensions', async () => {
@@ -374,18 +370,17 @@ describe('HEIC Conversion Pipeline', () => {
       const fileVertex = FilesTreeData.createOrLinkFile({
         filesTree,
         parentFolder: folder,
-        name: optimizedFile.name,
-        hash: put.hash,
-        mimeType: optimizedFile.type,
-        size: optimizedFile.size,
-        width: 2048, // Resized width
-        height: 1536, // Resized height (maintaining aspect ratio)
-        originalDimensions: '4000x3000' // Original dimensions
+        fileInfo: {
+          name: optimizedFile.name,
+          hash: put.hash,
+          mimeType: optimizedFile.type,
+          size: optimizedFile.size,
+          width: 2048, // Resized width
+          height: 1536, // Resized height (maintaining aspect ratio)
+        }
       });
 
       expect(fileVertex.getProperty('mimeType')).toBe('image/jpeg');
-      expect(fileVertex.getProperty('originalFormat')).toBeUndefined(); // No format conversion
-      expect(fileVertex.getProperty('originalDimensions')).toBe('4000x3000'); // Original dimensions tracked
       expect(fileVertex.getProperty('width')).toBe(2048); // Resized width
       expect(fileVertex.getProperty('height')).toBe(1536); // Resized height
     } finally {

@@ -202,7 +202,7 @@ export class ChatAppData {
           const fileVertex = FilesTreeData.createOrLinkFile({
             filesTree: targetTree,
             parentFolder,
-            hash: put.hash,
+            fileInfo: { hash: put.hash },
             attachment: att,
           });
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
@@ -212,7 +212,7 @@ export class ChatAppData {
           const fileVertex = FilesTreeData.createOrLinkFile({
             filesTree: targetTree,
             parentFolder,
-            hash: put.hash,
+            fileInfo: { hash: put.hash },
             attachment: att,
           });
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });

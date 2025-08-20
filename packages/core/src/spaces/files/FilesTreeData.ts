@@ -37,32 +37,22 @@ export class FilesTreeData {
 	static createOrLinkFile(params: {
 		filesTree: AppTree;
 		parentFolder: Vertex;
-		hash: string;
-		// Either specify fields explicitly or provide an AttachmentPreview to derive them from
-		name?: string;
-		mimeType?: string;
-		size?: number;
-		width?: number;
-		height?: number;
+		fileInfo: Partial<FileInfo>;
 		attachment?: AttachmentPreview;
-		originalFormat?: string; // Track if file was converted
-		conversionQuality?: number; // Track conversion quality
-		originalDimensions?: string; // Track original dimensions if resized
-		originalFilename?: string; // Track original filename if changed
 	}): Vertex {
-		const { filesTree, parentFolder, hash, attachment } = params;
-		const name = params.name ?? attachment?.name ?? "file";
-		const mimeType = params.mimeType ?? attachment?.mimeType;
-		const size = params.size ?? attachment?.size;
-		const width = params.width ?? attachment?.width;
-		const height = params.height ?? attachment?.height;
-		const originalFormat = params.originalFormat;
-		const conversionQuality = params.conversionQuality;
-		const originalDimensions = params.originalDimensions;
-		const originalFilename = params.originalFilename ?? attachment?.name;
+		const { filesTree, parentFolder, fileInfo, attachment } = params;
+		
+		// Use fileInfo fields, fallback to attachment, then defaults
+		const name = fileInfo.name ?? attachment?.name ?? "file";
+		const hash = fileInfo.hash ?? "";
+		const mimeType = fileInfo.mimeType ?? attachment?.mimeType;
+		const size = fileInfo.size ?? attachment?.size;
+		const width = fileInfo.width ?? attachment?.width;
+		const height = fileInfo.height ?? attachment?.height;
 
 		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
 		if (existing) return existing;
+		
 		return filesTree.tree.newVertex(parentFolder.id, {
 			_n: "file",
 			name,
@@ -71,10 +61,6 @@ export class FilesTreeData {
 			size,
 			width,
 			height,
-			originalFormat,
-			conversionQuality,
-			originalDimensions,
-			originalFilename,
 			createdAt: Date.now(),
 		});
 	}
