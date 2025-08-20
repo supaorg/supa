@@ -18,7 +18,7 @@ Arguments:
   json-file    Path to JSON configuration file (optional, defaults to getting-started.json)
 
 Options:
-  --output <path>    Output directory for the demo space (default: ./demos/demo-space)
+  --output <path>    Output directory for the demo space (default: packages/demo/dist/demo-space)
   --help, -h         Show this help message
 
 Examples:
@@ -34,8 +34,8 @@ Examples:
   # Use custom JSON and output
   npx tsx packages/demo/src/cli.ts my-demo.json --output ./my-demo
 
-  # Via npm script
-  npm run build-demo-space my-demo.json --output ./my-demo
+  # Note: For custom arguments, run the command directly:
+  # npm run build-demo-space  # (uses defaults only)
 `);
     process.exit(0);
   }

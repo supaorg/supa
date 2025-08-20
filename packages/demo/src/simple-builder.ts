@@ -132,7 +132,7 @@ export class SimpleDemoBuilder {
         const chatData = new ChatAppData(space, appTree);
         
         // Add messages to the conversation using proper tree structure
-        this.addMessagesToChatData(chatData, conversation.messages);
+        await this.addMessagesToChatData(chatData, conversation.messages);
       }
 
       // Give operations time to flush to disk
@@ -167,20 +167,20 @@ export class SimpleDemoBuilder {
     }
   }
 
-  addMessagesToChatData(chatData: ChatAppData, messageNode: MessageNode): void {
+  async addMessagesToChatData(chatData: ChatAppData, messageNode: MessageNode): Promise<void> {
     // Add messages recursively, building the tree structure
-    this.addMessageToChatData(chatData, messageNode);
+    await this.addMessageToChatData(chatData, messageNode);
   }
 
-  private addMessageToChatData(chatData: ChatAppData, messageNode: MessageNode): void {
+  private async addMessageToChatData(chatData: ChatAppData, messageNode: MessageNode): Promise<void> {
     // Use ChatAppData's newMessage method to add the message
-    const message = chatData.newMessage(messageNode.role, messageNode.text);
+    const message = await chatData.newMessage(messageNode.role, messageNode.text);
     
     // If this message has children, add them as the next messages in the conversation
     if (messageNode.children && messageNode.children.length > 0) {
       // Add all children as subsequent messages
       for (const child of messageNode.children) {
-        this.addMessageToChatData(chatData, child);
+        await this.addMessageToChatData(chatData, child);
       }
     }
   }
