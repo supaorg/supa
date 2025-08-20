@@ -34,28 +34,55 @@ async function handlePaste(e: ClipboardEvent) {
   }
 
   let hasProcessedContent = false;
-  const previews: AttachmentPreview[] = [];
 
   // Process file objects
   const files = Array.from(clipboardData.files || []);
   if (files.length > 0) {
     hasProcessedContent = true;
-    // Process each file...
-  }
+    
+    for (const file of files) {
+      const processingId = crypto.randomUUID();
+      
+      // Add processing indicator immediately
+      attachments = [...attachments, {
+        id: processingId,
+        kind: isText ? 'text' : 'image',
+        name: file.name,
+        mimeType: file.type,
+        size: file.size,
+        isLoading: true
+      }];
 
-  // Process image data
-  const imageTypes = clipboardData.types.filter(type => type.startsWith('image/'));
-  for (const imageType of imageTypes) {
-    // Process image data...
+      try {
+        // Process file through pipeline...
+        // Replace processing indicator with completed attachment
+        attachments = attachments.map(att => 
+          att.id === processingId 
+            ? {
+                id: processingId,
+                kind: 'text',
+                name: optimizedFile.name,
+                mimeType: optimizedFile.type,
+                size: optimizedFile.size,
+                content,
+                metadata,
+                width: metadata.charCount,
+                height: metadata.lineCount,
+                alt: metadata.language,
+                isLoading: false
+              }
+            : att
+        );
+      } catch (error) {
+        // Remove processing indicator on error
+        attachments = attachments.filter(a => a.id !== processingId);
+      }
+    }
   }
 
   // Prevent default paste behavior if we processed any files or images
   if (hasProcessedContent) {
     e.preventDefault();
-  }
-
-  if (previews.length > 0) {
-    pendingAttachments = [...pendingAttachments, ...previews];
   }
 }
 ```
@@ -80,10 +107,12 @@ Pasted files go through the same processing pipeline as files selected via the f
 ## User Experience
 
 ### Visual Feedback
-- Pasted files appear immediately in the attachment preview area
-- Text files show metadata (language, line count, word count)
-- Image files show thumbnail previews
-- Files can be removed using the × button
+- **Immediate Feedback**: Processing indicators appear instantly when files are pasted
+- **Loading States**: Files show "Processing..." with spinning loader while being optimized
+- **Smooth Transitions**: Processing indicators are replaced with actual attachments when ready
+- **Text Files**: Show metadata (language, line count, word count) when processing completes
+- **Image Files**: Show thumbnail previews when processing completes
+- **Files can be removed**: Using the × button during processing or after completion
 
 ### User Guidance
 - The attachment button tooltip now includes "💡 You can also paste files directly into the text area"

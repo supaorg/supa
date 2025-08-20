@@ -2,6 +2,7 @@
   import { Send, StopCircle, Paperclip, Plus, Image as ImageIcon } from "lucide-svelte";
   import ContextMenu from "@sila/client/comps/ui/ContextMenu.svelte";
   import AppConfigDropdown from "@sila/client/comps/apps/AppConfigDropdown.svelte";
+  import AttachmentPreviewItem from "./AttachmentPreviewItem.svelte";
   import { onMount, tick } from "svelte";
   import { focusTrap } from "@sila/client/utils/focusTrap";
   import { type MessageFormStatus } from "./messageFormStatus";
@@ -54,10 +55,10 @@
   let isSending = $state(false);
   let attachmentsMenuOpen = $state(false);
   let fileInputEl: HTMLInputElement | null = $state(null);
-  let pendingAttachments = $state<AttachmentPreview[]>([]);
+  let attachments = $state<(AttachmentPreview & { isLoading?: boolean })[]>([]);
 
   let canSendMessage = $derived(
-    !disabled && status === "can-send-message" && (query.trim().length > 0 || pendingAttachments.length > 0),
+    !disabled && status === "can-send-message" && (query.trim().length > 0 || attachments.length > 0),
   );
 
   let configId = $state("");
@@ -113,13 +114,25 @@
     if (!files || files.length === 0) return;
     const selected = Array.from(files);
 
-    const previews: AttachmentPreview[] = [];
     for (const file of selected) {
+      const processingId = crypto.randomUUID();
+      const isText = file.type.startsWith('text/') || file.name.match(/\.(txt|md|json|csv|js|ts|py|java|c|cpp|cs|php|rb|go|rs|swift|kt|scala|sh|bat|ps1|yml|yaml|toml|ini|cfg|conf|xml|html|css|log|tsv)$/i);
+      
+      // Add processing indicator immediately
+      attachments = [...attachments, {
+        id: processingId,
+        kind: isText ? 'text' : 'image',
+        name: file.name,
+        mimeType: file.type,
+        size: file.size,
+        isLoading: true
+      }];
+
       try {
         // Check if it's a text file first
-        const isText = await processTextFileForUpload(file).then(() => true).catch(() => false);
+        const isTextFile = await processTextFileForUpload(file).then(() => true).catch(() => false);
         
-        if (isText) {
+        if (isTextFile) {
           // Process text file
           const processedFile = await processTextFileForUpload(file);
           const optimizedFile = await optimizeTextFile(processedFile);
@@ -128,53 +141,70 @@
           const content = await readFileAsText(optimizedFile);
           const metadata = extractTextFileMetadata(optimizedFile, content);
           
-          previews.push({
-            id: crypto.randomUUID(),
-            kind: 'text',
-            name: optimizedFile.name,
-            mimeType: optimizedFile.type,
-            size: optimizedFile.size,
-            content,
-            metadata,
-            width: metadata.charCount, // Use charCount as width (horizontal length)
-            height: metadata.lineCount, // Use lineCount as height (vertical lines)
-            alt: metadata.language, // Use language as alt text
-          });
+          // Replace processing indicator with completed attachment
+          attachments = attachments.map(att => 
+            att.id === processingId 
+              ? {
+                  id: processingId,
+                  kind: 'text',
+                  name: optimizedFile.name,
+                  mimeType: optimizedFile.type,
+                  size: optimizedFile.size,
+                  content,
+                  metadata,
+                  width: metadata.charCount,
+                  height: metadata.lineCount,
+                  alt: metadata.language,
+                  isLoading: false
+                }
+              : att
+          );
         } else {
           // Process image file
           const processedFile = await processFileForUpload(file);
           const optimizedFile = await optimizeImageSize(processedFile);
           
           // Only images for now
-          if (!optimizedFile.type.startsWith('image/')) continue;
+          if (!optimizedFile.type.startsWith('image/')) {
+            // Remove processing indicator for unsupported files
+            attachments = attachments.filter(a => a.id !== processingId);
+            continue;
+          }
           
           const dataUrl = await toDataUrl(optimizedFile);
           const dims = await getImageDimensions(dataUrl);
           
-          previews.push({
-            id: crypto.randomUUID(),
-            kind: 'image',
-            name: optimizedFile.name, // Use converted filename
-            mimeType: optimizedFile.type, // Use optimized MIME type
-            size: optimizedFile.size,
-            dataUrl,
-            width: dims?.width,
-            height: dims?.height,
-          });
+          // Replace processing indicator with completed attachment
+          attachments = attachments.map(att => 
+            att.id === processingId 
+              ? {
+                  id: processingId,
+                  kind: 'image',
+                  name: optimizedFile.name,
+                  mimeType: optimizedFile.type,
+                  size: optimizedFile.size,
+                  dataUrl,
+                  width: dims?.width,
+                  height: dims?.height,
+                  isLoading: false
+                }
+              : att
+          );
         }
       } catch (error) {
         console.error(`Failed to process ${file.name}:`, error);
+        // Remove processing indicator on error
+        attachments = attachments.filter(a => a.id !== processingId);
       }
     }
-
-    pendingAttachments = [...pendingAttachments, ...previews];
+    
     // reset input to allow re-selecting the same file
     if (fileInputEl) fileInputEl.value = "";
     attachmentsMenuOpen = false;
   }
 
   function removeAttachment(id: string) {
-    pendingAttachments = pendingAttachments.filter(a => a.id !== id);
+    attachments = attachments.filter(a => a.id !== id);
   }
 
   function openFilePicker() {
@@ -250,7 +280,7 @@
       return;
     }
 
-    onSend(query, pendingAttachments);
+    onSend(query, attachments.filter(att => !att.isLoading));
     isSending = true;
     query = "";
     if (textareaElement) {
@@ -263,7 +293,7 @@
     }
 
     // Clear in-memory attachments after sending
-    pendingAttachments = [];
+    attachments = [];
 
     // Force reset to base height after clearing content
     if (textareaElement) {
@@ -300,7 +330,6 @@
     }
 
     let hasProcessedContent = false;
-    const previews: AttachmentPreview[] = [];
 
     // Check for files in clipboard
     const files = Array.from(clipboardData.files || []);
@@ -308,11 +337,24 @@
       hasProcessedContent = true;
       
       for (const file of files) {
+        const processingId = crypto.randomUUID();
+        const isText = file.type.startsWith('text/') || file.name.match(/\.(txt|md|json|csv|js|ts|py|java|c|cpp|cs|php|rb|go|rs|swift|kt|scala|sh|bat|ps1|yml|yaml|toml|ini|cfg|conf|xml|html|css|log|tsv)$/i);
+        
+        // Add processing indicator immediately
+        attachments = [...attachments, {
+          id: processingId,
+          kind: isText ? 'text' : 'image',
+          name: file.name,
+          mimeType: file.type,
+          size: file.size,
+          isLoading: true
+        }];
+
         try {
           // Check if it's a text file first
-          const isText = await processTextFileForUpload(file).then(() => true).catch(() => false);
+          const isTextFile = await processTextFileForUpload(file).then(() => true).catch(() => false);
           
-          if (isText) {
+          if (isTextFile) {
             // Process text file
             const processedFile = await processTextFileForUpload(file);
             const optimizedFile = await optimizeTextFile(processedFile);
@@ -321,42 +363,60 @@
             const content = await readFileAsText(optimizedFile);
             const metadata = extractTextFileMetadata(optimizedFile, content);
             
-            previews.push({
-              id: crypto.randomUUID(),
-              kind: 'text',
-              name: optimizedFile.name,
-              mimeType: optimizedFile.type,
-              size: optimizedFile.size,
-              content,
-              metadata,
-              width: metadata.charCount, // Use charCount as width (horizontal length)
-              height: metadata.lineCount, // Use lineCount as height (vertical lines)
-              alt: metadata.language, // Use language as alt text
-            });
+            // Replace processing indicator with completed attachment
+            attachments = attachments.map(att => 
+              att.id === processingId 
+                ? {
+                    id: processingId,
+                    kind: 'text',
+                    name: optimizedFile.name,
+                    mimeType: optimizedFile.type,
+                    size: optimizedFile.size,
+                    content,
+                    metadata,
+                    width: metadata.charCount,
+                    height: metadata.lineCount,
+                    alt: metadata.language,
+                    isLoading: false
+                  }
+                : att
+            );
           } else {
             // Process image file
             const processedFile = await processFileForUpload(file);
             const optimizedFile = await optimizeImageSize(processedFile);
             
             // Only images for now
-            if (!optimizedFile.type.startsWith('image/')) continue;
+            if (!optimizedFile.type.startsWith('image/')) {
+              // Remove processing indicator for unsupported files
+              attachments = attachments.filter(a => a.id !== processingId);
+              continue;
+            }
             
             const dataUrl = await toDataUrl(optimizedFile);
             const dims = await getImageDimensions(dataUrl);
             
-            previews.push({
-              id: crypto.randomUUID(),
-              kind: 'image',
-              name: optimizedFile.name, // Use converted filename
-              mimeType: optimizedFile.type, // Use optimized MIME type
-              size: optimizedFile.size,
-              dataUrl,
-              width: dims?.width,
-              height: dims?.height,
-            });
+            // Replace processing indicator with completed attachment
+            attachments = attachments.map(att => 
+              att.id === processingId 
+                ? {
+                    id: processingId,
+                    kind: 'image',
+                    name: optimizedFile.name,
+                    mimeType: optimizedFile.type,
+                    size: optimizedFile.size,
+                    dataUrl,
+                    width: dims?.width,
+                    height: dims?.height,
+                    isLoading: false
+                  }
+                : att
+            );
           }
         } catch (error) {
           console.error(`Failed to process pasted file ${file.name}:`, error);
+          // Remove processing indicator on error
+          attachments = attachments.filter(a => a.id !== processingId);
         }
       }
     }
@@ -364,10 +424,23 @@
     // Check for images in clipboard (e.g., screenshots)
     const imageTypes = clipboardData.types.filter(type => type.startsWith('image/'));
     for (const imageType of imageTypes) {
+      let processingId: string | undefined;
       try {
         const dataUrl = clipboardData.getData(imageType);
         if (dataUrl && dataUrl.startsWith('data:')) {
           hasProcessedContent = true;
+          
+          processingId = crypto.randomUUID();
+          
+          // Add processing indicator immediately
+          attachments = [...attachments, {
+            id: processingId,
+            kind: 'image',
+            name: `pasted-image-${Date.now()}.${imageType.split('/')[1] || 'png'}`,
+            mimeType: imageType,
+            size: 0,
+            isLoading: true
+          }];
           
           // Convert data URL to blob
           const response = await fetch(dataUrl);
@@ -386,29 +459,35 @@
           const optimizedDataUrl = await toDataUrl(optimizedFile);
           const dims = await getImageDimensions(optimizedDataUrl);
           
-          previews.push({
-            id: crypto.randomUUID(),
-            kind: 'image',
-            name: optimizedFile.name,
-            mimeType: optimizedFile.type,
-            size: optimizedFile.size,
-            dataUrl: optimizedDataUrl,
-            width: dims?.width,
-            height: dims?.height,
-          });
+          // Replace processing indicator with completed attachment
+          attachments = attachments.map(att => 
+            att.id === processingId 
+              ? {
+                  id: processingId,
+                  kind: 'image',
+                  name: optimizedFile.name,
+                  mimeType: optimizedFile.type,
+                  size: optimizedFile.size,
+                  dataUrl: optimizedDataUrl,
+                  width: dims?.width,
+                  height: dims?.height,
+                  isLoading: false
+                }
+              : att
+          );
         }
       } catch (error) {
         console.error(`Failed to process pasted image ${imageType}:`, error);
+        // Remove processing indicator on error
+        if (processingId) {
+          attachments = attachments.filter(a => a.id !== processingId);
+        }
       }
     }
 
     // Prevent default paste behavior if we processed any files or images
     if (hasProcessedContent) {
       e.preventDefault();
-    }
-
-    if (previews.length > 0) {
-      pendingAttachments = [...pendingAttachments, ...previews];
     }
   }
 </script>
@@ -436,27 +515,13 @@
         ></textarea>
 
         <!-- Attachments previews (in-memory) -->
-        {#if pendingAttachments.length > 0}
+        {#if attachments.length > 0}
           <div class="flex flex-wrap gap-2 px-2 pt-2">
-            {#each pendingAttachments as att (att.id)}
-              <div class="relative group rounded-md p-1 bg-surface-100-900">
-                {#if att.kind === 'text' && att.metadata}
-                  <div class="text-xs opacity-70 border rounded px-2 py-1">
-                    <div class="font-medium">{att.name}</div>
-                    <div class="text-xs opacity-60">
-                      {att.metadata.language} • {att.metadata.lineCount} lines • {att.metadata.wordCount} words
-                    </div>
-                  </div>
-                {:else if att.kind === 'image' && att.dataUrl}
-                  <img src={att.dataUrl} alt={att.name} class="max-h-16 max-w-24 rounded" />
-                {:else}
-                  <div class="text-xs opacity-70">{att.name}</div>
-                {/if}
-                <button class="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-surface-200-800 hover:bg-surface-300-700 flex items-center justify-center"
-                        onclick={() => removeAttachment(att.id)} aria-label="Remove attachment">
-                  ×
-                </button>
-              </div>
+            {#each attachments as att (att.id)}
+              <AttachmentPreviewItem 
+                attachment={att}
+                onRemove={removeAttachment}
+              />
             {/each}
           </div>
         {/if}
