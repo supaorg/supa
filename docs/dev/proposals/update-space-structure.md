@@ -44,17 +44,116 @@ space
 - **Sidebar**: On selecting a user, load `public` from both the root space and the selected user space; render user space items primarily, with root space items mixed in as applicable.
 - **Space viewer tab**: Add a tab to visualize any space as a vertex tree (like a Linux FS). Useful for debugging or power usage.
 
-### Typed trees (type protectors)
+### TreeSpec: Tree structure definitions
 
-- **RootSpaceTree**: typed accessors for `app-configs`, `app-instances`, `users`, `providers`, `settings`.
-- **UserSpaceTree**: typed subset for user‑owned app instances and settings.
-- **ChatAppTree**: typed interface for messages, attachments, refs to files.
-- **SecretsAppTree**: lightweight tree that references encrypted secrets stored via the mutable uuid store (see Files section). The tree contains metadata and references, not raw secret bytes.
+A **TreeSpec** defines the expected structure and schema of a tree. TreeSpecs are referenced by app instances and used by typed tree wrappers to validate and provide convenient access patterns.
 
-Implementation notes (high‑level):
-- Use TS type guards (or Zod) for runtime validation of vertex properties per tree kind.
-- Register schemas per app kind; enforce at app instance creation/load.
-- Keep RepTree ops format unchanged; typed wrappers sit on top.
+#### TreeSpec model
+
+```ts
+interface TreeSpec {
+  id: string;                    // unique identifier (e.g., 'chat-v1', 'files-v1')
+  version: string;               // semantic versioning
+  appKind: string;               // associated app kind
+  schema: VertexSchema;          // expected vertex structure
+  requiredPaths: string[];       // required named children under root
+  optionalPaths: string[];       // optional named children
+  migrations?: Migration[];      // version-to-version migrations
+}
+
+interface VertexSchema {
+  root: PropertySchema;          // root vertex properties
+  messages?: PropertySchema;     // message vertex properties  
+  files?: PropertySchema;        // file vertex properties
+  // ... other vertex types
+}
+
+interface PropertySchema {
+  required: Record<string, PropertyType>;
+  optional: Record<string, PropertyType>;
+}
+
+type PropertyType = 'string' | 'number' | 'boolean' | 'object' | 'array';
+```
+
+#### TreeSpec registration and usage
+
+```ts
+// Register TreeSpecs globally
+TreeSpecRegistry.register(ChatTreeSpec);
+TreeSpecRegistry.register(FilesTreeSpec);
+TreeSpecRegistry.register(SecretsTreeSpec);
+
+// App instances reference TreeSpecs
+interface AppInstanceRef {
+  id: string;
+  name?: string;
+  appKind: 'chat' | 'files' | 'space' | 'secrets' | string;
+  treeSpecId?: string;           // references TreeSpec
+  treeId?: string;               // for normal app trees
+  spaceId?: string;              // for appKind === 'space'
+  configId?: string;
+  visibility?: 'public' | 'private';
+  createdAt?: number;
+  icon?: string;
+}
+```
+
+#### Typed tree wrappers
+
+TreeSpecs enable typed tree wrappers that provide convenient, validated access:
+
+- **ChatTree**: typed interface for messages, attachments, refs to files
+- **FilesTree**: typed interface for file metadata and organization  
+- **SecretsTree**: lightweight tree that references encrypted secrets
+- **RootSpaceTree**: typed accessors for `app-configs`, `app-instances`, `users`, `providers`, `settings`
+- **UserSpaceTree**: typed subset for user‑owned app instances and settings
+
+#### Tree validation and migration
+
+When a tree connects to a TreeSpec:
+
+1. **Validation**: Check that required paths exist and vertex properties match schema
+2. **Migration**: If tree version differs from TreeSpec version, run migrations in sequence
+3. **Exception**: If validation fails and no migration path exists, throw descriptive error
+
+```ts
+// Example: ChatTree connecting to a tree
+class ChatTree {
+  constructor(private appTree: AppTree) {
+    const treeSpec = TreeSpecRegistry.get('chat-v1');
+    const validation = treeSpec.validate(appTree.tree);
+    
+    if (!validation.valid) {
+      if (validation.migratable) {
+        treeSpec.migrate(appTree.tree, validation.currentVersion);
+      } else {
+        throw new Error(`Invalid chat tree: ${validation.errors.join(', ')}`);
+      }
+    }
+  }
+  
+  // Typed accessors
+  get messages(): MessageVertex[] { /* ... */ }
+  get configId(): string { /* ... */ }
+  newMessage(role: string, content: string): MessageVertex { /* ... */ }
+}
+```
+
+#### App separation from trees
+
+This creates a clear separation:
+
+- **TreeSpec**: Defines what a tree should look like (schema, structure)
+- **Tree wrapper**: Provides typed, validated access to tree data (ChatTree, FilesTree)
+- **App backend**: Business logic that uses tree wrappers (ChatAppBackend)
+- **App UI**: Components that use app backends (ChatApp.svelte)
+
+Apps can hook to any tree that matches their TreeSpec, enabling:
+- Multiple chat apps using the same chat tree
+- File management apps using files trees
+- Migration between different app implementations
+- Testing with mock tree implementations
 
 ### App instance model
 
@@ -127,12 +226,15 @@ Integration patterns:
 
 ### Affected areas (high‑level)
 
-- Core spaces API: rename `app-forest` to `app-instances` and add typed wrappers.
-- Space loader/manager: support nested spaces as app instances; parallel loading for root+user.
-- File system layer: add `files/mutable/uuid` with simple read/write APIs.
-- UI: sidebar query; space viewer tab; terminology updates.
-- Tests: update space and chat tests to new instance path; add tests for nested spaces and visibility.
-- Docs: replace terminology and add guidance on public/private and file stores.
+- **Core spaces API**: rename `app-forest` to `app-instances` and add typed wrappers.
+- **TreeSpec system**: implement TreeSpec registry, validation, and migration framework.
+- **Tree wrappers**: create ChatTree, FilesTree, SecretsTree with typed accessors.
+- **App backends**: refactor ChatAppBackend to use ChatTree wrapper instead of direct AppTree access.
+- **Space loader/manager**: support nested spaces as app instances; parallel loading for root+user.
+- **File system layer**: add `files/mutable/uuid` with simple read/write APIs.
+- **UI**: sidebar query; space viewer tab; terminology updates.
+- **Tests**: update space and chat tests to new instance path; add tests for nested spaces, visibility, and TreeSpec validation.
+- **Docs**: replace terminology and add guidance on public/private, file stores, and TreeSpec usage.
 
 ### Open questions
 
@@ -143,10 +245,12 @@ Integration patterns:
 
 ### Next steps
 
-- Prototype `app-instances` alias and typed wrappers in core.
-- Add `mutable/uuid` store with a minimal API and wire a basic `SecretsAppTree` to it.
-- Build a simple Space Viewer tab to render a space’s vertices for inspection.
-- Update tests and docs; run both naming schemes during transition.
+- **TreeSpec framework**: Implement TreeSpec registry, validation, and migration system.
+- **ChatTree wrapper**: Create ChatTree with typed accessors and migrate ChatAppBackend to use it.
+- **App instances**: Prototype `app-instances` alias and typed wrappers in core.
+- **Mutable storage**: Add `mutable/uuid` store with a minimal API and wire a basic `SecretsTree` to it.
+- **Space viewer**: Build a simple Space Viewer tab to render a space's vertices for inspection.
+- **Testing**: Update tests and docs; run both naming schemes during transition.
 
 ### Appendix: example vertex paths
 
