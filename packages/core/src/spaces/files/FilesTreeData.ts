@@ -35,12 +35,9 @@ export class FilesTreeData {
 	}
 
 	static saveFileInfo(
-		tree: AppTree,
-		fileInfo: Partial<FileInfo>,
-		folder?: Vertex
+		folder: Vertex,
+		fileInfo: Partial<FileInfo>
 	): Vertex {
-		const parentFolder = folder ?? tree.tree.root!;
-		
 		const name = fileInfo.name ?? "file";
 		const hash = fileInfo.hash ?? "";
 		const mimeType = fileInfo.mimeType;
@@ -48,10 +45,10 @@ export class FilesTreeData {
 		const width = fileInfo.width;
 		const height = fileInfo.height;
 
-		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
+		const existing = folder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
 		if (existing) return existing;
 		
-		return tree.tree.newVertex(parentFolder.id, {
+		return folder.newChild({
 			_n: "file",
 			name,
 			hash,
@@ -64,23 +61,20 @@ export class FilesTreeData {
 	}
 
 	static saveFileInfoFromAttachment(
-		tree: AppTree,
+		folder: Vertex,
 		attachment: AttachmentPreview,
-		hash: string,
-		folder?: Vertex
+		hash: string
 	): Vertex {
-		const parentFolder = folder ?? tree.tree.root!;
-		
 		const name = attachment.name ?? "file";
 		const mimeType = attachment.mimeType;
 		const size = attachment.size;
 		const width = attachment.width;
 		const height = attachment.height;
 
-		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
+		const existing = folder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
 		if (existing) return existing;
 		
-		return tree.tree.newVertex(parentFolder.id, {
+		return folder.newChild({
 			_n: "file",
 			name,
 			hash,

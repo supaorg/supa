@@ -97,7 +97,7 @@ describe('Simplified File Previews (Core)', () => {
 
     // Create file vertex using the proper API
     fileVertex = FilesTreeData.saveFileInfo(
-      filesTree,
+      filesTree.tree.getVertexByPath('files')!,
       {
         name: 'test-image.png',
         hash: put.hash,
@@ -105,8 +105,7 @@ describe('Simplified File Previews (Core)', () => {
         size: put.size,
         width: 800,
         height: 600,
-      },
-      filesTree.tree.getVertexByPath('files')!
+      }
     );
 
     fileRef = {

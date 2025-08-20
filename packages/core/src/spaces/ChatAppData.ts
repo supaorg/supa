@@ -200,20 +200,18 @@ export class ChatAppData {
         if (att?.kind === 'image' && typeof att?.dataUrl === 'string') {
           const put = await store.putDataUrl(att.dataUrl);
           const fileVertex = FilesTreeData.saveFileInfoFromAttachment(
-            targetTree,
+            parentFolder,
             att,
-            put.hash,
-            parentFolder
+            put.hash
           );
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
         } else if (att?.kind === 'text' && typeof att?.content === 'string') {
           const textBytes = new TextEncoder().encode(att.content);
           const put = await store.putBytes(textBytes);
           const fileVertex = FilesTreeData.saveFileInfoFromAttachment(
-            targetTree,
+            parentFolder,
             att,
-            put.hash,
-            parentFolder
+            put.hash
           );
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
         } else {

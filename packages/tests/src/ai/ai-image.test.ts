@@ -103,14 +103,13 @@ describe('AI Image Integration', () => {
     const { hash } = await store.putBytes(new Uint8Array(catImageBuffer), 'image/jpeg');
     const parentFolder = FilesTreeData.ensureFolderPath(chatTree, ['files']);
     const fileVertex = FilesTreeData.saveFileInfo(
-      chatTree,
+      parentFolder,
       {
         hash,
         name: 'cat.jpg',
         mimeType: 'image/jpeg',
         size: catImageBuffer.length
-      },
-      parentFolder
+      }
     );
 
     // Create a user message with files as bare FileReference (like the UI persists)

@@ -151,7 +151,7 @@ describe('HEIC Conversion Pipeline', () => {
     const folder = FilesTreeData.ensureFolderPath(filesTree, ['heic-test']);
     
     const fileVertex = FilesTreeData.saveFileInfo(
-      filesTree,
+      folder,
       {
         name: processedFile.name, // Use the converted filename
         hash: put.hash,
@@ -159,8 +159,7 @@ describe('HEIC Conversion Pipeline', () => {
         size: optimizedFile.size,
         width: dimensions!.width,
         height: dimensions!.height,
-      },
-      folder
+      }
     );
 
     expect(fileVertex.getProperty('hash')).toBe(put.hash);
@@ -237,25 +236,23 @@ describe('HEIC Conversion Pipeline', () => {
     
     // Create two file vertices with different names but same hash
     const fileVertex1 = FilesTreeData.saveFileInfo(
-      filesTree,
+      folder,
       {
         name: processedFile1.name, // Use converted filename
         hash: put1.hash,
         mimeType: processedFile1.type,
         size: processedFile1.size,
-      },
-      folder
+      }
     );
 
     const fileVertex2 = FilesTreeData.saveFileInfo(
-      filesTree,
+      folder,
       {
         name: processedFile2.name, // Use converted filename
         hash: put2.hash,
         mimeType: processedFile2.type,
         size: processedFile2.size,
-      },
-      folder
+      }
     );
 
     // Should be the same vertex due to deduplication
@@ -304,14 +301,13 @@ describe('HEIC Conversion Pipeline', () => {
     const folder = FilesTreeData.ensureFolderPath(filesTree, ['png-test']);
     
     const fileVertex = FilesTreeData.saveFileInfo(
-      filesTree,
+      folder,
       {
         name: pngFile.name,
         hash: put.hash,
         mimeType: processedFile.type,
         size: processedFile.size
-      },
-      folder
+      }
     );
 
     expect(fileVertex.getProperty('mimeType')).toBe('image/png');
@@ -368,7 +364,7 @@ describe('HEIC Conversion Pipeline', () => {
       const folder = FilesTreeData.ensureFolderPath(filesTree, ['resize-test']);
       
       const fileVertex = FilesTreeData.saveFileInfo(
-        filesTree,
+        folder,
         {
           name: optimizedFile.name,
           hash: put.hash,
@@ -376,8 +372,7 @@ describe('HEIC Conversion Pipeline', () => {
           size: optimizedFile.size,
           width: 2048, // Resized width
           height: 1536, // Resized height (maintaining aspect ratio)
-        },
-        folder
+        }
       );
 
       expect(fileVertex.getProperty('mimeType')).toBe('image/jpeg');

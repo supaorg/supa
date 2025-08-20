@@ -84,14 +84,13 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 			(String(now.getUTCDate())).padStart(2, '0')
 		]);
 		const fileVertex = FilesTreeData.saveFileInfo(
-			filesTree,
+			folder,
 			{
 				name: 'pixel.png',
 				hash: put.hash,
 				mimeType: 'image/png',
 				size: raw.byteLength
-			},
-			folder
+			}
 		);
 		expect(fileVertex.getProperty('hash')).toBe(put.hash);
 
@@ -137,14 +136,13 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		const filesTree = FilesTreeData.createNewFilesTree(space);
 		const folder = FilesTreeData.ensureFolderPath(filesTree, ['test']);
 		const fileVertex = FilesTreeData.saveFileInfo(
-			filesTree,
+			folder,
 			{
 				name: 'test.png',
 				hash: put.hash,
 				mimeType: 'image/png',
 				size: 68
-			},
-			folder
+			}
 		);
 
 		// Create a message with file reference (no dataUrl)
