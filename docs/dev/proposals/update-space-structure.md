@@ -46,7 +46,7 @@ space
 
 ### TreeSpec: Tree structure definitions
 
-A **TreeSpec** defines the expected structure and schema of a tree. TreeSpecs are referenced by app instances and used by typed tree wrappers to validate and provide convenient access patterns.
+A **TreeSpec** defines the expected structure and schema of a RepTree. TreeSpecs are referenced by app instances and used by typed tree wrappers to validate and provide convenient access patterns. This builds on the existing RepTree CRDT system while adding structure validation.
 
 #### TreeSpec model
 
@@ -54,7 +54,7 @@ A **TreeSpec** defines the expected structure and schema of a tree. TreeSpecs ar
 interface TreeSpec {
   id: string;                    // unique identifier (e.g., 'chat-v1', 'files-v1')
   version: string;               // semantic versioning
-  appKind: string;               // associated app kind
+  appKind: string;               // associated app kind (e.g., 'chat', 'files', 'space')
   schema: VertexSchema;          // expected vertex structure
   requiredPaths: string[];       // required named children under root
   optionalPaths: string[];       // optional named children
@@ -62,9 +62,10 @@ interface TreeSpec {
 }
 
 interface VertexSchema {
-  root: PropertySchema;          // root vertex properties
-  messages?: PropertySchema;     // message vertex properties  
-  files?: PropertySchema;        // file vertex properties
+  root: PropertySchema;          // root vertex properties (e.g., configId, title)
+  messages?: PropertySchema;     // message vertex properties (_n: 'message', text, role, etc.)
+  files?: PropertySchema;        // file vertex properties (_n: 'file', hash, mimeType, etc.)
+  jobs?: PropertySchema;         // job vertex properties (_n: 'job', status, etc.)
   // ... other vertex types
 }
 
@@ -74,6 +75,12 @@ interface PropertySchema {
 }
 
 type PropertyType = 'string' | 'number' | 'boolean' | 'object' | 'array';
+
+interface Migration {
+  fromVersion: string;
+  toVersion: string;
+  migrate: (tree: RepTree) => Promise<void>;
+}
 ```
 
 #### TreeSpec registration and usage
@@ -133,10 +140,27 @@ class ChatTree {
     }
   }
   
-  // Typed accessors
-  get messages(): MessageVertex[] { /* ... */ }
-  get configId(): string { /* ... */ }
-  newMessage(role: string, content: string): MessageVertex { /* ... */ }
+  // Typed accessors that work with RepTree vertices
+  get messages(): Vertex[] { 
+    return this.appTree.tree.getVertexByPath('messages')?.children || [];
+  }
+  
+  get configId(): string { 
+    return this.appTree.tree.root?.getProperty('configId') as string;
+  }
+  
+  newMessage(role: string, content: string): Vertex {
+    const messagesVertex = this.appTree.tree.getVertexByPath('messages');
+    if (!messagesVertex) throw new Error('Messages vertex not found');
+    
+    const messageVertex = this.appTree.tree.newVertex(messagesVertex.id);
+    messageVertex.setProperty('_n', 'message');
+    messageVertex.setProperty('text', content);
+    messageVertex.setProperty('role', role);
+    messageVertex.setProperty('createdAt', Date.now());
+    
+    return messageVertex;
+  }
 }
 ```
 
@@ -187,28 +211,103 @@ Notes:
 
 ### Files: immutable vs mutable stores
 
+Building on the existing CAS system, we extend the file storage to support both immutable and mutable blobs:
+
 On disk under the space root:
 
 ```
-files
-  - static/sha256/{file-sha256}
-  - mutable/uuid/{file-uuid}
+space-v1/
+  files/
+    sha256/{hash[0:2]}/{hash[2:]}     # existing CAS structure
+    mutable/uuid/{uuid}               # new mutable storage
 ```
 
-- **static/sha256**: content‑addressed, immutable, deduplicated (current CAS behavior).
-- **mutable/uuid**: uuid‑addressed blobs intended for values that may be rotated/overwritten (e.g., encrypted secret bundles, thumbnail caches).
+- **sha256/**: content‑addressed, immutable, deduplicated (current CAS behavior via FileStore).
+- **mutable/uuid/**: uuid‑addressed blobs intended for values that may be rotated/overwritten (e.g., encrypted secret bundles, thumbnail caches, temporary data).
 
-Integration patterns:
-- Files AppTree continues to reference immutable hashes for user files.
-- SecretsAppTree stores metadata pointing to an encrypted bundle at `mutable/uuid/{id}`.
+#### Integration with existing FileStore
+
+```ts
+interface FileStore {
+  // Existing CAS methods
+  putDataUrl(dataUrl: string): Promise<{ hash: string; size: number }>;
+  putBytes(bytes: Uint8Array): Promise<{ hash: string; size: number }>;
+  exists(hash: string): Promise<boolean>;
+  getBytes(hash: string): Promise<Uint8Array>;
+  getDataUrl(hash: string): Promise<string>;
+  delete(hash: string): Promise<void>;
+  
+  // New mutable storage methods
+  putMutable(uuid: string, bytes: Uint8Array): Promise<void>;
+  getMutable(uuid: string): Promise<Uint8Array>;
+  existsMutable(uuid: string): Promise<boolean>;
+  deleteMutable(uuid: string): Promise<void>;
+}
+```
+
+#### Integration patterns:
+- Files AppTree continues to reference immutable hashes for user files (unchanged).
+- SecretsTree stores metadata pointing to encrypted bundles at `mutable/uuid/{secretBundleId}`.
 - Consider versioning for mutables: `mutable/uuid/{id}/{version}` if we need history later.
+- Mutable storage integrates with existing `sila://` protocol for serving.
 
 ### Secrets handling (lightweight)
 
+Building on the existing secrets system in SpaceManager and FileSystemPersistenceLayer:
+
 - Keep encryption outside CRDT ops. Store only references and minimal metadata in the tree.
-- Write encrypted payloads to `files/mutable/uuid/{secretBundleId}`.
+- Write encrypted payloads to `space-v1/files/mutable/uuid/{secretBundleId}`.
 - Provide `space.setSecret(key, value)` and `space.getSecret(key)` backed by the secrets app instance.
-- Piggyback on existing per‑space key material or derive a secrets key from a space master key.
+- Piggyback on existing per‑space key material (already handled by FileSystemPersistenceLayer).
+
+#### SecretsTree implementation
+
+```ts
+class SecretsTree {
+  constructor(private appTree: AppTree, private space: Space) {
+    // Validate against SecretsTreeSpec
+  }
+  
+  async setSecret(key: string, value: string): Promise<void> {
+    const uuid = crypto.randomUUID();
+    const encrypted = await this.encrypt(value);
+    
+    // Store encrypted data in mutable storage
+    const fileStore = this.space.getFileStore();
+    if (fileStore) {
+      await fileStore.putMutable(uuid, new TextEncoder().encode(encrypted));
+    }
+    
+    // Store reference in tree
+    const secretsVertex = this.appTree.tree.getVertexByPath('secrets') || 
+                         this.appTree.tree.newNamedVertex(this.appTree.tree.root!.id, 'secrets');
+    
+    const secretVertex = this.appTree.tree.newVertex(secretsVertex.id);
+    secretVertex.setProperty('_n', 'secret');
+    secretVertex.setProperty('key', key);
+    secretVertex.setProperty('uuid', uuid);
+    secretVertex.setProperty('createdAt', Date.now());
+  }
+  
+  async getSecret(key: string): Promise<string | undefined> {
+    const secretsVertex = this.appTree.tree.getVertexByPath('secrets');
+    if (!secretsVertex) return undefined;
+    
+    const secretVertex = secretsVertex.children.find(v => 
+      v.getProperty('key') === key && v.getProperty('_n') === 'secret'
+    );
+    
+    if (!secretVertex) return undefined;
+    
+    const uuid = secretVertex.getProperty('uuid') as string;
+    const fileStore = this.space.getFileStore();
+    if (!fileStore) return undefined;
+    
+    const encrypted = await fileStore.getMutable(uuid);
+    return await this.decrypt(new TextDecoder().decode(encrypted));
+  }
+}
+```
 
 ### Visibility and discovery
 
@@ -217,31 +316,37 @@ Integration patterns:
 
 ### Migration plan (incremental)
 
-1) Introduce `app-instances` while continuing to populate `app-forest` as an alias.
-2) Update loaders/UI to read from `app-instances` first, fallback to `app-forest`.
-3) Migrate tests and docs to new naming.
-4) Add mutable/uuid store alongside existing `sha256` CAS; introduce APIs but keep old calls working.
-5) Implement `SecretsAppTree` as optional; migrate existing secrets persistence to it.
-6) Flip default to `app-instances`; remove `app-forest` after deprecation window.
+1) **TreeSpec framework**: Implement TreeSpec registry and validation system alongside existing app tree creation.
+2) **App instances**: Introduce `app-instances` while continuing to populate `app-forest` as an alias.
+3) **Tree wrappers**: Create ChatTree wrapper and migrate ChatAppBackend to use it instead of direct AppTree access.
+4) **Mutable storage**: Add mutable/uuid store alongside existing `sha256` CAS; extend FileStore interface.
+5) **SecretsTree**: Implement SecretsTree as optional; migrate existing secrets persistence from SpaceManager to it.
+6) **UI updates**: Update loaders/UI to read from `app-instances` first, fallback to `app-forest`.
+7) **Testing**: Migrate tests and docs to new naming and TreeSpec validation.
+8) **Cleanup**: Flip default to `app-instances`; remove `app-forest` after deprecation window.
 
 ### Affected areas (high‑level)
 
-- **Core spaces API**: rename `app-forest` to `app-instances` and add typed wrappers.
-- **TreeSpec system**: implement TreeSpec registry, validation, and migration framework.
-- **Tree wrappers**: create ChatTree, FilesTree, SecretsTree with typed accessors.
+- **Core spaces API**: rename `app-forest` to `app-instances` in Space.ts and add typed wrappers.
+- **TreeSpec system**: implement TreeSpec registry, validation, and migration framework in core.
+- **Tree wrappers**: create ChatTree, FilesTree, SecretsTree with typed accessors that work with RepTree vertices.
 - **App backends**: refactor ChatAppBackend to use ChatTree wrapper instead of direct AppTree access.
-- **Space loader/manager**: support nested spaces as app instances; parallel loading for root+user.
-- **File system layer**: add `files/mutable/uuid` with simple read/write APIs.
-- **UI**: sidebar query; space viewer tab; terminology updates.
+- **Space loader/manager**: support nested spaces as app instances; parallel loading for root+user spaces.
+- **File system layer**: extend FileStore interface and FileSystemFileStore to support mutable/uuid storage.
+- **Persistence layers**: update FileSystemPersistenceLayer to handle mutable file storage.
+- **UI**: sidebar query; space viewer tab; terminology updates in client package.
 - **Tests**: update space and chat tests to new instance path; add tests for nested spaces, visibility, and TreeSpec validation.
 - **Docs**: replace terminology and add guidance on public/private, file stores, and TreeSpec usage.
 
 ### Open questions
 
-- Do we need per‑instance ACLs beyond public/private in a single‑user app today?
-- Should mutable blobs support versioning natively or via separate metadata?
-- How do we present nested spaces in the UI without clutter? Collapsed mounts? Breadcrumbs?
-- Do we allow app instances to move between root and user spaces seamlessly (preserving ids)?
+- **ACLs**: Do we need per‑instance ACLs beyond public/private in a single‑user app today?
+- **Mutable versioning**: Should mutable blobs support versioning natively or via separate metadata?
+- **UI navigation**: How do we present nested spaces in the UI without clutter? Collapsed mounts? Breadcrumbs?
+- **Instance mobility**: Do we allow app instances to move between root and user spaces seamlessly (preserving ids)?
+- **TreeSpec evolution**: How do we handle TreeSpec changes that affect existing trees? Migration paths vs breaking changes?
+- **Performance**: How do TreeSpec validation and migration impact tree loading performance?
+- **Backward compatibility**: How long do we maintain support for old tree structures without TreeSpecs?
 
 ### Next steps
 
@@ -259,9 +364,24 @@ Integration patterns:
   app-configs/
   app-instances/
     public/
-      chat-1 { appKind: 'chat', treeId: 't-chat-1' }
+      chat-1 { appKind: 'chat', treeId: 't-chat-1', treeSpecId: 'chat-v1' }
+      files-1 { appKind: 'files', treeId: 't-files-1', treeSpecId: 'files-v1' }
     private/
+      secrets-1 { appKind: 'secrets', treeId: 't-secrets-1', treeSpecId: 'secrets-v1' }
   users/
-    dmitry { appKind: 'space', spaceId: 'space-user-dmitry' }
+    dmitry { appKind: 'space', spaceId: 'space-user-dmitry', treeSpecId: 'space-v1' }
+  providers/
+  settings/
 ```
+
+### Integration with existing systems
+
+This proposal builds on and extends existing Sila systems:
+
+- **RepTree CRDT**: TreeSpecs add structure validation to the existing CRDT system
+- **SpaceManager**: Extends to handle nested spaces and parallel loading
+- **FileStore**: Extends with mutable storage while preserving existing CAS
+- **Persistence layers**: FileSystemPersistenceLayer extended for mutable files
+- **App trees**: Existing app tree creation and loading patterns preserved
+- **File protocol**: `sila://` protocol extended to serve mutable files
 
