@@ -136,8 +136,8 @@
             size: optimizedFile.size,
             content,
             metadata,
-            width: metadata.lineCount, // Use lineCount as width for consistency
-            height: metadata.charCount, // Use charCount as height for consistency
+            width: metadata.charCount, // Use charCount as width (horizontal length)
+            height: metadata.lineCount, // Use lineCount as height (vertical lines)
             alt: metadata.language, // Use language as alt text
           });
         } else {
