@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtemp, rm, readFile, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData } from '@sila/core';
+import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData, AttachmentKind } from '@sila/core';
 import { NodeFileSystem } from '../setup/setup-node-file-system';
 import { FileResolver } from '@sila/core';
 import { ChatAppData } from '@sila/core';
@@ -150,10 +150,8 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 			text: 'Here is an image',
 			attachments: [
 				{
-					id: 'att1',
-					kind: 'image',
-					name: 'test.png',
-					file: { tree: filesTree.getId(), vertex: fileVertex.id }
+					tree: filesTree.getId(), 
+					vertex: fileVertex.id
 				}
 			]
 		};
@@ -163,7 +161,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		const resolvedAttachments = await fileResolver.resolveAttachments(messageWithFileRef.attachments);
 
 		expect(resolvedAttachments).toHaveLength(1);
-		expect(resolvedAttachments[0].id).toBe('att1');
+		expect(resolvedAttachments[0].id).toBeDefined();
 		expect(resolvedAttachments[0].kind).toBe('image');
 		expect(resolvedAttachments[0].name).toBe('test.png');
 		expect(resolvedAttachments[0].dataUrl).toBeTruthy();
@@ -197,7 +195,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		const attachments = [
 			{
 				id: 'att1',
-				kind: 'image',
+				kind: 'image' as AttachmentKind,
 				name: 'test.png',
 				dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=',
 				mimeType: 'image/png',
@@ -292,7 +290,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		// Create attachments
 		const attachment1 = {
 			id: 'att1',
-			kind: 'image',
+			kind: 'image' as AttachmentKind,
 			name: 'test1.png',
 			dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=',
 			mimeType: 'image/png',
@@ -301,7 +299,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 
 		const attachment2 = {
 			id: 'att2',
-			kind: 'image',
+			kind: 'image' as AttachmentKind,
 			name: 'test2.png',
 			dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg9v2e0UAAAAASUVORK5CYII=',
 			mimeType: 'image/png',

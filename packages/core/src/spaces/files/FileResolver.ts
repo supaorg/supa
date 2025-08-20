@@ -208,7 +208,7 @@ export class FileResolver {
 		const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
 
 		return {
-			id: originalAttachment.id,
+			id: originalAttachment.id || fileRef.vertex,
 			kind: originalAttachment.kind ?? (mimeType?.startsWith('text/') ? 'text' : (mimeType?.startsWith('image/') ? 'image' : 'file')),
 			name: originalAttachment.name || fileVertex.getProperty("name"),
 			alt: originalAttachment.alt,
