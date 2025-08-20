@@ -136,8 +136,9 @@ TreeSpecs enable typed tree wrappers that provide convenient, validated access:
 When a tree connects to a TreeSpec:
 
 1. **Validation**: Check that required paths exist and vertex properties match schema
-2. **Migration**: If tree version differs from TreeSpec version, run migrations in sequence
-3. **Exception**: If validation fails and no migration path exists, throw descriptive error
+2. **Branch creation**: If required branches are missing, create them automatically
+3. **Migration**: If tree version differs from TreeSpec version, run migrations in sequence
+4. **Exception**: If validation fails and no migration path exists, throw descriptive error
 
 ```ts
 // Example: ChatTree connecting to a tree
@@ -166,7 +167,10 @@ class ChatTree {
   
   newMessage(role: string, content: string): Vertex {
     const messagesVertex = this.appTree.tree.getVertexByPath('messages');
-    if (!messagesVertex) throw new Error('Messages vertex not found');
+    if (!messagesVertex) {
+      // Create messages branch if it doesn't exist
+      this.appTree.tree.newNamedVertex(this.appTree.tree.root!.id, 'messages', {});
+    }
     
     const messageVertex = this.appTree.tree.newNamedVertex(messagesVertex.id, 'message', {
       text: content,
@@ -293,9 +297,11 @@ class SecretsTree {
       await fileStore.putMutable(uuid, new TextEncoder().encode(encrypted));
     }
     
-    // Store reference in tree
-    const secretsVertex = this.appTree.tree.getVertexByPath('secrets') || 
-                         this.appTree.tree.newNamedVertex(this.appTree.tree.root!.id, 'secrets', {});
+    // Ensure secrets branch exists and store reference in tree
+    let secretsVertex = this.appTree.tree.getVertexByPath('secrets');
+    if (!secretsVertex) {
+      secretsVertex = this.appTree.tree.newNamedVertex(this.appTree.tree.root!.id, 'secrets', {});
+    }
     
     const secretVertex = this.appTree.tree.newNamedVertex(secretsVertex.id, 'secret', {
       key: key,
