@@ -1,6 +1,6 @@
 export interface FileStore {
-	putDataUrl(dataUrl: string): Promise<{ hash: string; mimeType?: string; size: number }>;
-	putBytes(bytes: Uint8Array, mimeType?: string): Promise<{ hash: string; size: number }>;
+	putDataUrl(dataUrl: string): Promise<{ hash: string; size: number }>;
+	putBytes(bytes: Uint8Array): Promise<{ hash: string; size: number }>;
 	exists(hash: string): Promise<boolean>;
 	getBytes(hash: string): Promise<Uint8Array>;
 	getDataUrl(hash: string): Promise<string>;
@@ -34,12 +34,12 @@ async function sha256(bytes: Uint8Array): Promise<string> {
 	return bytesToHex(new Uint8Array(digest));
 }
 
-function parseDataUrl(dataUrl: string): { mimeType: string | undefined; data: Uint8Array } {
+function parseDataUrl(dataUrl: string): Uint8Array {
 	const match = dataUrl.match(/^data:([^;]*);base64,(.*)$/);
 	if (!match) {
 		throw new Error("Unsupported data URL format");
 	}
-	const mimeType = match[1] || undefined;
+
 	const b64 = match[2];
 	let bin: Uint8Array;
 	if (typeof Buffer !== "undefined") {
@@ -51,7 +51,7 @@ function parseDataUrl(dataUrl: string): { mimeType: string | undefined; data: Ui
 		for (let i = 0; i < str.length; i++) out[i] = str.charCodeAt(i);
 		bin = out;
 	}
-	return { mimeType, data: bin };
+	return bin;
 }
 
 function makeBytesPath(spaceRoot: string, hash: string): string {
@@ -63,13 +63,12 @@ function makeBytesPath(spaceRoot: string, hash: string): string {
 class FileSystemFileStore implements FileStore {
 	constructor(private spaceRoot: string, private fs: AppFileSystem) {}
 
-	async putDataUrl(dataUrl: string): Promise<{ hash: string; mimeType?: string; size: number }> {
-		const { mimeType, data } = parseDataUrl(dataUrl);
-		const res = await this.putBytes(data, mimeType);
-		return { ...res };
+	async putDataUrl(dataUrl: string): Promise<{ hash: string; size: number }> {
+		const data = parseDataUrl(dataUrl);
+		return await this.putBytes(data);
 	}
 
-	async putBytes(bytes: Uint8Array, mimeType?: string): Promise<{ hash: string; size: number }> {
+	async putBytes(bytes: Uint8Array): Promise<{ hash: string; size: number }> {
 		const hash = await sha256(bytes);
 		const path = makeBytesPath(this.spaceRoot, hash);
 		if (await this.fs.exists(path)) {

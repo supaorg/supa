@@ -210,7 +210,7 @@ export class ChatAppData {
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
         } else if (a?.kind === 'text' && typeof a?.content === 'string') {
           const textBytes = new TextEncoder().encode(a.content);
-          const put = await store.putBytes(textBytes, a.mimeType || 'text/plain');
+          const put = await store.putBytes(textBytes);
           const fileVertex = FilesTreeData.createOrLinkFile({
             filesTree: targetTree,
             parentFolder,
@@ -222,8 +222,8 @@ export class ChatAppData {
           throw new Error(`Unsupported attachment or missing content for kind '${a?.kind}'`);
         }
       }
-      // Attach refs atomically on creation
-      (properties as any).attachments = refs as unknown as VertexPropertyType;
+
+      properties.attachments = refs;
     }
 
     const newMessageVertex = this.appTree.tree.newVertex(lastMsgVertex.id, properties);
