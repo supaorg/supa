@@ -1,7 +1,7 @@
 import type { Vertex } from "reptree";
 import type {Space } from "./Space";
 import type { VertexPropertyType } from "reptree";
-import type { ThreadMessage } from "../models";
+import type { ThreadMessage, ThreadMessageWithResolvedFiles } from "../models";
 import { AppTree } from "./AppTree";
 import { FilesTreeData } from "./files";
 import type { AttachmentPreview } from "./files";
@@ -93,11 +93,11 @@ export class ChatAppData {
    * Resolves file references in message files to data URLs
    * Used for UI rendering and AI consumption
    */
-  async resolveMessageFiles(message: ThreadMessage): Promise<ThreadMessage> {
+  async resolveMessageFiles(message: ThreadMessage): Promise<ThreadMessageWithResolvedFiles> {
     const fileRefs = (message as any).files as Array<FileReference>;
     if (!fileRefs || fileRefs.length === 0) {
       console.log('No files to resolve for message:', message.id);
-      return message;
+      return message as ThreadMessageWithResolvedFiles;
     }
 
     const fileData = await this.fileResolver.getFileData(fileRefs);
@@ -106,7 +106,7 @@ export class ChatAppData {
     return {
       ...message,
       files: fileData,
-    } as ThreadMessage;
+    } as ThreadMessageWithResolvedFiles;
   }
 
   triggerEvent(eventName: string, data: any) {

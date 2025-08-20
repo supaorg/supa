@@ -1,4 +1,4 @@
-import { FileReference } from "@sila/core";
+import { FileReference, ResolvedFileWithData } from "@sila/core";
 
 export type ThreadMessage = {
   id: string;
@@ -14,6 +14,10 @@ export type ThreadMessage = {
   modelProvider?: string | null;
   modelId?: string | null;
   files?: FileReference[] | null;
+}
+
+export type ThreadMessageWithResolvedFiles = Omit<ThreadMessage, 'files'> & {
+  files?: ResolvedFileWithData[] | null;
 }
 
 export interface AppConfig {
