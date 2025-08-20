@@ -48,15 +48,13 @@ export class FilesTreeData {
 		const existing = folder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
 		if (existing) return existing;
 		
-		return folder.newChild({
-			_n: "file",
+		return folder.newNamedChild(name, {
 			name,
 			hash,
 			mimeType,
 			size,
 			width,
-			height,
-			createdAt: Date.now(),
+			height
 		});
 	}
 
@@ -74,47 +72,13 @@ export class FilesTreeData {
 		const existing = folder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
 		if (existing) return existing;
 		
-		return folder.newChild({
-			_n: "file",
+		return folder.newNamedChild(name, {
 			name,
 			hash,
 			mimeType,
 			size,
 			width,
-			height,
-			createdAt: Date.now(),
-		});
-	}
-
-	/** @deprecated Use createOrLinkFileFromInfo or createOrLinkFileFromAttachment instead */
-	static createOrLinkFile(params: {
-		filesTree: AppTree;
-		parentFolder: Vertex;
-		fileInfo: Partial<FileInfo>;
-		attachment?: AttachmentPreview;
-	}): Vertex {
-		const { filesTree, parentFolder, fileInfo, attachment } = params;
-		
-		// Use fileInfo fields, fallback to attachment, then defaults
-		const name = fileInfo.name ?? attachment?.name ?? "file";
-		const hash = fileInfo.hash ?? "";
-		const mimeType = fileInfo.mimeType ?? attachment?.mimeType;
-		const size = fileInfo.size ?? attachment?.size;
-		const width = fileInfo.width ?? attachment?.width;
-		const height = fileInfo.height ?? attachment?.height;
-
-		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
-		if (existing) return existing;
-		
-		return filesTree.tree.newVertex(parentFolder.id, {
-			_n: "file",
-			name,
-			hash,
-			mimeType,
-			size,
-			width,
-			height,
-			createdAt: Date.now(),
+			height
 		});
 	}
 

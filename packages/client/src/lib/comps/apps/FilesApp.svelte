@@ -185,16 +185,11 @@
 
           // Step 6: Create/link file using the simplified API with attachment
           const { FilesTreeData } = await import("@sila/core");
-          FilesTreeData.createOrLinkFile({
-            filesTree,
-            parentFolder: currentFolder,
-            hash: put.hash,
-            attachment: preview,
-            originalFormat: file.type !== optimizedFile.type ? file.type : undefined,
-            conversionQuality: file.type !== optimizedFile.type ? 0.85 : undefined,
-            originalDimensions,
-            originalFilename: file.name !== optimizedFile.name ? file.name : undefined
-          });
+          FilesTreeData.saveFileInfoFromAttachment(
+            currentFolder,
+            preview,
+            put.hash
+          );
           
         } catch (error) {
           console.error(`Failed to upload ${file.name}:`, error);

@@ -141,18 +141,18 @@ FilesTreeData.getOrCreateDefaultFilesTree(space)
 // Ensure folder path exists
 FilesTreeData.ensureFolderPath(filesTree, ['YYYY', 'MM', 'DD'])
 
-// Create or link file vertex
-FilesTreeData.createOrLinkFile({
-  filesTree,
-  parentFolder,
+// Create a file vertex under a folder
+FilesTreeData.saveFileInfo(folder, {
   name,
   hash,
   mimeType,
   size,
   width,
   height,
-  // ... conversion metadata
 })
+
+// Or from an AttachmentPreview
+FilesTreeData.saveFileInfoFromAttachment(folder, attachment, hash)
 ```
 
 ## File Serving

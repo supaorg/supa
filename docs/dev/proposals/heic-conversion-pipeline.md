@@ -52,19 +52,14 @@ async function uploadFiles(fileList: File[]) {
     // Step 4: Upload to CAS (deduplication happens here)
     const put = await store.putDataUrl(dataUrl);
     
-    // Step 5: Create vertex with original filename but optimized data
-    FilesTreeData.createOrLinkFile({
-      filesTree,
-      parentFolder: currentFolder,
-      name: file.name, // Keep original filename
+    // Step 5: Create vertex under current folder with optimized data
+    FilesTreeData.saveFileInfo(currentFolder, {
+      name: file.name, // Filename to display
       hash: put.hash,  // Hash of optimized data
-      mimeType: optimizedFile.type, // Optimized MIME type
+      mimeType: optimizedFile.type,
       size: optimizedFile.size,
       width: metadata.width,
       height: metadata.height,
-      originalFormat: file.type !== optimizedFile.type ? file.type : undefined,
-      originalDimensions: file.type.startsWith('image/') ? 
-        `${originalWidth}x${originalHeight}` : undefined
     });
   }
 }
@@ -136,6 +131,7 @@ async function optimizeImageSize(file: File): Promise<File> {
 ```
 
 ### 2. Browser-Based HEIC Conversion & Image Optimization
+### 2. Browser-Based HEIC Conversion & Image Optimization
 
 #### HEIC Conversion Function
 ```typescript
@@ -196,37 +192,7 @@ async function resizeImage(file: File, width: number, height: number, quality: n
 ### 3. Enhanced Vertex Metadata
 
 #### Optional Conversion Tracking
-```typescript
-// Enhanced FilesTreeData.createOrLinkFile
-static createOrLinkFile(params: {
-  filesTree: AppTree;
-  parentFolder: Vertex;
-  name: string;
-  hash: string;
-  mimeType?: string;
-  size?: number;
-  width?: number;
-  height?: number;
-  originalFormat?: string; // Track if file was converted
-  conversionQuality?: number; // Track conversion quality
-  originalDimensions?: string; // Track original dimensions if resized
-}): Vertex {
-  // ... existing implementation with additional properties
-  return filesTree.tree.newVertex(parentFolder.id, {
-    _n: "file",
-    name,
-    hash,
-    mimeType,
-    size,
-    width,
-    height,
-    originalFormat, // Store original format if different
-    conversionQuality, // Store conversion quality
-    originalDimensions, // Store original dimensions if resized
-    createdAt: Date.now(),
-  });
-}
-```
+You can store any additional metadata next to the file vertex using normal properties when creating it via `saveFileInfo`.
 
 ## Integration Points
 
