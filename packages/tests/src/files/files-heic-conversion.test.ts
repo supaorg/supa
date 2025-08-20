@@ -150,18 +150,18 @@ describe('HEIC Conversion Pipeline', () => {
     const filesTree = FilesTreeData.createNewFilesTree(space);
     const folder = FilesTreeData.ensureFolderPath(filesTree, ['heic-test']);
     
-    const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
+    const fileVertex = FilesTreeData.saveFileInfo(
       filesTree,
-      parentFolder: folder,
-      fileInfo: {
+      {
         name: processedFile.name, // Use the converted filename
         hash: put.hash,
         mimeType: optimizedFile.type,
         size: optimizedFile.size,
         width: dimensions!.width,
         height: dimensions!.height,
-      }
-    });
+      },
+      folder
+    );
 
     expect(fileVertex.getProperty('hash')).toBe(put.hash);
     expect(fileVertex.getProperty('mimeType')).toBe('image/jpeg');
@@ -236,27 +236,27 @@ describe('HEIC Conversion Pipeline', () => {
     const folder = FilesTreeData.ensureFolderPath(filesTree, ['dedup-test']);
     
     // Create two file vertices with different names but same hash
-    const fileVertex1 = FilesTreeData.createOrLinkFileFromInfo({
+    const fileVertex1 = FilesTreeData.saveFileInfo(
       filesTree,
-      parentFolder: folder,
-      fileInfo: {
+      {
         name: processedFile1.name, // Use converted filename
         hash: put1.hash,
         mimeType: processedFile1.type,
         size: processedFile1.size,
-      }
-    });
+      },
+      folder
+    );
 
-    const fileVertex2 = FilesTreeData.createOrLinkFileFromInfo({
+    const fileVertex2 = FilesTreeData.saveFileInfo(
       filesTree,
-      parentFolder: folder,
-      fileInfo: {
+      {
         name: processedFile2.name, // Use converted filename
         hash: put2.hash,
         mimeType: processedFile2.type,
         size: processedFile2.size,
-      }
-    });
+      },
+      folder
+    );
 
     // Should be the same vertex due to deduplication
     expect(fileVertex1.id).toBe(fileVertex2.id);
@@ -303,16 +303,16 @@ describe('HEIC Conversion Pipeline', () => {
     const filesTree = FilesTreeData.createNewFilesTree(space);
     const folder = FilesTreeData.ensureFolderPath(filesTree, ['png-test']);
     
-    const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
+    const fileVertex = FilesTreeData.saveFileInfo(
       filesTree,
-      parentFolder: folder,
-      fileInfo: {
+      {
         name: pngFile.name,
         hash: put.hash,
         mimeType: processedFile.type,
         size: processedFile.size
-      }
-    });
+      },
+      folder
+    );
 
     expect(fileVertex.getProperty('mimeType')).toBe('image/png');
   });
@@ -367,18 +367,18 @@ describe('HEIC Conversion Pipeline', () => {
       const filesTree = FilesTreeData.createNewFilesTree(space);
       const folder = FilesTreeData.ensureFolderPath(filesTree, ['resize-test']);
       
-      const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
+      const fileVertex = FilesTreeData.saveFileInfo(
         filesTree,
-        parentFolder: folder,
-        fileInfo: {
+        {
           name: optimizedFile.name,
           hash: put.hash,
           mimeType: optimizedFile.type,
           size: optimizedFile.size,
           width: 2048, // Resized width
           height: 1536, // Resized height (maintaining aspect ratio)
-        }
-      });
+        },
+        folder
+      );
 
       expect(fileVertex.getProperty('mimeType')).toBe('image/jpeg');
       expect(fileVertex.getProperty('width')).toBe(2048); // Resized width

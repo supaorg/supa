@@ -102,16 +102,16 @@ describe('AI Image Integration', () => {
     const store = space.getFileStore()!;
     const { hash } = await store.putBytes(new Uint8Array(catImageBuffer), 'image/jpeg');
     const parentFolder = FilesTreeData.ensureFolderPath(chatTree, ['files']);
-    const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
-      filesTree: chatTree,
-      parentFolder,
-      fileInfo: {
+    const fileVertex = FilesTreeData.saveFileInfo(
+      chatTree,
+      {
         hash,
         name: 'cat.jpg',
         mimeType: 'image/jpeg',
         size: catImageBuffer.length
-      }
-    });
+      },
+      parentFolder
+    );
 
     // Create a user message with files as bare FileReference (like the UI persists)
     const messagesRoot = chatData.messagesVertex!;

@@ -141,18 +141,18 @@ describe('Simplified File Previews (Svelte)', () => {
     const put = await fileStore!.putBytes(testImageBytes, 'image/png');
 
     // Create file vertex using the proper API
-    fileVertex = FilesTreeData.createOrLinkFileFromInfo({
+    fileVertex = FilesTreeData.saveFileInfo(
       filesTree,
-      parentFolder: filesTree.tree.getVertexByPath('files')!,
-      fileInfo: {
+      {
         name: 'test-image.png',
         hash: put.hash,
         mimeType: 'image/png',
         size: put.size,
         width: 800,
         height: 600,
-      }
-    });
+      },
+      filesTree.tree.getVertexByPath('files')!
+    );
 
     fileRef = {
       tree: filesTree.getId(),

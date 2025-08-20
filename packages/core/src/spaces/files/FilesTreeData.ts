@@ -34,12 +34,12 @@ export class FilesTreeData {
 		return cur;
 	}
 
-	static createOrLinkFileFromInfo(params: {
-		filesTree: AppTree;
-		parentFolder: Vertex;
-		fileInfo: Partial<FileInfo>;
-	}): Vertex {
-		const { filesTree, parentFolder, fileInfo } = params;
+	static saveFileInfo(
+		tree: AppTree,
+		fileInfo: Partial<FileInfo>,
+		folder?: Vertex
+	): Vertex {
+		const parentFolder = folder ?? tree.tree.root!;
 		
 		const name = fileInfo.name ?? "file";
 		const hash = fileInfo.hash ?? "";
@@ -51,7 +51,7 @@ export class FilesTreeData {
 		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
 		if (existing) return existing;
 		
-		return filesTree.tree.newVertex(parentFolder.id, {
+		return tree.tree.newVertex(parentFolder.id, {
 			_n: "file",
 			name,
 			hash,
@@ -63,13 +63,13 @@ export class FilesTreeData {
 		});
 	}
 
-	static createOrLinkFileFromAttachment(params: {
-		filesTree: AppTree;
-		parentFolder: Vertex;
-		attachment: AttachmentPreview;
-		hash: string; // Hash is required for attachments
-	}): Vertex {
-		const { filesTree, parentFolder, attachment, hash } = params;
+	static saveFileInfoFromAttachment(
+		tree: AppTree,
+		attachment: AttachmentPreview,
+		hash: string,
+		folder?: Vertex
+	): Vertex {
+		const parentFolder = folder ?? tree.tree.root!;
 		
 		const name = attachment.name ?? "file";
 		const mimeType = attachment.mimeType;
@@ -80,7 +80,7 @@ export class FilesTreeData {
 		const existing = parentFolder.children.find((c) => c.getProperty("hash") === hash || c.name === name);
 		if (existing) return existing;
 		
-		return filesTree.tree.newVertex(parentFolder.id, {
+		return tree.tree.newVertex(parentFolder.id, {
 			_n: "file",
 			name,
 			hash,

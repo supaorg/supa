@@ -105,16 +105,16 @@ describe('Local assets persisted in workspace CAS', () => {
 
       // Create file vertex
       const name = f.name.replace(/\.b64$/i, '');
-      const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
+      const fileVertex = FilesTreeData.saveFileInfo(
         filesTree,
-        parentFolder: folder,
-        fileInfo: {
+        {
           name,
           hash: put.hash,
           mimeType: mime,
           size: bytes.byteLength
-        }
-      });
+        },
+        folder
+      );
       expect(fileVertex.getProperty('hash')).toBe(put.hash);
     }
 

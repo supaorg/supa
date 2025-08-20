@@ -199,22 +199,22 @@ export class ChatAppData {
       for (const att of attachments) {
         if (att?.kind === 'image' && typeof att?.dataUrl === 'string') {
           const put = await store.putDataUrl(att.dataUrl);
-          const fileVertex = FilesTreeData.createOrLinkFileFromAttachment({
-            filesTree: targetTree,
-            parentFolder,
-            attachment: att,
-            hash: put.hash,
-          });
+          const fileVertex = FilesTreeData.saveFileInfoFromAttachment(
+            targetTree,
+            att,
+            put.hash,
+            parentFolder
+          );
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
         } else if (att?.kind === 'text' && typeof att?.content === 'string') {
           const textBytes = new TextEncoder().encode(att.content);
           const put = await store.putBytes(textBytes);
-          const fileVertex = FilesTreeData.createOrLinkFileFromAttachment({
-            filesTree: targetTree,
-            parentFolder,
-            attachment: att,
-            hash: put.hash,
-          });
+          const fileVertex = FilesTreeData.saveFileInfoFromAttachment(
+            targetTree,
+            att,
+            put.hash,
+            parentFolder
+          );
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
         } else {
           throw new Error(`Unsupported attachment or missing content for kind '${att?.kind}'`);

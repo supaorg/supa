@@ -83,16 +83,16 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 			(String(now.getUTCMonth() + 1)).padStart(2, '0'),
 			(String(now.getUTCDate())).padStart(2, '0')
 		]);
-		const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
+		const fileVertex = FilesTreeData.saveFileInfo(
 			filesTree,
-			parentFolder: folder,
-			fileInfo: {
+			{
 				name: 'pixel.png',
 				hash: put.hash,
 				mimeType: 'image/png',
 				size: raw.byteLength
-			}
-		});
+			},
+			folder
+		);
 		expect(fileVertex.getProperty('hash')).toBe(put.hash);
 
 		// Allow ops to be flushed
@@ -136,16 +136,16 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		// Create a files app tree and file vertex
 		const filesTree = FilesTreeData.createNewFilesTree(space);
 		const folder = FilesTreeData.ensureFolderPath(filesTree, ['test']);
-		const fileVertex = FilesTreeData.createOrLinkFileFromInfo({
+		const fileVertex = FilesTreeData.saveFileInfo(
 			filesTree,
-			parentFolder: folder,
-			fileInfo: {
+			{
 				name: 'test.png',
 				hash: put.hash,
 				mimeType: 'image/png',
 				size: 68
-			}
-		});
+			},
+			folder
+		);
 
 		// Create a message with file reference (no dataUrl)
 		const messageWithFileRef = {
