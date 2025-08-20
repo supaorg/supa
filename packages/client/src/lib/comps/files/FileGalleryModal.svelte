@@ -1,16 +1,36 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { X } from 'lucide-svelte';
-  import { getFilePreviewConfig } from '@sila/client/utils/filePreview';
+  import { getFilePreviewConfig, formatFileSize } from '@sila/client/utils/filePreview';
   import { clientState } from '../../state/clientState.svelte';
 
   let activeFile = $derived(clientState.gallery.activeFile);
   let isOpen = $derived(clientState.gallery.isOpen);
+  let lineCount = $state<number | null>(null);
+  let isLoadingLines = $state(false);
 
   let previewConfig = $derived.by(() => {
     if (!activeFile?.mimeType) return null;
     return getFilePreviewConfig(activeFile.mimeType);
   });
+
+  async function getLineCount(fileUrl: string): Promise<number | null> {
+    try {
+      isLoadingLines = true;
+      const response = await fetch(fileUrl);
+      if (!response.ok) return null;
+      
+      const text = await response.text();
+      // Count lines (split by newlines and filter out empty lines)
+      const lines = text.split('\n').filter(line => line.trim().length > 0);
+      return lines.length;
+    } catch (error) {
+      console.warn('Failed to get line count:', error);
+      return null;
+    } finally {
+      isLoadingLines = false;
+    }
+  }
 
   function handleKeydown(event: KeyboardEvent) {
     if (!isOpen) return;
@@ -32,12 +52,26 @@
       document.removeEventListener('keydown', handleKeydown);
     };
   });
+
+  // Get line count when text file is opened
+  $effect(() => {
+    if (isOpen && activeFile && (previewConfig?.previewType === 'text' || previewConfig?.previewType === 'code')) {
+      lineCount = null;
+      getLineCount(activeFile.url).then(count => {
+        lineCount = count;
+      });
+    }
+  });
 </script>
 
 {#if isOpen && activeFile && previewConfig}
   <div 
     class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
     onclick={handleBackdropClick}
+    onkeydown={(e) => e.key === 'Escape' && handleBackdropClick(e)}
+    tabindex="0"
+    role="button"
+    aria-label="Close gallery"
   >
     <!-- Close button -->
     <button 
@@ -72,9 +106,16 @@
         <div class="bg-white text-black p-8 rounded text-center max-w-md">
           <div class="text-6xl mb-4">{previewConfig.icon}</div>
           <h3 class="text-xl font-medium mb-2">{activeFile.name}</h3>
-          <p class="text-gray-600 mb-4">
-            Text file preview not yet implemented
-          </p>
+          <div class="text-gray-600 mb-4 space-y-1">
+            {#if activeFile.size !== undefined}
+              <p>Size: {formatFileSize(activeFile.size)}</p>
+            {/if}
+            {#if isLoadingLines}
+              <p>Loading line count...</p>
+            {:else if lineCount !== null}
+              <p>Lines: {lineCount.toLocaleString()}</p>
+            {/if}
+          </div>
           <button 
             class="btn preset-filled-primary-500" 
             onclick={() => {
