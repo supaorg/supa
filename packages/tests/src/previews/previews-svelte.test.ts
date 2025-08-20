@@ -41,7 +41,7 @@ class SvelteFileResolver {
       }
 
       const hash = fileVertex.getProperty('hash') as string;
-      const name = fileVertex.getProperty('name') as string;
+      const name = (fileVertex.name as string) || (fileVertex.getProperty('name') as string);
       const mimeType = fileVertex.getProperty('mimeType') as string;
       const size = fileVertex.getProperty('size') as number;
       const width = fileVertex.getProperty('width') as number;

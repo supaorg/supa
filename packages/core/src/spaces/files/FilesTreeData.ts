@@ -73,7 +73,6 @@ export class FilesTreeData {
 		if (existing) return existing;
 		
 		return folder.newNamedChild(name, {
-			name,
 			hash,
 			mimeType,
 			size,
@@ -85,8 +84,7 @@ export class FilesTreeData {
 	/** Returns normalized file info from a file vertex */
 	static getFileInfo(fileVertex: Vertex): FileInfo {
 		return {
-			id: fileVertex.id,
-			name: (fileVertex.getProperty('name') as string) ?? '',
+			name: fileVertex.name ?? '',
 			hash: (fileVertex.getProperty('hash') as string) ?? '',
 			mimeType: fileVertex.getProperty('mimeType') as string,
 			size: fileVertex.getProperty('size') as number,

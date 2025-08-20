@@ -202,32 +202,6 @@ export default class ChatAppBackend {
     }
   }
 
-  /**
-   * Briefly retries reading attachments from the message vertex to avoid a race
-   * where the backend reacts before ChatAppData has finished persisting attachments.
-   */
-  private async readAttachmentsWithRetry(messageId?: string, fallback?: any): Promise<any> {
-    const maxAttempts = 6; // ~150ms total
-    const delayMs = 25;
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      if (messageId) {
-        const v = this.appTree.tree.getVertex(messageId);
-        const atts = v?.getProperty('attachments') as any;
-        if (Array.isArray(atts) && atts.length > 0) return atts;
-      }
-      // if fallback already has attachments, use it immediately
-      if (Array.isArray(fallback) && fallback.length > 0) return fallback;
-      await new Promise((res) => setTimeout(res, delayMs));
-    }
-    // Final read
-    if (messageId) {
-      const v = this.appTree.tree.getVertex(messageId);
-      const atts = v?.getProperty('attachments') as any;
-      if (Array.isArray(atts) && atts.length > 0) return atts;
-    }
-    return fallback;
-  }
-
   // Generate a new assistant reply as a sibling branch for the specified assistant message
   private async rerunAssistantMessage(targetAssistantMessageId: string) {
     const data = this.data;

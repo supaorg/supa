@@ -65,7 +65,7 @@ export class FileResolver {
 
 			// Extract metadata from the file vertex
 			const hash = fileVertex.getProperty('hash') as string;
-			const name = fileVertex.getProperty('name') as string;
+			const name = fileVertex.name;
 			const mimeType = fileVertex.getProperty('mimeType') as string;
 			const size = fileVertex.getProperty('size') as number;
 			const width = fileVertex.getProperty('width') as number;
@@ -208,7 +208,7 @@ export class FileResolver {
 		return {
 			id: fileRef.vertex,
 			kind: mimeType?.startsWith('text/') ? 'text' : (mimeType?.startsWith('image/') ? 'image' : 'file'),
-			name: fileVertex.getProperty("name") as string,
+			name: (fileVertex.name as string) || (fileVertex.getProperty("name") as string),
 			alt: undefined,
 			dataUrl,
 			mimeType,
