@@ -168,11 +168,10 @@ class ChatTree {
     const messagesVertex = this.appTree.tree.getVertexByPath('messages');
     if (!messagesVertex) throw new Error('Messages vertex not found');
     
-    const messageVertex = this.appTree.tree.newVertex(messagesVertex.id);
-    messageVertex.setProperty('_n', 'message');
-    messageVertex.setProperty('text', content);
-    messageVertex.setProperty('role', role);
-    messageVertex.setProperty('createdAt', Date.now());
+    const messageVertex = this.appTree.tree.newNamedVertex(messagesVertex.id, 'message', {
+      text: content,
+      role: role
+    });
     
     return messageVertex;
   }
@@ -296,13 +295,12 @@ class SecretsTree {
     
     // Store reference in tree
     const secretsVertex = this.appTree.tree.getVertexByPath('secrets') || 
-                         this.appTree.tree.newNamedVertex(this.appTree.tree.root!.id, 'secrets');
+                         this.appTree.tree.newNamedVertex(this.appTree.tree.root!.id, 'secrets', {});
     
-    const secretVertex = this.appTree.tree.newVertex(secretsVertex.id);
-    secretVertex.setProperty('_n', 'secret');
-    secretVertex.setProperty('key', key);
-    secretVertex.setProperty('uuid', uuid);
-    secretVertex.setProperty('createdAt', Date.now());
+    const secretVertex = this.appTree.tree.newNamedVertex(secretsVertex.id, 'secret', {
+      key: key,
+      uuid: uuid
+    });
   }
   
   async getSecret(key: string): Promise<string | undefined> {
