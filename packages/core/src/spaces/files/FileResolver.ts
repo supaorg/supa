@@ -7,7 +7,7 @@ export interface FileReference {
 	vertex: string;
 }
 
-export interface ResolvedAttachment {
+export interface ResolvedFileWithData {
 	id: string;
 	kind: string;
 	name?: string;
@@ -107,7 +107,7 @@ export class FileResolver {
 	/**
 	 * Resolves multiple file references
 	 */
-	async resolveFileReferences(fileRefs: FileReference[]): Promise<ResolvedFileInfo[]> {
+	async getFilesInfo(fileRefs: FileReference[]): Promise<ResolvedFileInfo[]> {
 		const resolved: ResolvedFileInfo[] = [];
 		
 		for (const fileRef of fileRefs) {
@@ -124,21 +124,20 @@ export class FileResolver {
 	 * Resolves file references in attachments to data URLs
 	 * Used for UI rendering and AI consumption
 	 */
-	async resolveAttachments(attachments: Array<FileReference>): Promise<ResolvedAttachment[]> {
-		if (!attachments || attachments.length === 0) {
+	async getFileData(fileRefs: Array<FileReference>): Promise<ResolvedFileWithData[]> {
+		if (!fileRefs || fileRefs.length === 0) {
 			return [];
 		}
 
-		const resolved: ResolvedAttachment[] = [];
+		const resolved: ResolvedFileWithData[] = [];
 		const fileStore = this.space.getFileStore();
 
-		for (const attachment of attachments) {
+		for (const file of fileRefs) {
 			// If has file reference, resolve it
-			if (attachment?.tree && attachment?.vertex) {
+			if (file?.tree && file?.vertex) {
 				try {
-					const resolvedAttachment = await this.resolveFileReferenceForAttachment(
-						attachment as FileReference,
-						attachment,
+					const resolvedAttachment = await this.resolveFileReferenceToData(
+						file,
 						fileStore
 					);
 					if (resolvedAttachment) {
@@ -159,11 +158,10 @@ export class FileResolver {
 	/**
 	 * Resolves a single file reference to a data URL for attachments
 	 */
-	private async resolveFileReferenceForAttachment(
+	private async resolveFileReferenceToData(
 		fileRef: FileReference,
-		originalAttachment: any,
 		fileStore: any
-	): Promise<ResolvedAttachment | null> {
+	): Promise<ResolvedFileWithData | null> {
 		// Load the files app tree
 		const filesTree = await this.loadAppTree(fileRef.tree);
 		if (!filesTree) {
@@ -208,44 +206,9 @@ export class FileResolver {
 		const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
 
 		return {
-			id: originalAttachment.id || fileRef.vertex,
-			kind: originalAttachment.kind ?? (mimeType?.startsWith('text/') ? 'text' : (mimeType?.startsWith('image/') ? 'image' : 'file')),
-			name: originalAttachment.name || fileVertex.getProperty("name"),
-			alt: originalAttachment.alt,
-			dataUrl,
-			mimeType,
-			size,
-			width,
-			height,
-		};
-	}
-
-	private async resolveFileReferenceToDataUrl(fileRef: FileReference, fileStore: any): Promise<ResolvedAttachment | null> {
-		const filesTree = await this.loadAppTree(fileRef.tree);
-		if (!filesTree) return null;
-		const fileVertex = filesTree.tree.getVertex(fileRef.vertex);
-		if (!fileVertex) return null;
-		const hash = fileVertex.getProperty('hash') as string;
-		if (!hash) return null;
-		if (!fileStore) throw new Error('FileStore not available for resolving file references');
-		const bytes = await fileStore.getBytes(hash);
-		const mimeType = fileVertex.getProperty('mimeType') as string;
-		const size = fileVertex.getProperty('size') as number;
-		const width = fileVertex.getProperty('width') as number;
-		const height = fileVertex.getProperty('height') as number;
-		let base64: string;
-		if (typeof Buffer !== 'undefined') {
-			base64 = Buffer.from(bytes).toString('base64');
-		} else {
-			// Browser environment - convert Uint8Array to base64 safely
-			const binaryString = Array.from(bytes, (byte: number) => String.fromCharCode(byte)).join('');
-			base64 = btoa(binaryString);
-		}
-		const dataUrl = `data:${mimeType || 'application/octet-stream'};base64,${base64}`;
-		return {
 			id: fileRef.vertex,
 			kind: mimeType?.startsWith('text/') ? 'text' : (mimeType?.startsWith('image/') ? 'image' : 'file'),
-			name: fileVertex.getProperty('name') as string,
+			name: fileVertex.getProperty("name") as string,
 			alt: undefined,
 			dataUrl,
 			mimeType,

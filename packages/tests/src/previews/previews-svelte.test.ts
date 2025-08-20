@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData } from '@sila/core';
 import { NodeFileSystem } from '../setup/setup-node-file-system';
-import type { FileReference } from '@sila/core/spaces/files/FileResolver';
+import type { FileReference } from '@sila/core';
 
 // Mock the client state for Svelte testing
 class MockClientState {
@@ -88,12 +88,12 @@ interface SimpleAttachment {
 // Utility functions for testing
 class FilePreviewUtils {
   static extractFileReferences(message: any): FileReference[] {
-    const attachments = message?.attachments;
-    if (!attachments || !Array.isArray(attachments)) {
+    const files = message?.files;
+    if (!files || !Array.isArray(files)) {
       return [];
     }
 
-    return attachments
+    return files
       .filter((att: any) => att?.file?.tree && att?.file?.vertex)
       .map((att: any) => att.file);
   }
@@ -195,7 +195,7 @@ describe('Simplified File Previews (Svelte)', () => {
       const message = {
         id: 'msg1',
         text: 'Here is an image',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -321,7 +321,7 @@ describe('Simplified File Previews (Svelte)', () => {
               {
                 id: 'msg1',
                 text: 'Hello',
-                attachments: [
+                files: [
                   {
                     id: 'att1',
                     kind: 'image',

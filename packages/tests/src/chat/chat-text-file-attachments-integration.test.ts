@@ -108,14 +108,14 @@ function test() {
       expect(message.text).toBe('Please review this file');
       expect(message.role).toBe('user');
 
-      // Verify attachment was persisted
+      // Verify files were persisted
       const messageVertex = chatTree.tree.getVertex(message.id);
-      const attachments = messageVertex?.getProperty('attachments') as any[];
-      expect(attachments).toBeDefined();
-      expect(attachments.length).toBe(1);
-      // Persisted attachments are bare FileReference now
-      expect(attachments[0].tree).toBeDefined();
-      expect(attachments[0].vertex).toBeDefined();
+      const files = messageVertex?.getProperty('files') as any[];
+      expect(files).toBeDefined();
+      expect(files.length).toBe(1);
+      // Persisted files are bare FileReference now
+      expect(files[0].tree).toBeDefined();
+      expect(files[0].vertex).toBeDefined();
     });
 
     it('should handle mixed image and text file attachments', async () => {
@@ -165,13 +165,13 @@ function test() {
       expect(message).toBeDefined();
       expect(message.text).toBe('Here are both files');
 
-      // Verify both attachments were persisted
+      // Verify both files were persisted
       const messageVertex = chatTree.tree.getVertex(message.id);
-      const attachments = messageVertex?.getProperty('attachments') as any[];
-      expect(attachments).toBeDefined();
-      expect(attachments.length).toBe(2);
+      const files = messageVertex?.getProperty('files') as any[];
+      expect(files).toBeDefined();
+      expect(files.length).toBe(2);
       
-      const [att] = attachments;
+      const [att] = files;
       expect(att.tree).toBeDefined();
     });
 
@@ -209,8 +209,8 @@ function test() {
       
       // Verify the large file was handled
       const messageVertex = chatTree.tree.getVertex(message.id);
-      const attachments = messageVertex?.getProperty('attachments') as any[];
-      expect(attachments[0].tree).toBeDefined();
+      const files = messageVertex?.getProperty('files') as any[];
+      expect(files[0].tree).toBeDefined();
     });
   });
 
@@ -312,8 +312,8 @@ function test() {
       
       // Verify empty file was handled
       const messageVertex = chatTree.tree.getVertex(message.id);
-      const attachments = messageVertex?.getProperty('attachments') as any[];
-      expect(attachments[0].tree).toBeDefined();
+      const files = messageVertex?.getProperty('files') as any[];
+      expect(files[0].tree).toBeDefined();
     });
   });
 
@@ -380,9 +380,9 @@ function test() {
         expect(message).toBeDefined();
         
         const messageVertex = chatTree.tree.getVertex(message.id);
-        const attachments = messageVertex?.getProperty('attachments') as any[];
-        expect(attachments[0].tree).toBeDefined();
-        expect(attachments[0].vertex).toBeDefined();
+        const files = messageVertex?.getProperty('files') as any[];
+        expect(files[0].tree).toBeDefined();
+        expect(files[0].vertex).toBeDefined();
       }
     });
   });

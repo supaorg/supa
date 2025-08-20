@@ -90,24 +90,22 @@ export class ChatAppData {
   }
 
   /**
-   * Resolves file references in message attachments to data URLs
+   * Resolves file references in message files to data URLs
    * Used for UI rendering and AI consumption
    */
-  async resolveMessageAttachments(message: ThreadMessage): Promise<ThreadMessage> {
-    const attachments = (message as any).attachments as Array<FileReference>;
-    if (!attachments || attachments.length === 0) {
-      console.log('No attachments to resolve for message:', message.id);
+  async resolveMessageFiles(message: ThreadMessage): Promise<ThreadMessage> {
+    const fileRefs = (message as any).files as Array<FileReference>;
+    if (!fileRefs || fileRefs.length === 0) {
+      console.log('No files to resolve for message:', message.id);
       return message;
     }
 
-    console.log('Resolving attachments for message:', message.id, 'attachments:', attachments);
-    const resolvedAttachments = await this.fileResolver.resolveAttachments(attachments);
-    console.log('Resolved attachments:', resolvedAttachments);
+    const fileData = await this.fileResolver.getFileData(fileRefs);
     
-    // Create a new message object with resolved attachments
+    // Create a new message object with resolved files
     return {
       ...message,
-      attachments: resolvedAttachments,
+      files: fileData,
     } as ThreadMessage;
   }
 
@@ -198,32 +196,32 @@ export class ChatAppData {
       }
       const { targetTree, parentFolder } = await this.resolveFileTarget(fileTarget);
       const refs: Array<FileReference> = [];
-      for (const a of attachments) {
-        if (a?.kind === 'image' && typeof a?.dataUrl === 'string') {
-          const put = await store.putDataUrl(a.dataUrl);
+      for (const att of attachments) {
+        if (att?.kind === 'image' && typeof att?.dataUrl === 'string') {
+          const put = await store.putDataUrl(att.dataUrl);
           const fileVertex = FilesTreeData.createOrLinkFile({
             filesTree: targetTree,
             parentFolder,
             hash: put.hash,
-            attachment: a,
+            attachment: att,
           });
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
-        } else if (a?.kind === 'text' && typeof a?.content === 'string') {
-          const textBytes = new TextEncoder().encode(a.content);
+        } else if (att?.kind === 'text' && typeof att?.content === 'string') {
+          const textBytes = new TextEncoder().encode(att.content);
           const put = await store.putBytes(textBytes);
           const fileVertex = FilesTreeData.createOrLinkFile({
             filesTree: targetTree,
             parentFolder,
             hash: put.hash,
-            attachment: a,
+            attachment: att,
           });
           refs.push({ tree: targetTree.getId(), vertex: fileVertex.id });
         } else {
-          throw new Error(`Unsupported attachment or missing content for kind '${a?.kind}'`);
+          throw new Error(`Unsupported attachment or missing content for kind '${att?.kind}'`);
         }
       }
 
-      properties.attachments = refs;
+      properties.files = refs;
     }
 
     const newMessageVertex = this.appTree.tree.newVertex(lastMsgVertex.id, properties);

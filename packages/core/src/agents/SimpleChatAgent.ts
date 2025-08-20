@@ -68,17 +68,17 @@ export class SimpleChatAgent extends Agent<AppConfigForChat> {
           normalizedRole = "user";
         }
 
-        const hasAttachments = Array.isArray((m as any).attachments) && (m as any).attachments.length > 0;
-        if (!hasAttachments) {
+        const hasFiles = Array.isArray((m as any).files) && (m as any).files.length > 0;
+        if (!hasFiles) {
           return {
             role: normalizedRole as "assistant" | "user",
             content: m.text || "",
           } as LangChatMessage;
         }
 
-        const attachments = (m as any).attachments as Array<FileReference>;
+        const fileRefs = (m as any).files as Array<FileReference>;
         const resolver = new FileResolver(this.services.space);
-        const resolved = await resolver.resolveAttachments(attachments);
+        const resolved = await resolver.getFileData(fileRefs);
         const images = resolved.filter(a => a?.kind === 'image');
         const textFiles = resolved.filter(a => a?.kind === 'text');
 

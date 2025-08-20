@@ -148,7 +148,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 			id: 'msg1',
 			role: 'user' as const,
 			text: 'Here is an image',
-			attachments: [
+			files: [
 				{
 					tree: filesTree.getId(), 
 					vertex: fileVertex.id
@@ -158,7 +158,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 
 		// Test file resolution
 		const fileResolver = new FileResolver(space);
-		const resolvedAttachments = await fileResolver.resolveAttachments(messageWithFileRef.attachments);
+		const resolvedAttachments = await fileResolver.getFileData(messageWithFileRef.files);
 
 		expect(resolvedAttachments).toHaveLength(1);
 		expect(resolvedAttachments[0].id).toBeDefined();
@@ -207,7 +207,7 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		const message = await chatData.newMessage('user', 'Here is an image', undefined, attachments);
 
 		// Check that the message persists only file references (no dataUrl)
-		const messageAttachments = (message as any).attachments;
+		const messageAttachments = (message as any).files;
 		expect(messageAttachments).toHaveLength(1);
 		
 		const attachment = messageAttachments[0];
@@ -220,8 +220,8 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		expect(targetTree).toBeDefined();
 
 		// And that resolving attachments returns a usable dataUrl for immediate consumption
-		const resolvedMsg = await chatData.resolveMessageAttachments(message as any);
-		const resolvedAttachment = (resolvedMsg as any).attachments[0];
+		const resolvedMsg = await chatData.resolveMessageFiles(message as any);
+		const resolvedAttachment = (resolvedMsg as any).files[0];
 		expect(resolvedAttachment.dataUrl).toBe(attachments[0].dataUrl);
 	});
 
@@ -313,8 +313,8 @@ describe('Workspace file store (desktop, CAS) saving and loading', () => {
 		const message2 = await chatData.newMessage('user', 'Second message with image', undefined, [attachment2]);
 
 		// Get the file references from both messages
-		const message1Attachments = (message1 as any).attachments;
-		const message2Attachments = (message2 as any).attachments;
+		const message1Attachments = (message1 as any).files;
+		const message2Attachments = (message2 as any).files;
 		
 		expect(message1Attachments).toHaveLength(1);
 		expect(message2Attachments).toHaveLength(1);

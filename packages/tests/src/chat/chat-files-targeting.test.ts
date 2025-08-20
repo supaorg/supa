@@ -45,7 +45,7 @@ describe('Chat file targeting (per-chat files path under CAS)', () => {
       { id: 'att1', kind: 'image', name: 'pixel.png', mimeType: 'image/png', size: 68, dataUrl: makePngDataUrl() }
     ], { treeId: chatTree.getId() }); // no path provided -> defaults to 'files'
 
-    const atts = (message as any).attachments;
+    const atts = (message as any).files;
     expect(atts).toHaveLength(1);
     const ref = atts[0];
     expect(ref.tree).toBe(chatTree.getId());
@@ -78,7 +78,7 @@ describe('Chat file targeting (per-chat files path under CAS)', () => {
       { id: 'att1', kind: 'image', name: 'nested.png', mimeType: 'image/png', size: 68, dataUrl: makePngDataUrl() }
     ], { treeId: chatTree.getId(), path: 'files/screenshots' });
 
-    const atts = (message as any).attachments;
+    const atts = (message as any).files;
     expect(atts).toHaveLength(1);
     const ref = atts[0];
     expect(ref.tree).toBe(chatTree.getId());

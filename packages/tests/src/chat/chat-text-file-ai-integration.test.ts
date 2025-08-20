@@ -94,14 +94,14 @@ describe('Text File AI Integration', () => {
       expect(message.text).toBe('What number is in this file?');
       expect(message.role).toBe('user');
 
-      // Verify attachment was persisted
+      // Verify files were persisted
       const messageVertex = chatTree.tree.getVertex(message.id);
-      const attachments = messageVertex?.getProperty('attachments') as any[];
-      expect(attachments).toBeDefined();
-      expect(attachments.length).toBe(1);
-      // Persisted attachments are bare FileReference
-      expect(attachments[0].tree).toBeDefined();
-      expect(attachments[0].vertex).toBeDefined();
+      const files = messageVertex?.getProperty('files') as any[];
+      expect(files).toBeDefined();
+      expect(files.length).toBe(1);
+      // Persisted files are bare FileReference
+      expect(files[0].tree).toBeDefined();
+      expect(files[0].vertex).toBeDefined();
 
       // Test the AI processing by simulating what SimpleChatAgent would do
       const agentServices = new AgentServices(space);
@@ -109,7 +109,7 @@ describe('Text File AI Integration', () => {
       const simpleChatAgent = new SimpleChatAgent(agentServices, config!);
 
       // Resolve message attachments (simulate what ChatAppBackend does)
-      const resolvedMessage = await chatData.resolveMessageAttachments(message);
+      const resolvedMessage = await chatData.resolveMessageFiles(message);
       
       // Test the message processing logic
       const processedMessages = [
@@ -118,7 +118,7 @@ describe('Text File AI Integration', () => {
       ];
 
       // Extract text files from the resolved message
-      const resolvedAttachments = (resolvedMessage as any).attachments || [];
+      const resolvedAttachments = (resolvedMessage as any).files || [];
       const textFiles = resolvedAttachments.filter((a: any) => a?.mimeType?.startsWith('text/') || a?.kind === 'text');
 
       console.log('Resolved attachments:', {
@@ -206,8 +206,8 @@ function test() {
       const config = space.getAppConfig('test-assistant');
       const simpleChatAgent = new SimpleChatAgent(agentServices, config!);
 
-      const resolvedMessage = await chatData.resolveMessageAttachments(message);
-      const resolvedAttachments = (resolvedMessage as any).attachments || [];
+      const resolvedMessage = await chatData.resolveMessageFiles(message);
+      const resolvedAttachments = (resolvedMessage as any).files || [];
       const textFiles = resolvedAttachments.filter((a: any) => 
         a?.kind === 'text' && (a?.file?.tree && a?.file?.vertex || a?.dataUrl)
       );
@@ -290,8 +290,8 @@ function test() {
       const config = space.getAppConfig('test-assistant');
       const simpleChatAgent = new SimpleChatAgent(agentServices, config!);
 
-      const resolvedMessage = await chatData.resolveMessageAttachments(message);
-      const resolvedAttachments = (resolvedMessage as any).attachments || [];
+      const resolvedMessage = await chatData.resolveMessageFiles(message);
+      const resolvedAttachments = (resolvedMessage as any).files || [];
       const textFiles = resolvedAttachments.filter((a: any) => 
         a?.kind === 'text' && (a?.file?.tree && a?.file?.vertex || a?.dataUrl)
       );
@@ -358,7 +358,7 @@ function test() {
       const resolvedMessage = {
         role: 'user',
         text: 'What number is in this file?',
-        attachments: [
+        files: [
           {
             id: 'test-id',
             kind: 'text',
@@ -377,7 +377,7 @@ function test() {
       const simpleChatAgent = new SimpleChatAgent({} as any, {} as any);
 
       // Test the text file filtering
-      const attachments = resolvedMessage.attachments as any[];
+      const attachments = resolvedMessage.files as any[];
       const textFiles = attachments.filter((a: any) => 
         a?.kind === 'text' && (a?.file?.tree && a?.file?.vertex || a?.dataUrl)
       );
@@ -412,7 +412,7 @@ function test() {
       const resolvedMessage = {
         role: 'user',
         text: 'What do you see in these files?',
-        attachments: [
+        files: [
           {
             id: 'text-id',
             kind: 'text',
@@ -442,7 +442,7 @@ function test() {
       const simpleChatAgent = new SimpleChatAgent({} as any, {} as any);
 
       // Test the filtering
-      const attachments = resolvedMessage.attachments as any[];
+      const attachments = resolvedMessage.files as any[];
       const images = attachments.filter((a: any) => a?.kind === 'image' && typeof a?.dataUrl === 'string' && a.dataUrl.trim() !== '');
       const textFiles = attachments.filter((a: any) => 
         a?.kind === 'text' && (a?.file?.tree && a?.file?.vertex || a?.dataUrl)

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Space, SpaceManager, FileSystemPersistenceLayer, createFileStore, FilesTreeData, FileResolver } from '@sila/core';
 import { NodeFileSystem } from '../setup/setup-node-file-system';
-import type { FileReference } from '@sila/core/spaces/files/FileResolver';
+import type { FileReference } from '@sila/core';
 
 // Simple attachment types for testing
 interface SimpleAttachment {
@@ -17,34 +17,34 @@ interface SimpleAttachment {
 // Utility functions for testing
 class FilePreviewUtils {
   static extractFileReferences(message: any): FileReference[] {
-    const attachments = message?.attachments;
-    if (!attachments || !Array.isArray(attachments)) {
+    const files = message?.files;
+    if (!files || !Array.isArray(files)) {
       return [];
     }
 
-    return attachments
+    return files
       .filter((att: any) => att?.file?.tree && att?.file?.vertex)
       .map((att: any) => att.file);
   }
 
   static hasFileAttachments(message: any): boolean {
-    const attachments = message?.attachments;
-    if (!attachments || !Array.isArray(attachments)) {
+    const files = message?.files;
+    if (!files || !Array.isArray(files)) {
       return false;
     }
 
-    return attachments.some((att: any) => 
+    return files.some((att: any) => 
       att?.file?.tree && att?.file?.vertex
     );
   }
 
   static getFileAttachmentCount(message: any): number {
-    const attachments = message?.attachments;
-    if (!attachments || !Array.isArray(attachments)) {
+    const files = message?.files;
+    if (!files || !Array.isArray(files)) {
       return 0;
     }
 
-    return attachments.filter((att: any) => 
+    return files.filter((att: any) => 
       att?.file?.tree && att?.file?.vertex
     ).length;
   }
@@ -164,7 +164,7 @@ describe('Simplified File Previews (Core)', () => {
       const message = {
         id: 'msg1',
         text: 'Hello',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -189,7 +189,7 @@ describe('Simplified File Previews (Core)', () => {
       const messageWithFiles = {
         id: 'msg1',
         text: 'Hello',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -201,7 +201,7 @@ describe('Simplified File Previews (Core)', () => {
       const messageWithoutFiles = {
         id: 'msg2',
         text: 'Hello',
-        attachments: [],
+        files: [],
       };
 
       expect(FilePreviewUtils.hasFileAttachments(messageWithFiles)).toBe(true);
@@ -212,7 +212,7 @@ describe('Simplified File Previews (Core)', () => {
       const message = {
         id: 'msg1',
         text: 'Hello',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -243,7 +243,7 @@ describe('Simplified File Previews (Core)', () => {
       const message = {
         id: 'msg1',
         text: 'Hello',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -266,7 +266,7 @@ describe('Simplified File Previews (Core)', () => {
       const message = {
         id: 'msg2',
         text: 'Hello',
-        attachments: [],
+        files: [],
       };
 
       const fileRefs = FilePreviewUtils.extractFileReferences(message);
@@ -306,7 +306,7 @@ describe('Simplified File Previews (Core)', () => {
 
     it('should resolve multiple file references', async () => {
       const fileRefs = [fileRef, { tree: 'other-tree', vertex: 'other-vertex' }];
-      const fileInfos = await fileResolver.resolveFileReferences(fileRefs);
+      const fileInfos = await fileResolver.getFilesInfo(fileRefs);
 
       expect(fileInfos).toHaveLength(1); // Only the valid one should resolve
       expect(fileInfos[0]?.id).toBe(fileVertex.id);
@@ -319,7 +319,7 @@ describe('Simplified File Previews (Core)', () => {
       const message = {
         id: 'msg1',
         text: 'Here is an image',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -334,7 +334,7 @@ describe('Simplified File Previews (Core)', () => {
       expect(fileRefs[0]).toEqual(fileRef);
 
       // 3. Resolve file references for preview
-      const fileInfos = await fileResolver.resolveFileReferences(fileRefs);
+      const fileInfos = await fileResolver.getFilesInfo(fileRefs);
       expect(fileInfos).toHaveLength(1);
       expect(fileInfos[0]?.name).toBe('test-image.png');
       		expect(fileInfos[0]?.url).toMatch(/^sila:\/\/spaces\/[^\/]+\/files\/[^\/]+/);
@@ -352,7 +352,7 @@ describe('Simplified File Previews (Core)', () => {
       const simpleMessage = {
         id: 'msg1',
         text: 'Here is an image',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -361,7 +361,7 @@ describe('Simplified File Previews (Core)', () => {
         ],
       };
 
-      const payload = JSON.stringify(simpleMessage.attachments);
+      const payload = JSON.stringify(simpleMessage.files);
 
       console.log(`Simple attachment payload size: ${payload.length} bytes`);
       console.log(`Payload structure: ${payload}`);
@@ -377,7 +377,7 @@ describe('Simplified File Previews (Core)', () => {
       const messageWithNull = {
         id: 'msg1',
         text: 'Hello',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -389,7 +389,7 @@ describe('Simplified File Previews (Core)', () => {
       const messageWithUndefined = {
         id: 'msg2',
         text: 'Hello',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -408,7 +408,7 @@ describe('Simplified File Previews (Core)', () => {
       const messageWithMalformedRefs = {
         id: 'msg1',
         text: 'Hello',
-        attachments: [
+        files: [
           {
             id: 'att1',
             kind: 'image',
@@ -441,13 +441,13 @@ describe('Simplified File Previews (Core)', () => {
       const messageWithNullAttachments = {
         id: 'msg2',
         text: 'Hello',
-        attachments: null,
+        files: null,
       };
 
       const messageWithUndefinedAttachments = {
         id: 'msg3',
         text: 'Hello',
-        attachments: undefined,
+        files: undefined,
       };
 
       expect(FilePreviewUtils.extractFileReferences(messageWithoutAttachments)).toHaveLength(0);
@@ -462,13 +462,13 @@ describe('Simplified File Previews (Core)', () => {
       const messageWithStringAttachments = {
         id: 'msg1',
         text: 'Hello',
-        attachments: 'not-an-array',
+        files: 'not-an-array',
       };
 
       const messageWithObjectAttachments = {
         id: 'msg2',
         text: 'Hello',
-        attachments: { some: 'object' },
+        files: { some: 'object' },
       };
 
       expect(FilePreviewUtils.extractFileReferences(messageWithStringAttachments)).toHaveLength(0);
@@ -529,7 +529,7 @@ describe('Simplified File Previews (Core)', () => {
       const message = {
         id: 'msg1',
         text: 'Mixed file types',
-        attachments: [
+        files: [
           {
             id: 'img1',
             kind: 'image',

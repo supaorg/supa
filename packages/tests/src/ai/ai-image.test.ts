@@ -111,19 +111,19 @@ describe('AI Image Integration', () => {
       size: catImageBuffer.length
     });
 
-    // Create a user message with attachments as bare FileReference (like the UI persists)
+    // Create a user message with files as bare FileReference (like the UI persists)
     const messagesRoot = chatData.messagesVertex!;
     const userMessage = messagesRoot.newChild({
       _n: 'message',
       createdAt: Date.now(),
       text: 'If you can see the attached image, reply with exactly YES.',
       role: 'user',
-      attachments: [{ tree: chatTree.getId(), vertex: fileVertex.id }]
+      files: [{ tree: chatTree.getId(), vertex: fileVertex.id }]
     });
 
-    // Debug: Check if attachments were stored correctly
+    // Debug: Check if files were stored correctly
     console.log('User message created:', userMessage.getProperties());
-    console.log('User message attachments:', userMessage.getProperty('attachments'));
+    console.log('User message files:', userMessage.getProperty('files'));
     
     // Wait a moment for any async operations to complete
     await wait(1000);
@@ -245,9 +245,9 @@ describe('AI Image Integration', () => {
       }
     ]);
 
-    // Debug: Check if attachments were stored correctly
+    // Debug: Check if files were stored correctly
     console.log('User message created (test 2):', userMessage);
-    console.log('User message attachments (test 2):', (userMessage as any).attachments);
+    console.log('User message files (test 2):', (userMessage as any).files);
     
     // Wait a moment for any async operations to complete
     await wait(1000);

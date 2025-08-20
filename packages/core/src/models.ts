@@ -1,3 +1,5 @@
+import { FileReference } from "@sila/core";
+
 export type ThreadMessage = {
   id: string;
   role: string | null;
@@ -11,6 +13,7 @@ export type ThreadMessage = {
   configName?: string | null;
   modelProvider?: string | null;
   modelId?: string | null;
+  files?: FileReference[] | null;
 }
 
 export interface AppConfig {

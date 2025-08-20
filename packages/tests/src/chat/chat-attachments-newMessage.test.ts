@@ -78,7 +78,7 @@ describe('Chat attachments via ChatAppData.newMessage', () => {
     const msg = await chatData.newMessage('user', 'Message with attachments', undefined, [imageAttachment, textAttachment]);
 
     // Message should persist only bare FileReference[]
-    const refs = (msg as any).attachments as Array<{ tree: string; vertex: string }>;
+    const refs = (msg as any).files as Array<{ tree: string; vertex: string }>;
     expect(Array.isArray(refs)).toBe(true);
     expect(refs.length).toBe(2);
     expect(refs[0].tree).toBeDefined();
@@ -86,7 +86,7 @@ describe('Chat attachments via ChatAppData.newMessage', () => {
 
     // Resolve for UI/AI consumption
     const resolver = new FileResolver(space);
-    const resolved = await resolver.resolveAttachments(refs as any);
+    const resolved = await resolver.getFileData(refs as any);
 
     // Should resolve to one image and one text with dataUrl
     const images = resolved.filter((a) => a.kind === 'image' && typeof a.dataUrl === 'string');

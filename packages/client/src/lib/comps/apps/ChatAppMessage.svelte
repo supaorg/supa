@@ -32,8 +32,8 @@
       typeof message.thinking === "string" &&
       message.thinking.trim().length > 0
   );
-  let attachments = $state<Array<{ file: FileReference }> | undefined>(
-    undefined
+  let fileRefs = $derived(
+    (message as any)?.files as Array<FileReference> || []
   );
   let isAIGenerating = $derived(
     !!message?.inProgress && message?.role === "assistant"
@@ -124,29 +124,6 @@
     if (!isEditing) {
       editText = message?.text || "";
     }
-  });
-
-  // Extract file references from message attachments
-  $effect(() => {
-    const messageAttachments = (message as any)?.attachments;
-    if (!messageAttachments || messageAttachments.length === 0) {
-      attachments = undefined;
-      return;
-    }
-
-    // Extract file references from attachments
-    attachments = messageAttachments.map((att: any) => {
-      // Bare FileReference persisted on message
-      if (att && att.tree && att.vertex) {
-        return { file: att };
-      }
-      // If has file reference, use it
-      if (att.file?.tree && att.file?.vertex) {
-        return att;
-      }
-      // Fallback: keep original attachment
-      return att;
-    });
   });
 
   onMount(() => {
@@ -267,14 +244,14 @@
             onpointerleave={endHover}
           >
             {@html replaceNewlinesWithHtmlBrs(message.text || "")}
-            {#if attachments && attachments.length > 0}
+            {#if fileRefs && fileRefs.length > 0}
               <div class="mt-2 flex flex-wrap gap-2">
-                {#each attachments as att}
+                {#each fileRefs as att}
                   <FilePreview
-                    fileRef={att.file}
+                    fileRef={att}
                     showGallery={true}
-                    onGalleryOpen={(resolvedFile) => {
-                      clientState.gallery.open(resolvedFile);
+                    onGalleryOpen={(fileInfo) => {
+                      clientState.gallery.open(fileInfo);
                     }}
                   />
                 {/each}

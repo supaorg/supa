@@ -94,10 +94,10 @@ describe('Chat app tree creation and persistence', () => {
     // Allow write to flush
     await wait(1200);
 
-    // The saved message should have attachments with file refs (tree+vertex)
-    const attachments = (chatTree.tree.getVertex(msg.id) as any).getProperty('attachments');
-    expect(Array.isArray(attachments)).toBe(true);
-    expect(attachments[0]?.tree).toBeTypeOf('string');
-    expect(attachments[0]?.vertex).toBeTypeOf('string');
+    // The saved message should have files with file refs (tree+vertex)
+    const files = (chatTree.tree.getVertex(msg.id) as any).getProperty('files');
+    expect(Array.isArray(files)).toBe(true);
+    expect(files[0]?.tree).toBeTypeOf('string');
+    expect(files[0]?.vertex).toBeTypeOf('string');
   });
 });

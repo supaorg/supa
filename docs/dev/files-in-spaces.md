@@ -76,7 +76,7 @@ interface FileReference {
   vertex: string;  // File vertex ID within the tree
 }
 
-// Attachment structure
+// File structure
 {
   id: string;
   kind: 'image' | 'text' | 'video' | 'pdf' | 'file';
@@ -206,8 +206,8 @@ const fileInfo = await ClientFileResolver.resolveFileReference(fileRef);
 For AI processing, files are resolved to data URLs:
 
 ```typescript
-// Resolve attachments for AI consumption
-const resolvedAttachments = await fileResolver.resolveAttachments(attachments);
+// Resolve files for AI consumption
+const resolvedFiles = await fileResolver.resolveFiles(files);
 
 // Result includes data URLs for AI models
 {
@@ -290,7 +290,7 @@ interface FilePreviewConfig {
 2. **Processing**: Files go through conversion pipeline (HEIC, optimization)
 3. **CAS Storage**: Processed files stored in CAS via FileStore
 4. **Metadata Creation**: File vertices created in Files AppTree
-5. **Reference Creation**: Message attachments reference file vertices
+5. **Reference Creation**: Message files reference file vertices
 6. **Transient Data**: Data URLs stored temporarily for immediate preview
 
 ### File Display
@@ -302,7 +302,7 @@ interface FilePreviewConfig {
 
 ### AI Processing
 
-1. **Attachment Resolution**: FileResolver loads file content from CAS
+1. **File Resolution**: FileResolver loads file content from CAS
 2. **Content Extraction**: Text files decoded, images converted to base64
 3. **Message Construction**: Content added to AI message in appropriate format
 4. **Model Dispatch**: Message sent to AI model with file content

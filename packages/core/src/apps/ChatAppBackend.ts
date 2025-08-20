@@ -126,14 +126,14 @@ export default class ChatAppBackend {
         messages.slice(0, -1) :
         messages;
 
-      // Pass through raw attachments (FileReference[]) and let the agent resolve as needed
+      // Pass through FileReference[] and let the agent resolve as needed
       const messagesForLang = [
         { role: "system", text: config.instructions },
         ...messagesToUse.map((m) => ({
           id: (m as any).id,
           role: m.role,
           text: m.text,
-          attachments: (m as any).attachments,
+          files: (m as any).files,
         }))
       ];
 
@@ -285,7 +285,7 @@ export default class ChatAppBackend {
 
     const messagesForLang = [
       { role: 'system', text: config.instructions },
-      ...inputMessages.map((m) => ({ role: m.role, text: m.text, attachments: (m as any).attachments }))
+      ...inputMessages.map((m) => ({ role: m.role, text: m.text, files: m.files }))
     ];
 
     try {
