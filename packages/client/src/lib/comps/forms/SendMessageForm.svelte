@@ -329,10 +329,25 @@
       return;
     }
 
+    // Debug: log all clipboard types
+
+    // Check for any file-related content immediately and prevent default
+    const files = Array.from(clipboardData.files || []);
+    const imageTypes = clipboardData.types.filter(type => type.startsWith('image/'));
+    const hasFileRelatedData = clipboardData.types.some(type => 
+      type === 'text/uri-list' || 
+      type === 'Files' ||
+      type.includes('file') ||
+      type.includes('Files')
+    );
+
+    if (files.length > 0 || imageTypes.length > 0 || hasFileRelatedData) {
+      e.preventDefault();
+    }
+
     let hasProcessedContent = false;
 
     // Check for files in clipboard
-    const files = Array.from(clipboardData.files || []);
     if (files.length > 0) {
       hasProcessedContent = true;
       
@@ -422,7 +437,12 @@
     }
 
     // Check for images in clipboard (e.g., screenshots)
-    const imageTypes = clipboardData.types.filter(type => type.startsWith('image/'));
+    if (imageTypes.length > 0) {
+      // Prevent default immediately when images are detected
+      e.preventDefault();
+      hasProcessedContent = true;
+    }
+    
     for (const imageType of imageTypes) {
       let processingId: string | undefined;
       try {
@@ -485,9 +505,15 @@
       }
     }
 
+    // Check for other clipboard types that might contain filenames
+    if (hasFileRelatedData) {
+      e.preventDefault();
+      hasProcessedContent = true;
+    }
+
     // Prevent default paste behavior if we detected any files or images
     // This prevents filenames from being added to the textarea
-    if (files.length > 0 || imageTypes.length > 0) {
+    if (hasProcessedContent) {
       e.preventDefault();
     }
   }
