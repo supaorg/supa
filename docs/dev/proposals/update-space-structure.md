@@ -9,10 +9,17 @@
 
 ### High‑level model
 
-- **Space tree (single per space)**
+- **Root space tree** (single root space per workspace)
   - Global metadata (settings, providers, app‑configs)
-  - `app-instances` replaces `app-forest`
-  - Optional organization branches `users/`, `app-configs/`, `app-instances/{public,private}`
+  - `users/` branch containing user space references
+  - `app-instances` for root-level app instances (shared across users)
+  - Organization: `users/`, `app-configs/`, `app-instances/{public,private}`
+
+- **User space tree** (one per user)
+  - User-specific metadata and settings
+  - `app-instances` for user-owned app instances
+  - **No `users/` branch** - user spaces don't contain other users
+  - Organization: `app-configs/`, `app-instances/{public,private}`, `settings/`
 
 - **App instances (many)**
   - Each instance points to an app kind and its app tree (or a nested space)
@@ -20,23 +27,31 @@
 
 - **Space as an app**
   - An app kind `space` whose instance mounts another space by id
-  - Enables hierarchies like a root space containing user spaces
+  - Root space contains user spaces; user spaces don't contain other spaces
 
 ### Example structure (conceptual)
 
 ```
-space
+root-space
   - users
       - dmitry  (app kind: space, points to user space)
-          - app-configs
-          - app-instances
-              - public
-                  - chat-1 (app kind: chat)
-  - apps
+      - alice   (app kind: space, points to user space)
   - app-configs
   - app-instances
       - public
+          - shared-chat  (shared across all users)
       - private
+          - admin-tools  (root-only tools)
+
+user-space (dmitry)
+  - app-configs
+  - app-instances
+      - public
+          - chat-1
+          - files-1
+      - private
+          - secrets-1
+  - settings
 ```
 
 ### UI implications
@@ -113,8 +128,8 @@ TreeSpecs enable typed tree wrappers that provide convenient, validated access:
 - **ChatTree**: typed interface for messages, attachments, refs to files
 - **FilesTree**: typed interface for file metadata and organization  
 - **SecretsTree**: lightweight tree that references encrypted secrets
-- **RootSpaceTree**: typed accessors for `app-configs`, `app-instances`, `users`, `providers`, `settings`
-- **UserSpaceTree**: typed subset for user‑owned app instances and settings
+- **RootSpaceTree**: typed accessors for `app-configs`, `app-instances`, `users`, `providers`, `settings` (root space only)
+- **UserSpaceTree**: typed subset for user‑owned app instances and settings (user spaces only)
 
 #### Tree validation and migration
 
@@ -207,7 +222,8 @@ Notes:
   - Load root space tree and its `public` app instances.
   - Load selected user space tree and its `public` app instances.
   - Resolve app trees lazily when tabs/views request them.
-- Nested spaces (instances with `appKind: 'space'`) are mounted on demand via `spaceId`.
+- User spaces (instances with `appKind: 'space'` in root space) are mounted on demand via `spaceId`.
+- Root space contains user management; user spaces contain user-specific apps and data.
 
 ### Files: immutable vs mutable stores
 
@@ -360,7 +376,20 @@ class SecretsTree {
 ### Appendix: example vertex paths
 
 ```
-/ (space tree root)
+/ (root space tree root)
+  app-configs/
+  app-instances/
+    public/
+      shared-chat { appKind: 'chat', treeId: 't-shared-chat', treeSpecId: 'chat-v1' }
+    private/
+      admin-tools { appKind: 'admin', treeId: 't-admin', treeSpecId: 'admin-v1' }
+  users/
+    dmitry { appKind: 'space', spaceId: 'space-user-dmitry', treeSpecId: 'space-v1' }
+    alice { appKind: 'space', spaceId: 'space-user-alice', treeSpecId: 'space-v1' }
+  providers/
+  settings/
+
+/ (user space tree root - dmitry)
   app-configs/
   app-instances/
     public/
@@ -368,9 +397,6 @@ class SecretsTree {
       files-1 { appKind: 'files', treeId: 't-files-1', treeSpecId: 'files-v1' }
     private/
       secrets-1 { appKind: 'secrets', treeId: 't-secrets-1', treeSpecId: 'secrets-v1' }
-  users/
-    dmitry { appKind: 'space', spaceId: 'space-user-dmitry', treeSpecId: 'space-v1' }
-  providers/
   settings/
 ```
 
@@ -379,9 +405,10 @@ class SecretsTree {
 This proposal builds on and extends existing Sila systems:
 
 - **RepTree CRDT**: TreeSpecs add structure validation to the existing CRDT system
-- **SpaceManager**: Extends to handle nested spaces and parallel loading
+- **SpaceManager**: Extends to handle root/user space hierarchy and parallel loading
 - **FileStore**: Extends with mutable storage while preserving existing CAS
 - **Persistence layers**: FileSystemPersistenceLayer extended for mutable files
 - **App trees**: Existing app tree creation and loading patterns preserved
 - **File protocol**: `sila://` protocol extended to serve mutable files
+- **Space hierarchy**: Root space manages users; user spaces contain user-specific data
 
