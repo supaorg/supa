@@ -288,6 +288,129 @@
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
   }
+
+  async function handlePaste(e: ClipboardEvent) {
+    if (!attachEnabled || disabled) {
+      return;
+    }
+
+    const clipboardData = e.clipboardData;
+    if (!clipboardData) {
+      return;
+    }
+
+    let hasProcessedContent = false;
+    const previews: AttachmentPreview[] = [];
+
+    // Check for files in clipboard
+    const files = Array.from(clipboardData.files || []);
+    if (files.length > 0) {
+      hasProcessedContent = true;
+      
+      for (const file of files) {
+        try {
+          // Check if it's a text file first
+          const isText = await processTextFileForUpload(file).then(() => true).catch(() => false);
+          
+          if (isText) {
+            // Process text file
+            const processedFile = await processTextFileForUpload(file);
+            const optimizedFile = await optimizeTextFile(processedFile);
+            
+            // Read text content
+            const content = await readFileAsText(optimizedFile);
+            const metadata = extractTextFileMetadata(optimizedFile, content);
+            
+            previews.push({
+              id: crypto.randomUUID(),
+              kind: 'text',
+              name: optimizedFile.name,
+              mimeType: optimizedFile.type,
+              size: optimizedFile.size,
+              content,
+              metadata,
+              width: metadata.charCount, // Use charCount as width (horizontal length)
+              height: metadata.lineCount, // Use lineCount as height (vertical lines)
+              alt: metadata.language, // Use language as alt text
+            });
+          } else {
+            // Process image file
+            const processedFile = await processFileForUpload(file);
+            const optimizedFile = await optimizeImageSize(processedFile);
+            
+            // Only images for now
+            if (!optimizedFile.type.startsWith('image/')) continue;
+            
+            const dataUrl = await toDataUrl(optimizedFile);
+            const dims = await getImageDimensions(dataUrl);
+            
+            previews.push({
+              id: crypto.randomUUID(),
+              kind: 'image',
+              name: optimizedFile.name, // Use converted filename
+              mimeType: optimizedFile.type, // Use optimized MIME type
+              size: optimizedFile.size,
+              dataUrl,
+              width: dims?.width,
+              height: dims?.height,
+            });
+          }
+        } catch (error) {
+          console.error(`Failed to process pasted file ${file.name}:`, error);
+        }
+      }
+    }
+
+    // Check for images in clipboard (e.g., screenshots)
+    const imageTypes = clipboardData.types.filter(type => type.startsWith('image/'));
+    for (const imageType of imageTypes) {
+      try {
+        const dataUrl = clipboardData.getData(imageType);
+        if (dataUrl && dataUrl.startsWith('data:')) {
+          hasProcessedContent = true;
+          
+          // Convert data URL to blob
+          const response = await fetch(dataUrl);
+          const blob = await response.blob();
+          
+          // Convert blob to file
+          const file = new File([blob], `pasted-image-${Date.now()}.${imageType.split('/')[1] || 'png'}`, {
+            type: imageType,
+            lastModified: Date.now()
+          });
+          
+          // Process image file
+          const processedFile = await processFileForUpload(file);
+          const optimizedFile = await optimizeImageSize(processedFile);
+          
+          const optimizedDataUrl = await toDataUrl(optimizedFile);
+          const dims = await getImageDimensions(optimizedDataUrl);
+          
+          previews.push({
+            id: crypto.randomUUID(),
+            kind: 'image',
+            name: optimizedFile.name,
+            mimeType: optimizedFile.type,
+            size: optimizedFile.size,
+            dataUrl: optimizedDataUrl,
+            width: dims?.width,
+            height: dims?.height,
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to process pasted image ${imageType}:`, error);
+      }
+    }
+
+    // Prevent default paste behavior if we processed any files or images
+    if (hasProcessedContent) {
+      e.preventDefault();
+    }
+
+    if (previews.length > 0) {
+      pendingAttachments = [...pendingAttachments, ...previews];
+    }
+  }
 </script>
 
 {#if clientState.currentSpaceState?.hasModelProviders}
@@ -306,6 +429,7 @@
           bind:value={query}
           onkeydown={handleKeydown}
           oninput={handleInput}
+          onpaste={handlePaste}
           onfocus={() => (isTextareaFocused = true)}
           onblur={() => (isTextareaFocused = false)}
           {disabled}
@@ -345,7 +469,7 @@
                 {#snippet trigger()}
                   <button 
                     class="flex items-center justify-center h-9 w-9 rounded-container transition-colors preset-outlined-surface-200-800" 
-                    aria-label="Add attachments" 
+                    aria-label="Add attachments (or paste files)" 
                     {disabled}
                   >
                     <Plus size={20} />
@@ -357,6 +481,9 @@
                       <ImageIcon size={18} />
                       <span>Add photos & files</span>
                     </button>
+                    <div class="text-xs opacity-60 px-2 py-1 border-t border-surface-300-700/30">
+                      💡 You can also paste files directly into the text area
+                    </div>
                   </div>
                 {/snippet}
               </ContextMenu>
