@@ -191,93 +191,25 @@ export class ChatAgent extends Agent<AppConfigForChat> {
     const aiTools = this.getAITools();
     const toolRegistry = this.getToolRegistry();
 
-    // Agentic loop
-    let result = await lang.chat(messagesCollection, { tools: aiTools as any });
-
-    for (let step = 1; step <= this.MAX_STEPS; step++) {
-      if (this.hasStopped) {
-        break;
-      }
-
-      // Stream current response if available
-      if (result.answer) {
-        onStream?.({
-          text: result.answer,
-          thinking: (result as any).thinking,
+    // Single call with tools - let the AI decide if it needs to use tools
+    console.log('Available tools:', aiTools.map(t => t.name));
+    console.log('User message:', messagesCollection[messagesCollection.length - 1]?.content);
+    
+    const result = await lang.chat(messagesCollection, { 
+      tools: aiTools as any,
+      onResult: onStream ? (res: any) => {
+        onStream({
+          text: res.answer,
+          thinking: res.thinking
         });
-      }
+      } : undefined
+    });
 
-      // If no tools to execute, we're done
-      if (!result.tools || result.tools.length === 0) {
-        return {
-          text: result.answer || "",
-          thinking: (result as any).thinking
-        };
-      }
+    console.log('AI response:', result.answer);
+    console.log('Tools called:', result.tools);
 
-      // Execute tools
-      const toolResults: { toolId: string; result: any }[] = [];
-      let finishPayload: { summary: string; files_created?: string[] } | null = null;
-
-      for (const call of result.tools) {
-        const fn = toolRegistry[call.name];
-        if (!fn) continue;
-
-        const out = await Promise.resolve(fn(call.arguments || {}));
-        
-        if (call.name === "finish") {
-          if (out && typeof out === "object" && "summary" in out) {
-            finishPayload = out as any;
-          } else if (call.arguments && (call.arguments as any).summary) {
-            finishPayload = call.arguments as any;
-          }
-        }
-        
-        toolResults.push({ toolId: call.id, result: out });
-      }
-
-      // Add assistant message with tool_calls first
-      const assistantMessage = {
-        role: 'assistant',
-        content: '',
-        tool_calls: result.tools.map(tool => ({
-          id: tool.id,
-          type: 'function',
-          function: {
-            name: tool.name,
-            arguments: JSON.stringify(tool.arguments || {})
-          }
-        }))
-      };
-      result.messages.push(assistantMessage);
-
-      // Then add tool response messages
-      for (const toolResult of toolResults) {
-        const toolCall = result.tools.find(t => t.id === toolResult.toolId);
-        if (toolCall) {
-          result.messages.push({
-            role: 'tool',
-            tool_call_id: toolCall.id,
-            content: JSON.stringify(toolResult.result)
-          });
-        }
-      }
-
-      // If finish was called, return the summary
-      if (finishPayload) {
-        return {
-          text: finishPayload.summary,
-          thinking: (result as any).thinking
-        };
-      }
-
-      // Continue conversation
-      result = await lang.chat(result.messages, { tools: aiTools as any });
-    }
-
-    // Safety stop - return current result
     return {
-      text: result.answer || "I've reached the maximum number of steps. Please try rephrasing your request.",
+      text: result.answer || "I couldn't process your request. Please try rephrasing it.",
       thinking: (result as any).thinking
     };
   }
