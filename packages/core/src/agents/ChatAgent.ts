@@ -191,25 +191,63 @@ export class ChatAgent extends Agent<AppConfigForChat> {
     const aiTools = this.getAITools();
     const toolRegistry = this.getToolRegistry();
 
-    // Single call with tools - let the AI decide if it needs to use tools
-    console.log('Available tools:', aiTools.map(t => t.name));
-    console.log('User message:', messagesCollection[messagesCollection.length - 1]?.content);
-    
-    const result = await lang.chat(messagesCollection, { 
-      tools: aiTools as any,
-      onResult: onStream ? (res: any) => {
-        onStream({
-          text: res.answer,
-          thinking: res.thinking
-        });
-      } : undefined
-    });
+    // Agentic loop with proper tool handling
+    let result = await lang.chat(messagesCollection, { tools: aiTools as any });
+    let stepCount = 0;
+    const maxSteps = 5; // Prevent infinite loops
 
-    console.log('AI response:', result.answer);
-    console.log('Tools called:', result.tools);
+    while (stepCount < maxSteps) {
+      stepCount++;
+      console.log(`Step ${stepCount}: AI response:`, result.answer);
+      console.log(`Step ${stepCount}: Tools called:`, result.tools);
+
+      // If no tools were called, we're done
+      if (!result.tools || result.tools.length === 0) {
+        break;
+      }
+
+      // Execute tools
+      const toolResults: { toolId: string; result: any }[] = [];
+      let finishPayload: { summary: string; files_created?: string[] } | null = null;
+
+      for (const call of result.tools) {
+        const fn = toolRegistry[call.name];
+        if (!fn) continue;
+
+        const out = await Promise.resolve(fn(call.arguments || {}));
+        console.log(`Executed ${call.name}:`, out);
+        
+        if (call.name === "finish") {
+          if (out && typeof out === "object" && "summary" in out) {
+            finishPayload = out as any;
+          } else if (call.arguments && (call.arguments as any).summary) {
+            finishPayload = call.arguments as any;
+          }
+        }
+        
+        toolResults.push({ toolId: call.id, result: out });
+      }
+
+      // If finish was called, return the summary
+      if (finishPayload) {
+        return {
+          text: finishPayload.summary,
+          thinking: (result as any).thinking
+        };
+      }
+
+      // Add tool results to conversation
+      result.messages.push({
+        role: 'tool',
+        content: toolResults
+      });
+
+      // Continue conversation
+      result = await lang.chat(result.messages, { tools: aiTools as any });
+    }
 
     return {
-      text: result.answer || "I couldn't process your request. Please try rephrasing it.",
+      text: result.answer || "I've reached the maximum number of steps. Please try rephrasing your request.",
       thinking: (result as any).thinking
     };
   }
