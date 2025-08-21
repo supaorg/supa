@@ -186,8 +186,31 @@ my_tool: {
 
 Run the agent tests:
 ```bash
+# Basic functionality tests
 npm test -- --run src/chat/chat-agentic-agent.test.ts
+
+# Tool injection tests
+npm test -- --run src/chat/chat-agentic-agent-integration.test.ts
+
+# Simple tool injection tests
+npm test -- --run src/chat/chat-agentic-agent-simple.test.ts
+
+# Real AI integration tests (requires OpenAI API key)
+npm test -- --run src/chat/chat-agentic-agent-real.test.ts
 ```
+
+#### Real AI Integration Test Results
+
+The real AI integration tests demonstrate the agentic loop working with actual OpenAI models:
+
+1. **Single Tool Usage**: AI successfully calls `get_random_number` and returns "6931"
+2. **Multiple Tool Sequence**: AI calls `get_random_number` → gets 6931, then calls `multiply_by_factor` → gets 13862
+3. **Complex Multi-step Process**: AI performs a 3-step process:
+   - Get random number: 6931
+   - Add 100: 7031  
+   - Multiply by 3: 21093
+
+All tests verify that the deterministic tool results (6931) are correctly returned and used by the AI in the final response.
 
 ## Migration from SimpleChatAgent
 
@@ -198,6 +221,8 @@ The `ChatAppBackend` has been updated to use `ChatAgent` instead of `SimpleChatA
 - **Multi-step Reasoning**: Complex tasks can be broken down into multiple steps
 - **External Data Access**: Can read URLs and search the web (when implemented)
 - **Structured Completion**: Uses finish tool to provide clear task completion signals
+- **Deterministic Testing**: Custom tools can be injected for reliable testing and verification
+- **Real AI Integration**: Successfully tested with actual OpenAI models using deterministic tools
 
 ### Considerations
 - **API Costs**: Tool usage may increase API costs due to multiple model calls

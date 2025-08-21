@@ -236,8 +236,32 @@ export class ChatAgent extends Agent<AppConfigForChat> {
         toolResults.push({ toolId: call.id, result: out });
       }
 
-      // Add tool results to conversation
-      result.addToolUseMessage(toolResults);
+      // Add assistant message with tool_calls first
+      const assistantMessage = {
+        role: 'assistant',
+        content: '',
+        tool_calls: result.tools.map(tool => ({
+          id: tool.id,
+          type: 'function',
+          function: {
+            name: tool.name,
+            arguments: JSON.stringify(tool.arguments || {})
+          }
+        }))
+      };
+      result.messages.push(assistantMessage);
+
+      // Then add tool response messages
+      for (const toolResult of toolResults) {
+        const toolCall = result.tools.find(t => t.id === toolResult.toolId);
+        if (toolCall) {
+          result.messages.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(toolResult.result)
+          });
+        }
+      }
 
       // If finish was called, return the summary
       if (finishPayload) {
