@@ -29,6 +29,8 @@
     attachEnabled?: boolean;
     data?: ChatAppData;
     showConfigSelector?: boolean;
+    onConfigChange?: (configId: string) => void;
+    configId?: string;
   }
 
   let {
@@ -43,6 +45,8 @@
     attachEnabled = true,
     data = undefined,
     showConfigSelector = true,
+    onConfigChange = undefined,
+    configId: externalConfigId = undefined,
   }: SendMessageFormProps = $props();
 
   function openModelProvidersSettings() {
@@ -67,11 +71,15 @@
     if (data) {
       data.configId = id;
     }
+    // Notify parent component about config change
+    onConfigChange?.(id);
   }
 
   onMount(() => {
     if (data && data.configId) {
       configId = data.configId;
+    } else if (externalConfigId) {
+      configId = externalConfigId;
     }
 
     const observeData = data?.observe((d) => {
@@ -84,6 +92,13 @@
     return () => {
       observeData?.();
     };
+  });
+
+  // React to external configId changes when no data is provided
+  $effect(() => {
+    if (!data && externalConfigId && externalConfigId !== configId) {
+      configId = externalConfigId;
+    }
   });
 
   onMount(async () => {

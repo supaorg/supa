@@ -29,6 +29,14 @@
     newThread(msg, attachments);
   }
 
+  function handleConfigChange(configId: string) {
+    // Update target app config when config changes in SendMessageForm
+    const newConfig = clientState.currentSpace?.getAppConfigs().find(config => config.id === configId);
+    if (newConfig) {
+      targetAppConfig = newConfig;
+    }
+  }
+
   async function newThread(message: string = "", attachments?: AttachmentPreview[]) {
     if (!targetAppConfig) {
       throw new Error("App config not found");
@@ -63,9 +71,11 @@
     <p>{targetAppConfig.description}</p>
     <SendMessageForm
       onSend={handleSend}
+      onConfigChange={handleConfigChange}
       {placeholder}
       draftId="new-thread"
-      showConfigSelector={false}
+      showConfigSelector={true}
+      configId={targetAppConfig?.id}
     />
   {/if}
 </div>
