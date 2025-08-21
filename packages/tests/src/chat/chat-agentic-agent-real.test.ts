@@ -101,7 +101,7 @@ describe('ChatAgent Real AI Integration', () => {
     
     // Verify the response contains both numbers
     expect(response.text).toContain('6931');
-    expect(response.text).toContain('13862'); // 6931 * 2
+    expect(response.text.replace(/,/g, '')).toContain('13862'); // 6931 * 2 (remove commas for comparison)
     
     console.log('AI Response:', response.text);
   }, 30000); // 30 second timeout for API call
