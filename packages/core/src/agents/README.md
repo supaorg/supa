@@ -46,6 +46,7 @@ The `ChatAgent` extends the base `Agent` class and provides:
 
 ### Usage
 
+#### Basic Usage
 ```typescript
 import { ChatAgent, AgentServices } from '@sila/core';
 
@@ -64,6 +65,33 @@ const config = {
 
 // Create the agent
 const agent = new ChatAgent(agentServices, config);
+```
+
+#### With Custom Tools Injection
+```typescript
+import { ChatAgent, AgentServices } from '@sila/core';
+import { z } from 'zod';
+
+// Define custom tools
+const customTools = {
+  get_random_number: {
+    description: "Get a random number for testing purposes.",
+    schema: z.object({}).strict(),
+    impl: async () => ({ number: 6931 })
+  },
+  calculate_sum: {
+    description: "Calculate the sum of two numbers.",
+    schema: z.object({
+      a: z.number(),
+      b: z.number()
+    }),
+    impl: async ({ a, b }) => ({ result: a + b })
+  }
+};
+
+// Create the agent with custom tools
+const agent = new ChatAgent(agentServices, config, customTools);
+```
 
 // Use the agent
 const messages = [

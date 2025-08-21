@@ -73,6 +73,15 @@ export class ChatAgent extends Agent<AppConfigForChat> {
     }
   };
 
+  constructor(services: AgentServices, config: AppConfigForChat, customTools?: Record<string, ToolDefinition>) {
+    super(services, config);
+    
+    // Inject custom tools if provided
+    if (customTools) {
+      this.tools = { ...this.tools, ...customTools };
+    }
+  }
+
   // Convert tool schemas to AIWrapper tools format
   private getAITools() {
     return Object.entries(this.tools).map(([name, tool]) => ({
