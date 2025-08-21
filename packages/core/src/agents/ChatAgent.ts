@@ -198,8 +198,14 @@ export class ChatAgent extends Agent<AppConfigForChat> {
 
     while (stepCount < maxSteps) {
       stepCount++;
-      console.log(`Step ${stepCount}: AI response:`, result.answer);
-      console.log(`Step ${stepCount}: Tools called:`, result.tools);
+
+      // Stream current response if available
+      if (result.answer && onStream) {
+        onStream({
+          text: result.answer,
+          thinking: (result as any).thinking,
+        });
+      }
 
       // If no tools were called, we're done
       if (!result.tools || result.tools.length === 0) {
@@ -215,7 +221,6 @@ export class ChatAgent extends Agent<AppConfigForChat> {
         if (!fn) continue;
 
         const out = await Promise.resolve(fn(call.arguments || {}));
-        console.log(`Executed ${call.name}:`, out);
         
         if (call.name === "finish") {
           if (out && typeof out === "object" && "summary" in out) {
@@ -236,11 +241,22 @@ export class ChatAgent extends Agent<AppConfigForChat> {
         };
       }
 
-      // Add tool results to conversation
+      // First, add the assistant message with tool_calls
       result.messages.push({
-        role: 'tool',
-        content: toolResults
+        role: 'assistant',
+        content: result.answer || '',
+        tool_calls: result.tools.map(tool => ({
+          id: tool.id,
+          type: 'function',
+          function: {
+            name: tool.name,
+            arguments: JSON.stringify(tool.arguments || {})
+          }
+        }))
       });
+
+      // Then add tool results using aiwrapper's method
+      result.addToolUseMessage(toolResults);
 
       // Continue conversation
       result = await lang.chat(result.messages, { tools: aiTools as any });
