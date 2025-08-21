@@ -13,7 +13,7 @@
       "visible": true,
       "description": "A basic chat assistant",
       "instructions": "You are Sila, an AI assistant. Be direct in all responses.",
-      "targetLLM": "openai/gpt-4"
+      "targetLLM": "openai/gpt-4o"
     }
   ],
   

@@ -86,7 +86,7 @@ npm run build-demo-space my-demo.json --output ./my-demo
 - **`visible`**: Whether the assistant is visible (default: true)
 - **`description`**: Assistant description
 - **`instructions`**: System prompt/instructions
-- **`targetLLM`**: Optional target model (e.g., "openai/gpt-4")
+- **`targetLLM`**: Optional target model (e.g., "openai/gpt-4o")
 
 ### Provider Configuration
 
