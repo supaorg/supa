@@ -125,7 +125,10 @@ export class ChatAppData {
     // @TODO: observe NOT only new messages but also when messages are updated
     return this.appTree.tree.observeVertexMove((vertex, _) => {
       const text = vertex.getProperty("text");
-      if (text) {
+      const files = vertex.getProperty("files");
+      
+      // Trigger callback if there's text OR if there are attachments (files)
+      if (text || (files && Array.isArray(files) && files.length > 0)) {
         callback(this.messageVertices);
       }
     });
@@ -138,10 +141,12 @@ export class ChatAppData {
       }
 
       const text = vertex.getProperty("text");
-      if (text) {
+      const files = vertex.getProperty("files");
+      
+      // Trigger callback if there's text OR if there are attachments (files)
+      if (text || (files && Array.isArray(files) && files.length > 0)) {
         callback(this.messageVertices);
       }
-
     });
   }
 

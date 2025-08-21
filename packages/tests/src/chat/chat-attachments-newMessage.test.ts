@@ -104,6 +104,125 @@ describe('Chat attachments via ChatAppData.newMessage', () => {
     expect(texts[0]!.mimeType).toBe('text/plain');
     expect(texts[0]!.dataUrl!.startsWith('data:text/plain')).toBe(true);
   });
+
+  it('allows sending messages with only attachments (no text)', async () => {
+    const fs = new NodeFileSystem();
+
+    const space = Space.newSpace(crypto.randomUUID());
+    const spaceId = space.getId();
+    space.name = 'Chat Attachments Only Test Space';
+
+    const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
+    const manager = new SpaceManager();
+    await manager.addNewSpace(space, [layer]);
+
+    // Connect file store to space (desktop CAS)
+    space.setFileStoreProvider({
+      getSpaceRootPath: () => tempDir,
+      getFs: () => fs,
+    });
+
+    // Give time to ensure base structure exists
+    await wait(300);
+
+    // Create chat tree
+    const appTree = ChatAppData.createNewChatTree(space, 'test-config');
+    const chatData = new ChatAppData(space, appTree);
+
+    // Build UI-like attachment
+    const imageAttachment: AttachmentPreview = {
+      id: 'img1',
+      kind: 'image',
+      name: 'pixel.png',
+      mimeType: 'image/png',
+      size: 68,
+      dataUrl: makePngDataUrl(),
+    };
+
+    // Create a message with only attachments (empty text)
+    const msg = await chatData.newMessage('user', '', undefined, [imageAttachment]);
+
+    // Message should persist only bare FileReference[]
+    const refs = (msg as any).files as Array<{ tree: string; vertex: string }>;
+    expect(Array.isArray(refs)).toBe(true);
+    expect(refs.length).toBe(1);
+    expect(refs[0].tree).toBeDefined();
+    expect(refs[0].vertex).toBeDefined();
+
+    // Resolve for UI/AI consumption
+    const resolver = new FileResolver(space);
+    const resolved = await resolver.getFileData(refs as any);
+
+    // Should resolve to one image with dataUrl
+    const images = resolved.filter((a) => a.kind === 'image' && typeof a.dataUrl === 'string');
+    expect(images.length).toBe(1);
+
+    // Basic sanity checks
+    expect(images[0]!.name).toBe('pixel.png');
+    expect(images[0]!.mimeType).toBe('image/png');
+    expect(images[0]!.dataUrl!.startsWith('data:image/png')).toBe(true);
+
+    // Verify the message text is empty
+    expect(msg.text).toBe('');
+  });
+
+  it('observes messages with only attachments (no text)', async () => {
+    const fs = new NodeFileSystem();
+
+    const space = Space.newSpace(crypto.randomUUID());
+    const spaceId = space.getId();
+    space.name = 'Chat Attachments Observation Test Space';
+
+    const layer = new FileSystemPersistenceLayer(tempDir, spaceId, fs);
+    const manager = new SpaceManager();
+    await manager.addNewSpace(space, [layer]);
+
+    // Connect file store to space (desktop CAS)
+    space.setFileStoreProvider({
+      getSpaceRootPath: () => tempDir,
+      getFs: () => fs,
+    });
+
+    // Give time to ensure base structure exists
+    await wait(300);
+
+    // Create chat tree
+    const appTree = ChatAppData.createNewChatTree(space, 'test-config');
+    const chatData = new ChatAppData(space, appTree);
+
+    // Build UI-like attachment
+    const imageAttachment: AttachmentPreview = {
+      id: 'img1',
+      kind: 'image',
+      name: 'pixel.png',
+      mimeType: 'image/png',
+      size: 68,
+      dataUrl: makePngDataUrl(),
+    };
+
+    // Set up observation before creating the message
+    let observedVertices: any[] = [];
+    const unsubscribe = chatData.observeNewMessages((vertices) => {
+      observedVertices = vertices;
+    });
+
+    // Create a message with only attachments (empty text)
+    const msg = await chatData.newMessage('user', '', undefined, [imageAttachment]);
+
+    // Wait a bit for the observation to trigger
+    await wait(100);
+
+    // Verify that the message was observed
+    expect(observedVertices.length).toBe(1);
+    const observedVertex = observedVertices[0];
+    expect(observedVertex.id).toBe(msg.id);
+    expect(observedVertex.getProperty('text')).toBe('');
+    expect(observedVertex.getProperty('files')).toBeDefined();
+    expect(Array.isArray(observedVertex.getProperty('files'))).toBe(true);
+    expect(observedVertex.getProperty('files').length).toBe(1);
+
+    unsubscribe();
+  });
 });
 
 

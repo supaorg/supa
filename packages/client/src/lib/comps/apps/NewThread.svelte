@@ -21,7 +21,8 @@
   const placeholder = "Write a message...";
 
   function handleSend(msg: string, attachments?: AttachmentPreview[]) {
-    if (!msg) {
+    // Allow sending if there's either text content or attachments
+    if (!msg && (!attachments || attachments.length === 0)) {
       return;
     }
 
