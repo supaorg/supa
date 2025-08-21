@@ -556,11 +556,15 @@
         <!-- Bottom toolbar -->
         <div class="flex items-center justify-between p-2 text-sm">
           <div class="flex items-center gap-2">
+            {#if showConfigSelector}
+              <AppConfigDropdown {configId} onChange={handleConfigChange} highlighted={isTextareaFocused} />
+            {/if}
+
             {#if attachEnabled}
               <ContextMenu open={attachmentsMenuOpen} onOpenChange={(e: { open: boolean }) => attachmentsMenuOpen = e.open} placement="top" maxWidth="280px">
                 {#snippet trigger()}
                   <button 
-                    class="flex items-center justify-center h-9 w-9 rounded-container transition-colors preset-outlined-surface-200-800" 
+                    class="flex items-center justify-center h-9 w-9 transition-colors" 
                     aria-label="Add attachments (or paste files)" 
                     {disabled}
                   >
@@ -581,16 +585,12 @@
               </ContextMenu>
               <input type="file" accept="image/*,.txt,.md,.json,.csv,.js,.ts,.py,.java,.c,.cpp,.h,.cs,.php,.rb,.go,.rs,.swift,.kt,.scala,.sh,.bat,.ps1,.yml,.yaml,.toml,.ini,.cfg,.conf,.xml,.html,.css,.log,.tsv" multiple class="hidden" bind:this={fileInputEl} onchange={onFilesSelected} />
             {/if}
-
-            {#if showConfigSelector}
-              <AppConfigDropdown {configId} onChange={handleConfigChange} highlighted={isTextareaFocused} />
-            {/if}
           </div>
           <div class="flex items-center gap-2">
             {#if status === "ai-message-in-progress"}
               <button
                 onclick={stopMsg}
-                class="flex items-center justify-center h-9 w-9 rounded-container transition-colors preset-outlined-surface-200-800"
+                class="flex items-center justify-center h-9 w-9 transition-colors"
                 aria-label={$txtStore.messageForm.stop}
               >
                 <StopCircle size={20} />
@@ -598,9 +598,7 @@
             {:else}
               <button
                 onclick={sendMsg}
-                class="flex items-center justify-center h-9 w-9 rounded-container transition-colors"
-                class:preset-outlined-primary-500={canSendMessage}
-                class:preset-outlined-surface-200-800={!canSendMessage}
+                class="flex items-center justify-center h-9 w-9 transition-colors"
                 class:opacity-50={!canSendMessage}
                 disabled={!canSendMessage}
                 aria-label={$txtStore.messageForm.send}
